@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "marmot.proto.process";
+
+package marmot.optor.proto;
+
+import public "marmot.proto";
+
+message E2SFCAParametersProto {
+	string input_dataset = 1;
+	string param_dataset = 2;
+	string output_dataset = 3;
+	string input_features = 4;
+	string param_features = 5;
+	string output_features = 6;
+	string tagged_columns = 7;
+	double radius = 8;
+	string distance_decay_func = 9;
+}
+message E2SFCAStep1Proto {
+	string param_geomemtry_column = 1;
+	string input_dataset = 2;
+	string input_feature_columns = 3;
+	string param_feature_columns = 4;
+	double radius = 5;
+	string distance_decay_function = 6;
+}
+message E2SFCAStep2Proto {
+	string input_geomemtry_column = 1;
+	string intermediate_dataset = 2;
+	string input_feature_columns = 3;
+	string output_feature_columns = 4;
+	string tagged_columns = 5;
+	double radius = 6;
+	string distance_decay_function = 7;
+}

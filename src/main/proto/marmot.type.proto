@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "marmot.proto";
+
+package marmot.proto;
+
+message VoidProto { }
+
+message BoolProto {
+	bool value = 1;
+}
+
+message StringProto {
+	string value = 1;
+}
+
+enum TypeCodeProto {
+	BYTE = 0;
+	SHORT = 1;
+	INT = 2;
+	LONG = 3;
+	FLOAT = 4;
+	DOUBLE = 5;
+	BOOLEAN = 6;
+	STRING = 7;
+	BINARY = 8;
+	TYPED = 9;
+	DATETIME = 14;
+	DATE = 15;
+	TIME = 16;
+	DURATION = 17;
+	INTERVAL = 18;
+	ENVELOPE = 24;
+	TILE = 25;
+	GRID_CELL = 26;
+	POINT = 31;
+	MULTI_POINT = 32;
+	LINESTRING = 33;
+	MULTI_LINESTRING = 34;
+	POLYGON = 35;
+	MULTI_POLYGON = 36;
+	GEOM_COLLECTION = 37;
+	GEOMETRY = 38;
+	TRAJECTORY = 44;
+}
+
+message Size2iProto {
+	int32 width = 1;
+	int32 height = 2;
+}
+
+message Size2dProto {
+	double width = 1;
+	double height = 2;
+}
+
+message CoordinateProto {
+	double x = 1;
+	double y = 2;
+}
+
+message EnvelopeProto {
+	CoordinateProto tl = 1;
+	CoordinateProto br = 2;
+}
+
+message GridCellProto {
+	sint32 x = 1;
+	sint32 y = 2;
+}
+
+message MapTileProto {
+	sint32 zoom = 1;
+	sint32 x = 2;
+	sint32 y = 3;
+}
+
+message PointProto {
+	bool is_empty = 1;
+	double x = 2;
+	double y = 3;
+}
+
+message GeometryProto {
+	message EmptyGeometryProto {
+		// 공간 정보가 empty인 경우는 공간 타입 정보를 따로
+		// 알아낼 수 없기 때문에 공간 타입 정보를 포함시킴.
+		TypeCodeProto type_code = 1;
+	}
+	message NonEmptyGeometryProto {
+		// 공간 정보가 너무 큰 경우, gRPC에서 오류가 발생할 수 있기 때문에
+		// 일정크기 이상인 경우는 압축하기 때문에, 압축여부를 포함.
+		bool is_compressed = 2;
+		bytes wkb = 3;	// 공간정보는 WKB를 사용한다. 압축된 경우는 압축된 WKB가 기록됨
+	}
+	
+	oneof either {
+		EmptyGeometryProto empty_geom = 1;			// 공간정보가 empty 인 경우.
+		NonEmptyGeometryProto non_empty_geom = 2;	// 공간정보가 empty가 아닌 경우.
+	}
+}
+
+message IntervalProto {
+	int64 start = 1;
+	int64 end = 2;
+}
+
+message TrajectoryProto {
+	message SampleProto {
+		string depart_port = 1;
+		double x = 2;
+		double y = 3;
+		int64 ts = 4;
+	}
+	repeated SampleProto sample = 1;
+}
+
+message ValueProto {
+	oneof value {
+		sint32 byte_value = 1; 
+		sint32 short_value = 2; 
+		sint32 int_value = 3; 
+		sint64 long_value = 4; 
+		float float_value = 5; 
+		double double_value = 6; 
+		bool bool_value = 7; 
+		string string_value = 8; 
+		bytes binary_value = 9; 
+		sint64 datetime_value = 51; 		// epcho time
+		sint64 date_value = 52; 			// epcho time
+		string time_value = 53; 			// ISO-8601 format 문자열
+		sint64 duration_value = 54; 		// unsupported now
+		IntervalProto interval_value = 55; 
+		EnvelopeProto envelope_value = 101; 
+		MapTileProto tile_value = 102; 
+		GridCellProto grid_cell_value = 103; 
+		GeometryProto geometry_value = 201; 
+		PointProto point_value = 202;
+		TrajectoryProto trajectory_value = 301;
+		TypeCodeProto null_value = 999;
+		bytes compressed_string_value = 1000;	// gzip 방식으로 압축된 문자열
+		bytes compressed_binary_value = 1001;	// gzip 방식으로 압축된 binary
+	}
+}
+
+message PropertiesProto {
+	message PropertyProto {
+		string key = 1;
+		string value = 2;
+	}
+	repeated PropertyProto property = 1;
+}
+
+message KeyValueMapProto {
+	message KeyValueProto {
+		string key = 1;
+		ValueProto value = 2;
+	}
+	repeated KeyValueProto key_value = 1;
+}

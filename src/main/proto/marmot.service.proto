@@ -1,0 +1,119 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "marmot.proto.service";
+
+package marmot.proto.service;
+
+import public "marmot.proto";
+
+
+/////////////////////////////////////////////////////////////////
+// Error codes
+/////////////////////////////////////////////////////////////////
+enum MarmotErrorCode {
+	ERROR_DATASET_NOT_FOUND = 0;
+	ERROR_DATASET_EXISTS = 1;
+	
+	ERROR_RECORD_SET_CLOSED = 10;
+	ERROR_RECORD_SET_ERROR = 11;
+	
+	ERROR_COLUMN_NOT_FOUND = 20;
+	
+	ERROR_PLAN_EXECUTION_INTERRUPTED = 101;
+	ERROR_PLAN_EXECUTION_CANCELLED = 102;
+	ERROR_PLAN_EXECUTION_FAILED = 103;
+	ERROR_PLAN_EXECUTION_TIMED_OUT = 104;
+	ERROR_OPERATOR = 110;
+	
+	ERROR_NULL_POINTER = 900;
+	ERROR_INVALID_ARGUMENT = 901;
+	ERROR_CANCELLED = 999;
+	ERROR_INTERNAL_ERROR = 1000;
+}
+
+message ErrorProto {
+	MarmotErrorCode code = 1;
+	oneof optional_details {
+		string details = 2;
+	}
+}
+
+
+/////////////////////////////////////////////////////////////////
+// Data type protos
+/////////////////////////////////////////////////////////////////
+message EndpointProto {
+	string host = 1;
+	int32 port = 2;
+}
+
+
+/////////////////////////////////////////////////////////////////
+// Basic request & response protos
+/////////////////////////////////////////////////////////////////
+message VoidResponse {
+	oneof either {
+		marmot.proto.VoidProto void = 1;
+		ErrorProto error = 2;
+	}
+}
+message LongResponse {
+	oneof either {
+		int64 value = 1;
+		ErrorProto error = 2;
+	}
+}
+message BoolResponse {
+	oneof either {
+		bool value = 1;
+		ErrorProto error = 2;
+	}
+}
+message StringResponse {
+	oneof either {
+		string value = 1;
+		ErrorProto error = 2;
+	}
+}
+message StringListResponse {
+	message ListProto {
+		repeated string value = 1;
+	}
+	oneof either {
+		ErrorProto error = 1;
+		ListProto list = 2;
+	}
+}
+message ValueResponse {
+	oneof either {
+		marmot.proto.ValueProto value = 1;
+		ErrorProto error = 2;
+	}
+}
+message RecordSchemaResponse {
+	oneof either {
+		marmot.proto.RecordSchemaProto record_schema = 1;
+		ErrorProto error = 2;
+	}
+}
+message RecordResponse {
+	oneof either {
+		marmot.proto.RecordProto record = 1;
+		ErrorProto error = 2;
+	}
+}
+message RecordSetRefProto {
+	string id = 1;
+	marmot.proto.RecordSchemaProto record_schema = 2;
+}
+message RecordSetRefResponse {
+	oneof either {
+		RecordSetRefProto rset_ref = 1;
+		ErrorProto error = 2;
+	}
+}
+
+message RecordSetProto {
+	repeated RecordProto record = 1;
+}

@@ -1,0 +1,897 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "marmot.proto.optor";
+
+package marmot.proto.optor;
+
+import public "marmot.proto";
+
+
+message LoadTextFileProto {
+	int32 split_count_per_block = 1;
+	oneof optional_comment_prefix {
+		string comment_prefix = 2;
+	}
+	repeated string paths = 3;
+}
+
+message LoadMarmotFileProto {
+	int32 split_count_per_block = 1;
+	repeated string paths = 2;
+}
+
+message LoadCsvFileProto {
+	int32 split_count_per_block = 1;
+	string path = 2;
+}
+message LoadCustomTextFileProto {
+	int32 split_count_per_block = 1;
+	string path = 2;
+}
+
+message LoadOptionsProto {
+	oneof optional_split_count_per_block {
+		int32 split_count_per_block = 1;
+	}
+}
+
+message LoadDataSetProto {
+	string name = 1;
+	oneof optional_options {
+		LoadOptionsProto options = 2;
+	}
+}
+
+message QueryDataSetProto {
+	string name = 1;
+	string spatial_relation = 2;
+	GeometryProto key = 3;
+}
+
+message LoadJdbcTableProto {
+	message OptionsProto {
+		oneof optional_columns_expr {
+			string columns_expr = 1;
+		}
+		oneof optional_mapper_count {
+			int32 mapper_count = 2;
+		}
+	}
+	
+	string jdbc_url = 1;
+	string user = 2;
+	string passwd = 3;
+	string driver_class_name = 4;
+	string tableName = 5;
+	oneof optional_options {
+		OptionsProto options = 6;
+	}
+}
+
+message StoreAsHeapfileProto {
+	string path = 1;
+	oneof optional_block_size {
+		int64 block_size = 2;
+	}
+	PropertiesProto metadata = 3;
+}
+
+message TeeProto {
+	string path = 1;
+	oneof optional_block_size {
+		int64 block_size = 2;
+	}
+	PropertiesProto metadata = 3;
+}
+
+message StoreAsCsvProto {
+	string path = 1;
+	string delimiter = 2;
+	oneof optional_block_size {
+		int64 block_size = 3;
+	}
+}
+
+message StoreIntoDataSetProto {
+	string id = 1;
+}
+
+message StoreIntoJdbcTableProto {
+	string jdbc_url = 1;
+	string user = 2;
+	string passwd = 3;
+	string driver_class_name = 4;
+	string tableName = 5;
+	oneof optional_values_expr {
+		string values_expr = 6;
+	}
+}
+
+message StoreIntoKafkaTopicProto {
+	string topic = 1;
+}
+
+//
+// Basic operators
+//
+message RecordScriptProto {
+	oneof optional_initializer {
+		string initializer = 1;
+	}
+	string expr = 2;
+	oneof optional_arguments {
+		KeyValueMapProto arguments = 3;
+	}
+	repeated string imported_class = 4;
+}
+
+message FilterProto {
+	marmot.proto.SerializedProto record_predicate = 1;
+}
+message ScriptFilterProto {
+	RecordScriptProto predicate = 1;
+}
+
+//
+//	Basic transform operators
+//
+message FlatTransformProto {
+	marmot.proto.SerializedProto record_flat_transform = 1;
+}
+message ScriptTransformProto {
+	string output_schema_expr = 1;
+	RecordScriptProto script = 2;
+}
+message UpdateProto {
+	RecordScriptProto script = 1;
+}
+message ExpandProto {
+	repeated ColumnProto column = 1;
+	oneof optional_initializer {
+		RecordScriptProto initializer = 2;
+	}
+}
+message Expand1Proto {
+	string column_name = 1;
+	marmot.proto.TypeCodeProto column_type = 2;
+	oneof optional_init_value {
+		RecordScriptProto init_value = 3;
+	}
+}
+message ParseCsvProto {
+	message OptionsProto {
+		oneof optional_quote {
+			string quote = 2;
+		}
+		oneof optional_escape {
+			string escape = 3;
+		}
+		oneof optional_null_string {
+			string null_string = 4;
+		}
+		oneof optional_trim_field {
+			bool trim_field = 5;
+		}
+		oneof optional_throw_parse_error {
+			bool throw_parse_error = 6;
+		}
+		oneof optional_comment_marker {
+			string comment_marker = 7;
+		}
+		repeated string header_column = 1;
+	}
+	
+	string delimiter = 1;
+	oneof optional_options {
+		OptionsProto options = 2;
+	}
+}
+
+
+message ProjectProto {
+	string column_expr = 1;
+}
+message TakeProto {
+	int64 count = 1;
+}
+message DropProto {
+	int64 count = 1;
+}
+message NopProto { }
+message PickTopKProto {
+	int32 top_k = 1;
+	string sort_key_columns = 2;
+}
+message SortProto {
+	marmot.proto.MultiColumnKeyProto sort_columns = 1;
+}
+message RankProto {
+	string sort_key_columns = 1;
+	oneof optional_rank_column {
+		string rank_column = 2;
+	}
+}
+message AssignUidProto {
+	string uid_column = 1;
+}
+message SampleProto {
+	double sample_ratio = 1;
+}
+message ClusterChroniclesProto {
+	string input_column = 1;
+	string output_column = 2;
+	string threshold = 3;	// eg) 500, 5s, 10m, 1h
+}
+message DistinctProto {
+	string key_columns = 1;
+	oneof optional_worker_count {
+		int32 worker_count = 2;
+	}
+}
+
+message ShardProto {
+	int32 part_count = 1;
+}
+message StoreAndReloadProto {
+	int32 split_count_per_block = 1;
+}
+
+message ValueAggregateProto {
+	enum AggrTypeProto {
+		COUNT = 0;
+		MAX = 1;
+		MIN = 2;
+		SUM = 3;
+		AVG = 4;
+		STDDEV = 5;
+		
+		CONVEX_HULL = 101;
+		ENVELOPE = 102;
+		GEOM_UNION = 103;
+		
+		CONCAT_STR = 201;
+	}
+	
+	AggrTypeProto type = 1;
+	string input_column = 2;	// "" for null
+	oneof optional_output_column {
+		string output_column = 3;
+	}
+	repeated string parameter = 4;
+}
+message ValueAggregateReducerProto {
+	repeated ValueAggregateProto aggregate = 1;
+}
+message FindFirstReducerProto { }
+message PutSideBySideProto {
+	marmot.proto.RecordSchemaProto output_schema = 1;
+	string value_column = 2;
+	string tag_column = 3;
+}
+message FindMaxValueRecordProto {
+	marmot.proto.MultiColumnKeyProto compare_key_columns = 1;
+}
+
+message ReduceProto {
+	marmot.proto.SerializedProto reducer = 1;
+}
+
+message TransformByGroupProto {
+	GroupByKeyProto grouper = 1;
+	oneof optional_function {
+		marmot.proto.SerializedProto function = 2;	// RecordSetFunction
+	}
+}
+message ConsumeByGroupProto {
+	GroupByKeyProto grouper = 1;
+	marmot.proto.SerializedProto consumer = 2;	// RecordSetConsumer
+}
+message StoreKeyedDataSetProto {
+	string root_path = 1;
+	oneof optional_geometry_info {
+		GeometryColumnInfoProto geometry_info = 2;
+	}
+	oneof optional_block_size {
+		int64 block_size = 3;
+	}
+	marmot.proto.PropertiesProto metadata = 4;
+}
+
+message ScriptRecordSetReducerProto {
+	marmot.proto.RecordSchemaProto output_schema = 1;
+	marmot.proto.RecordSchemaProto intermediate_schema = 2;
+	string producer_expr = 3;
+	oneof optional_combiner_initialize_expr {
+		string combiner_initialize_expr = 4;
+	}
+	string combiner_expr = 5;
+	string finalizer_expr = 6;
+}
+message ScriptRecordSetCombinerProto {
+	oneof optional_initialize_expr {
+		string initialize_expr = 1;
+	}
+	string combiner_expr = 2;
+}
+
+message GroupByKeyProto {
+	marmot.proto.MultiColumnKeyProto key_columns = 1;
+	marmot.proto.MultiColumnKeyProto tagged_key_columns = 2;
+	marmot.proto.MultiColumnKeyProto order_by_key_columns = 3;
+	oneof optional_group_worker_count {
+		int32 group_worker_count = 4;
+	}
+}
+message PlanBasedRecordSetFunctionProto {
+	PlanProto plan = 1;
+}
+
+
+
+enum JoinTypeProto {
+	INNER_JOIN = 0;
+	LEFT_OUTER_JOIN = 1;
+	RIGHT_OUTER_JOIN = 2;
+	FULL_OUTER_JOIN = 3;
+	SEMI_JOIN = 4;
+}
+
+message JoinOptionsProto {
+	JoinTypeProto join_type = 1;
+	oneof optional_worker_count {
+		int32 worker_count = 2;
+	}
+}
+message EquiJoinProto {
+	marmot.proto.MultiColumnKeyProto join_columns = 1;
+	string param_dataset = 2;
+	marmot.proto.MultiColumnKeyProto param_columns = 3;
+	string output_columns_expr = 4;
+	JoinOptionsProto join_options = 5;
+}
+message JoinPartitionPairProto {
+	string left_prefix = 1;
+	marmot.proto.RecordSchemaProto left_schema = 2;
+	string right_prefix = 3;
+	marmot.proto.RecordSchemaProto right_schema = 4;
+	string output_columns_expr = 5;
+	JoinTypeProto join_type = 6;
+}
+message InnerJoinAtMapSideProto {
+	marmot.proto.MultiColumnKeyProto join_columns = 1;
+	string param_dataset = 2;
+	marmot.proto.MultiColumnKeyProto param_columns = 3;
+	string output_columns_expr = 4;
+}
+message LoadEquiJoinProto {
+	string left_dataset = 1;
+	marmot.proto.MultiColumnKeyProto left_join_columns = 2;
+	string right_dataset = 3;
+	marmot.proto.MultiColumnKeyProto right_join_columns = 4;
+	string output_columns_expr = 5;
+	JoinOptionsProto join_options = 6;
+}
+
+//
+// spatial joins
+//
+message SpatialJoinOptionsProto {
+	oneof optional_join_expr {
+		string join_expr = 1;
+	}
+	oneof optional_cluster_outer_records {
+		bool cluster_outer_records = 2;
+	}
+	oneof optional_negated {
+		bool negated = 3;
+	}
+	oneof optional_top_k {
+		int32 top_k = 4;
+	}
+}
+message SpatialBlockJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	oneof optional_output_columns {
+		string output_columns = 3;
+	}
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 4;
+	}
+}
+message SpatialSemiJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 3;
+	}
+}
+message SpatialOuterJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	oneof optional_output_columns {
+		string output_columns = 3;
+	}
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 4;
+	}
+}
+message SpatialKnnInnerJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	int32 top_k = 3;
+	double radius = 4;
+	oneof optional_output_columns {
+		string output_columns = 5;
+	}
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 6;
+	}
+}
+message SpatialKnnOuterJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	int32 top_k = 3;
+	double radius = 4;
+	oneof optional_output_columns {
+		string output_columns = 5;
+	}
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 6;
+	}
+}
+message SpatialClipJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 3;
+	}
+}
+message SpatialIntersectionJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	oneof optional_output_columns {
+		string output_columns = 3;
+	}
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 4;
+	}
+}
+message SpatialDifferenceJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 4;
+	}
+}
+message SpatialReduceJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	ValueAggregateReducerProto reducer = 3;
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 4;
+	}
+}
+message ArcGisSpatialJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	bool include_param_data = 3;
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 4;
+	}
+}
+message EstimateIDWProto {
+	message EstimateIDWOptionsProto {
+		oneof optional_power {
+			double power = 2;
+		}
+	}
+
+	string geom_column = 1;
+	string param_dataset = 2;
+	string value_column = 3;
+	int32 top_k = 4;
+	double radius = 5;
+	string output_density_column = 6;
+	
+	oneof optional_options {
+		EstimateIDWOptionsProto options = 7;
+	}
+}
+message EstimateKernelDensityProto {
+	string geom_column = 1;
+	string dataset = 2;
+	string value_column = 3;
+	double radius = 4;
+	string density_column = 5;
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 6;
+	}
+}
+
+
+
+
+message NestedLoopSpatialJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	string spatial_relation = 3;
+	marmot.proto.SerializedProto match_rset_factory = 4;
+}
+message IntersectionJoinProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	string output_columns_expr = 3;
+}
+
+message LoadSpatialIndexJoinProto {
+	string left_dataset = 1;
+	string right_dataset = 2;
+	string join_expr = 3;
+	string output_columns_expr = 4;
+}
+
+message DissolveProto {
+	marmot.proto.MultiColumnKeyProto key_columns = 1;
+	string geometry_column = 2;
+	oneof optional_group_worker_count {
+		int32 group_worker_count = 3;
+	}
+}
+
+
+//
+//	Basic spatial relation operators
+//
+
+message PredicateOptionsProto {
+	oneof optional_negated {
+		bool negated = 1;
+	}
+}
+message DropEmptyGeometryProto {
+	string geometry_column = 1;
+	oneof optional_options {
+		PredicateOptionsProto options = 2;
+	}
+}
+message UnarySpatialIntersectsProto {
+	string geometry_column = 1;
+	bytes key = 2;
+	oneof optional_options {
+		PredicateOptionsProto options = 3;
+	}
+}
+message BinarySpatialIntersectsProto {
+	string left_geometry_column = 1;
+	string right_geometry_column = 2;
+	oneof optional_options {
+		PredicateOptionsProto options = 3;
+	}
+}
+message WithinDistanceProto {
+	string geometry_column = 1;
+	bytes key = 2;
+	double distance = 3;
+	oneof optional_options {
+		PredicateOptionsProto options = 4;
+	}
+}
+
+//
+//	Basic geometry transform operators
+//
+
+message ToGeometryPointProto {
+	string x_column = 1;
+	string y_column = 2;
+	string out_column = 3;
+}
+message CentroidTransformProto {
+	message OptionsProto {
+		oneof optional_out_geom_col {
+			string out_geom_col = 1;
+		}
+		oneof optional_ignore_failure {
+			bool ignore_failure = 2;
+		}
+	}
+	string geometry_column = 1;
+	oneof optional_options {
+		GeomOpOptionsProto options = 2;
+	}
+}
+message BufferTransformProto {
+	message OptionsProto {
+		oneof optional_segment_count {
+			int32 segment_count = 1;
+		}
+	}
+	string geometry_column = 1;
+	double distance = 2;
+	oneof optional_options {
+		GeomOpOptionsProto options = 3;
+	}
+	oneof optional_buffer_options {
+		OptionsProto buffer_options = 4;
+	}
+}
+message UnarySpatialIntersectionProto {
+	string geometry_column = 1;
+	bytes key = 2;
+	oneof optional_options {
+		GeomOpOptionsProto options = 3;
+	}
+}
+message BinarySpatialIntersectionProto {
+	string left_geometry_column = 1;
+	string right_geometry_column = 2;
+	string out_geometry_column = 3;
+	oneof optional_out_geometry_type {
+		marmot.proto.TypeCodeProto out_geometry_type = 4;
+	}
+}
+message GeomOpOptionsProto {
+	oneof optional_out_geom_col {
+		string out_geom_col = 1;
+	}
+	oneof optional_skip_error {
+		bool skip_error = 2;
+	}
+}
+message TransformCrsProto {
+	string geometry_column = 1;
+	string source_srid = 2;
+	string target_srid = 3;
+	oneof optional_options {
+		GeomOpOptionsProto options = 4;
+	}
+}
+message AttachGeoHashProto {
+	string geometry_column = 1;
+	string hash_column = 2;
+	bool as_long = 3;
+	oneof optional_hash_length {
+		int32 hash_length = 4;
+	}
+}
+message AttachQuadKeyProto {
+	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
+	string quad_key_source = 2;
+	bool bind_outlier = 3;
+	bool bind_once = 4;
+}
+message ReduceGeometryPrecisionProto {
+	string geometry_column = 1;
+	int32 precision_factor = 2;
+	oneof optional_options {
+		GeomOpOptionsProto options = 3;
+	}
+}
+message SplitGeometryProto {
+	string geometry_column = 1;
+}
+message CascadeGeometryProto {
+	string geometry_column = 1;
+	string output_geometry_column = 2;
+	int32 count = 3;
+	int32 skip = 4;
+}
+
+
+
+message LoadSpatialClusterIndexFileProto {
+	string dataset = 1;
+}
+
+message SquareGridProto {
+	oneof grid_bounds {
+		string dataset = 1;
+		marmot.proto.EnvelopeProto bounds = 2;
+	}
+	marmot.proto.Size2dProto cell_size = 3;
+}
+
+message LoadSquareGridFileProto {
+	SquareGridProto grid = 1;
+	oneof optional_options {
+		LoadOptionsProto options = 2;
+	}
+	int32 worker_count = 5;
+}
+
+message LoadHexagonGridFileProto {
+	message GridBoundsProto {
+		marmot.proto.EnvelopeProto bounds = 1;
+		string srid = 2;
+	}
+	
+	int32 split_count_per_block = 1;
+	oneof grid_bounds {
+		string dataset = 2;
+		GridBoundsProto bounds = 3;
+	}
+	double side_length = 4;
+	oneof part_size {
+		marmot.proto.Size2iProto part_dim = 5;
+		int32 part_count = 6;
+	}
+}
+
+message AssignSquareGridCellProto {
+	SquareGridProto grid = 1;
+	string geometry_column = 2;
+	bool ignore_outside = 3;
+}
+
+message FlattenGeometryProto {
+	string geometry_column = 1;
+	marmot.proto.TypeCodeProto out_geometry_type = 2;
+}
+message BreakLineStringProto {
+	string geometry_column = 1;
+}
+message ValidateGeometryProto {
+	string geometry_column = 1;
+}
+
+message LookupPostalAddressProto {
+	string address_column = 1;
+	string address_info_column = 2;
+}
+
+
+//
+// advance geometry operators
+//
+enum LISAWeightProto {
+	FIXED_DISTANCE_BAND = 0;
+	INVERSE_DISTANCE = 1;
+	INVERSE_DISTANCE_SQUARED = 2;
+}
+message LoadLocalMoransIProto {
+	string dataset = 1;
+	string value_column = 2;
+	string id_column = 3;
+	double radius = 4;
+	LISAWeightProto weight_type = 5;
+}
+message LoadGetisOrdGiProto {
+	string dataset = 1;
+	string value_column = 2;
+	double radius = 3;
+	LISAWeightProto weight_type = 4;
+}
+
+
+//
+// Graph Algorithms
+//
+message ExpandNodeCoverageProto {
+	oneof optional_worker_count {
+		int32 worker_count = 1;
+	}
+}
+message HopALinkProto { }
+message CombineNodesProto { }
+
+
+//
+//
+//
+
+message OperatorProto {
+	oneof operator {
+		LoadTextFileProto load_textfile = 1;
+		LoadMarmotFileProto load_marmotfile = 2;
+		LoadDataSetProto load_dataset = 3;
+		LoadCsvFileProto load_csvfile = 4;
+		LoadCustomTextFileProto load_custom_textfile = 5;
+		LoadJdbcTableProto load_jdbc_table = 6;
+		LoadSquareGridFileProto load_square_gridfile = 7;
+		LoadHexagonGridFileProto load_hexagon_gridfile = 8;
+		QueryDataSetProto query_dataset = 9;
+		
+		StoreAsHeapfileProto store_as_heapfile = 51;
+		StoreAsCsvProto store_as_csv = 52;
+		StoreIntoDataSetProto store_into_dataset = 53;
+		StoreIntoJdbcTableProto store_into_jdbc_table = 54;
+		StoreIntoKafkaTopicProto store_into_kafka_topic = 55;
+		TeeProto tee = 56;
+		
+		ProjectProto project = 102;
+		TakeProto take = 104;
+		DropProto drop = 105;
+		SortProto sort = 106;
+		RankProto rank = 107;
+		PickTopKProto pick_top_k = 108;
+		AssignUidProto assign_uid = 109;
+		SampleProto sample = 110;
+		ShardProto shard = 111;
+		StoreAndReloadProto store_and_reload = 112;
+		ClusterChroniclesProto cluster_chronicles = 113;
+		
+		// basic filter operators
+		ScriptFilterProto filter_script = 131;
+		
+		// basic transform operators
+		ScriptTransformProto transform_script = 152;
+		UpdateProto update = 153;
+		ExpandProto expand = 154;
+		Expand1Proto expand1 = 155;
+		ParseCsvProto parse_csv = 156;
+		
+		DistinctProto distinct = 201;
+		ReduceProto reduce = 202;
+		TransformByGroupProto transform_by_group = 203;
+		ConsumeByGroupProto consume_by_group = 204;
+		DissolveProto dissolve = 205;
+		
+		LoadEquiJoinProto load_equi_join = 301;
+		EquiJoinProto equi_join = 302;
+		
+		// basic geometry predicate operators
+		UnarySpatialIntersectsProto unary_spatial_intersects = 401;
+		BinarySpatialIntersectsProto binary_spatial_intersects = 402;
+		DropEmptyGeometryProto drop_empty_geometry = 403;
+		WithinDistanceProto within_distance = 404;
+		
+		// basic geometry transform operators
+		CentroidTransformProto centroid = 501;
+		BufferTransformProto buffer = 502;
+		UnarySpatialIntersectionProto unary_spatial_intersection = 503;
+		BinarySpatialIntersectionProto binary_spatial_intersection = 504;
+		TransformCrsProto transform_crs = 505;
+		ReduceGeometryPrecisionProto reduce_precision = 506;
+		FlattenGeometryProto flatten_geometry = 507;
+		BreakLineStringProto break_line = 508;
+		SplitGeometryProto split_geometry = 509;
+		ValidateGeometryProto validate_geometry = 510;
+		CascadeGeometryProto cascade_geometry = 511;
+		AttachQuadKeyProto attach_quad_key = 512;
+		AttachGeoHashProto attach_geohash = 513;
+		ToGeometryPointProto to_point = 514;
+		
+		// advanced geometry operators
+		AssignSquareGridCellProto assign_square_grid_cell = 601;
+		LoadLocalMoransIProto load_local_morans_i = 602;
+		LoadGetisOrdGiProto load_getis_ord_gi = 603;
+		LookupPostalAddressProto lookup_postal_address = 604;
+		EstimateIDWProto estimate_idw = 605;
+		EstimateKernelDensityProto estimate_kernel_density = 606;
+		
+		// graph algorithm operators
+		ExpandNodeCoverageProto expand_node_coverage = 650;
+		HopALinkProto hop_a_link = 651;
+		CombineNodesProto combine_nodes = 652;
+		
+		// spatial cluster/index and join operators
+		SpatialBlockJoinProto spatial_block_join = 701;
+		SpatialSemiJoinProto spatial_semi_join = 702;
+		SpatialOuterJoinProto spatial_outer_join = 703;
+		SpatialKnnInnerJoinProto spatial_knn_join = 704;
+		SpatialKnnOuterJoinProto spatial_knn_outer_join = 705;
+		SpatialClipJoinProto spatial_clip_join = 706;
+		SpatialIntersectionJoinProto spatial_intersection_join = 707;
+		SpatialDifferenceJoinProto spatial_difference_join = 708;
+		SpatialReduceJoinProto spatial_reduce_join = 709;
+		ArcGisSpatialJoinProto arcgis_join = 710;
+		
+		
+		LoadSpatialClusterIndexFileProto load_spatial_cluster_index_file = 771;
+		LoadSpatialIndexJoinProto load_spatial_index_join = 773;
+		
+		marmot.proto.SerializedProto serialized = 999;
+	}
+}
+
+enum PlanExecutionModeProto {
+	DEFAULT = 0;
+	MAP_REDUCE = 1;
+	LOCAL = 2;
+};
+message PlanProto {
+	string name = 1;
+	repeated OperatorProto operator = 3;
+}

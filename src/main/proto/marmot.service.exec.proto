@@ -1,0 +1,133 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "marmot.proto.service";
+
+package marmot.proto.service;
+
+import public "marmot.proto";
+import public "marmot.optor.proto";
+import public "marmot.service.proto";
+
+
+service PlanExecutionService {
+	rpc execute(ExecutePlanRequest) returns (VoidResponse);
+	rpc executeLocally(ExecutePlanRequest) returns (RecordSetRefResponse);
+	rpc executeToSingle(ExecutePlanRequest) returns (OptionalRecordResponse);
+	rpc executeToRecordSet(ExecutePlanRequest) returns (RecordSetRefResponse);
+	rpc executeToStream(GetStreamRequest) returns (RecordSetRefResponse);
+	
+	rpc getOutputRecordSchema(GetOutputRecordSchemaRequest) returns (RecordSchemaResponse);
+	
+	rpc executeProcess(ExecuteProcessRequest) returns (VoidResponse);
+	rpc getProcessRecordSchema(ExecuteProcessRequest) returns (RecordSchemaResponse);
+	
+	rpc executeModule(StringProto) returns (VoidResponse);
+	
+	rpc getMapOutputCompression(VoidProto) returns (BoolResponse);
+	rpc setMapOutputCompression(BoolProto) returns (BoolResponse);
+}
+
+service PlanExecutionListenerService {
+    rpc notifyStarted(StringProto) returns (VoidResponse);
+    rpc notifyCompleted(StringProto) returns (VoidResponse);
+    rpc notifyFailed(NotifyFailedRequest) returns (VoidResponse);
+    rpc notifyCancelled(StringProto) returns (VoidResponse);
+}
+
+enum PlanExecutionStateProto {
+	PLAN_NOT_STARTED = 0;
+	PLAN_RUNNING = 1;
+	PLAN_COMPLETED = 2;
+	PLAN_FAILED = 3;
+	PLAN_CANCELLED = 4;
+}
+
+message PlanExecutionListenerProto {
+	EndpointProto endpoint = 1;
+	string id = 2;
+}
+
+message CreatePlanExecutionRequest {
+	marmot.proto.optor.PlanProto plan = 1;
+	PlanExecutionListenerProto listener = 2;
+}
+
+message ExecutePlanOptionsProto {
+	oneof optional_disable_local_execution {
+		bool disable_local_execution = 1;
+	}
+}
+
+message OptionalRecordResponse {
+	oneof either {
+		RecordProto record = 1;
+		VoidProto none = 2;
+		ErrorProto error = 3;
+	}
+}
+
+message GetStreamRequest {
+	string id = 1;
+	marmot.proto.optor.PlanProto plan = 2;
+}
+
+message TimeoutProto {
+	int64 timeout = 1;
+	string time_unit = 2;
+}
+
+message ResultProto {
+	oneof either {
+		ValueProto value = 1;
+		ErrorProto failure = 2;
+		VoidProto none = 3;
+	}
+}
+
+message GetPlanResultRequest {
+	string id = 1;
+	oneof optional_timeout {
+		TimeoutProto timeout = 2;
+	}
+}
+
+message GetStateResponse {
+	oneof either {
+		PlanExecutionStateProto state = 1;
+		ErrorProto error = 2;
+	}
+}
+message GetResultResponse {
+	oneof either {
+		ResultProto result = 1;
+		ErrorProto error = 2;
+	}
+}
+
+message GetOutputRecordSchemaRequest {
+	marmot.proto.optor.PlanProto plan = 1;
+	oneof optional_input_schema {
+		RecordSchemaProto input_schema = 2;
+	}
+}
+
+message ExecutePlanRequest {
+	marmot.proto.optor.PlanProto plan = 1;
+	oneof optional_input_rset {
+		string input_rset_id = 2;
+	}
+	oneof optional_options {
+		ExecutePlanOptionsProto options = 3;
+	}
+}
+
+message ExecuteProcessRequest {
+	string process_id = 1;
+	PropertiesProto params = 2;
+}
+
+message NotifyFailedRequest {
+    string id = 1;
+    ErrorProto error = 2;
+}

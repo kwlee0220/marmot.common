@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "marmot.proto";
+
+import public "marmot.type.proto";
+
+package marmot.proto;
+
+
+message SerializedProto {
+	oneof method {
+		ProtoBufSerializedProto proto_buf = 1;
+		JavaSerializedProto java = 2;
+	}
+}
+message ProtoBufSerializedProto {
+	string proto_class = 1;
+	oneof optional_object_class {
+		string object_class = 2;
+	}
+	bytes serialized = 3;
+}
+message JavaSerializedProto {
+	bytes serialized = 2;
+}
+
+message GeometryColumnInfoProto {
+	string name = 1;
+	string srid = 2;
+}
+
+message ColumnProto {
+	string name = 1;
+	marmot.proto.TypeCodeProto type_code = 2;
+}
+message RecordSchemaProto {
+	repeated ColumnProto columns = 1;
+}
+
+enum SortOrderProto {
+	DESC = 0;
+	ASC = 1;
+	NONE = 2;
+}
+
+enum NullsOrderProto {
+	FIRST = 0;
+	LAST = 1;
+}
+
+message MultiColumnKeyProto {
+	message KeyColumnProto {
+		string column = 1;
+		SortOrderProto sort_order = 2;
+		NullsOrderProto nulls_order = 3;
+	}
+	
+	repeated KeyColumnProto column = 1;
+}
+
+message GroupKeyValueProto {
+	repeated ValueProto value = 1;
+}
+
+message SpatialIndexInfoProto {
+	string dataset = 1;
+	GeometryColumnInfoProto geometry_column = 2;
+	string hdfs_path = 3;
+}
+
+message RecordProto {
+	repeated ValueProto value = 1;
+}
