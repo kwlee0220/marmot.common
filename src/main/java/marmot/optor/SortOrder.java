@@ -30,4 +30,8 @@ public enum SortOrder {
 		
 		throw new AssertionError();
 	}
+	
+	public static SortOrder fromOrdinal(int ordinal) {
+		return values()[ordinal];
+	}
 }

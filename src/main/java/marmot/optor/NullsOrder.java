@@ -21,4 +21,8 @@ public enum NullsOrder {
 		
 		throw new AssertionError();
 	}
+	
+	public static NullsOrder fromOrdinal(int ordinal) {
+		return values()[ordinal];
+	}
 }
