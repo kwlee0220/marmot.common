@@ -125,6 +125,7 @@ import marmot.proto.optor.UpdateProto;
 import marmot.proto.optor.ValidateGeometryProto;
 import marmot.proto.optor.ValueAggregateReducerProto;
 import marmot.proto.optor.WithinDistanceProto;
+import marmot.proto.service.DataSetOptionsProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import marmot.type.DataType;
@@ -860,6 +861,17 @@ public class PlanBuilder {
 													.build());
 		}
 		
+		public PlanBuilder consume(SerializedProto consumer) {
+			ConsumeByGroupProto consume = ConsumeByGroupProto.newBuilder()
+															.setGrouper(groupByKey())
+															.setConsumer(consumer)
+															.build();
+			
+			return m_planBuilder.add(OperatorProto.newBuilder()
+													.setConsumeByGroup(consume)
+													.build());
+		}
+		
 		public PlanBuilder run(Plan plan) {
 			PlanBasedRecordSetFunctionProto func = PlanBasedRecordSetFunctionProto
 																.newBuilder()
@@ -936,37 +948,19 @@ public class PlanBuilder {
 			return apply(PBUtils.serialize(put));
 		}
 		
-		public PlanBuilder storeEachGroup(String rootPath, GeometryColumnInfo geomColInfo) {
-			StoreKeyedDataSetProto store
+		public PlanBuilder storeEachGroup(String rootPath, DataSetOption... opts) {
+			StoreKeyedDataSetProto.Builder builder
 							= StoreKeyedDataSetProto.newBuilder()
-													.setRootPath(rootPath)
-													.setGeometryInfo(geomColInfo.toProto())
-													.build();
-
-			ConsumeByGroupProto consume = ConsumeByGroupProto.newBuilder()
-															.setGrouper(groupByKey())
-															.setConsumer(PBUtils.serialize(store))
-															.build();
+													.setRootPath(rootPath);
+			if ( opts.length > 0 ) {
+				DataSetOptionsProto optsProto = DataSetOption.toProto(Arrays.asList(opts));
+				builder.setOptions(optsProto);
+			}
+			StoreKeyedDataSetProto store = builder.build();
 			
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setConsumeByGroup(consume)
-													.build());
+			return consume(PBUtils.serialize(store));
 		}
-	
-		public PlanBuilder storeEachGroup(String rootPath) {
-			StoreKeyedDataSetProto store = StoreKeyedDataSetProto.newBuilder()
-																.setRootPath(rootPath)
-																.build();
-
-			ConsumeByGroupProto consume = ConsumeByGroupProto.newBuilder()
-															.setGrouper(groupByKey())
-															.setConsumer(PBUtils.serialize(store))
-															.build();
-			
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setConsumeByGroup(consume)
-													.build());
-		}
+		
 		
 		private GroupByKeyProto groupByKey() {
 			GroupByKeyProto.Builder builder = GroupByKeyProto.newBuilder()
