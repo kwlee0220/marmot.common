@@ -98,28 +98,6 @@ message CreateDataSetRequest {
 	}
 }
 
-
-message DataSetOptionsProto {
-	oneof optional_geom_col_info {
-		marmot.proto.GeometryColumnInfoProto geom_col_info  = 1;
-	}
-	oneof optional_force {
-		bool force = 2;
-	}
-	oneof optional_append {
-		bool append = 3;
-	}
-	oneof optional_block_size {
-		int64 block_size = 4;
-	}
-	oneof optional_compress {
-		bool compress = 5;
-	}
-	oneof optional_metadata {
-		PropertiesProto metadata = 6;
-	}
-}
-
 message AppendRecordSetRequest {  
 	string id = 1;		// 업로드 대상 데이터세트 식별자
 	string rset_id = 2;	// 업로드할 레코드세트 식별자

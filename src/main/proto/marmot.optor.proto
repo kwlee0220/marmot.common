@@ -6,6 +6,7 @@ option java_package = "marmot.proto.optor";
 package marmot.proto.optor;
 
 import public "marmot.proto";
+import public "marmot.service.proto";
 
 
 message LoadTextFileProto {
@@ -289,13 +290,9 @@ message ConsumeByGroupProto {
 }
 message StoreKeyedDataSetProto {
 	string root_path = 1;
-	oneof optional_geometry_info {
-		GeometryColumnInfoProto geometry_info = 2;
+	oneof optional_options {
+		marmot.proto.service.DataSetOptionsProto options = 2;
 	}
-	oneof optional_block_size {
-		int64 block_size = 3;
-	}
-	marmot.proto.PropertiesProto metadata = 4;
 }
 
 message ScriptRecordSetReducerProto {
