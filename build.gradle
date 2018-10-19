@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'com.google.protobuf'
  
 group = 'etri'
-version = '5.10.15'
+version = '5.10.18'
 
 sourceCompatibility = JavaVersion.VERSION_1_8;
 [compileJava,compileTestJava]*.options*.encoding = 'UTF-8'
