@@ -53,7 +53,7 @@ public interface MarmotRuntime {
 	 * @param id 	변경시킬 데이터세트 식별자.
 	 * @param newId 변경될 데이터세트 식별자.
 	 */
-	public void renameDataSet(String id, String newId);
+	public void moveDataSet(String id, String newId);
 	
 	/**
 	 * 주어진 이름의 폴더에 저장된 모든 데이터세트를 반환한다.
