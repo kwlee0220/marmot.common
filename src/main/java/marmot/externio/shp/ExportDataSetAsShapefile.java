@@ -44,8 +44,8 @@ public class ExportDataSetAsShapefile extends ExportAsShapefile {
 							.map(Charset::forName)
 							.getOrElse(DEFAULT_CS);
 		Option<Integer> splitSize = cl.getOptionString("split_size")
-									.map(UnitUtils::parseByteSize)
-									.map(sz -> sz.intValue());
+										.map(UnitUtils::parseByteSize)
+										.map(sz -> sz.intValue());
 		boolean force = cl.hasOption("f");
 		Option<Long> interval = cl.getOptionLong("report_interval");
 		
@@ -55,8 +55,7 @@ public class ExportDataSetAsShapefile extends ExportAsShapefile {
 														.charset(charset);
 		splitSize.forEach(params::splitSize);
 		
-		ExportDataSetAsShapefile export
-							= new ExportDataSetAsShapefile(dsId, outputDir, params);
+		ExportDataSetAsShapefile export = new ExportDataSetAsShapefile(dsId, outputDir, params);
 		export.setForce(force);
 		interval.forEach(export::setProgressInterval);
 		
