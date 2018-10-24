@@ -56,7 +56,8 @@ public class ProtoBufActivator {
 		catch ( Throwable e ) {
 			String msg = proto.getClass().getSimpleName() + "{" + proto + "}";
 			Throwable cause = Throwables.unwrapThrowable(e);
-			throw new PBException("fails to activate object from proto=" + msg, cause);
+			throw new PBException("fails to activate object from proto=" + msg
+									+ ", cause=" + cause);
 		}
 	}
 }

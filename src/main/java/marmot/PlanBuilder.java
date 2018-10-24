@@ -1121,33 +1121,26 @@ public class PlanBuilder {
 //	 */
 //	public PlanBuilder pickTopRankK(String orderKeyColSpecs, int topK);
 	
-	public PlanBuilder loadEquiJoin(String leftDataSet, String leftJoinColsExpr,
-									String rightDataSet, String rightJoinColsExpr,
+	public PlanBuilder loadEquiJoin(String leftDataSet, String leftJoinCols,
+									String rightDataSet, String rightJoinCols,
 									String outputColumnExpr, JoinOptions opts) {
 		Objects.requireNonNull(leftDataSet,  "left dataset id is null");
 		Objects.requireNonNull(rightDataSet,  "right dataset id is null");
-		Objects.requireNonNull(leftJoinColsExpr,  "left join columns are null");
-		Objects.requireNonNull(rightJoinColsExpr,  "right join columns are null");
+		Objects.requireNonNull(leftJoinCols,  "left join columns are null");
+		Objects.requireNonNull(rightJoinCols,  "right join columns are null");
 		Objects.requireNonNull(outputColumnExpr, "output columns is null");
 		Objects.requireNonNull(opts, "JoinOptions is null");
-		
-		MultiColumnKey leftJoinCols = MultiColumnKey.fromString(leftJoinColsExpr);
-		MultiColumnKey rightJoinCols = MultiColumnKey.fromString(rightJoinColsExpr);
-		Preconditions.checkArgument(leftJoinCols.length() > 0, "empty left join columns");
-		Preconditions.checkArgument(rightJoinCols.length() > 0, "empty right join columns");
-		Preconditions.checkArgument(leftJoinCols.length() == rightJoinCols.length(),
-									"both join columns does not match");
 		
 		opts = (opts == null) ? new JoinOptions() : opts;
 		
 		LoadEquiJoinProto load = LoadEquiJoinProto.newBuilder()
-											.setLeftDataset(leftDataSet)
-											.setLeftJoinColumns(leftJoinCols.toProto())
-											.setRightDataset(rightDataSet)
-											.setRightJoinColumns(rightJoinCols.toProto())
-											.setOutputColumnsExpr(outputColumnExpr)
-											.setJoinOptions(opts.toProto())
-											.build();
+												.setLeftDataset(leftDataSet)
+												.setLeftJoinColumns(leftJoinCols)
+												.setRightDataset(rightDataSet)
+												.setRightJoinColumns(rightJoinCols)
+												.setOutputColumnsExpr(outputColumnExpr)
+												.setJoinOptions(opts.toProto())
+												.build();
 		return add(OperatorProto.newBuilder()
 								.setLoadEquiJoin(load)
 								.build());
@@ -1185,14 +1178,12 @@ public class PlanBuilder {
 		Objects.requireNonNull(paramJoinCols, "parameter join columns are null");
 		Objects.requireNonNull(outputColumnExpr, "output column expression is null");
 		
-		MultiColumnKey inJoinCols = MultiColumnKey.fromString(inputJoinCols);
-		MultiColumnKey paramJoinKey = MultiColumnKey.fromString(paramJoinCols);
 		opts = (opts == null) ? new JoinOptions() : opts;
 		
 		EquiJoinProto join = EquiJoinProto.newBuilder()
-										.setJoinColumns(inJoinCols.toProto())
+										.setJoinColumns(inputJoinCols)
 										.setParamDataset(paramDataSet)
-										.setParamColumns(paramJoinKey.toProto())
+										.setParamColumns(paramJoinCols)
 										.setOutputColumnsExpr(outputColumnExpr)
 										.setJoinOptions(opts.toProto())
 										.build();

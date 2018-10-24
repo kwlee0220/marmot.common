@@ -341,9 +341,9 @@ message JoinOptionsProto {
 	}
 }
 message EquiJoinProto {
-	marmot.proto.MultiColumnKeyProto join_columns = 1;
+	string join_columns = 1;
 	string param_dataset = 2;
-	marmot.proto.MultiColumnKeyProto param_columns = 3;
+	string param_columns = 3;
 	string output_columns_expr = 4;
 	JoinOptionsProto join_options = 5;
 }
@@ -356,16 +356,16 @@ message JoinPartitionPairProto {
 	JoinTypeProto join_type = 6;
 }
 message InnerJoinAtMapSideProto {
-	marmot.proto.MultiColumnKeyProto join_columns = 1;
+	string join_columns = 1;
 	string param_dataset = 2;
-	marmot.proto.MultiColumnKeyProto param_columns = 3;
+	string param_columns = 3;
 	string output_columns_expr = 4;
 }
 message LoadEquiJoinProto {
 	string left_dataset = 1;
-	marmot.proto.MultiColumnKeyProto left_join_columns = 2;
+	string left_join_columns = 2;
 	string right_dataset = 3;
-	marmot.proto.MultiColumnKeyProto right_join_columns = 4;
+	string right_join_columns = 4;
 	string output_columns_expr = 5;
 	JoinOptionsProto join_options = 6;
 }

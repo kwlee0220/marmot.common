@@ -177,6 +177,16 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		return builder.build();
 	}
+//	public RecordSchema project(String[] colNames) {
+//		Preconditions.checkArgument(colNames != null && colNames.length > 0);
+//		
+//		RecordSchema.Builder builder = RecordSchema.builder();
+//		for ( String colName: colNames ) {
+//			Column col = getColumn(colName);
+//			builder.addColumn(col.name(), col.type());
+//		}
+//		return builder.build();
+//	}
 
 	/**
 	 * 주어진 키에 포함되지 않은 컬럼 이름에 해당하는 레코드 스키마를 생성한다.
