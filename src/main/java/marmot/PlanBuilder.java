@@ -33,7 +33,6 @@ import marmot.plan.LoadJdbcTableOption;
 import marmot.plan.LoadOption;
 import marmot.plan.ParseCsvOption;
 import marmot.plan.PredicateOption;
-import marmot.plan.RecordScript;
 import marmot.plan.SpatialJoinOption;
 import marmot.proto.GeometryColumnInfoProto;
 import marmot.proto.MultiColumnKeyProto;

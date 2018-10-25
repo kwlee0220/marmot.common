@@ -1,0 +1,246 @@
+load(dsId) ::= <<
+{ "loadDataset": { "name": "<dsId>"} }
+>>
+
+filter(pred) ::= <<
+{ "filterScript": { "predicate": { "expr": "<pred>" } } }
+>>
+filter1(init, pred) ::= <<
+{
+  "filterScript": {
+    "predicate": {
+       <if(init)>"initializer": "<init>",<endif>
+       "expr": "<pred>"
+    }
+  }
+}
+>>
+
+project(cols_expr) ::= <<
+{ "project": { "columnExpr": "<cols_expr>" } }
+>>
+
+expand(col_name, col_type) ::= <<
+{ "expand1": { "columnName": "<col_name>", "columnType": "<col_type>" } }
+>>
+expand1(col_name, col_type, init) ::= <<
+{
+  "expand1": {
+    "columnName": "<col_name>",
+    "columnType": "<col_type>",
+    "initValue": { "expr": "<init>" }
+  }
+}
+>>
+
+parse_csv(header, delim, quote) ::= <<
+{
+  "parseCsv": {
+    "delimiter": <if(delim)>"<delim>"<else>","<endif>,
+    "options": {
+      "headerColumn": "<header>"<if(quote)>,
+      "quote": "<quote>"
+      <endif>
+    }
+  }
+}
+>>
+parse_csv1(header) ::= <<
+{
+  "parseCsv": {
+    "delimiter": ",",
+    "options": {
+      "headerColumn": "<header>"
+    }
+  }
+}
+>>
+parse_csv2(header,delim) ::= <<
+{
+  "parseCsv": {
+    "delimiter": "<delim>",
+    "options": {
+      "headerColumn": "<header>"
+    }
+  }
+}
+>>
+
+to_point(x, y) ::= <<
+{ "toPoint": { "xColumn": "<x>", "yColumn": "<y>", "outColumn": "the_geom" } }
+>>
+to_point1(x, y, out) ::= <<
+{ "toPoint": { "xColumn": "<x>", "yColumn": "<y>", "outColumn": "<out>" } }
+>>
+
+transform_crs(srcSrid, tarSrid) ::= <<
+{ "transformCrs": { "geometryColumn": "the_geom", "sourceSrid": "<srcSrid>", "targetSrid": "<tarSrid>" } }
+>>
+transform_crs1(geomCol, srcSrid, tarSrid) ::= <<
+{ "transformCrs": { "geometryColumn": "<geomCol>", "sourceSrid": "<srcSrid>", "targetSrid": "<tarSrid>" } }
+>>
+
+update(expr) ::= <<
+{ "update": { "script": { "expr": "<expr>" } } }
+>>
+update1(init, expr) ::= <<
+{
+  "update": {
+    "script": {
+       <if(init)>"initializer": "<init>",<endif>
+       "expr": "<expr>"
+    }
+  }
+}
+>>
+
+buffer(dist) ::= <<
+{ "buffer": { "geometryColumn": "the_geom", "distance": <dist>  } }
+>>
+buffer1(geom_col, dist) ::= <<
+{ "buffer": { "geometryColumn": "<geom_col>", "distance": <dist>  } }
+>>
+
+centroid() ::= <<
+{ "centroid": { "geometryColumn": "the_geom" } }
+>>
+centroid1(geom_col) ::= <<
+{ "centroid": { "geometryColumn": "<geom_col>" } }
+>>
+
+sample(ratio) ::= <<
+{ "sample": { "sampleRatio": <ratio> } }
+>>
+
+spatial_join(param_dsid, output_cols) ::= <<
+{ "spatialBlockJoin": {
+    "geomColumn": "the_geom",
+    "paramDataset": "<param_dsid>",
+    "outputColumns": "<output_cols>"
+  }
+}
+>>
+
+spatial_semijoin(param_dsid) ::= <<
+{ "spatialSemiJoin": {
+    "geomColumn": "the_geom",
+    "paramDataset": "<param_dsid>"
+  }
+}
+>>
+
+load_grid_dataset(dsid, width, height) ::= <<
+{
+  "loadSquareGridfile": {
+    "grid": {
+      "dataset": "<dsid>",
+      "cellSize": { "width": <width>, "height": <height> }
+    }
+  }
+}
+>>
+load_grid_dataset1(dsid, width, height, nparts) ::= <<
+{
+  "loadSquareGridfile": {
+    "grid": {
+      "dataset": "<dsid>",
+      "cellSize": { "width": <width>, "height": <height> }
+    },
+    "workerCount": <nparts>
+  }
+}
+>>
+load_grid_bounds(tlx, tly, brx, bry, width, height) ::= <<
+{
+  "loadSquareGridfile": {
+    "grid": {
+      "bounds": {
+        "tl": { "x": <tlx>, "y": <tly> },
+        "br": { "x": <brx>, "y": <bry> }
+      }
+      "cellSize": { "width": <width>, "height": <height> }
+    }
+  }
+}
+>>
+load_grid_bounds1(tlx, tly, brx, bry, width, height, nparts) ::= <<
+{
+  "loadSquareGridfile": {
+    "grid": {
+      "bounds": {
+        "tl": { "x": <tlx>, "y": <tly> },
+        "br": { "x": <brx>, "y": <bry> }
+      }
+      "cellSize": { "width": <width>, "height": <height> }
+    },
+    "workerCount": <nparts>
+  }
+}
+>>
+
+assign_gridcell(dsid, width, height) ::= <<
+{
+  "assignSquareGridCell": {
+    "grid": {
+      "dataset": "<dsid>",
+      "cellSize": { "width": <width>, "height": <height> }
+    },
+    "geometryColumn": "the_geom",
+    "ignoreOutside": true
+  }
+}
+>>
+assign_gridcell1(tlx, tly, brx, bry, width, height) ::= <<
+{
+  "assignSquareGridCell": {
+    "grid": {
+      "bounds": {
+        "tl": { "x": <tlx>, "y": <tly> },
+        "br": { "x": <brx>, "y": <bry> }
+      }
+      "cellSize": { "width": <width>, "height": <height> }
+    },
+    "geometryColumn": "the_geom",
+    "ignoreOutside": true
+  }
+}
+>>
+
+join(jcols, param_dsid, param_jcols, out_cols, jtype) ::= <<
+{
+  "equiJoin": {
+    "joinColumns": "<jcols>",
+    "paramDataset": "<param_dsid>",
+    "paramColumns": "<param_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": {
+      "joinType": "<jtype>"
+    }
+  }
+}
+>>
+join1(jcols, param_dsid, param_jcols, out_cols, jtype, nworkers) ::= <<
+{
+  "equiJoin": {
+    "joinColumns": "<jcols>",
+    "paramDataset": "<param_dsid>",
+    "paramColumns": "<param_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": {
+      "joinType": "<jtype>",
+      "workerCount": <nworkers>
+    }
+  }
+}
+>>
+
+group_by_aggregate(key_cols) ::= <<
+{
+  "transformByGroup": {
+  	"grouper": {
+      "keyColumns": {
+      }
+  	}
+  }
+}
+>>

@@ -1,4 +1,4 @@
-package marmot.plan;
+package marmot;
 
 import java.util.List;
 import java.util.Map;
