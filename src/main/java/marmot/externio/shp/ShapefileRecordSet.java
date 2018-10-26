@@ -133,7 +133,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 	
 	class InnerRecordSet extends AbstractRecordSet {
 		private final File m_shpFile;
-		private final ShapefileDataStore m_store;
+		private ShapefileDataStore m_store = null;
 		private final SimpleFeatureRecordSet m_sfRSet;
 		
 		private InnerRecordSet(File shpFile) {
@@ -146,6 +146,10 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 				m_sfRSet = new SimpleFeatureRecordSet(sfColl);
 			}
 			catch ( Exception e ) {
+				if ( m_store != null ) {
+					m_store.dispose();
+				}
+				
 				throw new RecordSetException("fails to read shapefile, cause=" + e);
 			}
 		}
