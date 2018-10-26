@@ -238,27 +238,13 @@ message StoreAndReloadProto {
 	int32 split_count_per_block = 1;
 }
 
+
 message ValueAggregateProto {
-	enum AggrTypeProto {
-		COUNT = 0;
-		MAX = 1;
-		MIN = 2;
-		SUM = 3;
-		AVG = 4;
-		STDDEV = 5;
-		
-		CONVEX_HULL = 101;
-		ENVELOPE = 102;
-		GEOM_UNION = 103;
-		
-		CONCAT_STR = 201;
+	string aggr_name = 1;
+	oneof optional_aggr_col {
+		string aggr_col = 2;
 	}
-	
-	AggrTypeProto type = 1;
-	string input_column = 2;	// "" for null
-	oneof optional_output_column {
-		string output_column = 3;
-	}
+	string out_col = 3;
 	repeated string parameter = 4;
 }
 message ValueAggregateReducerProto {

@@ -1015,11 +1015,12 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder aggregate(AggregateFunction... aggregators) {
-		ValueAggregateReducerProto varp = FStream.of(aggregators)
-			.map(AggregateFunction::toProto)
-			.foldLeft(ValueAggregateReducerProto.newBuilder(),
-						(builder,aggr) -> builder.addAggregate(aggr))
-			.build();
+		ValueAggregateReducerProto varp
+								= FStream.of(aggregators)
+										.map(AggregateFunction::toProto)
+										.foldLeft(ValueAggregateReducerProto.newBuilder(),
+													(builder,aggr) -> builder.addAggregate(aggr))
+										.build();
 
 		ReduceProto opProto = ReduceProto.newBuilder()
 										.setReducer(PBUtils.serialize(varp))

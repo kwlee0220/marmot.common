@@ -1,26 +1,24 @@
 package marmot.optor;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 
 import marmot.proto.optor.ValueAggregateProto;
-import marmot.support.PBSerializable;
+import utils.stream.FStream;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class AggregateFunction implements PBSerializable<ValueAggregateProto> {
+public class AggregateFunction {
 	public AggrType m_type;
-	public String m_aggrColumn;
+	public String m_aggrColumn;		// nullable
 	public String m_resultColumn;
-	public List<String> m_args = Lists.newArrayList();
+	public String[] m_args;			// nullable
 	
 	public static AggregateFunction COUNT() {
-		return new AggregateFunction(AggrType.COUNT, "", "count");
+		return new AggregateFunction(AggrType.COUNT, null, "count");
 	}
 	
 	public static AggregateFunction MAX(String col) {
@@ -51,21 +49,13 @@ public class AggregateFunction implements PBSerializable<ValueAggregateProto> {
 		return new AggregateFunction(AggrType.ENVELOPE, col, "mbr");
 	}
 	
-	public static AggregateFunction UNION(String col) {
+	public static AggregateFunction GEOM_UNION(String col) {
 		return new AggregateFunction(AggrType.GEOM_UNION, col, "union");
 	}
 	
-	public static AggregateFunction CONCAT_STRING(String col, String delim) {
+	public static AggregateFunction CONCAT_STR(String col, String... args) {
+		String delim = args[0];
 		return new AggregateFunction(AggrType.CONCAT_STR, col, "concat", delim);
-	}
-	
-	public static AggregateFunction fromString(String expr) {
-		String[] parts = expr.split(DELIM);
-		AggrType type = AggrType.valueOf(parts[0]);
-		AggregateFunction func = new AggregateFunction(type, parts[1], parts[2]);
-		func.m_args = Arrays.asList(Arrays.copyOfRange(parts, 3, parts.length));
-		
-		return func;
 	}
 	
 	public AggregateFunction(AggrType type, String aggrCol, String outCol) {
@@ -79,7 +69,7 @@ public class AggregateFunction implements PBSerializable<ValueAggregateProto> {
 		m_type = type;
 		m_aggrColumn = aggrCol;
 		m_resultColumn = outCol;
-		m_args = Arrays.asList(args);
+		m_args = args;
 	}
 	
 	public AggregateFunction as(String outCol) {
@@ -87,69 +77,87 @@ public class AggregateFunction implements PBSerializable<ValueAggregateProto> {
 		return this;
 	}
 	
-	private static final String DELIM = ",";
+	private static final String DELIM = "?";
 	public String toString() {
 		String str = String.format("%s(%s)%s", m_type.name(), m_aggrColumn, m_resultColumn);
-		if ( m_args != null && m_args.size() > 0 ) {
-			str = str + DELIM + m_args.stream().collect(Collectors.joining(DELIM));
+		if ( m_args != null && m_args.length > 0 ) {
+			str = str + DELIM + FStream.of(m_args).join(",");
 		}
 		return str;
 	}
-	
-	public static AggregateFunction fromProto(ValueAggregateProto proto) {
-		String inputColName = proto.getInputColumn();
-		
-		AggregateFunction func = null;
-		switch ( proto.getType() ) {
-			case COUNT:
-				func = COUNT();
-				break;
-			case MAX:
-				func = MAX(inputColName);
-				break;
-			case MIN:
-				func = MIN(inputColName);
-				break;
-			case SUM:
-				func = SUM(inputColName);
-				break;
-			case AVG:
-				func = AVG(inputColName);
-				break;
-			case STDDEV:
-				func = STDDEV(inputColName);
-				break;
-			case CONVEX_HULL:
-				func = CONVEX_HULL(inputColName);
-				break;
-			case ENVELOPE:
-				func = ENVELOPE(inputColName);
-				break;
-			case GEOM_UNION:
-				func = UNION(inputColName);
-				break;
-			default:
-				throw new RuntimeException("unkown ValueAggregateProto: proto=" + proto);
-		}
-		
-		switch ( proto.getOptionalOutputColumnCase() ) {
-			case OUTPUT_COLUMN:
-				func.as(proto.getOutputColumn());
-				break;
-			default:
-		}
-		
-		return func;
-	}
 
-	@Override
+    public static AggregateFunction fromProto(ValueAggregateProto proto) {
+    	String aggrName = proto.getAggrName();
+    	String outCol = proto.getOutCol();
+    	
+    	String aggrCol = null;
+    	switch ( proto.getOptionalAggrColCase() ) {
+    		case AGGR_COL:
+    			aggrCol = proto.getAggrCol();
+    			break;
+    		default:
+    	}
+    	
+    	String[] args = Iterables.toArray(proto.getParameterList(), String.class);
+
+        AggrType type = AggrType.valueOf(aggrName.toUpperCase());
+
+        AggregateFunction func;
+        switch ( type ) {
+            case COUNT:
+                func = COUNT();
+                break;
+            case MAX:
+                func = MAX(aggrCol);
+                break;
+            case MIN:
+                func = MIN(aggrCol);
+                break;
+            case SUM:
+                func = SUM(aggrCol);
+                break;
+            case AVG:
+                func = AVG(aggrCol);
+                break;
+            case STDDEV:
+                func = STDDEV(aggrCol);
+                break;
+            case CONVEX_HULL:
+                func = CONVEX_HULL(aggrCol);
+                break;
+            case ENVELOPE:
+                func = ENVELOPE(aggrCol);
+                break;
+            case GEOM_UNION:
+                func = GEOM_UNION(aggrCol);
+                break;
+            case CONCAT_STR:
+            	if ( args.length == 0 ) {
+                    throw new IllegalArgumentException(
+                    					String.format("invalid CONCAT_STR: proto=%s", proto));
+            	}
+                func = CONCAT_STR(aggrCol, args);
+                break;
+            default:
+                throw new AssertionError();
+        }
+        if ( outCol != null ) {
+            func.as(outCol);
+        }
+
+        return func;
+    }
+	
 	public ValueAggregateProto toProto() {
-		ValueAggregateProto.Builder builder
-						= ValueAggregateProto.newBuilder()
-											.setType(m_type.toProto())
-											.setInputColumn(m_aggrColumn)
-											.setOutputColumn(m_resultColumn)
-											.addAllParameter(m_args);
+		ValueAggregateProto.Builder builder = ValueAggregateProto.newBuilder()
+														.setAggrName(m_type.name().toLowerCase())
+														.setOutCol(m_resultColumn);
+		if ( m_aggrColumn != null ) {
+			builder = builder.setAggrCol(m_aggrColumn);
+		}
+		if ( m_args != null ) {
+			builder.addAllParameter(Arrays.asList(m_args));
+		}
 		
 		return builder.build();
 	}

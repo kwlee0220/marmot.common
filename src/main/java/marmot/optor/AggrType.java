@@ -1,6 +1,5 @@
 package marmot.optor;
 
-import marmot.proto.optor.ValueAggregateProto.AggrTypeProto;
 import utils.stream.FStream;
 
 /**
@@ -40,13 +39,5 @@ public enum AggrType {
 	
 	public static AggrType fromString(String str) {
 		return valueOf(str.toUpperCase());
-	}
-
-	public AggrTypeProto toProto() {
-		return AggrTypeProto.forNumber(m_code);
-	}
-	
-	public static AggrType fromProto(AggrTypeProto proto) {
-		return fromCode(proto.getNumber());
 	}
 }
