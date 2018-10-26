@@ -81,6 +81,9 @@ dependencies {
 	// Joda-Time
 	compile "joda-time:joda-time:${joda_time_version}"
 	
+	// StringTemplate4
+	compile "org.antlr:ST4:4.0.8"
+	
 	testCompile "junit:junit:4.12"
 }
 
