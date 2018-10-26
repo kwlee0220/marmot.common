@@ -205,7 +205,7 @@ message PickTopKProto {
 	string sort_key_columns = 2;
 }
 message SortProto {
-	marmot.proto.MultiColumnKeyProto sort_columns = 1;
+	string sort_columns = 1;
 }
 message RankProto {
 	string sort_key_columns = 1;
@@ -259,7 +259,7 @@ message PutSideBySideProto {
 	string tag_column = 3;
 }
 message FindMaxValueRecordProto {
-	marmot.proto.MultiColumnKeyProto compare_key_columns = 1;
+	string compare_key_columns = 1;
 }
 
 message ReduceProto {
@@ -526,7 +526,7 @@ message LoadSpatialIndexJoinProto {
 }
 
 message DissolveProto {
-	marmot.proto.MultiColumnKeyProto key_columns = 1;
+	string key_columns = 1;
 	string geometry_column = 2;
 	oneof optional_group_worker_count {
 		int32 group_worker_count = 3;

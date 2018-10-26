@@ -34,7 +34,6 @@ import marmot.plan.ParseCsvOption;
 import marmot.plan.PredicateOption;
 import marmot.plan.SpatialJoinOption;
 import marmot.proto.GeometryColumnInfoProto;
-import marmot.proto.MultiColumnKeyProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.TypeCodeProto;
 import marmot.proto.optor.ArcGisSpatialJoinProto;
@@ -775,7 +774,7 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder sort(String sortColSpecs) {
 		SortProto sort = SortProto.newBuilder()
-									.setSortColumns(MultiColumnKey.fromString(sortColSpecs).toProto())
+									.setSortColumns(sortColSpecs)
 									.build();
 		return add(OperatorProto.newBuilder()
 								.setSort(sort)
@@ -933,9 +932,8 @@ public class PlanBuilder {
 		}
 		
 		public PlanBuilder findMaxValue(String colSpec) {
-			MultiColumnKeyProto cols = MultiColumnKey.fromString(colSpec).toProto();
 			FindMaxValueRecordProto findMax = FindMaxValueRecordProto.newBuilder()
-																.setCompareKeyColumns(cols)
+																.setCompareKeyColumns(colSpec)
 																.build();
 			return apply(PBUtils.serialize(findMax));
 		}
@@ -2312,7 +2310,7 @@ public class PlanBuilder {
 		Preconditions.checkArgument(geomCol != null, "geomCol is null");
 		
 		DissolveProto dissolve = DissolveProto.newBuilder()
-											.setKeyColumns(MultiColumnKey.fromString(keyCols).toProto())
+											.setKeyColumns(keyCols)
 											.setGeometryColumn(geomCol)
 											.build();
 

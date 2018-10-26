@@ -2,12 +2,8 @@ load(dsId) ::= <<
 { "loadDataset": { "name": "<dsId>"} }
 >>
 
-filter(pred) ::= <<
-{ "filterScript": { "predicate": { "expr": "<pred>" } } }
->>
-filter1(init, pred) ::= <<
-{
-  "filterScript": {
+filter(pred, init=[]) ::= <<
+{ "filterScript": {
     "predicate": {
        <if(init)>"initializer": "<init>",<endif>
        "expr": "<pred>"
@@ -20,15 +16,12 @@ project(cols_expr) ::= <<
 { "project": { "columnExpr": "<cols_expr>" } }
 >>
 
-expand(col_name, col_type) ::= <<
-{ "expand1": { "columnName": "<col_name>", "columnType": "<col_type>" } }
->>
-expand1(col_name, col_type, init) ::= <<
-{
-  "expand1": {
+expand(col_name, col_type, init=[]) ::= <<
+{ "expand1": {
     "columnName": "<col_name>",
-    "columnType": "<col_type>",
+    "columnType": "<col_type>"<if(init)>,
     "initValue": { "expr": "<init>" }
+    <endif>
   }
 }
 >>
@@ -129,22 +122,15 @@ spatial_semijoin(param_dsid) ::= <<
 }
 >>
 
-load_grid_dataset(dsid, width, height) ::= <<
+load_grid_dataset(dsid, width, height, nparts=[]) ::= <<
 { "loadSquareGridfile": {
     "grid": {
       "dataset": "<dsid>",
       "cellSize": { "width": <width>, "height": <height> }
     }
-  }
-}
->>
-load_grid_dataset1(dsid, width, height, nparts) ::= <<
-{ "loadSquareGridfile": {
-    "grid": {
-      "dataset": "<dsid>",
-      "cellSize": { "width": <width>, "height": <height> }
-    },
+    <if(nparts)>,
     "workerCount": <nparts>
+    <endif>
   }
 }
 >>
@@ -200,28 +186,22 @@ assign_gridcell1(tlx, tly, brx, bry, width, height) ::= <<
 }
 >>
 
-join(jcols, param_dsid, param_jcols, out_cols, jtype) ::= <<
+join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
 { "equiJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
     "outputColumnsExpr": "<out_cols>",
-    "joinOptions": {
-      "joinType": "<jtype>"
-    }
+    "joinOptions": { "joinType": "INNER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-join1(jcols, param_dsid, param_jcols, out_cols, jtype, nworkers) ::= <<
+semi_join(jcols, param_dsid, param_jcols, nworkers=[]) ::= <<
 { "equiJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
-    "outputColumnsExpr": "<out_cols>",
-    "joinOptions": {
-      "joinType": "<jtype>",
-      "workerCount": <nworkers>
-    }
+    "joinOptions": { "joinType": "SEMI_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
