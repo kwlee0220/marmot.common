@@ -171,7 +171,7 @@ assign_gridcell(dsid, width, height) ::= <<
   }
 }
 >>
-assign_gridcell1(tlx, tly, brx, bry, width, height) ::= <<
+assign_gridcell_bounds(tlx, tly, brx, bry, width, height) ::= <<
 { "assignSquareGridCell": {
     "grid": {
       "bounds": {
