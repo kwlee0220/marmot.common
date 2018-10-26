@@ -75,6 +75,12 @@ public class Plan implements PBSerializable<PlanProto> {
 		}
 	}
 	
+	public static Plan parseJson(String json) throws InvalidProtocolBufferException {
+		PlanProto.Builder builder = PlanProto.newBuilder();
+		JsonFormat.parser().merge(json, builder);
+		return Plan.fromProto(builder.build());
+	}
+	
 	private Plan(PlanProto proto) {
 		m_proto = proto;
 	}

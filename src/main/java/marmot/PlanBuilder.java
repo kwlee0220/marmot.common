@@ -21,7 +21,6 @@ import marmot.PlanBuilder.ScriptRecordSetReducerBuilder.ToIntermediateBuilder;
 import marmot.geo.GeoClientUtils;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
-import marmot.optor.KeyColumn;
 import marmot.optor.MultiColumnKey;
 import marmot.optor.geo.LISAWeight;
 import marmot.optor.geo.SpatialRelation;
@@ -802,19 +801,19 @@ public class PlanBuilder {
 	 * @return reduce 연산을 추가로 받기 위한 {@link GroupByPlanBuilder} 객체.
 	 */
 	public GroupByPlanBuilder groupBy(String keyCols) {
-		return new GroupByPlanBuilder(this, MultiColumnKey.fromString(keyCols));
+		return new GroupByPlanBuilder(this, keyCols);
 	}
 	
 	public static class GroupByPlanBuilder {
 		private final PlanBuilder m_planBuilder;
-		private final MultiColumnKey m_cmpKeyCols;
-		private Option<MultiColumnKey> m_taggedKeyCols = Option.none();
-		private Option<MultiColumnKey> m_orderKeyCols = Option.none();
+		private final String m_cmpCols;
+		private Option<String> m_tagCols = Option.none();
+		private Option<String> m_orderKeyCols = Option.none();
 		private Option<Integer> m_workerCount = Option.none();
 		
-		GroupByPlanBuilder(PlanBuilder planBuilder, MultiColumnKey cmpKeyCols) {
+		GroupByPlanBuilder(PlanBuilder planBuilder, String cmpKeyCols) {
 			m_planBuilder = planBuilder;
-			m_cmpKeyCols = cmpKeyCols;
+			m_cmpCols = cmpKeyCols;
 		}
 		
 		/**
@@ -829,22 +828,18 @@ public class PlanBuilder {
 			return this;
 		}
 		
-		public GroupByPlanBuilder tagWith(String keyCols) {
-			m_taggedKeyCols = Option.some(MultiColumnKey.fromString(keyCols));
+		public GroupByPlanBuilder tagWith(String tagCols) {
+			m_tagCols = Option.of(tagCols);
 			return this;
 		}
 		
-		public GroupByPlanBuilder orderBy(String keyCols) {
-			MultiColumnKey orderKeys = MultiColumnKey.fromString(keyCols);
-			MultiColumnKey common = MultiColumnKey.intersection(m_cmpKeyCols, orderKeys);
-			if ( common.length() > 0 ) {
-				String colsStr = FStream.of(common.getKeyColumnAll())
-										.map(KeyColumn::name)
-										.join(",");
+		public GroupByPlanBuilder orderBy(String orderCols) {
+			String commonCols = MultiColumnKey.intersection(m_cmpCols, orderCols);
+			if ( commonCols.length() > 0 ) {
 				throw new IllegalArgumentException("order-by key should not be "
-													+ "a group-by key: cols=" + colsStr);
+													+ "a group-by key: cols=" + commonCols);
 			}
-			m_orderKeyCols = Option.some(orderKeys);
+			m_orderKeyCols = Option.some(orderCols);
 			
 			return this;
 		}
@@ -911,7 +906,15 @@ public class PlanBuilder {
 										.foldLeft(ValueAggregateReducerProto.newBuilder(),
 													(builder,aggr) -> builder.addAggregate(aggr))
 										.build();
-			return apply(PBUtils.serialize(varp));
+
+			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
+																.setGrouper(groupByKey())
+																.setValAggregate(varp)
+																.build();
+			
+			return m_planBuilder.add(OperatorProto.newBuilder()
+													.setTransformByGroup(transform)
+													.build());
 		}
 		
 		/**
@@ -963,9 +966,9 @@ public class PlanBuilder {
 		
 		private GroupByKeyProto groupByKey() {
 			GroupByKeyProto.Builder builder = GroupByKeyProto.newBuilder()
-													.setKeyColumns(m_cmpKeyCols.toProto());
-			m_taggedKeyCols.forEach(keyCols -> builder.setTaggedKeyColumns(keyCols.toProto()));
-			m_orderKeyCols.forEach(keyCols -> builder.setOrderByKeyColumns(keyCols.toProto()));
+														.setCompareColumns(m_cmpCols);
+			m_tagCols.forEach(builder::setTagColumns);
+			m_orderKeyCols.forEach(builder::setOrderColumns);
 			m_workerCount.forEach(cnt -> builder.setGroupWorkerCount(cnt));
 			return builder.build();
 		}
@@ -1014,16 +1017,15 @@ public class PlanBuilder {
 	 * @param aggregators	적용할 집계 연산자 리스트.
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder aggregate(AggregateFunction... aggregators) {
+	public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
 		ValueAggregateReducerProto varp
-								= FStream.of(aggregators)
-										.map(AggregateFunction::toProto)
-										.foldLeft(ValueAggregateReducerProto.newBuilder(),
-													(builder,aggr) -> builder.addAggregate(aggr))
-										.build();
-
+							= FStream.of(aggrFuncs)
+									.map(AggregateFunction::toProto)
+									.foldLeft(ValueAggregateReducerProto.newBuilder(),
+												(builder,aggr) -> builder.addAggregate(aggr))
+									.build();
 		ReduceProto opProto = ReduceProto.newBuilder()
-										.setReducer(PBUtils.serialize(varp))
+										.setValAggregate(varp)
 										.build();
 		return add(OperatorProto.newBuilder()
 								.setReduce(opProto)
@@ -2437,7 +2439,6 @@ public class PlanBuilder {
 		
 		public class ToReducedBuilder {
 			public PlanBuilder toReducedOutput(String reducedSchemaStr, String expr) {
-				MultiColumnKey key = m_grpByBuilder.m_cmpKeyCols;
 				RecordSchema reducedSchema = RecordSchema.parse(reducedSchemaStr);
 
 				ScriptRecordSetReducerProto.Builder reducerBuilder
@@ -2450,9 +2451,10 @@ public class PlanBuilder {
 				m_combinerInitializeExpr.forEach(reducerBuilder::setCombinerInitializeExpr);
 				ScriptRecordSetReducerProto proto = reducerBuilder.build();
 
-				GroupByKeyProto.Builder grpBuilder = GroupByKeyProto.newBuilder()
-															.setKeyColumns(key.toProto());
-				m_grpByBuilder.m_taggedKeyCols.forEach(keyCols -> grpBuilder.setTaggedKeyColumns(keyCols.toProto()));
+				GroupByKeyProto.Builder grpBuilder
+							= GroupByKeyProto.newBuilder()
+											.setCompareColumns(m_grpByBuilder.m_cmpCols);
+				m_grpByBuilder.m_tagCols.forEach(grpBuilder::setTagColumns);
 				m_grpByBuilder.m_workerCount.forEach(cnt -> grpBuilder.setGroupWorkerCount(cnt));
 				GroupByKeyProto grpBy = grpBuilder.build();
 				TransformByGroupProto reduceByGrp

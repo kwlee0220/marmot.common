@@ -1,10 +1,6 @@
 package marmot.optor;
 
-import java.util.Arrays;
-
-import com.google.common.collect.Iterables;
-
-import marmot.proto.optor.ValueAggregateProto;
+import utils.CSV;
 import utils.stream.FStream;
 
 /**
@@ -15,7 +11,7 @@ public class AggregateFunction {
 	public AggrType m_type;
 	public String m_aggrColumn;		// nullable
 	public String m_resultColumn;
-	public String[] m_args;			// nullable
+	public String m_args;			// nullable
 	
 	public static AggregateFunction COUNT() {
 		return new AggregateFunction(AggrType.COUNT, null, "count");
@@ -65,7 +61,7 @@ public class AggregateFunction {
 	}
 	
 	public AggregateFunction(AggrType type, String aggrCol, String outCol,
-							String... args) {
+							String args) {
 		m_type = type;
 		m_aggrColumn = aggrCol;
 		m_resultColumn = outCol;
@@ -80,28 +76,27 @@ public class AggregateFunction {
 	private static final String DELIM = "?";
 	public String toString() {
 		String str = String.format("%s(%s)%s", m_type.name(), m_aggrColumn, m_resultColumn);
-		if ( m_args != null && m_args.length > 0 ) {
-			str = str + DELIM + FStream.of(m_args).join(",");
+		if ( m_args != null ) {
+			str = str + DELIM + m_args;
 		}
 		return str;
 	}
 
-    public static AggregateFunction fromProto(ValueAggregateProto proto) {
-    	String aggrName = proto.getAggrName();
-    	String outCol = proto.getOutCol();
+    public static AggregateFunction fromProto(String proto) {
+    	String[] parts = CSV.parseAsArray(proto, '?', '\\');
     	
-    	String aggrCol = null;
-    	switch ( proto.getOptionalAggrColCase() ) {
-    		case AGGR_COL:
-    			aggrCol = proto.getAggrCol();
-    			break;
-    		default:
+    	String args = (parts.length > 1) ? parts[1] : null;
+    	String[] comps = CSV.parseAsArray(parts[0], ',', '\\');
+    	if ( comps.length == 3 ) {
+    		throw new IllegalArgumentException("invalid AggregateFunction: str=" + proto);
     	}
-    	
-    	String[] args = Iterables.toArray(proto.getParameterList(), String.class);
+    	String aggrCol = comps[1].trim();
+    	if ( aggrCol.length() == 0 ) {
+    		aggrCol = null;
+    	}
+    	String outCol = comps[2].trim();
 
-        AggrType type = AggrType.valueOf(aggrName.toUpperCase());
-
+        AggrType type = AggrType.valueOf(comps[0].toUpperCase());
         AggregateFunction func;
         switch ( type ) {
             case COUNT:
@@ -132,7 +127,7 @@ public class AggregateFunction {
                 func = GEOM_UNION(aggrCol);
                 break;
             case CONCAT_STR:
-            	if ( args.length == 0 ) {
+            	if ( args == null ) {
                     throw new IllegalArgumentException(
                     					String.format("invalid CONCAT_STR: proto=%s", proto));
             	}
@@ -148,17 +143,16 @@ public class AggregateFunction {
         return func;
     }
 	
-	public ValueAggregateProto toProto() {
-		ValueAggregateProto.Builder builder = ValueAggregateProto.newBuilder()
-														.setAggrName(m_type.name().toLowerCase())
-														.setOutCol(m_resultColumn);
-		if ( m_aggrColumn != null ) {
-			builder = builder.setAggrCol(m_aggrColumn);
-		}
+	public String toProto() {
+		String header = String.format("%s:%s:%s",
+										m_type.name().toLowerCase(),
+										(m_aggrColumn != null) ? m_aggrColumn : "",
+										m_resultColumn);
 		if ( m_args != null ) {
-			builder.addAllParameter(Arrays.asList(m_args));
+			return header + "?" + FStream.of(m_args).join(",");
 		}
-		
-		return builder.build();
+		else {
+			return header;
+		}
 	}
 }

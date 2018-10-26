@@ -239,6 +239,7 @@ message StoreAndReloadProto {
 }
 
 
+/*
 message ValueAggregateProto {
 	string aggr_name = 1;
 	oneof optional_aggr_col {
@@ -247,8 +248,9 @@ message ValueAggregateProto {
 	string out_col = 3;
 	repeated string parameter = 4;
 }
+*/
 message ValueAggregateReducerProto {
-	repeated ValueAggregateProto aggregate = 1;
+	repeated string aggregate = 1;
 }
 message FindFirstReducerProto { }
 message PutSideBySideProto {
@@ -261,13 +263,30 @@ message FindMaxValueRecordProto {
 }
 
 message ReduceProto {
-	marmot.proto.SerializedProto reducer = 1;
+	oneof oneof_reducer {
+		ValueAggregateReducerProto val_aggregate = 2;
+		marmot.proto.SerializedProto reducer = 3;	// RecordSetFunction
+	}
 }
 
+
+message GroupByKeyProto {
+	string compare_columns = 1;
+	oneof optional_tag_columns {
+		string tag_columns = 2;
+	}
+	oneof optional_order_columns {
+		string order_columns = 3;
+	}
+	oneof optional_group_worker_count {
+		int32 group_worker_count = 4;
+	}
+}
 message TransformByGroupProto {
 	GroupByKeyProto grouper = 1;
-	oneof optional_function {
-		marmot.proto.SerializedProto function = 2;	// RecordSetFunction
+	oneof oneof_transforms {
+		ValueAggregateReducerProto val_aggregate = 2;
+		marmot.proto.SerializedProto function = 3;	// RecordSetFunction
 	}
 }
 message ConsumeByGroupProto {
@@ -296,15 +315,6 @@ message ScriptRecordSetCombinerProto {
 		string initialize_expr = 1;
 	}
 	string combiner_expr = 2;
-}
-
-message GroupByKeyProto {
-	marmot.proto.MultiColumnKeyProto key_columns = 1;
-	marmot.proto.MultiColumnKeyProto tagged_key_columns = 2;
-	marmot.proto.MultiColumnKeyProto order_by_key_columns = 3;
-	oneof optional_group_worker_count {
-		int32 group_worker_count = 4;
-	}
 }
 message PlanBasedRecordSetFunctionProto {
 	PlanProto plan = 1;

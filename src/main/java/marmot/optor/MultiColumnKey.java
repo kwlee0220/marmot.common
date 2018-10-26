@@ -4,9 +4,11 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import marmot.Column;
 import marmot.RecordSchema;
@@ -159,6 +161,13 @@ public final class MultiColumnKey implements PBSerializable<MultiColumnKeyProto>
 										.map(KeyColumn::new)
 										.toList();
 		return new MultiColumnKey(sameCols);
+	}
+	
+	public static String intersection(String cols1, String cols2) {
+		Set<String> cols = Sets.newHashSet(CSV.parse(cols1, ',', '\\'));
+		return FStream.of(CSV.parse(cols2, ',', '\\'))
+					.filter(cols::contains)
+					.join(",");
 	}
 
 	public static MultiColumnKey fromProto(MultiColumnKeyProto proto) {
