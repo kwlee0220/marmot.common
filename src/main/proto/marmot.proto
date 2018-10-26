@@ -38,27 +38,6 @@ message RecordSchemaProto {
 	repeated ColumnProto columns = 1;
 }
 
-enum SortOrderProto {
-	DESC = 0;
-	ASC = 1;
-	NONE = 2;
-}
-
-enum NullsOrderProto {
-	FIRST = 0;
-	LAST = 1;
-}
-
-message MultiColumnKeyProto {
-	message KeyColumnProto {
-		string column = 1;
-		SortOrderProto sort_order = 2;
-		NullsOrderProto nulls_order = 3;
-	}
-	
-	repeated KeyColumnProto column = 1;
-}
-
 message GroupKeyValueProto {
 	repeated ValueProto value = 1;
 }

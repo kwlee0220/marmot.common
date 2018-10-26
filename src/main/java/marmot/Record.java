@@ -7,19 +7,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 
-import marmot.optor.MultiColumnKey;
 import marmot.proto.RecordProto;
 import marmot.proto.ValueProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.DataUtils;
-import marmot.support.DefaultRecord;
 import marmot.support.PBSerializable;
 import utils.stream.FStream;
 
@@ -310,24 +307,6 @@ public interface Record extends Serializable, PBSerializable<RecordProto> {
 	
 	public default void copyTo(Map<String,Object> context) {
 		getSchema().forEachIndexedColumn((i,c) -> context.put(c.name(), get(i)));
-	}
-
-	/**
-	 * 본 레코드에서 주어진 키에 해당하는 컬럼으로 구성된 레코드를 생성한다.
-	 * 
-	 * @param cols	project할 다중 컬럼 키.
-	 * @param projected	키에 포함된 컬럼 이름에 해당하는 컬럼 값들이 채워질 레코드
-	 */
-	public default void project(MultiColumnKey cols, Record projected) {
-		projected.setAll(cols.getKeyColumnAll().stream()
-							.map(keyCol -> get(keyCol.name()))
-							.collect(Collectors.toList()));
-		
-	}
-	public default Record project(MultiColumnKey cols) {
-		Record projected = DefaultRecord.of(getSchema().project(cols));
-		project(cols, projected);
-		return projected;
 	}
 	
 	public default void fromProto(RecordProto proto) {

@@ -22,8 +22,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
-import marmot.optor.KeyColumn;
-import marmot.optor.MultiColumnKey;
 import marmot.proto.ColumnProto;
 import marmot.proto.RecordSchemaProto;
 import marmot.support.PBSerializable;
@@ -158,51 +156,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	
 	public Stream<Column> columnStream() {
 		return m_columns.values().stream();
-	}
-
-	/**
-	 * 주어진 키에 포함된 컬럼 이름에 해당하는 레코드 스키마를 생성한다.
-	 * 
-	 * @param key	다중 컬럼 키.
-	 * @return	키에 포함된 컬럼 이름으로 구성된 레코드 스키마.
-	 * @see #complement(MultiColumnKey)
-	 */
-	public RecordSchema project(MultiColumnKey key) {
-		Objects.requireNonNull(key, "project column is null");
-		
-		RecordSchema.Builder builder = RecordSchema.builder();
-		for ( KeyColumn keyCol: key.getKeyColumnAll() ) {
-			Column col = getColumn(keyCol.name());
-			builder.addColumn(col.name(), col.type());
-		}
-		return builder.build();
-	}
-//	public RecordSchema project(String[] colNames) {
-//		Preconditions.checkArgument(colNames != null && colNames.length > 0);
-//		
-//		RecordSchema.Builder builder = RecordSchema.builder();
-//		for ( String colName: colNames ) {
-//			Column col = getColumn(colName);
-//			builder.addColumn(col.name(), col.type());
-//		}
-//		return builder.build();
-//	}
-
-	/**
-	 * 주어진 키에 포함되지 않은 컬럼 이름에 해당하는 레코드 스키마를 생성한다.
-	 * 
-	 * @param key	여집합 레코드 스키마 생성에 사용할 다중 컬럼 키 객체.
-	 * @return	본 키에 포함되지 않은 컬럼으로 구성된 레코드 스키마.
-	 * @see #project(MultiColumnKey)
-	 */
-	public RecordSchema complement(MultiColumnKey key) {
-		Objects.requireNonNull(key, "project column is null");
-		
-		RecordSchema.Builder builder = RecordSchema.builder();
-		getColumnAll().stream()
-					.filter(col -> !key.existsKeyColumn(col.name()))
-					.forEach(col -> builder.addColumn(col.name(), col.type()));
-		return builder.build();
 	}
 	
 	public RecordSchema duplicate() {

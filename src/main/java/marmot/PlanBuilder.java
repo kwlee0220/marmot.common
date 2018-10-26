@@ -10,8 +10,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -21,7 +23,6 @@ import marmot.PlanBuilder.ScriptRecordSetReducerBuilder.ToIntermediateBuilder;
 import marmot.geo.GeoClientUtils;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
-import marmot.optor.MultiColumnKey;
 import marmot.optor.geo.LISAWeight;
 import marmot.optor.geo.SpatialRelation;
 import marmot.optor.geo.SquareGrid;
@@ -129,6 +130,7 @@ import marmot.type.DataType;
 import marmot.workbench.Operator;
 import marmot.workbench.OperatorType;
 import marmot.workbench.Parameter;
+import utils.CSV;
 import utils.stream.FStream;
 
 /**
@@ -833,7 +835,10 @@ public class PlanBuilder {
 		}
 		
 		public GroupByPlanBuilder orderBy(String orderCols) {
-			String commonCols = MultiColumnKey.intersection(m_cmpCols, orderCols);
+			Set<String> cols = Sets.newHashSet(CSV.parse(m_cmpCols, ',', '\\'));
+			String commonCols = FStream.of(CSV.parse(orderCols, ',', '\\'))
+										.filter(cols::contains)
+										.join(",");
 			if ( commonCols.length() > 0 ) {
 				throw new IllegalArgumentException("order-by key should not be "
 													+ "a group-by key: cols=" + commonCols);
