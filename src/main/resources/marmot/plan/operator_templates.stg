@@ -130,8 +130,7 @@ spatial_semijoin(param_dsid) ::= <<
 >>
 
 load_grid_dataset(dsid, width, height) ::= <<
-{
-  "loadSquareGridfile": {
+{ "loadSquareGridfile": {
     "grid": {
       "dataset": "<dsid>",
       "cellSize": { "width": <width>, "height": <height> }
@@ -140,8 +139,7 @@ load_grid_dataset(dsid, width, height) ::= <<
 }
 >>
 load_grid_dataset1(dsid, width, height, nparts) ::= <<
-{
-  "loadSquareGridfile": {
+{ "loadSquareGridfile": {
     "grid": {
       "dataset": "<dsid>",
       "cellSize": { "width": <width>, "height": <height> }
@@ -151,8 +149,7 @@ load_grid_dataset1(dsid, width, height, nparts) ::= <<
 }
 >>
 load_grid_bounds(tlx, tly, brx, bry, width, height) ::= <<
-{
-  "loadSquareGridfile": {
+{ "loadSquareGridfile": {
     "grid": {
       "bounds": {
         "tl": { "x": <tlx>, "y": <tly> },
@@ -164,8 +161,7 @@ load_grid_bounds(tlx, tly, brx, bry, width, height) ::= <<
 }
 >>
 load_grid_bounds1(tlx, tly, brx, bry, width, height, nparts) ::= <<
-{
-  "loadSquareGridfile": {
+{ "loadSquareGridfile": {
     "grid": {
       "bounds": {
         "tl": { "x": <tlx>, "y": <tly> },
@@ -179,8 +175,7 @@ load_grid_bounds1(tlx, tly, brx, bry, width, height, nparts) ::= <<
 >>
 
 assign_gridcell(dsid, width, height) ::= <<
-{
-  "assignSquareGridCell": {
+{ "assignSquareGridCell": {
     "grid": {
       "dataset": "<dsid>",
       "cellSize": { "width": <width>, "height": <height> }
@@ -191,8 +186,7 @@ assign_gridcell(dsid, width, height) ::= <<
 }
 >>
 assign_gridcell1(tlx, tly, brx, bry, width, height) ::= <<
-{
-  "assignSquareGridCell": {
+{ "assignSquareGridCell": {
     "grid": {
       "bounds": {
         "tl": { "x": <tlx>, "y": <tly> },
@@ -207,8 +201,7 @@ assign_gridcell1(tlx, tly, brx, bry, width, height) ::= <<
 >>
 
 join(jcols, param_dsid, param_jcols, out_cols, jtype) ::= <<
-{
-  "equiJoin": {
+{ "equiJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
@@ -220,8 +213,7 @@ join(jcols, param_dsid, param_jcols, out_cols, jtype) ::= <<
 }
 >>
 join1(jcols, param_dsid, param_jcols, out_cols, jtype, nworkers) ::= <<
-{
-  "equiJoin": {
+{ "equiJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
@@ -234,12 +226,22 @@ join1(jcols, param_dsid, param_jcols, out_cols, jtype, nworkers) ::= <<
 }
 >>
 
-group_by_aggregate(key_cols) ::= <<
-{
-  "transformByGroup": {
+aggregate(aggrs) ::= <<
+{ "reduce": {
+  	"valAggregate": {
+  	  "aggregate": [<aggrs:{a | "<a>"}; separator=",">]
+  	}
+  }
+}
+>>
+
+aggregate_by_group(cmp_cols,aggrs) ::= <<
+{ "transformByGroup": {
   	"grouper": {
-      "keyColumns": {
-      }
+      "compareColumns": "<cmp_cols>"
+  	},
+  	"valAggregate": {
+  	  "aggregate": [<aggrs:{a | "<a>"}; separator=",">]
   	}
   }
 }

@@ -11,11 +11,9 @@ import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupFile;
 
 import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.util.JsonFormat;
 
 import io.vavr.Lazy;
 import marmot.Plan;
-import marmot.proto.optor.PlanProto;
 import utils.io.IOUtils;
 
 /**
@@ -53,12 +51,13 @@ public class STScriptPlanLoader {
 		}
 	}
 	
+	public static String toJson(String script) {
+		return new ST(s_tmpltGroup.get(), script).render();
+	}
+	
 	private static Plan parseScript(String script) throws InvalidProtocolBufferException {
 		String json = new ST(s_tmpltGroup.get(), script).render();
-		PlanProto.Builder builder = PlanProto.newBuilder();
-		
-		JsonFormat.parser().merge(json, builder);
-		return Plan.fromProto(builder.build());
+		return Plan.parseJson(json);
 	}
 	
 	private static final STGroup loadTemplateGroup() {
