@@ -53,7 +53,7 @@ public class SingleThreadSuppliedRecordSet extends PipedRecordSet implements Run
 		}
 		catch ( Exception e ) {
 			getLogger().debug("failed: supplying SingleThreadOwnedRecord: cause=" + e);
-			throw e;
+			endOfSupply(e);
 		}
 	}
 }
