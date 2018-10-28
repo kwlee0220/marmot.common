@@ -155,6 +155,32 @@ spatial_semijoin_dist(param_dsid, dist, negated=[], geom_col="the_geom") ::= <<
 }
 >>
 
+spatial_outerjoin(param_dsid, output_cols, negated=[], geom_col="the_geom") ::= <<
+{ "spatialOuterJoin": {
+    "geomColumn": "<geom_col>",
+    "paramDataset": "<param_dsid>",
+    "outputColumns": "<output_cols>"<if(negated)>,
+    "options": {
+      "negated": <negated>
+    }
+    <endif>
+  }
+}
+>>
+spatial_outerjoin_dist(param_dsid, output_cols, dist, negated=[], geom_col="the_geom") ::= <<
+{ "spatialOuterJoin": {
+    "geomColumn": "<geom_col>",
+    "paramDataset": "<param_dsid>",
+    "outputColumns": "<output_cols>",
+    "options": {
+      "joinExpr": "within_distance(<dist>)"<if(negated)>,
+      "negated": <negated>
+      <endif>
+    }
+  }
+}
+>>
+
 load_spatial_indexjoin(left_dsid, right_dsid, output_cols) ::= <<
 { "loadSpatialIndexJoin": {
     "leftDataset": "<left_dsid>",
@@ -254,6 +280,26 @@ semi_join(jcols, param_dsid, param_jcols, nworkers=[]) ::= <<
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
     "joinOptions": { "joinType": "SEMI_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
+  }
+}
+>>
+left_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+{ "equiJoin": {
+    "joinColumns": "<jcols>",
+    "paramDataset": "<param_dsid>",
+    "paramColumns": "<param_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": { "joinType": "LEFT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
+  }
+}
+>>
+right_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+{ "equiJoin": {
+    "joinColumns": "<jcols>",
+    "paramDataset": "<param_dsid>",
+    "paramColumns": "<param_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": { "joinType": "RIGHT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
