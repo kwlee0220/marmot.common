@@ -47,7 +47,10 @@ message LoadDataSetProto {
 message QueryDataSetProto {
 	string name = 1;
 	string spatial_relation = 2;
-	GeometryProto key = 3;
+	oneof either {
+		GeometryProto key = 3;
+		string key_value_dataset = 4;
+	}
 }
 
 message LoadJdbcTableProto {
@@ -551,9 +554,12 @@ message DropEmptyGeometryProto {
 }
 message UnarySpatialIntersectsProto {
 	string geometry_column = 1;
-	bytes key = 2;
+	oneof either_key {
+		GeometryProto key = 2;
+		string key_value_dataset = 3;
+	}
 	oneof optional_options {
-		PredicateOptionsProto options = 3;
+		PredicateOptionsProto options = 4;
 	}
 }
 message BinarySpatialIntersectsProto {
@@ -886,5 +892,5 @@ enum PlanExecutionModeProto {
 };
 message PlanProto {
 	string name = 1;
-	repeated OperatorProto operator = 3;
+	repeated OperatorProto operators = 2;
 }

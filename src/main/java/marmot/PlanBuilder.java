@@ -35,6 +35,7 @@ import marmot.plan.ParseCsvOption;
 import marmot.plan.PredicateOption;
 import marmot.plan.SpatialJoinOption;
 import marmot.proto.GeometryColumnInfoProto;
+import marmot.proto.GeometryProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.TypeCodeProto;
 import marmot.proto.optor.ArcGisSpatialJoinProto;
@@ -145,7 +146,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder add(OperatorProto proto) {
-		m_builder.addOperator(proto);
+		m_builder.addOperators(proto);
 		return this;
 	}
 	
@@ -1253,20 +1254,40 @@ public class PlanBuilder {
 	 * 주어진 이름의 데이터세트에 속한 레코드들 중에서 주어진 공간 객체와 조건을 만족시키는 레코드들로
 	 * 구성된 레코드 세트를 적재시키는 연산을 추가한다.
 	 * 
-	 * @param name	읽을 대상 데이터세트 이름. 
+	 * @param dsId	읽을 대상 데이터세트 이름. 
 	 * @param relation	공간 조건
 	 * @param key		조건 대상 공간 객체.
 	 * @return		작업이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder query(String name, SpatialRelation relation, Geometry key) {
-		Preconditions.checkArgument(name != null, "name is null");
+	public PlanBuilder query(String dsId, SpatialRelation relation, Geometry key) {
+		Preconditions.checkArgument(dsId != null, "input dataset id");
 		Preconditions.checkArgument(relation != null, "relation is null");
 		Preconditions.checkArgument(key != null, "key is null");
 				
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
-													.setName(name)
+													.setName(dsId)
 													.setSpatialRelation(relation.toStringExpr())
 													.setKey(PBUtils.toProto(key))
+													.build();
+		return add(OperatorProto.newBuilder()
+								.setQueryDataset(query)
+								.build());
+	}
+	public PlanBuilder query(String dsId, SpatialRelation relation, Envelope bounds) {
+		Objects.requireNonNull(bounds, "key bounds");
+		
+		return query(dsId, relation, GeoClientUtils.toPolygon(bounds));
+	}
+	
+	public PlanBuilder query(String dsId, SpatialRelation relation, String keyDsId) {
+		Preconditions.checkArgument(dsId != null, "input dataset id");
+		Preconditions.checkArgument(relation != null, "relation is null");
+		Objects.requireNonNull(keyDsId, "key dataset id");
+				
+		QueryDataSetProto query = QueryDataSetProto.newBuilder()
+													.setName(dsId)
+													.setSpatialRelation(relation.toStringExpr())
+													.setKeyValueDataset(keyDsId)
 													.build();
 		return add(OperatorProto.newBuilder()
 								.setQueryDataset(query)
@@ -1472,12 +1493,33 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder intersects(String geomCol, Geometry key, PredicateOption... opts) {
-		byte[] wkb = GeoClientUtils.toWKB(key);
+		Objects.requireNonNull(geomCol, "geometry column name");
+		Objects.requireNonNull(key, "key geometry");
+		Objects.requireNonNull(opts, "PredicateOption");
+		
+		GeometryProto keyProto = PBUtils.toProto(key);
+		UnarySpatialIntersectsProto.Builder builder
+								= UnarySpatialIntersectsProto.newBuilder()
+															.setGeometryColumn(geomCol)
+															.setKey(keyProto);
+
+		PredicateOption.toPredicateOptionsProto(opts)
+					.forEach(builder::setOptions);
+		UnarySpatialIntersectsProto op = builder.build();
+
+		return add(OperatorProto.newBuilder()
+								.setUnarySpatialIntersects(op)
+								.build());
+	}
+	public PlanBuilder intersects(String geomCol, String keyDsId, PredicateOption... opts) {
+		Objects.requireNonNull(geomCol, "geometry column name");
+		Objects.requireNonNull(keyDsId, "key dataset id");
+		Objects.requireNonNull(opts, "PredicateOption");
 		
 		UnarySpatialIntersectsProto.Builder builder
 								= UnarySpatialIntersectsProto.newBuilder()
-																.setGeometryColumn(geomCol)
-																.setKey(ByteString.copyFrom(wkb));
+															.setGeometryColumn(geomCol)
+															.setKeyValueDataset(keyDsId);
 
 		PredicateOption.toPredicateOptionsProto(opts)
 					.forEach(builder::setOptions);
@@ -1500,8 +1542,8 @@ public class PlanBuilder {
 	 * @param	opts		옵션 리스트.
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
-	public PlanBuilder intersects(String leftGeomCol, String rightGeomCol,
-									PredicateOption... opts) {
+	public PlanBuilder intersectsBinary(String leftGeomCol, String rightGeomCol,
+										PredicateOption... opts) {
 		Preconditions.checkArgument(leftGeomCol != null, "leftGeomCol is null");
 		Preconditions.checkArgument(rightGeomCol != null, "rightGeomCol is null");
 
@@ -1854,14 +1896,14 @@ public class PlanBuilder {
 	 * 
 	 * @param leftDataSet		조인에 가담할 기본 데이터세트 이름. 
 	 * @param rightDataSet	조인에 가담할 인자 데이터세트 이름.
-	 * @param joinExpr	조인 조건
 	 * @param outColumnsExpr	조인 결과에 참여 할 컴럼 이름 리스트.
+	 * @param joinExpr	조인 조건
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 * 
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
 	 */
 	public PlanBuilder loadSpatialIndexJoin(String leftDataSet, String rightDataSet,
-											SpatialRelation joinExpr, String outColumnsExpr) {
+											String outColumnsExpr, SpatialRelation joinExpr) {
 		Preconditions.checkArgument(leftDataSet != null, "leftDataSet is null");
 		Preconditions.checkArgument(rightDataSet != null, "rightDataSet is null");
 		Preconditions.checkArgument(joinExpr != null, "joinExpr is null");
@@ -1876,6 +1918,11 @@ public class PlanBuilder {
 		return add(OperatorProto.newBuilder()
 								.setLoadSpatialIndexJoin(join)
 								.build());
+	}
+	public PlanBuilder loadSpatialIndexJoin(String leftDataSet, String rightDataSet,
+											String outColumnsExpr) {
+		return loadSpatialIndexJoin(leftDataSet, rightDataSet, outColumnsExpr,
+									SpatialRelation.INTERSECTS);
 	}
 
 	/**
