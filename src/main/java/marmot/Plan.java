@@ -25,11 +25,11 @@ public class Plan implements PBSerializable<PlanProto> {
 	private final PlanProto m_proto;
 	
 	public int length() {
-		return m_proto.getOperatorCount();
+		return m_proto.getOperatorsCount();
 	}
 	
 	public List<OperatorProto> getOperatorProtos() {
-		return m_proto.getOperatorList();
+		return m_proto.getOperatorsList();
 	}
 	
 	public Option<OperatorProto> getLastOperator() {
@@ -37,7 +37,7 @@ public class Plan implements PBSerializable<PlanProto> {
 			return Option.none();
 		}
 		else {
-			return Option.some(m_proto.getOperator(m_proto.getOperatorCount()-1));
+			return Option.some(m_proto.getOperators(m_proto.getOperatorsCount()-1));
 		}
 	}
 	
@@ -98,7 +98,7 @@ public class Plan implements PBSerializable<PlanProto> {
 	}
 	
 	public PlanBuilder toBuilder() {
-		return FStream.of(m_proto.getOperatorList())
+		return FStream.of(m_proto.getOperatorsList())
 					.foldLeft(new PlanBuilder(getName()), (b,o) -> b.add(o));
 	}
 	
@@ -128,9 +128,9 @@ public class Plan implements PBSerializable<PlanProto> {
 	public static Plan concat(Plan plan1, Plan plan2) {
 		PlanBuilder builder = new PlanBuilder(plan1.getName());
 		
-		FStream.of(plan1.m_proto.getOperatorList())
+		FStream.of(plan1.m_proto.getOperatorsList())
 				.foldLeft(builder, (b,o) -> b.add(o));
-		FStream.of(plan2.m_proto.getOperatorList())
+		FStream.of(plan2.m_proto.getOperatorsList())
 				.foldLeft(builder, (b,o) -> b.add(o));
 		
 		return builder.build();
