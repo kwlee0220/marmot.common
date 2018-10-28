@@ -87,6 +87,23 @@ update1(init, expr) ::= <<
 }
 >>
 
+query(dsid, key_dsid, rel="intersects") ::= <<
+{ "queryDataset": {
+    "name": "<dsid>",
+    "spatialRelation": "<rel>",
+    "keyValueDataset": "<key_dsid>"
+  }
+}
+>>
+query_dist(dsId, dist, rel="intersects") ::= <<
+{ "queryDataset": {
+    "name": "<dsid>",
+    "spatialRelation": "within_distance(<dist>)",
+    "keyValueDataset": "<key_dsid>"
+  }
+}
+>>
+
 buffer(dist) ::= <<
 { "buffer": { "geometryColumn": "the_geom", "distance": <dist>  } }
 >>
@@ -114,10 +131,45 @@ spatial_join(param_dsid, output_cols) ::= <<
 }
 >>
 
-spatial_semijoin(param_dsid) ::= <<
+spatial_semijoin(param_dsid, negated=[], geom_col="the_geom") ::= <<
 { "spatialSemiJoin": {
-    "geomColumn": "the_geom",
-    "paramDataset": "<param_dsid>"
+    "geomColumn": "<geom_col>",
+    "paramDataset": "<param_dsid>"<if(negated)>,
+    "options": {
+      "negated": <negated>
+    }
+    <endif>
+  }
+}
+>>
+spatial_semijoin_dist(param_dsid, dist, negated=[], geom_col="the_geom") ::= <<
+{ "spatialSemiJoin": {
+    "geomColumn": "<geom_col>",
+    "paramDataset": "<param_dsid>",
+    "options": {
+      "joinExpr": "within_distance(<dist>)"<if(negated)>,
+      "negated": <negated>
+      <endif>
+    }
+  }
+}
+>>
+
+load_spatial_indexjoin(left_dsid, right_dsid, output_cols) ::= <<
+{ "loadSpatialIndexJoin": {
+    "leftDataset": "<left_dsid>",
+    "rightDataset": "<right_dsid>",
+    "joinExpr": "intersects",
+    "outputColumnsExpr": "<output_cols>"
+  }
+}
+>>
+load_spatial_indexjoin_dist(left_dsid, right_dsid, output_cols, dist) ::= <<
+{ "loadSpatialIndexJoin": {
+    "leftDataset": "<left_dsid>",
+    "rightDataset": "<right_dsid>",
+    "joinExpr": "within_distance(<dist>)",
+    "outputColumnsExpr": "<output_cols>"
   }
 }
 >>
@@ -205,24 +257,50 @@ semi_join(jcols, param_dsid, param_jcols, nworkers=[]) ::= <<
   }
 }
 >>
-
-aggregate(aggrs) ::= <<
-{ "reduce": {
-  	"valAggregate": {
-  	  "aggregate": [<aggrs:{a | "<a>"}; separator=",">]
-  	}
+full_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+{ "equiJoin": {
+    "joinColumns": "<jcols>",
+    "paramDataset": "<param_dsid>",
+    "paramColumns": "<param_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": { "joinType": "FULL_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
 
-aggregate_by_group(cmp_cols,aggrs) ::= <<
+aggregate(aggrs) ::= <<
+{ "reduce": { "valAggregate": { "aggregate": [<aggrs:{a | "<a>"}; separator=",">] } } }
+>>
+
+aggregate_by_group(cmp_cols,aggrs,tag_cols=[]) ::= <<
 { "transformByGroup": {
   	"grouper": {
-      "compareColumns": "<cmp_cols>"
+      "compareColumns": "<cmp_cols>"<if(tag_cols)>,
+      "tagColumns" : "<tag_cols>"
+      <endif>
   	},
-  	"valAggregate": {
-  	  "aggregate": [<aggrs:{a | "<a>"}; separator=",">]
-  	}
+  	"valAggregate": { "aggregate": [<aggrs:{aggr | "<aggr>"}; separator=",">] }
+  }
+}
+>>
+
+intersects(param_dsid, negated=[], geom_col="the_geom") ::= <<
+{ "unarySpatialIntersects": {
+  	"geometryColumn": "<geom_col>",
+  	"keyValueDataset": "<param_dsid>"<if(negated)>,
+    "options": {
+      "negated": <negated>
+    }
+  	<endif>
+  }
+}
+>>
+
+intersection(left_geomcol, right_geomcol, out_geomcol) ::= <<
+{ "binarySpatialIntersection": {
+  	"leftGeometryColumn": "<left_geomcol>",
+  	"rightGeometryColumn": "<right_geomcol>",
+  	"outGeometryColumn": "<out_geomcol>"
   }
 }
 >>
