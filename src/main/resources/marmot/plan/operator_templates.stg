@@ -342,6 +342,19 @@ intersects(param_dsid, negated=[], geom_col="the_geom") ::= <<
 }
 >>
 
+within_distance(param_dsid, dist, negated=[], geom_col="the_geom") ::= <<
+{ "withinDistance": {
+  	"geometryColumn": "<geom_col>",
+  	"keyValueDataset": "<param_dsid>",
+    "distance": 500.0<if(negated)>,
+    "options": {
+      "negated": <negated>
+    }
+  	<endif>
+  }
+}
+>>
+
 intersection(left_geomcol, right_geomcol, out_geomcol) ::= <<
 { "binarySpatialIntersection": {
   	"leftGeometryColumn": "<left_geomcol>",

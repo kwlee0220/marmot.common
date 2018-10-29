@@ -1530,6 +1530,50 @@ public class PlanBuilder {
 								.build());
 	}
 	
+	public PlanBuilder withinDistance(String geomCol, Geometry key, double distance,
+										PredicateOption... opts) {
+		Preconditions.checkArgument(geomCol != null, "geomCol is null");
+		Preconditions.checkArgument(key != null, "key is null");
+		Preconditions.checkArgument(Double.compare(distance, 0d) > 0,
+									"invalid distance: dist=" + distance);
+
+		GeometryProto keyProto = PBUtils.toProto(key);
+		WithinDistanceProto.Builder builder = WithinDistanceProto.newBuilder()
+													.setGeometryColumn(geomCol)
+													.setKey(keyProto)
+													.setDistance(distance);
+
+		PredicateOption.toPredicateOptionsProto(opts)
+					.forEach(builder::setOptions);
+		WithinDistanceProto op = builder.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setWithinDistance(op)
+								.build());
+	}
+	
+	public PlanBuilder withinDistance(String geomCol, String keyDsId, double distance,
+										PredicateOption... opts) {
+		Objects.requireNonNull(geomCol, "geometry column name");
+		Objects.requireNonNull(keyDsId, "key dataset id");
+		Objects.requireNonNull(opts, "PredicateOption");
+		Preconditions.checkArgument(Double.compare(distance, 0d) > 0,
+									"invalid distance: dist=" + distance);
+
+		WithinDistanceProto.Builder builder = WithinDistanceProto.newBuilder()
+													.setGeometryColumn(geomCol)
+													.setKeyValueDataset(keyDsId)
+													.setDistance(distance);
+
+		PredicateOption.toPredicateOptionsProto(opts)
+					.forEach(builder::setOptions);
+		WithinDistanceProto op = builder.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setWithinDistance(op)
+								.build());
+	}
+	
 	/**
 	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
 	 * 주어진 두 개의 공간 객체 컬럼들의 공간 객체를 읽어 이들 교집합을 생성하여
@@ -1558,28 +1602,6 @@ public class PlanBuilder {
 		
 		return add(OperatorProto.newBuilder()
 								.setBinarySpatialIntersects(op)
-								.build());
-	}
-	
-	public PlanBuilder withinDistance(String geomCol, Geometry param, double distance,
-										PredicateOption... opts) {
-		Preconditions.checkArgument(geomCol != null, "geomCol is null");
-		Preconditions.checkArgument(param != null, "key is null");
-		Preconditions.checkArgument(Double.compare(distance, 0d) > 0,
-									"invalid distance: dist=" + distance);
-
-		byte[] wkb = GeoClientUtils.toWKB(param);
-		WithinDistanceProto.Builder builder = WithinDistanceProto.newBuilder()
-													.setGeometryColumn(geomCol)
-													.setKey(ByteString.copyFrom(wkb))
-													.setDistance(distance);
-
-		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
-		WithinDistanceProto op = builder.build();
-		
-		return add(OperatorProto.newBuilder()
-								.setWithinDistance(op)
 								.build());
 	}
 

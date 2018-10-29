@@ -562,19 +562,22 @@ message UnarySpatialIntersectsProto {
 		PredicateOptionsProto options = 4;
 	}
 }
+message WithinDistanceProto {
+	string geometry_column = 1;
+	oneof either_key {
+		GeometryProto key = 2;
+		string key_value_dataset = 3;
+	}
+	double distance = 4;
+	oneof optional_options {
+		PredicateOptionsProto options = 5;
+	}
+}
 message BinarySpatialIntersectsProto {
 	string left_geometry_column = 1;
 	string right_geometry_column = 2;
 	oneof optional_options {
 		PredicateOptionsProto options = 3;
-	}
-}
-message WithinDistanceProto {
-	string geometry_column = 1;
-	bytes key = 2;
-	double distance = 3;
-	oneof optional_options {
-		PredicateOptionsProto options = 4;
 	}
 }
 

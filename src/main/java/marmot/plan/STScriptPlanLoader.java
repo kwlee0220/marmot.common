@@ -39,6 +39,10 @@ public class STScriptPlanLoader {
 		return parseScript(IOUtils.toString(file));
 	}
 	
+	public static Plan load(File file, Charset charset) throws IOException {
+		return parseScript(IOUtils.toString(file, charset));
+	}
+	
 	public static Plan load(String name) throws IOException {
 		return load(name, Charset.defaultCharset());
 	}
