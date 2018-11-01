@@ -524,8 +524,12 @@ message IntersectionJoinProto {
 message LoadSpatialIndexJoinProto {
 	string left_dataset = 1;
 	string right_dataset = 2;
-	string join_expr = 3;
-	string output_columns_expr = 4;
+	oneof optional_output_columns {
+		string output_columns = 3;
+	}
+	oneof optional_options {
+		SpatialJoinOptionsProto options = 4;
+	}
 }
 
 message DissolveProto {

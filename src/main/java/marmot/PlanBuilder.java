@@ -1918,33 +1918,49 @@ public class PlanBuilder {
 	 * 
 	 * @param leftDataSet		조인에 가담할 기본 데이터세트 이름. 
 	 * @param rightDataSet	조인에 가담할 인자 데이터세트 이름.
-	 * @param outColumnsExpr	조인 결과에 참여 할 컴럼 이름 리스트.
+	 * @param outColumns	조인 결과에 참여 할 컴럼 이름 리스트.
 	 * @param joinExpr	조인 조건
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 * 
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
 	 */
 	public PlanBuilder loadSpatialIndexJoin(String leftDataSet, String rightDataSet,
-											String outColumnsExpr, SpatialRelation joinExpr) {
+											String outColumns, SpatialJoinOption... opts) {
 		Preconditions.checkArgument(leftDataSet != null, "leftDataSet is null");
 		Preconditions.checkArgument(rightDataSet != null, "rightDataSet is null");
-		Preconditions.checkArgument(joinExpr != null, "joinExpr is null");
-		Preconditions.checkArgument(outColumnsExpr != null, "outColumnsExpr is null");
+		Preconditions.checkArgument(opts != null, "joinExpr is null");
+		Preconditions.checkArgument(outColumns != null, "outColumnsExpr is null");
 		
-		LoadSpatialIndexJoinProto join = LoadSpatialIndexJoinProto.newBuilder()
+		LoadSpatialIndexJoinProto.Builder builder = LoadSpatialIndexJoinProto.newBuilder()
 											.setLeftDataset(leftDataSet)
 											.setRightDataset(rightDataSet)
-											.setJoinExpr(joinExpr.toStringExpr())
-											.setOutputColumnsExpr(outColumnsExpr)
-											.build();
+											.setOutputColumns(outColumns);
+		if ( opts.length > 0 ) {
+			builder.setOptions(SpatialJoinOption.toProto(opts));
+		}
+		LoadSpatialIndexJoinProto op = builder.build();
+		
 		return add(OperatorProto.newBuilder()
-								.setLoadSpatialIndexJoin(join)
+								.setLoadSpatialIndexJoin(op)
 								.build());
 	}
 	public PlanBuilder loadSpatialIndexJoin(String leftDataSet, String rightDataSet,
-											String outColumnsExpr) {
-		return loadSpatialIndexJoin(leftDataSet, rightDataSet, outColumnsExpr,
-									SpatialRelation.INTERSECTS);
+											SpatialJoinOption... opts) {
+		Preconditions.checkArgument(leftDataSet != null, "leftDataSet is null");
+		Preconditions.checkArgument(rightDataSet != null, "rightDataSet is null");
+		Preconditions.checkArgument(opts != null, "joinExpr is null");
+		
+		LoadSpatialIndexJoinProto.Builder builder = LoadSpatialIndexJoinProto.newBuilder()
+											.setLeftDataset(leftDataSet)
+											.setRightDataset(rightDataSet);
+		if ( opts.length > 0 ) {
+			builder.setOptions(SpatialJoinOption.toProto(opts));
+		}
+		LoadSpatialIndexJoinProto op = builder.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setLoadSpatialIndexJoin(op)
+								.build());
 	}
 
 	/**

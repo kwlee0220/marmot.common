@@ -87,6 +87,12 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 				builder = builder.expand(decl, expr);
 				builder = builder.project(String.format("*-{%s}", geomCol));
 			}
+			else if ( m_csvParams.tiger() ) {
+				String decl = String.format("%s:string", geomCol);
+				String initExpr = String.format("ST_AsHexString(%s)", geomCol);
+				builder = builder.expand1(decl, initExpr);
+				builder = builder.project(String.format("%s,*-{%s}", geomCol, geomCol));
+			}
 		}
 		
 		RecordSet rset = marmot.executeLocally(builder.build());
@@ -99,7 +105,8 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	
 	public static final long run(MarmotRuntime marmot, CommandLine cl) throws Exception {
 		CsvParameters csvParams = CsvParameters.create()
-											.headerFirst(cl.hasOption("header_first"));
+												.headerFirst(cl.hasOption("header_first"))
+												.tiger(cl.hasOption("tiger"));
 		cl.getOptionString("delim").map(s -> s.trim().charAt(0))
 									.forEach(csvParams::delimiter);
 		cl.getOptionString("quote").map(s -> s.trim().charAt(0))

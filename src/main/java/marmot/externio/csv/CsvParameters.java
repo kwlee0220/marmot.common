@@ -27,6 +27,7 @@ public class CsvParameters {
 	private boolean m_headerFirst = false;
 	private Option<String> m_pointCols = Option.none();
 	private Option<String> m_csvSrid = Option.none();
+	private boolean m_tiger = false;
 	
 	public static CsvParameters create() {
 		return new CsvParameters();
@@ -78,6 +79,15 @@ public class CsvParameters {
 	
 	public CsvParameters headerFirst(boolean flag) {
 		m_headerFirst = flag;
+		return this;
+	}
+	
+	public boolean tiger() {
+		return m_tiger;
+	}
+	
+	public CsvParameters tiger(boolean flag) {
+		m_tiger = flag;
 		return this;
 	}
 	
