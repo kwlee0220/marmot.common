@@ -571,7 +571,9 @@ public class PlanBuilder {
 	 * @param columnSelection	생성될 레코드에 포함될 컬럼 표현식.
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder project(String columnSelection) {
+	@Operator(protoId="project", name="컬럼 선택")
+	public PlanBuilder project(@Parameter(protoId="columnExpr", name="선택 컬럼")
+								String columnSelection) {
 		ProjectProto opProto = ProjectProto.newBuilder()
 										.setColumnExpr(columnSelection)
 										.build();
