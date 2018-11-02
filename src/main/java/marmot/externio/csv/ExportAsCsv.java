@@ -73,7 +73,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 			if ( m_csvParams.csvSrid().isDefined() ) {
 				String csvSrid = m_csvParams.csvSrid().get();
 				if ( !csvSrid.equals(srid) ) {
-					builder = builder.transformCrs(geomCol, srid, csvSrid, geomCol);
+					builder = builder.transformCrs(geomCol, srid, csvSrid);
 				}
 			}
 

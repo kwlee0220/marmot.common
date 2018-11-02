@@ -98,8 +98,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		if ( m_csvParams.csvSrid().isDefined() ) {
 			String srcSrid = m_csvParams.csvSrid().get();
 			if ( !srcSrid.equals(info.srid()) ) {
-				builder = builder.transformCrs(info.name(), srcSrid,
-												info.srid(), info.name());
+				builder = builder.transformCrs(info.name(), srcSrid, info.srid());
 			}
 		}
 		

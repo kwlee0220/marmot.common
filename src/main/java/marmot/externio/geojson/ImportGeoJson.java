@@ -87,8 +87,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 			String srcSrid = osrcSrid.get();
 			if ( !srcSrid.equals(info.srid()) ) {
 				return Option.some(new PlanBuilder("import_geojson")
-										.transformCrs(info.name(), srcSrid,
-												info.srid(), info.name())
+										.transformCrs(info.name(), srcSrid, info.srid())
 										.build());
 			}
 		}

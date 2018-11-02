@@ -50,8 +50,7 @@ public class ExportAsGeoJson {
 		PlanBuilder builder = marmot.planBuilder("export_geojson")
 										.load(m_dsId);
 		if ( m_wgs84 && !"EPSG:4326".equals(info.srid()) ) {
-			builder.transformCrs(info.name(), info.srid(),
-								"EPSG:4326", info.name());
+			builder.transformCrs(info.name(), info.srid(), "EPSG:4326");
 		}
 		
 		return marmot.executeLocally(builder.build());

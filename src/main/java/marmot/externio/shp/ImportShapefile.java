@@ -91,8 +91,7 @@ public class ImportShapefile extends ImportIntoDataSet {
 			String shpSrid = oshpSrid.get();
 			if ( !shpSrid.equals(info.srid()) ) {
 				return Option.some(new PlanBuilder("import_shapefile")
-										.transformCrs(info.name(), shpSrid,
-												info.srid(), info.name())
+										.transformCrs(info.name(), shpSrid, info.srid())
 										.build());
 			}
 		}
