@@ -75,7 +75,9 @@ public class AggregateFunction {
 	
 	private static final String DELIM = "?";
 	public String toString() {
-		String str = String.format("%s(%s)%s", m_type.name(), m_aggrColumn, m_resultColumn);
+		String str = String.format("%s(%s)%s", m_type.name(),
+									m_aggrColumn != null ? m_aggrColumn : "",
+									m_resultColumn);
 		if ( m_args != null ) {
 			str = str + DELIM + m_args;
 		}
