@@ -65,7 +65,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	private RecordSchema(LinkedHashMap<String,Column> columns) {
 		m_columns = FStream.of(columns.values())
 							.zipWithIndex()
-							.map(t -> new Column(t._1.name(), t._1.type(), t._2))
+							.map(t -> new Column(t._1.name().toLowerCase(), t._1.type(), t._2))
 							.toKVFStream(Column::name)
 							.toMap(Maps.newLinkedHashMap());
 	}
@@ -77,7 +77,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @return	이름에 해당하는 컬럼이 존재하는 경우는 true, 그렇지 않은 경우는 false
 	 */
 	public boolean existsColumn(String name) {
-		return m_columns.containsKey(name);
+		return m_columns.containsKey(name.toLowerCase());
 	}
 	
 	/**
@@ -88,7 +88,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @throws NoSuchElementException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우
 	 */
 	public Column getColumn(String name) {
-		Column col = m_columns.get(name);
+		Column col = m_columns.get(name.toLowerCase());
 		if ( col == null ) {
 			throw new ColumnNotFoundException("name=" + name + ", schema=" + m_columns.keySet());
 		}
@@ -108,7 +108,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	public Column getColumn(String name, Column defValue) {
 		Objects.requireNonNull(name, "column name is null");
 		
-		Column col = m_columns.get(name);
+		Column col = m_columns.get(name.toLowerCase());
 		return col != null ? col : defValue;
 	}
 	
