@@ -507,12 +507,12 @@ public class PlanBuilder {
 		return parseCsv(delim, HEADER(header));
 	}
 
-	@Operator(protoId="parseCsv", name="CSV 파싱")
-	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
-								@Parameter(protoId="options/nullString", name="Null 간주 문자열")String nullString) {
-		return parseCsv(delim, HEADER(header), NULL_STRING(nullString));
-	}
+//	@Operator(protoId="parseCsv", name="CSV 파싱")
+//	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
+//								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
+//								@Parameter(protoId="options/nullString", name="Null 간주 문자열")String nullString) {
+//		return parseCsv(delim, HEADER(header), NULL_STRING(nullString));
+//	}
 
 	@Operator(protoId="parseCsv", name="CSV 파싱")
 	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
@@ -521,13 +521,13 @@ public class PlanBuilder {
 		return parseCsv(delim, HEADER(header), QUOTE(quote));
 	}
 
-	@Operator(protoId="parseCsv", name="CSV 파싱")
-	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
-								@Parameter(protoId="options/quote", name="quote 문자")char quote,
-								@Parameter(protoId="options/nullString", name="Null 간주 문자열")String nullString) {
-		return parseCsv(delim, HEADER(header), QUOTE(quote), NULL_STRING(nullString));
-	}
+//	@Operator(protoId="parseCsv", name="CSV 파싱")
+//	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
+//								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
+//								@Parameter(protoId="options/quote", name="quote 문자")char quote,
+//								@Parameter(protoId="options/nullString", name="Null 간주 문자열")String nullString) {
+//		return parseCsv(delim, HEADER(header), QUOTE(quote), NULL_STRING(nullString));
+//	}
 
 	public PlanBuilder parseCsv(char delim, ParseCsvOption... opts) {
 		ParseCsvProto.Builder builder = ParseCsvProto.newBuilder()
@@ -572,7 +572,7 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	@Operator(protoId="project", name="컬럼 선택")
-	public PlanBuilder project(@Parameter(protoId="columnExpr", name="선택 컬럼")
+	public PlanBuilder project(@Parameter(protoId="columnExpr", name="컬럼리스트")
 								String columnSelection) {
 		ProjectProto opProto = ProjectProto.newBuilder()
 										.setColumnExpr(columnSelection)
@@ -1893,13 +1893,13 @@ public class PlanBuilder {
 	 * @param tarGeomCol	좌표계 변환된 공정 정보가 저장될 컬럼 이름.
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
-	@Operator(protoId="transformCrs", name="좌표계 변경", type=OperatorType.GEO_SPATIAL)
-	public PlanBuilder transformCrs(@Parameter(protoId="geometryColumn", name="입력 공간컬럼") String srcGeomCol,
-									@Parameter(protoId="sourceSrid", name="입력 SRID") String srcSrid,
-									@Parameter(protoId="targetSrid", name="출력 SRID") String tarSrid,
-									@Parameter(protoId="options/outGeomCol", name="출력 공간컬럼") String tarGeomCol) {
-		return transformCrs(srcGeomCol, srcSrid, tarSrid, OUTPUT(tarGeomCol));
-	}
+//	@Operator(protoId="transformCrs", name="좌표계 변경", type=OperatorType.GEO_SPATIAL)
+//	public PlanBuilder transformCrs(@Parameter(protoId="geometryColumn", name="입력 공간컬럼") String srcGeomCol,
+//									@Parameter(protoId="sourceSrid", name="입력 SRID") String srcSrid,
+//									@Parameter(protoId="targetSrid", name="출력 SRID") String tarSrid,
+//									@Parameter(protoId="options/outGeomCol", name="출력 공간컬럼") String tarGeomCol) {
+//		return transformCrs(srcGeomCol, srcSrid, tarSrid, OUTPUT(tarGeomCol));
+//	}
 	
 	//***********************************************************************
 	//***********************************************************************
