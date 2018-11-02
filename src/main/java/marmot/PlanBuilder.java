@@ -1,8 +1,6 @@
 package marmot;
 
-import static marmot.plan.GeomOpOption.OUTPUT;
 import static marmot.plan.ParseCsvOption.HEADER;
-import static marmot.plan.ParseCsvOption.NULL_STRING;
 import static marmot.plan.ParseCsvOption.QUOTE;
 
 import java.io.Serializable;
@@ -483,7 +481,7 @@ public class PlanBuilder {
 	 * @param predicate		필터 연산의 조건절.
 	 * @return 명령이 추가된 {@link PlanBuilder} 객체.
 	 */
-	@Operator(protoId="filterScript", name="레코드 선택")
+//	@Operator(protoId="filterScript", name="레코드 선택")
 	public PlanBuilder filter(@Parameter(protoId="predicate/initializer", name="조건식 초기화") String initScript,
 							@Parameter(protoId="predicate/expr", name="조건식") String predicate) {
 		return filter(RecordScript.of(initScript, predicate));
@@ -514,12 +512,12 @@ public class PlanBuilder {
 //		return parseCsv(delim, HEADER(header), NULL_STRING(nullString));
 //	}
 
-	@Operator(protoId="parseCsv", name="CSV 파싱")
-	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
-								@Parameter(protoId="options/quote", name="quote 문자")char quote) {
-		return parseCsv(delim, HEADER(header), QUOTE(quote));
-	}
+//	@Operator(protoId="parseCsv", name="CSV 파싱")
+//	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
+//								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
+//								@Parameter(protoId="options/quote", name="quote 문자")char quote) {
+//		return parseCsv(delim, HEADER(header), QUOTE(quote));
+//	}
 
 //	@Operator(protoId="parseCsv", name="CSV 파싱")
 //	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
@@ -545,7 +543,7 @@ public class PlanBuilder {
 		return update(RecordScript.of(updateExpr));
 	}
 
-	@Operator(protoId="update", name="컬럼값 변경")
+//	@Operator(protoId="update", name="컬럼값 변경")
 	public PlanBuilder update(@Parameter(protoId="script/initializer", name="변경식 초기화") String initExpr,
 							@Parameter(protoId="script/expr", name="변경식") String updateExpr) {
 		return update(RecordScript.of(updateExpr)
@@ -654,7 +652,7 @@ public class PlanBuilder {
 								.build());
 	}
 
-	@Operator(protoId="expand1", name="컬럼 추가")
+//	@Operator(protoId="expand1", name="컬럼 추가")
 	public PlanBuilder expand1(@Parameter(protoId="columnName", name="컬럼 이름") String colName,
 							@Parameter(protoId="columnType", name="컬럼 타입") DataType colType,
 							@Parameter(protoId="initValue/expr", name="컬럼 초기화식") String colInit) {
