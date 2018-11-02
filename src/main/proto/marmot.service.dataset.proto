@@ -23,6 +23,7 @@ service DataSetService {
 	rpc getDataSetInfoAll(marmot.proto.VoidProto) returns (stream DataSetInfoResponse);
 	rpc getDataSetInfo(marmot.proto.StringProto) returns (DataSetInfoResponse);
 	rpc getDataSetInfoAllInDir(DirectoryTraverseRequest) returns (stream DataSetInfoResponse);
+	rpc getDefaultSpatialIndexInfo(marmot.proto.StringProto) returns (SpatialIndexInfoResponse);
 	
 	//
 	// DataSet Directory related interface
@@ -155,10 +156,12 @@ message QueryRangeRequest {
 
 
 
+
 message SpatialIndexInfoResponse {
 	oneof either {
-		marmot.proto.SpatialIndexInfoProto info = 1;
-		marmot.proto.service.ErrorProto error = 2;
+		SpatialIndexInfoProto index_info = 1;
+		VoidProto none = 2;
+		marmot.proto.service.ErrorProto error = 3;
 	}
 }
 message QuerySpatialClusterInfoRequest {
