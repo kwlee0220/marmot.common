@@ -1,7 +1,6 @@
 package marmot;
 
 import static marmot.plan.ParseCsvOption.HEADER;
-import static marmot.plan.ParseCsvOption.QUOTE;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -114,6 +113,7 @@ import marmot.proto.optor.StoreKeyedDataSetProto;
 import marmot.proto.optor.TakeProto;
 import marmot.proto.optor.TeeProto;
 import marmot.proto.optor.ToGeometryPointProto;
+import marmot.proto.optor.ToXYCoordinatesProto;
 import marmot.proto.optor.TransformByGroupProto;
 import marmot.proto.optor.TransformCrsProto;
 import marmot.proto.optor.UnarySpatialIntersectionProto;
@@ -1686,6 +1686,22 @@ public class PlanBuilder {
 															.build();
 		return add(OperatorProto.newBuilder()
 								.setToPoint(toPoint)
+								.build());
+	}
+
+	public PlanBuilder toXYCoordinates(String geomCol, String xCol, String yCol) {
+		Objects.requireNonNull(geomCol, "geometry column");
+		Objects.requireNonNull(xCol, "x-coordinate column");
+		Objects.requireNonNull(yCol, "y_coordinate column");
+		
+		ToXYCoordinatesProto op = ToXYCoordinatesProto.newBuilder()
+														.setGeomColumn(geomCol)
+														.setXColumn(xCol)
+														.setYColumn(yCol)
+														.setKeepGeomColumn(false)
+														.build();
+		return add(OperatorProto.newBuilder()
+								.setToXYCoordinates(op)
 								.build());
 	}
 	

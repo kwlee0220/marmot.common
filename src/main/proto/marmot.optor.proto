@@ -594,6 +594,12 @@ message ToGeometryPointProto {
 	string y_column = 2;
 	string out_column = 3;
 }
+message ToXYCoordinatesProto {
+	string geom_column = 1;
+	string x_column = 2;
+	string y_column = 3;
+	bool keep_geom_column = 4;
+}
 message CentroidTransformProto {
 	message OptionsProto {
 		oneof optional_out_geom_col {
@@ -858,6 +864,7 @@ message OperatorProto {
 		AttachQuadKeyProto attach_quad_key = 512;
 		AttachGeoHashProto attach_geohash = 513;
 		ToGeometryPointProto to_point = 514;
+		ToXYCoordinatesProto to_x_y_coordinates = 515;
 		
 		// advanced geometry operators
 		AssignSquareGridCellProto assign_square_grid_cell = 601;

@@ -80,12 +80,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 			DataType geomType = ds.getRecordSchema().getColumn(geomCol).type();
 			if ( m_csvParams.pointColumn().isDefined() && geomType == DataType.POINT ) {
 				Tuple2<String,String> pointCol = m_csvParams.pointColumn().get();
-				String decl = String.format("%s:double,%s:double", pointCol._1, pointCol._2);
-				String expr = String.format("%s = ST_X(%s); %s = ST_Y(%s)",
-											pointCol._1, geomCol, pointCol._2, geomCol);
-				
-				builder = builder.expand(decl, expr);
-				builder = builder.project(String.format("*-{%s}", geomCol));
+				builder = builder.toXYCoordinates(geomCol, pointCol._1, pointCol._2);
 			}
 			else if ( m_csvParams.tiger() ) {
 				String decl = String.format("%s:string", geomCol);
