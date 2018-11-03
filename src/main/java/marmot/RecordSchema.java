@@ -394,10 +394,10 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder removeColumn(String colName) {
-			Preconditions.checkArgument(colName != null, "name should not be null");
+			Objects.requireNonNull(colName, "column name");
 			
 			m_columns = KVFStream.of(m_columns)
-								.filterKey(k -> k.equals(colName))
+								.filterKey(k -> !k.equals(colName))
 								.toMap(new LinkedHashMap<String,Column>());
 			return this;
 		}
