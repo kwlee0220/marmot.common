@@ -137,10 +137,8 @@ public interface DataSet {
 	 * 공간 인덱스가 생성되어 있지 않은 경우는 {@code null}이 반환된다.
 	 * 
 	 * @return	공간 인덱스 등록정보.
-	 * @throws GeometryColumnNotExistsException	기본 공간 컬럼이 없는 경우.
 	 */
-	public SpatialIndexInfo getDefaultSpatialIndexInfoOrNull()
-		throws GeometryColumnNotExistsException;
+	public SpatialIndexInfo getDefaultSpatialIndexInfoOrNull();
 
 	/**
 	 * 데이터세트의 크기를 바이트 단위로 반환한다. 
