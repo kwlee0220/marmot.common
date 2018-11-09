@@ -97,6 +97,10 @@ public class Plan implements PBSerializable<PlanProto> {
 		return new PlanBuilder("plan");
 	}
 	
+	public String toJson() throws InvalidProtocolBufferException {
+		return JsonFormat.printer().print(m_proto);
+	}
+	
 	public PlanBuilder toBuilder() {
 		return FStream.of(m_proto.getOperatorsList())
 					.foldLeft(new PlanBuilder(getName()), (b,o) -> b.add(o));
