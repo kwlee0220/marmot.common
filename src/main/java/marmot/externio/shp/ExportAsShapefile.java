@@ -19,8 +19,8 @@ import marmot.RecordSet;
 import marmot.geo.geotools.GeoToolsUtils;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.rset.RecordSets;
+import utils.async.AbstractExecution;
 import utils.async.CancellableWork;
-import utils.async.ExecutableHandle;
 import utils.async.Executors;
 import utils.async.ProgressiveExecution;
 
@@ -67,7 +67,7 @@ class ExportAsShapefile {
 		return exec;
 	}
 	
-	private class ExportExecution extends ExecutableHandle<Long>
+	private class ExportExecution extends AbstractExecution<Long>
 									implements ProgressiveExecution<Long,Long>, CancellableWork {
 		private final RecordSet m_source;
 		private final String m_srid;
@@ -102,7 +102,7 @@ class ExportAsShapefile {
 				SimpleFeatureCollection coll = new MarmotFeatureCollection(sfType, ()->rset);
 				dumper.dump(coll);
 				
-				if ( m_guard.get(() -> m_aopState == ImplState.RUNNING) ) {
+				if ( m_aopGuard.get(() -> m_aopState == State.RUNNING) ) {
 					return rset.count();
 				}
 				else {
