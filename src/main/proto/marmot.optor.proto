@@ -204,8 +204,8 @@ message DropProto {
 }
 message NopProto { }
 message PickTopKProto {
-	int32 top_k = 1;
-	string sort_key_columns = 2;
+	string sort_key_columns = 1;
+	int32 top_k = 2;
 }
 message SortProto {
 	string sort_columns = 1;
@@ -556,6 +556,19 @@ message DropEmptyGeometryProto {
 		PredicateOptionsProto options = 2;
 	}
 }
+message MatchSpatiallyProto {
+	string geometry_column = 1;
+	oneof either_key {
+		GeometryProto key = 2;
+		string key_value_dataset = 3;
+	}
+	oneof optional_spatial_relation {
+		string relation = 4;
+	}
+	oneof optional_options {
+		PredicateOptionsProto options = 5;
+	}
+}
 message UnarySpatialIntersectsProto {
 	string geometry_column = 1;
 	oneof either_key {
@@ -748,11 +761,6 @@ message ValidateGeometryProto {
 	string geometry_column = 1;
 }
 
-message LookupPostalAddressProto {
-	string address_column = 1;
-	string address_info_column = 2;
-}
-
 
 //
 // advance geometry operators
@@ -848,6 +856,7 @@ message OperatorProto {
 		BinarySpatialIntersectsProto binary_spatial_intersects = 402;
 		DropEmptyGeometryProto drop_empty_geometry = 403;
 		WithinDistanceProto within_distance = 404;
+		MatchSpatiallyProto match_spatially = 405;
 		
 		// basic geometry transform operators
 		CentroidTransformProto centroid = 501;
@@ -870,7 +879,6 @@ message OperatorProto {
 		AssignSquareGridCellProto assign_square_grid_cell = 601;
 		LoadLocalMoransIProto load_local_morans_i = 602;
 		LoadGetisOrdGiProto load_getis_ord_gi = 603;
-		LookupPostalAddressProto lookup_postal_address = 604;
 		EstimateIDWProto estimate_idw = 605;
 		EstimateKernelDensityProto estimate_kernel_density = 606;
 		
