@@ -1018,7 +1018,7 @@ public class PlanBuilder {
 	 * 본 연산은 입력 레코드 세트에 포함된 모든 레코드에 주어진 집계 연산 ({@code aggregators})들을
 	 * 적용하여 하나의 레코드를 생성하는 연산이다.
 	 * 
-	 * @param aggregators	적용할 집계 연산자 리스트.
+	 * @param aggrFuncs	적용할 집계 함수 리스트.
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
@@ -1944,10 +1944,10 @@ public class PlanBuilder {
 	 * 예를 들어 {@code "left.the_geom,rigfht.id"}인 경우는 결과 레코등에 왼쪽 데이터세트의
 	 * 'the_geom' 컬럼 값과 오른쪽 데이터세트의 'id'로 구성된 결과 레코드가 생성된다.
 	 * 
-	 * @param leftDataSet		조인에 가담할 기본 데이터세트 이름. 
+	 * @param leftDataSet	조인에 가담할 기본 데이터세트 이름. 
 	 * @param rightDataSet	조인에 가담할 인자 데이터세트 이름.
 	 * @param outColumns	조인 결과에 참여 할 컴럼 이름 리스트.
-	 * @param joinExpr	조인 조건
+	 * @param opts			조인 옵션 리스트
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 * 
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
