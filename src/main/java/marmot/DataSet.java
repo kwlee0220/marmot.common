@@ -1,5 +1,6 @@
 package marmot;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -198,5 +199,6 @@ public interface DataSet {
 	
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
 	public RecordSet readSpatialCluster(String quadKey, Option<String> filterExpr);
+	public InputStream readRawSpatialCluster(String quadKey);
 	public RecordSet sampleSpatialCluster(String quadKey, Envelope bounds, double sampleRatio);
 }
