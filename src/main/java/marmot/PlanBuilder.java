@@ -76,7 +76,7 @@ import marmot.proto.optor.LoadSpatialClusterIndexFileProto;
 import marmot.proto.optor.LoadSpatialIndexJoinProto;
 import marmot.proto.optor.LoadSquareGridFileProto;
 import marmot.proto.optor.LoadTextFileProto;
-import marmot.proto.optor.LookupPostalAddressProto;
+import marmot.proto.optor.MatchSpatiallyProto;
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.ParseCsvProto;
 import marmot.proto.optor.PickTopKProto;
@@ -1479,6 +1479,49 @@ public class PlanBuilder {
 								.setDropEmptyGeometry(op)
 								.build());
 	}
+	
+	public PlanBuilder matchSpatially(String geomCol, SpatialRelation rel, Geometry key,
+										PredicateOption... opts) {
+		Objects.requireNonNull(geomCol, "geometry column name");
+		Objects.requireNonNull(rel, "SpatialRelation");
+		Objects.requireNonNull(key, "key geometry");
+		Objects.requireNonNull(opts, "PredicateOption");
+		
+		GeometryProto keyProto = PBUtils.toProto(key);
+		MatchSpatiallyProto.Builder builder = MatchSpatiallyProto.newBuilder()
+																.setGeometryColumn(geomCol)
+																.setRelation(rel.toStringExpr())
+																.setKey(keyProto);
+
+		PredicateOption.toPredicateOptionsProto(opts)
+					.forEach(builder::setOptions);
+		MatchSpatiallyProto op = builder.build();
+
+		return add(OperatorProto.newBuilder()
+								.setMatchSpatially(op)
+								.build());
+	}
+	public PlanBuilder matchSpatially(String geomCol, SpatialRelation rel, String keyDsId,
+										PredicateOption... opts) {
+		Objects.requireNonNull(geomCol, "geometry column name");
+		Objects.requireNonNull(rel, "SpatialRelation");
+		Objects.requireNonNull(keyDsId, "key dataset id");
+		Objects.requireNonNull(opts, "PredicateOption");
+		
+		MatchSpatiallyProto.Builder builder
+								= MatchSpatiallyProto.newBuilder()
+															.setGeometryColumn(geomCol)
+															.setRelation(rel.toStringExpr())
+															.setKeyValueDataset(keyDsId);
+
+		PredicateOption.toPredicateOptionsProto(opts)
+					.forEach(builder::setOptions);
+		MatchSpatiallyProto op = builder.build();
+
+		return add(OperatorProto.newBuilder()
+								.setMatchSpatially(op)
+								.build());
+	}
 
 	/**
 	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
@@ -1493,41 +1536,10 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder intersects(String geomCol, Geometry key, PredicateOption... opts) {
-		Objects.requireNonNull(geomCol, "geometry column name");
-		Objects.requireNonNull(key, "key geometry");
-		Objects.requireNonNull(opts, "PredicateOption");
-		
-		GeometryProto keyProto = PBUtils.toProto(key);
-		UnarySpatialIntersectsProto.Builder builder
-								= UnarySpatialIntersectsProto.newBuilder()
-															.setGeometryColumn(geomCol)
-															.setKey(keyProto);
-
-		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
-		UnarySpatialIntersectsProto op = builder.build();
-
-		return add(OperatorProto.newBuilder()
-								.setUnarySpatialIntersects(op)
-								.build());
+		return matchSpatially(geomCol, SpatialRelation.INTERSECTS, key, opts);
 	}
 	public PlanBuilder intersects(String geomCol, String keyDsId, PredicateOption... opts) {
-		Objects.requireNonNull(geomCol, "geometry column name");
-		Objects.requireNonNull(keyDsId, "key dataset id");
-		Objects.requireNonNull(opts, "PredicateOption");
-		
-		UnarySpatialIntersectsProto.Builder builder
-								= UnarySpatialIntersectsProto.newBuilder()
-															.setGeometryColumn(geomCol)
-															.setKeyValueDataset(keyDsId);
-
-		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
-		UnarySpatialIntersectsProto op = builder.build();
-
-		return add(OperatorProto.newBuilder()
-								.setUnarySpatialIntersects(op)
-								.build());
+		return matchSpatially(geomCol, SpatialRelation.INTERSECTS, keyDsId, opts);
 	}
 	
 	public PlanBuilder withinDistance(String geomCol, Geometry key, double distance,
@@ -2422,20 +2434,6 @@ public class PlanBuilder {
 
 		return add(OperatorProto.newBuilder()
 								.setDissolve(dissolve)
-								.build());
-	}
-	
-	public PlanBuilder lookupPostalAddress(String addrColName, String infoColName) {
-		Preconditions.checkArgument(addrColName != null, "addrColName is null");
-		Preconditions.checkArgument(infoColName != null, "infoColName is null");
-
-		LookupPostalAddressProto lookup = LookupPostalAddressProto.newBuilder()
-															.setAddressColumn(addrColName)
-															.setAddressInfoColumn(infoColName)
-															.build();
-
-		return add(OperatorProto.newBuilder()
-								.setLookupPostalAddress(lookup)
 								.build());
 	}
 	
