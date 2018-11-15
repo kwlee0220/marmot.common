@@ -45,7 +45,10 @@ message GroupKeyValueProto {
 message SpatialIndexInfoProto {
 	string dataset = 1;
 	GeometryColumnInfoProto geometry_column = 2;
-	string hdfs_path = 3;
+	EnvelopeProto tile_bounds = 3;
+	EnvelopeProto data_bounds = 4;
+	int64 record_count = 5;
+	string hdfs_path = 6;
 }
 
 message RecordProto {
