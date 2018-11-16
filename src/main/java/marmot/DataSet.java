@@ -198,7 +198,6 @@ public interface DataSet {
 	public SpatialIndexInfo cluster(ClusterDataSetOptions opts);
 	
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
-	public RecordSet readSpatialCluster(String quadKey, Option<String> filterExpr);
+//	public RecordSet readSpatialCluster(String quadKey, Option<String> filterExpr);
 	public InputStream readRawSpatialCluster(String quadKey);
-	public RecordSet sampleSpatialCluster(String quadKey, Envelope bounds, double sampleRatio);
 }

@@ -13,9 +13,9 @@ import public "marmot.service.exec.proto";
 service DataSetService {
 	rpc createDataSet(CreateDataSetRequest) returns (DataSetInfoResponse);
 	rpc bindDataSet(BindDataSetRequest) returns (DataSetInfoResponse);
-	rpc readDataSet(marmot.proto.StringProto) returns (RecordSetRefResponse);
-	rpc queryRange(QueryRangeRequest) returns (RecordSetRefResponse);
-	rpc appendRecordSet(AppendRecordSetRequest) returns (LongResponse);
+	rpc readDataSet(marmot.proto.StringProto) returns (stream StreamChunkProto);
+	rpc queryRange(QueryRangeRequest) returns (stream StreamChunkProto);
+	rpc appendRecordSet(stream AppendRecordSetChunkProto) returns (stream StreamUploadResponse);
 	rpc deleteDataSet(marmot.proto.StringProto) returns (BoolResponse);
 	rpc moveDataSet(MoveDataSetRequest) returns (VoidResponse);
 	rpc clusterDataSet(ClusterDataSetRequest) returns (SpatialIndexInfoResponse);
@@ -41,9 +41,7 @@ service DataSetService {
 	rpc querySpatialClusterInfo(QuerySpatialClusterInfoRequest)
 		returns (stream SpatialClusterInfoResponse);
 	// 주어진 식별자에 해당하는 공간 클러스터에 포함된 레코드들을 반환
-	rpc readSpatialCluster(ReadSpatialClusterRequest) returns (RecordSetRefResponse);
-	rpc readRawSpatialCluster(ReadSpatialClusterRequest) returns (stream BinaryChunkProto);
-	rpc sampleSpatialCluster(SampleSpatialClusterRequest) returns (RecordSetRefResponse);
+	rpc readRawSpatialCluster(ReadRawSpatialClusterRequest) returns (stream StreamChunkProto);
 	
 	// Misc interface
 	rpc getBlockSize(StringProto) returns (LongResponse);
@@ -106,6 +104,28 @@ message AppendRecordSetRequest {
 	oneof optional_plan {
 		// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
 		marmot.proto.optor.PlanProto plan = 3;
+	}
+}
+
+message AppendRecordSetChunkProto {
+	message HeaderProto {
+		string dataset = 1;		// 업로드 대상 데이터세트 식별자
+		oneof optional_plan {
+			// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
+			marmot.proto.optor.PlanProto plan = 2;
+		}
+	}
+
+	oneof either {
+		HeaderProto header = 1;
+		int32 sync = 2;
+		bytes block = 3;
+	}
+}
+message StreamUploadResponse {
+	oneof either {
+		int32 sync_back = 1;
+		int64 result = 2;
 	}
 }
 	
@@ -182,14 +202,11 @@ message SpatialClusterInfoProto {
 	int32 record_count = 4;			// 공간 클러스터에 저장된 레코드 수
 	int64 byte_length = 5;			// 공간 클러스터 크기 (byte 단위)
 }
-message ReadSpatialClusterRequest {
+message ReadRawSpatialClusterRequest {
 	string dataset_id = 1;			// 접근하려는 데이터세트 식별자.
 	string quad_key = 2;			// 읽으려는 공간 클러스터 (인덱스 블럭) 식별자.
-	oneof optional_filter_epxr {	// 검색 조건 (optional)
-		string filter_epxr = 3;
-	}
 }
-message BinaryChunkProto {
+message StreamChunkProto {
 	oneof either {
 		bytes block = 1;
 		ErrorProto error = 2;

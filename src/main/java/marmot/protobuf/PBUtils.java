@@ -67,13 +67,13 @@ import marmot.proto.StringProto;
 import marmot.proto.TypeCodeProto;
 import marmot.proto.ValueProto;
 import marmot.proto.VoidProto;
-import marmot.proto.service.BinaryChunkProto;
 import marmot.proto.service.BoolResponse;
 import marmot.proto.service.ErrorProto;
 import marmot.proto.service.LongResponse;
 import marmot.proto.service.MarmotErrorCode;
 import marmot.proto.service.RecordResponse;
 import marmot.proto.service.ResultProto;
+import marmot.proto.service.StreamChunkProto;
 import marmot.proto.service.StringResponse;
 import marmot.proto.service.VoidResponse;
 import marmot.remote.protobuf.PBMarmotError;
@@ -510,19 +510,21 @@ public class PBUtils {
 	}
 	
 	public static Point fromProto(PointProto proto) {
-		return (proto.getIsEmpty())
-				? GeoClientUtils.EMPTY_POINT
-				: GeoClientUtils.toPoint(proto.getX(), proto.getY());
+		double x = proto.getX();
+		if ( x == Double.NaN ) {
+			return GeoClientUtils.EMPTY_POINT;
+		}
+		else {
+			return GeoClientUtils.toPoint(x, proto.getY());
+		}
 	}
 	
+	private static final PointProto EMPTY_POINT
+					= PointProto.newBuilder().setX(Double.NaN).setY(Double.NaN).build();
 	public static PointProto toProto(Point pt) {
 		return pt.isEmpty()
-					? PointProto.newBuilder().setIsEmpty(true).build()
-					: PointProto.newBuilder()
-								.setIsEmpty(false)
-								.setX(pt.getX())
-								.setY(pt.getY())
-								.build();
+				? EMPTY_POINT
+				: PointProto.newBuilder().setX(pt.getX()).setY(pt.getY()).build();
 	}
 	
 	public static Envelope fromProto(EnvelopeProto proto) {
@@ -1055,60 +1057,10 @@ public class PBUtils {
 		}
 	}
 	
-	public static void chunkInputStream(InputStream is, int chunkSize,
-							StreamObserver<BinaryChunkProto> observer) throws IOException {
-		while ( true ) {
-			LimitedInputStream limited = new LimitedInputStream(is, chunkSize);
-			ByteString bstring = ByteString.readFrom(limited, chunkSize);
-			if ( bstring.isEmpty() ) {
-				break;
-			}
-			
-			BinaryChunkProto chunk = BinaryChunkProto.newBuilder()
-													.setBlock(bstring)
-													.build();
-			observer.onNext(chunk);
-		}
-	}
-	private static class LimitedInputStream extends InputStream {
-		private final InputStream m_src;
-		private final int m_limit;
-		private int m_remains;
-		
-		private LimitedInputStream(InputStream src, int limit) {
-			m_src = src;
-			m_limit = limit;
-			m_remains = limit;
-		}
-
-		@Override
-		public int read() throws IOException {
-			if ( m_remains == 0 ) {
-				return -1;
-			}
-			
-			--m_remains;
-			return m_src.read();
-		}
-
-		@Override
-	    public int read(byte b[], int off, int len) throws IOException {
-			if ( m_remains == 0 ) {
-				return -1;
-			}
-			
-			int nbytes = Math.min(m_remains, len);
-			int nreads = m_src.read(b, off, nbytes);
-			m_remains -= nreads;
-			
-			return nreads;
-	    }
-	}
-	
-	public static Iterator<BinaryChunkProto> toBinaryChunks(InputStream is, int chunkSize) {
+	public static Iterator<StreamChunkProto> toBinaryChunks(InputStream is, int chunkSize) {
 		return new ChunkIterator(is, chunkSize);
 	}
-	private static class ChunkIterator implements Iterator<BinaryChunkProto> {
+	private static class ChunkIterator implements Iterator<StreamChunkProto> {
 		private final InputStream m_is;
 		private final int m_chunkSize;
 		private ByteString m_bstring;
@@ -1131,9 +1083,9 @@ public class PBUtils {
 		}
 
 		@Override
-		public BinaryChunkProto next() {
+		public StreamChunkProto next() {
 			try {
-				BinaryChunkProto chunk = BinaryChunkProto.newBuilder()
+				StreamChunkProto chunk = StreamChunkProto.newBuilder()
 														.setBlock(m_bstring)
 														.build();
 				m_bstring = ByteString.readFrom(m_is, m_chunkSize);
@@ -1144,72 +1096,5 @@ public class PBUtils {
 				throw Throwables.toRuntimeException(e);
 			}
 		}
-	}
-	
-	public static InputStream toInputStream(Iterator<BinaryChunkProto> chunks) {
-		return new ChunkStream(chunks);
-	}
-	private static class ChunkStream extends InputStream {
-		private final Iterator<BinaryChunkProto> m_chunks;
-		private byte[] m_buffer;
-		private int m_offset;
-		
-		private ChunkStream(Iterator<BinaryChunkProto> chunks) {
-			m_chunks = chunks;
-			m_buffer = null;
-		}
-
-		@Override
-		public int read() throws IOException {
-			if ( m_buffer == null || (m_offset == m_buffer.length) ) {
-				m_buffer = loadNextChunk();
-				if ( m_buffer == null ) {
-					return -1;
-				}
-				
-				m_offset = 0;
-			}
-
-			return m_buffer[m_offset++] & 0x000000ff;
-		}
-
-		@Override
-	    public int read(byte b[], int off, int len) throws IOException {
-			if ( m_buffer == null || (m_offset == m_buffer.length) ) {
-				m_buffer = loadNextChunk();
-				if ( m_buffer == null ) {
-					return -1;
-				}
-				
-				m_offset = 0;
-			}
-			
-			int nbytes = Math.min(m_buffer.length-m_offset, len);
-			System.arraycopy(m_buffer, m_offset, b, off, nbytes);
-			m_offset += nbytes;
-
-			return nbytes;
-	    }
-		
-		private byte[] loadNextChunk() throws IOException {
-			if ( !m_chunks.hasNext() ) {
-				return null;
-			}
-			
-			BinaryChunkProto chunk = m_chunks.next();
-	    	switch ( chunk.getEitherCase() ) {
-	    		case ERROR:
-	    			Exception cause = PBUtils.toException(chunk.getError());
-	    			Throwables.throwIfInstanceOf(cause, IOException.class);
-	    			throw Throwables.toRuntimeException(cause);
-	    		case BLOCK:
-	    			break;
-	    		default:
-	    			throw new AssertionError();
-	    	}
-	    	
-	    	return chunk.getBlock().toByteArray();
-		}
-		
 	}
 }
