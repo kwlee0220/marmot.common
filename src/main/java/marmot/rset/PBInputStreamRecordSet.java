@@ -11,6 +11,7 @@ import marmot.RecordSetException;
 import marmot.proto.RecordProto;
 import marmot.proto.RecordSchemaProto;
 import marmot.support.DefaultRecord;
+import utils.Throwables;
 import utils.io.IOUtils;
 
 /**
@@ -33,6 +34,7 @@ public class PBInputStreamRecordSet extends AbstractRecordSet {
 			m_is = is;
 		}
 		catch ( Exception e ) {
+			Throwables.throwIfInstanceOf(e, RuntimeException.class);
 			throw new RecordSetException(e);
 		}
 	}

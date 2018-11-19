@@ -30,9 +30,10 @@ import utils.stream.FStream;
 public enum PBMarmotError {
 	DATASET_NOT_FOUND(0, DataSetNotFoundException.class),
 	DATASET_EXISTS(1, DataSetExistsException.class),
-	
-	RECORD_SET_CLOSED(10, RecordSetClosedException.class),
-	RECORD_SET_ERROR(11, RecordSetException.class),
+
+	STREAM_CLOSED(10, PBStreamClosedException.class),
+	RECORD_SET_CLOSED(15, RecordSetClosedException.class),
+	RECORD_SET_ERROR(16, RecordSetException.class),
 	
 	COLUMN_NOT_FOUND(20, ColumnNotFoundException.class),
 	

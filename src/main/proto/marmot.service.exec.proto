@@ -122,6 +122,14 @@ message ExecutePlanRequest {
 	}
 }
 
+message ExecutePlanLocallyRequest {
+	marmot.proto.optor.PlanProto plan = 1;
+	bool has_input_rset = 2;
+	oneof optional_options {
+		ExecutePlanOptionsProto options = 3;
+	}
+}
+
 message ExecuteProcessRequest {
 	string process_id = 1;
 	PropertiesProto params = 2;

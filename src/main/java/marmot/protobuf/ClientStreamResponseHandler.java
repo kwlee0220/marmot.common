@@ -32,22 +32,22 @@ public class ClientStreamResponseHandler<T> implements StreamObserver<T> {
 
 	@Override
 	public void onNext(T value) {
-		m_guard.runAndSignal(() -> m_result = Result.completed(value));
+		m_guard.run(() -> m_result = Result.completed(value), true);
 	}
 
 	@Override
 	public void onError(Throwable t) {
-		m_guard.runAndSignal(() -> m_result = Result.failed(t));
+		m_guard.run(() -> m_result = Result.failed(t), true);
 	}
 
 	@Override
 	public void onCompleted() {
-		m_guard.runAndSignal(() -> {
+		m_guard.run(() -> {
 			if ( m_result == null ) {
 				m_result = Result.completed(null);
 			}
 			
 			m_streamer.cancelWork();
-		});
+		}, true);
 	}
 }

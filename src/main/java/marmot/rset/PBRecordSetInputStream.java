@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import marmot.RecordSetException;
 import marmot.support.DefaultRecord;
 import utils.async.AbstractExecution;
 import utils.async.CancellableWork;
@@ -28,7 +29,7 @@ public class PBRecordSetInputStream extends InputStream {
 	private final PipedInputStream m_pipe;
 	private final RecordSetPump m_pump;
 	
-	public static PBRecordSetInputStream from(RecordSet rset) throws IOException {
+	public static PBRecordSetInputStream from(RecordSet rset) {
 		return new PBRecordSetInputStream(rset);
 	}
 	
@@ -37,14 +38,19 @@ public class PBRecordSetInputStream extends InputStream {
 		return from(RecordSets.from(schema, rstream));
 	}
 	
-	private PBRecordSetInputStream(RecordSet rset) throws IOException {
+	private PBRecordSetInputStream(RecordSet rset) {
 		Objects.requireNonNull(rset, "RecordSet");
 		
-		PipedOutputStream pipeOut = new PipedOutputStream();
-		m_pipe = new PipedInputStream(pipeOut, DEFAULT_PIPE_SIZE);
-		
-		m_pump = new RecordSetPump(rset, pipeOut);
-		m_pump.start();
+		try {
+			PipedOutputStream pipeOut = new PipedOutputStream();
+			m_pipe = new PipedInputStream(pipeOut, DEFAULT_PIPE_SIZE);
+			
+			m_pump = new RecordSetPump(rset, pipeOut);
+			m_pump.start();
+		}
+		catch ( IOException e ) {
+			throw new RecordSetException(e);
+		}
 	}
 	
 	@Override

@@ -1,10 +1,8 @@
 package marmot.protobuf;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
@@ -13,7 +11,6 @@ import java.time.LocalTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -38,9 +35,6 @@ import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import marmot.PlanExecutionException;
 import marmot.Record;
-import marmot.RecordSchema;
-import marmot.RecordSet;
-import marmot.RecordSetException;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.BoolProto;
 import marmot.proto.CoordinateProto;
@@ -58,8 +52,6 @@ import marmot.proto.PointProto;
 import marmot.proto.PropertiesProto;
 import marmot.proto.PropertiesProto.PropertyProto;
 import marmot.proto.ProtoBufSerializedProto;
-import marmot.proto.RecordProto;
-import marmot.proto.RecordSchemaProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.Size2dProto;
 import marmot.proto.Size2iProto;
@@ -73,14 +65,11 @@ import marmot.proto.service.LongResponse;
 import marmot.proto.service.MarmotErrorCode;
 import marmot.proto.service.RecordResponse;
 import marmot.proto.service.ResultProto;
-import marmot.proto.service.StreamChunkProto;
 import marmot.proto.service.StringResponse;
 import marmot.proto.service.VoidResponse;
 import marmot.remote.protobuf.PBMarmotError;
-import marmot.rset.AbstractRecordSet;
 import marmot.support.DateFunctions;
 import marmot.support.DateTimeFunctions;
-import marmot.support.DefaultRecord;
 import marmot.support.PBException;
 import marmot.support.PBSerializable;
 import marmot.support.TimeFunctions;
@@ -447,6 +436,21 @@ public class PBUtils {
 										.build());
 		}
 		response.onCompleted();
+	}
+	
+	public static byte[] toDelimitedBytes(Message proto) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try {
+			proto.writeTo(baos);
+		}
+		catch ( IOException e ) {
+			throw new RuntimeException(e);
+		}
+		finally {
+			IOUtils.closeQuietly(baos);
+		}
+		
+		return baos.toByteArray();
 	}
 	
 	public static String fromProto(StringProto proto) {
@@ -958,143 +962,5 @@ public class PBUtils {
 		}
 		
 		return builder.build();
-	}
-	
-	public static long write(RecordSet rset, OutputStream os) throws IOException {
-		rset.getRecordSchema().toProto().writeDelimitedTo(os);
-		
-		long count = 0;
-		Record record = DefaultRecord.of(rset.getRecordSchema());
-		while ( rset.next(record) ) {
-			record.toProto().writeDelimitedTo(os);
-			++count;
-		}
-		os.flush();
-		
-		return count;
-	}
-	
-	public static long write(RecordSchema schema, List<Record> records, OutputStream os)
-		throws IOException {
-		schema.toProto().writeDelimitedTo(os);
-		
-		for ( Record record: records ) {
-			record.toProto().writeDelimitedTo(os);
-		}
-		os.flush();
-		
-		return records.size();
-	}
-	
-	public static RecordSet readRecordSet(InputStream is) {
-		return new PBRecordSet(is);
-	}
-	
-	private static class PBRecordSet extends AbstractRecordSet {
-		private final RecordSchema m_schema;
-		private final BufferedInputStream m_bis;
-		
-		private PBRecordSet(InputStream is) {
-			Objects.requireNonNull(is, "InputStream is null");
-			
-			try {
-				m_bis = (is instanceof BufferedInputStream)
-						? (BufferedInputStream)is : new BufferedInputStream(is);
-				RecordSchemaProto proto = RecordSchemaProto.parseDelimitedFrom(m_bis);
-				if ( proto == null ) {
-					throw new RecordSetException("RecordSchema is not storoed");
-				}
-				
-				m_schema = RecordSchema.fromProto(proto);
-			}
-			catch ( IOException e ) {
-				throw new RecordSetException("" + e);
-			}
-		}
-		
-		@Override
-		protected void closeInGuard() {
-			IOUtils.closeQuietly(m_bis);
-		}
-
-		@Override
-		public RecordSchema getRecordSchema() {
-			return m_schema;
-		}
-		
-		@Override
-		public boolean next(Record output) {
-			try {
-				RecordProto proto = RecordProto.parseDelimitedFrom(m_bis);
-				if ( proto == null ) {
-					IOUtils.closeQuietly(m_bis);
-					return false;
-				}
-				
-				output.fromProto(proto);
-				return true;
-			}
-			catch ( IOException e ) {
-				throw new RecordSetException("" + e);
-			}
-		}
-		
-		@Override
-		public Option<Record> nextCopy() {
-			try {
-				RecordProto proto = RecordProto.parseDelimitedFrom(m_bis);
-				if ( proto == null ) {
-					IOUtils.closeQuietly(m_bis);
-					return Option.none();
-				}
-				
-				Record rec = DefaultRecord.fromProto(m_schema, proto);
-				return Option.some(rec);
-			}
-			catch ( IOException e ) {
-				throw new RecordSetException("" + e);
-			}
-		}
-	}
-	
-	public static Iterator<StreamChunkProto> toBinaryChunks(InputStream is, int chunkSize) {
-		return new ChunkIterator(is, chunkSize);
-	}
-	private static class ChunkIterator implements Iterator<StreamChunkProto> {
-		private final InputStream m_is;
-		private final int m_chunkSize;
-		private ByteString m_bstring;
-		
-		private ChunkIterator(InputStream is, int chunkSize) {
-			m_is = is;
-			m_chunkSize = chunkSize;
-			
-			try {
-				m_bstring = ByteString.readFrom(m_is, m_chunkSize);
-			}
-			catch ( Exception e ) {
-				throw Throwables.toRuntimeException(e);
-			}
-		}
-
-		@Override
-		public boolean hasNext() {
-			return m_bstring != null && !m_bstring.isEmpty();
-		}
-
-		@Override
-		public StreamChunkProto next() {
-			try {
-				StreamChunkProto chunk = StreamChunkProto.newBuilder()
-														.setBlock(m_bstring)
-														.build();
-				m_bstring = ByteString.readFrom(m_is, m_chunkSize);
-				
-				return chunk;
-			}
-			catch ( IOException e ) {
-				throw Throwables.toRuntimeException(e);
-			}
-		}
 	}
 }

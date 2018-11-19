@@ -10,6 +10,9 @@ message VoidProto { }
 message BoolProto {
 	bool value = 1;
 }
+message LongProto {
+	int64 value = 1;
+}
 
 message StringProto {
 	string value = 1;

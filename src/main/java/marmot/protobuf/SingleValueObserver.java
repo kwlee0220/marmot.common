@@ -51,21 +51,21 @@ public class SingleValueObserver<T> implements StreamObserver<T> {
 
 	@Override
 	public void onNext(T value) {
-		m_guard.run(() -> m_value = value);
+		m_guard.run(() -> m_value = value, false);
 	}
 
 	@Override
 	public void onError(Throwable error) {
 		s_logger.error("unexpected onError: class={}, error={}", getClass(), error);
 		
-		m_guard.runAndSignal(() -> {
+		m_guard.run(() -> {
 			m_cause = error;
 			m_done = true;
-		});
+		}, true);
 	}
 
 	@Override
 	public void onCompleted() {
-		m_guard.runAndSignal(() -> m_done = true);
+		m_guard.run(() -> m_done = true, true);
 	}
 }
