@@ -9,6 +9,8 @@ import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import org.slf4j.LoggerFactory;
+
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -78,22 +80,26 @@ public class PBRecordSetInputStream extends InputStream {
 		private RecordSetPump(RecordSet rset, OutputStream os) {
 			m_rset = rset;
 			m_os = os;
+			
+			setLogger(LoggerFactory.getLogger(RecordSetPump.class));
 		}
 
 		@Override
 		public Void executeWork() throws CancellationException, Throwable {
 			Record rec = DefaultRecord.of(m_rset.getRecordSchema());
 			
-			try ( OutputStream os = m_os ) {
-				m_rset.getRecordSchema().toProto().writeDelimitedTo(os);
+			try {
+				m_rset.getRecordSchema().toProto().writeDelimitedTo(m_os);
 				
 				while ( m_rset.next(rec) ) {
-					rec.toProto().writeDelimitedTo(os);
+					rec.toProto().writeDelimitedTo(m_os);
 					
 					if ( m_cancelRequested.get() ) {
 						throw new InterruptedException();
 					}
 				}
+				
+				getLogger().debug("END-OF-RSET");
 			}
 			catch ( IOException e ) {
 				if ( isCancelRequested() ) {
@@ -101,6 +107,9 @@ public class PBRecordSetInputStream extends InputStream {
 				}
 				
 				throw e;
+			}
+			finally {
+				IOUtils.closeQuietly(m_os);
 			}
 			
 			return null;

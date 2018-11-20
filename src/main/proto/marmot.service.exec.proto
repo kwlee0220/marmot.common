@@ -12,7 +12,10 @@ import public "marmot.service.proto";
 
 service PlanExecutionService {
 	rpc execute(ExecutePlanRequest) returns (VoidResponse);
-	rpc executeLocally(ExecutePlanRequest) returns (RecordSetRefResponse);
+	// ExecutePlanLocallyRequest -> Stream
+	rpc executeLocally(stream DownChunkResponse) returns (stream DownChunkRequest);
+	// ExecutePlanLocallyRequest
+	rpc executeLocallyWithInput(stream UpRequestDownResponse) returns (stream UpResponseDownRequest);
 	rpc executeToSingle(ExecutePlanRequest) returns (OptionalRecordResponse);
 	rpc executeToRecordSet(ExecutePlanRequest) returns (RecordSetRefResponse);
 	rpc executeToStream(GetStreamRequest) returns (RecordSetRefResponse);
@@ -114,9 +117,6 @@ message GetOutputRecordSchemaRequest {
 
 message ExecutePlanRequest {
 	marmot.proto.optor.PlanProto plan = 1;
-	oneof optional_input_rset {
-		string input_rset_id = 2;
-	}
 	oneof optional_options {
 		ExecutePlanOptionsProto options = 3;
 	}

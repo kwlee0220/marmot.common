@@ -141,6 +141,10 @@ message DataSetOptionsProto {
 	}
 }
 
+message VoidResultProto {
+	int32 dummy = 1;
+}
+
 message UpChunkRequest {
 	oneof either {	
 		bytes header = 1;
@@ -160,7 +164,7 @@ message UpChunkResponse {
 	}
 }
 
-message DownChunkRequest {
+message DownChunkResponse {
 	oneof either {
 		bytes header = 1;
 		
@@ -168,24 +172,33 @@ message DownChunkRequest {
 		ErrorProto error = 3;
 	}
 }
-message DownChunkResponse {
+message DownChunkRequest {
+	// 별도의 END_OF_STREAM이 없는 이유는 서버측에서 onCompleted()를 호출하면
+	// 스트림이 끝난 것으로 간주하면 되기 때문.
 	oneof either {
 		bytes chunk = 1;
 		int32 sync = 2;
-		VoidProto eos = 3;
-		ErrorProto error = 4;
+		ErrorProto error = 3;
 	}
 }
 
-message UpnDownChunkRequest {
+message UpRequestDownResponse {
 	oneof either {
 		UpChunkRequest up_req = 1;
-		DownChunkRequest down_req = 2;
+		VoidProto up_closed = 2;
+		ErrorProto up_error = 3;
+		DownChunkResponse down_resp = 4;
+		VoidProto down_closed = 5;
+		ErrorProto down_error = 6;
 	}
 }
-message UpnDownChunkResponse {
+message UpResponseDownRequest {
 	oneof either {
 		UpChunkResponse up_resp = 1;
-		DownChunkResponse down_resp = 2;
+		VoidProto up_closed = 2;
+		ErrorProto up_error = 3;
+		DownChunkRequest down_req = 4;
+		VoidProto down_closed = 5;
+		ErrorProto down_error = 6;
 	}
 }

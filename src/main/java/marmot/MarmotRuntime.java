@@ -128,8 +128,14 @@ public interface MarmotRuntime {
 								DataSetOption... opts)
 			throws DataSetExistsException;
 	
-	public DataSet createDataSet(String dsId, Plan plan, RecordSet input, DataSetOption... opts)
-			throws DataSetExistsException;
+	public default DataSet createDataSet(String dsId, Plan plan, RecordSet input, DataSetOption... opts)
+		throws DataSetExistsException {
+		RecordSchema outSchema = getOutputRecordSchema(plan, input.getRecordSchema());
+		DataSet created = createDataSet(dsId, outSchema, opts);
+		created.append(input, plan);
+		
+		return getDataSet(dsId);
+	}
 
 	/**
 	 * 기존 데이터세트와 바인딩시킨다.
