@@ -202,6 +202,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	}
 
 	public static RecordSchema fromProto(RecordSchemaProto proto) {
+		Objects.requireNonNull(proto, "RecordSchemaProto");
+		
 		return FStream.of(proto.getColumnsList())
 					.map(Column::fromProto)
 					.foldLeft(RecordSchema.builder(),
