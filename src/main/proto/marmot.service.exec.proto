@@ -17,8 +17,10 @@ service PlanExecutionService {
 	// ExecutePlanLocallyRequest
 	rpc executeLocallyWithInput(stream UpRequestDownResponse) returns (stream UpResponseDownRequest);
 	rpc executeToSingle(ExecutePlanRequest) returns (OptionalRecordResponse);
-	rpc executeToRecordSet(ExecutePlanRequest) returns (RecordSetRefResponse);
-	rpc executeToStream(GetStreamRequest) returns (RecordSetRefResponse);
+	// ExecutePlanLocallyRequest -> Stream
+	rpc executeToRecordSet(stream DownChunkResponse) returns (stream DownChunkRequest);
+	// GetStreamRequest -> Stream
+	rpc executeToStream(stream DownChunkResponse) returns (stream DownChunkRequest);
 	
 	rpc getOutputRecordSchema(GetOutputRecordSchemaRequest) returns (RecordSchemaResponse);
 	
