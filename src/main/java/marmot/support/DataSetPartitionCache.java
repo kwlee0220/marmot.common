@@ -182,7 +182,7 @@ public class DataSetPartitionCache {
 
 			StopWatch watch = StopWatch.start();
 			
-			DataSet ds = m_marmot.getDataSet(key.m_dsId);
+			DataSet ds = m_dsCache.getUnchecked(key.m_dsId);
 			InputStream cluster = ds.readRawSpatialCluster(key.m_quadKey);
 			File file = m_fileStore.insert(key, cluster);
 			Partition part = fromFile(file);
