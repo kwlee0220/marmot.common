@@ -125,12 +125,6 @@ message AppendRecordSetChunkProto {
 		bytes block = 3;
 	}
 }
-message StreamUploadResponse {
-	oneof either {
-		int32 sync_back = 1;
-		int64 result = 2;
-	}
-}
 	
 message BindDataSetRequest {
 	string dataset = 1;
