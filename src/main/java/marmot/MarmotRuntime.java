@@ -193,7 +193,7 @@ public interface MarmotRuntime {
 	 * @param path		변경시킬 대상 폴더 이름.
 	 * @param newPath	변경된 새 폴더 이름.
 	 */
-	public void renameDir(String path, String newPath);
+	public void moveDir(String path, String newPath);
 	
 	/**
 	 * 주어진 이름의 폴더 및 모든 하위 폴더들과 각 폴더에 등록된 모든 데이터세트들을 제거한다.
