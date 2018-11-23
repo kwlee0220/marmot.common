@@ -29,6 +29,8 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -102,6 +104,17 @@ public class PBUtils {
 	private static final VoidResponse VOID_RESPONSE = VoidResponse.newBuilder()
 																	.setVoid(VOID)
 																	.build();
+
+	public static boolean isUnavailableException(Throwable cause) {
+		if ( cause instanceof StatusRuntimeException ) {
+			Status status = ((StatusRuntimeException)cause).getStatus();
+			if ( status.getCode() == Status.CANCELLED.getCode() ) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 	public static final SerializedProto serializeObject(Object obj) {
 		if ( obj instanceof PBSerializable ) {

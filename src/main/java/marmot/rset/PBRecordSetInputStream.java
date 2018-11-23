@@ -2,6 +2,7 @@ package marmot.rset;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
@@ -16,8 +17,7 @@ import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.support.DefaultRecord;
-import utils.async.AbstractExecution;
-import utils.async.CancellableWork;
+import utils.async.ExecutableExecution;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 
@@ -71,11 +71,9 @@ public class PBRecordSetInputStream extends InputStream {
 		return m_pipe.read(b, off, len);
 	}
 	
-	private static class RecordSetPump extends AbstractExecution<Void>
-										implements CancellableWork {
+	private static class RecordSetPump extends ExecutableExecution<Void> {
 		private final RecordSet m_rset;
 		private final OutputStream m_os;
-		private final AtomicBoolean m_cancelRequested = new AtomicBoolean(false);
 		
 		private RecordSetPump(RecordSet rset, OutputStream os) {
 			m_rset = rset;
@@ -92,21 +90,16 @@ public class PBRecordSetInputStream extends InputStream {
 				m_rset.getRecordSchema().toProto().writeDelimitedTo(m_os);
 				
 				while ( m_rset.next(rec) ) {
-					rec.toProto().writeDelimitedTo(m_os);
-					
-					if ( m_cancelRequested.get() ) {
-						throw new InterruptedException();
+					if ( !isRunning() ) {
+						return null;
 					}
+					
+					rec.toProto().writeDelimitedTo(m_os);
 				}
-				
 				getLogger().debug("END-OF-RSET");
 			}
-			catch ( IOException e ) {
-				if ( isCancelRequested() ) {
-					throw new InterruptedException();
-				}
-				
-				throw e;
+			catch ( InterruptedIOException e ) {
+				throw new CancellationException("" + e);
 			}
 			finally {
 				IOUtils.closeQuietly(m_os);
@@ -114,14 +107,5 @@ public class PBRecordSetInputStream extends InputStream {
 			
 			return null;
 		}
-
-		@Override
-		public boolean cancelWork() {
-			m_cancelRequested.set(true);
-			IOUtils.closeQuietly(m_os);
-			
-			return true;
-		}
-		
 	}
 }
