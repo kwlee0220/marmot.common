@@ -6,6 +6,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ import marmot.Record;
 import marmot.RecordSet;
 import marmot.rset.PBInputStreamRecordSet;
 import utils.StopWatch;
+import utils.UnitUtils;
 import utils.fostore.FileObjectHandler;
 import utils.fostore.FileObjectStore;
 import utils.io.IOUtils;
@@ -41,18 +43,33 @@ public class DataSetPartitionCache {
 	private static final Logger s_logger = LoggerFactory.getLogger(DataSetPartitionCache.class);
 	
 	private final LoadingCache<PartitionKey,Partition> m_cache;
+	private final FileObjectStore<PartitionKey,InputStream> m_diskCache;
 
-	DataSetPartitionCache(LoadingCache<PartitionKey,Partition> cache) {
+	DataSetPartitionCache(LoadingCache<PartitionKey,Partition> cache,
+						FileObjectStore<PartitionKey,InputStream> diskCache) {
 		m_cache = cache;
+		m_diskCache = diskCache;
+	}
+	
+	public boolean existsAtDisk(String dsId, String quadKey) {
+		return m_diskCache.exists(new PartitionKey(dsId, quadKey));
+	}
+	
+	public boolean existsAtMemory(String dsId, String quadKey) {
+		return m_cache.getIfPresent(new PartitionKey(dsId, quadKey)) != null;
 	}
 	
 	public List<Record> get(String dsId, String quadKey) {
 		return m_cache.getUnchecked(new PartitionKey(dsId, quadKey)).m_records;
 	}
 	
-	public List<Record> getIfPresent(String dsId, String quadKey) {
-		Partition part = m_cache.getIfPresent(new PartitionKey(dsId, quadKey));
-		return part != null ? part.m_records : null;
+	public void printDebug() {
+		int total = 0;
+		for ( Entry<PartitionKey,Partition> ent: m_cache.getAllPresent(m_cache.asMap().keySet()).entrySet() ) {
+			s_logger.trace("cached: {}, size={}", ent.getKey(), ent.getValue().m_length);
+			total += ent.getValue().m_length;
+		}
+		s_logger.trace("total memory cache size: {}", UnitUtils.toByteSizeString(total));
 	}
 
 	public static Builder builder() {
@@ -64,20 +81,24 @@ public class DataSetPartitionCache {
 		private Option<Tuple2<Long,TimeUnit>> m_timeout = Option.none();
 		
 		public DataSetPartitionCache build(MarmotRuntime marmot) {
-			FileObjectStore<PartitionKey,InputStream> fileStore
+			FileObjectStore<PartitionKey,InputStream> diskCache
 					= new FileObjectStore<>(m_storeDir, new ParitionFileHandler(m_storeDir));
 			
-			CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder();
+			CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder()
+																.softValues();
 			m_maxCacheSize.forEach(nbytes -> {
 				builder.maximumWeight(nbytes);
 				builder.weigher(new PartitionWeigher());
 			});
 			m_timeout.forEach(t -> builder.expireAfterAccess(t._1, t._2));
+			builder.removalListener(noti -> {
+				s_logger.debug("partition is evicted: key={}", noti.getKey());
+			});
 			
-			ParitionLoader loader = new ParitionLoader(marmot, fileStore);
+			ParitionLoader loader = new ParitionLoader(marmot, diskCache);
 			LoadingCache<PartitionKey,Partition> cache = builder.build(loader);
 			
-			return new DataSetPartitionCache(cache);
+			return new DataSetPartitionCache(cache, diskCache);
 		}
 		
 		public Builder fileStoreDir(File rootDir) {
@@ -177,7 +198,20 @@ public class DataSetPartitionCache {
 		public Partition load(PartitionKey key) throws Exception {
 			Option<File> opartFile = m_fileStore.getFile(key);
 			if ( opartFile.isDefined() ) {
-				return fromFile(opartFile.get());
+				StopWatch watch = StopWatch.start();
+				Partition part = fromFile(opartFile.get());
+				watch.stop();
+				
+				if ( s_logger.isDebugEnabled() ) {
+					String elapsedStr = watch.getElapsedSecondString();
+					double elapsed = watch.getElapsedInFloatingSeconds();
+					String veloStr = String.format("%.0f", part.m_records.size() / elapsed);
+					
+					s_logger.debug("load from fileCache: path={}, elapsed={}, velo={}/s",
+									opartFile.get().getAbsolutePath(), elapsedStr, veloStr);
+				}
+				
+				return part;
 			}
 
 			StopWatch watch = StopWatch.start();
@@ -189,12 +223,12 @@ public class DataSetPartitionCache {
 			
 			watch.stop();
 			
-			if ( s_logger.isInfoEnabled() ) {	
+			if ( s_logger.isDebugEnabled() ) {	
 				String elapsedStr = watch.getElapsedSecondString();
 				double elapsed = watch.getElapsedInFloatingSeconds();
 				String veloStr = String.format("%.0f", part.m_records.size() / elapsed);
 				
-				s_logger.info("load parition from marmot: ds={}, quad_key={}, elapsed={}, velo={}/s",
+				s_logger.debug("load from marmot: ds={}, quad_key={}, elapsed={}, velo={}/s",
 								key.m_dsId, key.m_quadKey, elapsedStr, veloStr);
 			}
 			
