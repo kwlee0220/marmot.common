@@ -79,90 +79,9 @@ message MapTileProto {
 	sint32 y = 3;
 }
 
-message CoordinateListProto {
-	repeated CoordinateProto coord_list = 1;
-}
 message PointProto {
 	double x = 1;		// 0x7ff8000000000000L for null
 	double y = 2;		// 0x7ff8000000000000L for null
-}
-message MultiPointProto {
-	CoordinateListProto points = 1;
-}
-message LineStringProto {
-	CoordinateListProto line = 1;
-}
-message MultiLineStringProto {
-	repeated CoordinateListProto lines = 1;
-}
-message PolygonProto {
-	CoordinateListProto shell = 1;
-	repeated CoordinateListProto holes = 2;
-}
-message MultiPolygonProto {
-	repeated PolygonProto polygons = 1;
-}
-message GeometryCollectionProto {
-	message UnitGeometryProto {
-		oneof either {
-			PointProto point = 1;
-			MultiPointProto multi_point = 2;
-			LineStringProto line = 3;
-			MultiLineStringProto multi_line = 4;
-			PolygonProto polygon = 5;
-			MultiPolygonProto multi_polygon = 6;
-		}
-	}
-	repeated UnitGeometryProto geometries = 1;
-}
-message PBGeometryProto {
-	oneof either {
-		PointProto point = 1;
-		MultiPointProto multi_point = 2;
-		LineStringProto line = 3;
-		MultiLineStringProto multi_line = 4;
-		PolygonProto polygon = 5;
-		MultiPolygonProto multi_polygon = 6;
-		GeometryCollectionProto collection = 7;
-	}
-}
-
-message PBValueProto {
-	oneof value {
-		sint32 byte_value = 1; 
-		sint32 short_value = 2; 
-		sint32 int_value = 3; 
-		sint64 long_value = 4; 
-		float float_value = 5; 
-		double double_value = 6; 
-		bool bool_value = 7; 
-		string string_value = 8; 
-		bytes binary_value = 9; 
-		
-		sint64 datetime_value = 21; 		// epcho time
-		sint64 date_value = 22; 			// epcho time
-		string time_value = 23; 			// ISO-8601 format 문자열
-		sint64 duration_value = 24; 		// unsupported now
-		IntervalProto interval_value = 25;
-		
-		EnvelopeProto envelope_value = 31; 
-		MapTileProto tile_value = 32; 
-		GridCellProto grid_cell_value = 33;
-		 
-		PointProto point = 51;
-		MultiPointProto multi_point = 52;
-		LineStringProto line = 53;
-		MultiLineStringProto multi_line = 54;
-		PolygonProto polygon = 55;
-		MultiPolygonProto multi_polygon = 56;
-		GeometryCollectionProto collection = 57;
-		PBGeometryProto geometry = 58;
-		
-		TrajectoryProto trajectory_value = 71;
-		TypeCodeProto null_value = 72;
-		bytes compressed_string_value = 91;	// gzip 방식으로 압축된 문자열
-		bytes compressed_binary_value = 92;	// gzip 방식으로 압축된 binary
-	}
 }
 
 message GeometryProto {
