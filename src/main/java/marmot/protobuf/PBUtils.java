@@ -1,6 +1,5 @@
 package marmot.protobuf;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -28,6 +27,7 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
+import com.vividsolutions.jts.io.ParseException;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -42,8 +42,6 @@ import marmot.proto.BoolProto;
 import marmot.proto.CoordinateProto;
 import marmot.proto.EnvelopeProto;
 import marmot.proto.GeometryProto;
-import marmot.proto.GeometryProto.EmptyGeometryProto;
-import marmot.proto.GeometryProto.NonEmptyGeometryProto;
 import marmot.proto.GridCellProto;
 import marmot.proto.IntervalProto;
 import marmot.proto.JavaSerializedProto;
@@ -566,59 +564,47 @@ public class PBUtils {
 	
 	public static Geometry fromProto(GeometryProto proto) {
 		switch ( proto.getEitherCase() ) {
-			case NON_EMPTY_GEOM:
-				NonEmptyGeometryProto nonEmpty = proto.getNonEmptyGeom();
+			case POINT:
+				return fromProto(proto.getPoint());
+			case WKB:
 				try {
-					byte[] wkb = nonEmpty.getWkb().toByteArray();
-					if ( nonEmpty.getIsCompressed() ) {
-						wkb = IOUtils.decompress(wkb);
-					}
-					return GeoClientUtils.fromWKB(wkb);
+					return GeoClientUtils.fromWKB(proto.getWkb().toByteArray());
 				}
-				catch ( Exception e ) {
-					throw new PBException(e);
+				catch ( ParseException e ) {
+					throw new IllegalArgumentException("invalid WKB: cause=" + e);
 				}
-			case EMPTY_GEOM:
-				EmptyGeometryProto empty = proto.getEmptyGeom();
-				TypeCode tc = TypeCode.fromCode(empty.getTypeCode().getNumber());
+			case NULL:
+				return null;
+			case EMPTY:
+				TypeCode tc = TypeCode.fromCode(proto.getEmpty().getNumber());
 				GeometryDataType dt = (GeometryDataType)DataTypes.fromTypeCode(tc);
 				return GeoClientUtils.emptyGeometry(dt.toGeometries());
 			default:
 				throw new AssertionError();
 		}
 	}
-	
-	private static final int TOO_BIG = (int)UnitUtils.parseByteSize("4mb");
-	private static final int COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("1mb");
+
+	private static final GeometryProto NULL_GEOM = GeometryProto.newBuilder().setNull(VOID).build();
 	public static GeometryProto toProto(Geometry geom) {
-		if ( geom.isEmpty() ) {
+		if ( geom == null ) {
+			return NULL_GEOM;
+		}
+		else if ( geom.isEmpty() ) {
 			TypeCode tc = GeometryDataType.fromGeometries(geom).getTypeCode();
 			TypeCodeProto tcProto = TypeCodeProto.valueOf(tc.name());
-			EmptyGeometryProto empty = EmptyGeometryProto.newBuilder()
-														.setTypeCode(tcProto)
-														.build();
-			return GeometryProto.newBuilder()
-								.setEmptyGeom(empty)
-								.build();
+			return GeometryProto.newBuilder().setEmpty(tcProto).build();
+		}
+		else if ( geom instanceof Point ) {
+			Point pt = (Point)geom;
+			PointProto ptProto = PointProto.newBuilder()
+											.setX(pt.getX())
+											.setY(pt.getY())
+											.build();
+			return GeometryProto.newBuilder().setPoint(ptProto).build();
 		}
 		else {
-			byte[] wkb = GeoClientUtils.toWKB(geom);
-			boolean compressed = (wkb.length >= COMPRESS_THRESHOLD);
-			try {
-				if ( compressed ) {
-					wkb = IOUtils.compress(wkb);
-				}
-				NonEmptyGeometryProto nonEmpty = NonEmptyGeometryProto.newBuilder()
-										.setIsCompressed(compressed)
-										.setWkb(ByteString.readFrom(new ByteArrayInputStream(wkb)))
-										.build();
-				return GeometryProto.newBuilder()
-									.setNonEmptyGeom(nonEmpty)
-									.build();
-			}
-			catch ( IOException e ) {
-				throw new PBException(e);
-			}
+			ByteString wkb = ByteString.copyFrom(GeoClientUtils.toWKB(geom));
+			return GeometryProto.newBuilder().setWkb(wkb).build();
 		}
 	}
 	
@@ -702,7 +688,8 @@ public class PBUtils {
 							.addAllKeyValue(keyValues)
 							.build();
 	}
-
+	
+	private static final int TOO_BIG = (int)UnitUtils.parseByteSize("4mb");
 	private static final int STRING_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("512kb");
 	private static final int BINARY_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("1mb");
 	public static ValueProto toValueProto(TypeCode tc, Object obj) {
