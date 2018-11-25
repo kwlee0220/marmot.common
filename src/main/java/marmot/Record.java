@@ -310,7 +310,7 @@ public interface Record extends Serializable, PBSerializable<RecordProto> {
 	}
 	
 	public default void fromProto(RecordProto proto) {
-		List<Object> values = FStream.of(proto.getValueList())
+		List<Object> values = FStream.of(proto.getColumnList())
 									.map(vp -> PBUtils.fromProto(vp)._2)
 									.toList();
 		setAll(values);
@@ -326,7 +326,7 @@ public interface Record extends Serializable, PBSerializable<RecordProto> {
 			Column col = schema.getColumnAt(i);
 			
 			ValueProto vproto = PBUtils.toValueProto(col.type().getTypeCode(), values[i]);
-			builder.addValue(vproto);
+			builder.addColumn(vproto);
 		}
 		
 		return builder.build();

@@ -235,12 +235,12 @@ public class FeatureVector implements Serializable {
 		private SerializationProxy(FeatureVector keyValue) {
 			m_proto = FStream.of(keyValue.m_values)
 								.map(PBUtils::toValueProto)
-								.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addValue(p))
+								.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
 								.build();
 		}
 		
 		private Object readResolve() {
-			Object[] values = m_proto.getValueList().stream()
+			Object[] values = m_proto.getColumnList().stream()
 									.map(PBUtils::fromProto)
 									.toArray();
 			return new FeatureVector(values);

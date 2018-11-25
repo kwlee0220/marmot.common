@@ -52,5 +52,5 @@ message SpatialIndexInfoProto {
 }
 
 message RecordProto {
-	repeated ValueProto value = 1;
+	repeated ValueProto column = 1;
 }

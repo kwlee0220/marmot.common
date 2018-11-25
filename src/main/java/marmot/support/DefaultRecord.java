@@ -349,10 +349,10 @@ public class DefaultRecord implements Record {
 	
 	public static DefaultRecord fromProto(RecordSchema schema, RecordProto proto) {
 		DefaultRecord record = DefaultRecord.of(schema);
-		List<Object> values = FStream.of(proto.getValueList())
+		List<Object> columns = FStream.of(proto.getColumnList())
 									.map(vp -> PBUtils.fromProto(vp)._2)
 									.toList();
-		record.setAll(values);
+		record.setAll(columns);
 		
 		return record;
 	}
