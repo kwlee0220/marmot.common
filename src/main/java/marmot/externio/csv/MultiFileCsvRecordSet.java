@@ -8,7 +8,6 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vavr.control.Option;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.rset.ConcatedRecordSet;
@@ -84,16 +83,16 @@ public class MultiFileCsvRecordSet extends ConcatedRecordSet {
 			return rset;
 		}
 		else {
-			Option<File> next;
-			while ( (next = m_files.next()).isDefined() ) {
+			File next;
+			while ( (next = m_files.next()) != null ) {
 				try {
-					CsvRecordSet rset = CsvRecordSet.from(next.get(), m_params);
-					getLogger().info("loading: CSV[{}], from={}", m_params, next.get());
+					CsvRecordSet rset = CsvRecordSet.from(next, m_params);
+					getLogger().info("loading: CSV[{}], from={}", m_params, next);
 					
 					return rset;
 				}
 				catch ( IOException ignored ) {
-					getLogger().warn("fails to load CsvRecordSet: from=" + next.get()
+					getLogger().warn("fails to load CsvRecordSet: from=" + next
 									+ ", cause=" + ignored);
 				}
 			}

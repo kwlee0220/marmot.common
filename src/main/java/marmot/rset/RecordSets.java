@@ -182,13 +182,13 @@ public class RecordSets {
 		return new PeekableRecordSet(rset);
 	}
 	
-	public static Option<RecordSet> asNonEmpty(RecordSet rset) {
+	public static RecordSet asNonEmpty(RecordSet rset) {
 		PeekableRecordSet peekable = RecordSets.toPeekable(rset);
 		if ( peekable.peek().isDefined() ) {
-			return Option.some(peekable);
+			return peekable;
 		}
 		else {
-			return Option.none();
+			return null;
 		}
 	}
 	
@@ -224,8 +224,11 @@ public class RecordSets {
 	
 	public static RecordSet concat(FStream<? extends RecordSet> rsets) {
 		PeekableFStream<? extends RecordSet> peekable = rsets.toPeekable();
-		RecordSet first = peekable.next()
-								.getOrElseThrow(() -> new IllegalArgumentException("no components RecordSet"));
+		RecordSet first = peekable.next();
+		if ( first == null ) {
+			throw new IllegalArgumentException("no components RecordSet");
+		}
+		
 		return concat(first.getRecordSchema(), peekable);
 	}
 	

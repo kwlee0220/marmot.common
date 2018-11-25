@@ -12,7 +12,6 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -94,11 +93,11 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 
 	@Override
 	protected InnerRecordSet loadNext() {
-		Option<File> next;
-		while ( (next = m_files.next()).isDefined() ) {
+		File next;
+		while ( (next = m_files.next()) != null ) {
 			try {
-				getLogger().info("loading path={}", next.get());
-				return new InnerRecordSet(next.get());
+				getLogger().info("loading path={}", next);
+				return new InnerRecordSet(next);
 			}
 			catch ( Exception ignored ) { }
 		}

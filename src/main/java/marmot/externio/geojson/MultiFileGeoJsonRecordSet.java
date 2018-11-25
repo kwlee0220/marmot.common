@@ -14,7 +14,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vavr.control.Option;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
@@ -50,7 +49,7 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			m_files = FStream.of(files);
 			m_charset = charset;
 			
-			m_first = parseGeoJson(m_files.next().get(), m_charset);
+			m_first = parseGeoJson(m_files.next(), m_charset);
 			m_schema = m_first.getRecordSchema();
 		}
 		catch ( IOException e ) {
@@ -83,10 +82,10 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			return rset;
 		}
 		else {
-			Option<File> next;
-			while ( (next = m_files.next()).isDefined() ) {
+			File next;
+			while ( (next = m_files.next()) != null ) {
 				try {
-					return parseGeoJson(next.get(), m_charset);
+					return parseGeoJson(next, m_charset);
 				}
 				catch ( IOException ignored ) { }
 			}

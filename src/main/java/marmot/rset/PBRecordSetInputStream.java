@@ -8,7 +8,6 @@ import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.LoggerFactory;
 
@@ -83,7 +82,7 @@ public class PBRecordSetInputStream extends InputStream {
 		}
 
 		@Override
-		public Void executeWork() throws CancellationException, Throwable {
+		public Void execute() throws Exception {
 			Record rec = DefaultRecord.of(m_rset.getRecordSchema());
 			
 			try {
