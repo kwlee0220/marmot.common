@@ -82,7 +82,7 @@ public class PBRecordSetInputStream extends InputStream {
 		}
 
 		@Override
-		public Void execute() throws Exception {
+		protected Void executeWork() throws CancellationException, Exception {
 			Record rec = DefaultRecord.of(m_rset.getRecordSchema());
 			
 			try {

@@ -19,9 +19,8 @@ import marmot.RecordSet;
 import marmot.geo.geotools.GeoToolsUtils;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.rset.RecordSets;
-import utils.async.AbstractExecution;
 import utils.async.CancellableWork;
-import utils.async.Executors;
+import utils.async.ExecutableExecution;
 import utils.async.ProgressiveExecution;
 
 /**
@@ -62,12 +61,12 @@ class ExportAsShapefile {
 	protected ProgressiveExecution<Long,Long> start(RecordSet source, String srid)
 		throws IOException {
 		ExportExecution exec = new ExportExecution(source, srid);
-		Executors.start(exec);
+		exec.start();
 		
 		return exec;
 	}
 	
-	private class ExportExecution extends AbstractExecution<Long>
+	private class ExportExecution extends ExecutableExecution<Long>
 									implements ProgressiveExecution<Long,Long>, CancellableWork {
 		private final RecordSet m_source;
 		private final String m_srid;
@@ -102,12 +101,14 @@ class ExportAsShapefile {
 				SimpleFeatureCollection coll = new MarmotFeatureCollection(sfType, ()->rset);
 				dumper.dump(coll);
 				
-				if ( m_aopGuard.get(() -> m_aopState == State.RUNNING) ) {
+				if ( isRunning() ) {
 					return rset.count();
 				}
-				else {
+				else if ( isCancelRequested() ) {
 					throw new CancellationException();
 				}
+				
+				throw new IllegalStateException("unexpected state: " + getState());
 			}
 		}
 		

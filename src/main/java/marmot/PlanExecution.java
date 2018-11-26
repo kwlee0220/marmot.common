@@ -1,15 +1,15 @@
 package marmot;
 
-import utils.async.Execution;
+import utils.async.ExecutableExecution;
 
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public interface PlanExecution extends Execution<Void>, Runnable {
-	public Plan getPlan();
-	public RecordSchema getRecordSchema();
+public abstract class PlanExecution extends ExecutableExecution<Void> {
+	public abstract Plan getPlan();
+	public abstract RecordSchema getRecordSchema();
 	
-	public void setDisableLocalExecution(boolean flag);
+	public abstract void setDisableLocalExecution(boolean flag);
 }
