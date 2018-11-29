@@ -10,7 +10,9 @@ import public "marmot.service.proto";
 
 
 message LoadTextFileProto {
-	int32 split_count_per_block = 1;
+	oneof optional_split_count_per_block {
+		int32 split_count_per_block = 1;
+	}
 	oneof optional_comment_prefix {
 		string comment_prefix = 2;
 	}
@@ -339,7 +341,7 @@ message JoinOptionsProto {
 		int32 worker_count = 2;
 	}
 }
-message EquiJoinProto {
+message HashJoinProto {
 	string join_columns = 1;
 	string param_dataset = 2;
 	string param_columns = 3;
@@ -360,7 +362,7 @@ message InnerJoinAtMapSideProto {
 	string param_columns = 3;
 	string output_columns_expr = 4;
 }
-message LoadEquiJoinProto {
+message LoadHashJoinProto {
 	string left_dataset = 1;
 	string left_join_columns = 2;
 	string right_dataset = 3;
@@ -848,8 +850,8 @@ message OperatorProto {
 		ConsumeByGroupProto consume_by_group = 204;
 		DissolveProto dissolve = 205;
 		
-		LoadEquiJoinProto load_equi_join = 301;
-		EquiJoinProto equi_join = 302;
+		LoadHashJoinProto load_hash_join = 301;
+		HashJoinProto hash_join = 302;
 		
 		// basic geometry predicate operators
 		UnarySpatialIntersectsProto unary_spatial_intersects = 401;

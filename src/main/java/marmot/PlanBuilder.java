@@ -52,7 +52,6 @@ import marmot.proto.optor.DissolveProto;
 import marmot.proto.optor.DistinctProto;
 import marmot.proto.optor.DropEmptyGeometryProto;
 import marmot.proto.optor.DropProto;
-import marmot.proto.optor.EquiJoinProto;
 import marmot.proto.optor.EstimateIDWProto;
 import marmot.proto.optor.EstimateKernelDensityProto;
 import marmot.proto.optor.Expand1Proto;
@@ -61,12 +60,13 @@ import marmot.proto.optor.FindFirstReducerProto;
 import marmot.proto.optor.FindMaxValueRecordProto;
 import marmot.proto.optor.FlattenGeometryProto;
 import marmot.proto.optor.GroupByKeyProto;
+import marmot.proto.optor.HashJoinProto;
 import marmot.proto.optor.LISAWeightProto;
 import marmot.proto.optor.LoadCsvFileProto;
 import marmot.proto.optor.LoadCustomTextFileProto;
 import marmot.proto.optor.LoadDataSetProto;
-import marmot.proto.optor.LoadEquiJoinProto;
 import marmot.proto.optor.LoadGetisOrdGiProto;
+import marmot.proto.optor.LoadHashJoinProto;
 import marmot.proto.optor.LoadHexagonGridFileProto;
 import marmot.proto.optor.LoadHexagonGridFileProto.GridBoundsProto;
 import marmot.proto.optor.LoadJdbcTableProto;
@@ -117,7 +117,6 @@ import marmot.proto.optor.ToXYCoordinatesProto;
 import marmot.proto.optor.TransformByGroupProto;
 import marmot.proto.optor.TransformCrsProto;
 import marmot.proto.optor.UnarySpatialIntersectionProto;
-import marmot.proto.optor.UnarySpatialIntersectsProto;
 import marmot.proto.optor.UpdateProto;
 import marmot.proto.optor.ValidateGeometryProto;
 import marmot.proto.optor.ValueAggregateReducerProto;
@@ -1127,7 +1126,7 @@ public class PlanBuilder {
 //	 */
 //	public PlanBuilder pickTopRankK(String orderKeyColSpecs, int topK);
 	
-	public PlanBuilder loadEquiJoin(String leftDataSet, String leftJoinCols,
+	public PlanBuilder loadHashJoin(String leftDataSet, String leftJoinCols,
 									String rightDataSet, String rightJoinCols,
 									String outputColumnExpr, JoinOptions opts) {
 		Objects.requireNonNull(leftDataSet,  "left dataset id is null");
@@ -1139,7 +1138,7 @@ public class PlanBuilder {
 		
 		opts = (opts == null) ? new JoinOptions() : opts;
 		
-		LoadEquiJoinProto load = LoadEquiJoinProto.newBuilder()
+		LoadHashJoinProto load = LoadHashJoinProto.newBuilder()
 												.setLeftDataset(leftDataSet)
 												.setLeftJoinColumns(leftJoinCols)
 												.setRightDataset(rightDataSet)
@@ -1148,7 +1147,7 @@ public class PlanBuilder {
 												.setJoinOptions(opts.toProto())
 												.build();
 		return add(OperatorProto.newBuilder()
-								.setLoadEquiJoin(load)
+								.setLoadHashJoin(load)
 								.build());
 	}
 	
@@ -1186,7 +1185,7 @@ public class PlanBuilder {
 		
 		opts = (opts == null) ? new JoinOptions() : opts;
 		
-		EquiJoinProto join = EquiJoinProto.newBuilder()
+		HashJoinProto join = HashJoinProto.newBuilder()
 										.setJoinColumns(inputJoinCols)
 										.setParamDataset(paramDataSet)
 										.setParamColumns(paramJoinCols)
@@ -1194,7 +1193,7 @@ public class PlanBuilder {
 										.setJoinOptions(opts.toProto())
 										.build();
 		return add(OperatorProto.newBuilder()
-								.setEquiJoin(join)
+								.setHashJoin(join)
 								.build());
 	}
 	
