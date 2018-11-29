@@ -10,18 +10,13 @@ import net.jcip.annotations.GuardedBy;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class CloserAttachedRecordSet extends AbstractRecordSet {
+class CloserAttachedRecordSet extends AbstractRecordSet {
 	private final RecordSet m_rset;
 	@GuardedBy("this") private Option<Runnable> m_closer;
 	
-	public CloserAttachedRecordSet(RecordSet rset, Runnable closer) {
+	CloserAttachedRecordSet(RecordSet rset, Runnable closer) {
 		m_rset = rset;
 		m_closer = Option.of(closer);
-	}
-	
-	public CloserAttachedRecordSet(RecordSet rset) {
-		m_rset = rset;
-		m_closer = Option.none();
 	}
 
 	@Override
@@ -50,7 +45,7 @@ public class CloserAttachedRecordSet extends AbstractRecordSet {
 	}
 	
 	@Override
-	public Option<Record> nextCopy() {
+	public Record nextCopy() {
 		checkNotClosed();
 		
 		return m_rset.nextCopy();

@@ -3,7 +3,6 @@ package marmot.rset;
 import java.util.Objects;
 
 import io.reactivex.Observer;
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -79,12 +78,14 @@ public class ProgressReportingRecordSet extends AbstractRecordSet {
 	}
 	
 	@Override
-	public Option<Record> nextCopy() {
-		return m_input.nextCopy()
-					.peek(rec -> {
-						if ( m_reportInterval > 0 && (++m_count % m_reportInterval) == 0 ) {
-							m_subject.onNext(m_count);
-						}
-					});
+	public Record nextCopy() {
+		Record next = m_input.nextCopy();
+		if ( next != null ) {
+			if ( m_reportInterval > 0 && (++m_count % m_reportInterval) == 0 ) {
+				m_subject.onNext(m_count);
+			}
+		}
+		
+		return next;
 	}
 }

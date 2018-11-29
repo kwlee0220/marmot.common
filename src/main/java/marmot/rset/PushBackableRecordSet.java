@@ -2,7 +2,6 @@ package marmot.rset;
 
 import java.util.Objects;
 
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSet;
 
@@ -14,16 +13,26 @@ public interface PushBackableRecordSet extends RecordSet {
 	public void pushBack(Record record);
 	
 	public default boolean hasNext() {
-		return peekCopy().isDefined();
+		return peekCopy() != null;
 	}
 	
 	public default boolean peek(Record output) {
 		Objects.requireNonNull(output);
 		
-		return nextCopy().peek(this::pushBack).isDefined();
+		Record next = nextCopy();
+		if ( next != null ) {
+			pushBack(next);
+		}
+		
+		return next != null;
 	}
 	
-	public default Option<Record> peekCopy() {
-		return nextCopy().peek(this::pushBack);
+	public default Record peekCopy() {
+		Record next = nextCopy();
+		if ( next != null ) {
+			pushBack(next);
+		}
+		
+		return next;
 	}
 }

@@ -2,7 +2,6 @@ package marmot.rset;
 
 import java.util.function.Supplier;
 
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -43,7 +42,7 @@ public class LazyRecordSet extends AbstractRecordSet {
 	}
 
 	@Override
-	public Option<Record> nextCopy() {
+	public Record nextCopy() {
 		if ( m_lazy == null ) {
 			m_lazy = m_supplier.get();
 		}

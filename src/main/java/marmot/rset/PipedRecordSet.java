@@ -13,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Preconditions;
 
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetClosedException;
@@ -169,7 +168,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 	}
 	
 	@Override
-	public Option<Record> nextCopy() throws RecordSetException {
+	public Record nextCopy() throws RecordSetException {
 		checkNotClosed();
 		
 		m_lock.lock();
@@ -195,10 +194,10 @@ public class PipedRecordSet extends AbstractRecordSet {
 					m_lastConsumeMillis = System.currentTimeMillis();
 					m_cond.signalAll();
 					
-					return Option.some(record);
+					return record;
 				}
 				if ( m_state == State.SUPPLIER_CLOSED ) {
-					return Option.none();
+					return null;
 				}
 				
 				if ( !m_cond.awaitUntil(due) ) {

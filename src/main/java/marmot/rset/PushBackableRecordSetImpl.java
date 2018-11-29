@@ -47,6 +47,18 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 			return m_input.next(record);
 		}
 	}
+	
+	@Override
+	public Record nextCopy() {
+		checkNotClosed();
+
+		if ( !m_pushBackeds.isEmpty() ) {
+			return m_pushBackeds.pop();
+		}
+		else {
+			return m_input.nextCopy();
+		}
+	}
 
 	@Override
 	public void pushBack(Record record) {

@@ -14,7 +14,6 @@ import com.google.common.base.Preconditions;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -138,6 +137,13 @@ public class RecordSets {
 		records.subscribe(pipe::supply, pipe::endOfSupply, pipe::endOfSupply);
 		
 		return pipe;
+	}
+	
+	public static CloserAttachedRecordSet attachCloser(RecordSet rset, Runnable closer) {
+		Objects.requireNonNull(rset, "Base RecordSet");
+		Objects.requireNonNull(closer, "Closer");
+		
+		return new CloserAttachedRecordSet(rset, closer);
 	}
 	
 	public static RecordSet lazy(RecordSchema schema, Supplier<RecordSet> supplier) {
@@ -266,11 +272,7 @@ public class RecordSets {
 	}
 	
 	public static RecordSet autoClose(RecordSet input) {
-		return new AutoCloseRecordSet(input);
-	}
-	
-	public static CloserAttachedRecordSet attachCloser(RecordSet rset, Runnable closer) {
-		return new CloserAttachedRecordSet(rset, closer);
+		return new AutoClosingRecordSet(input);
 	}
 	
 	public static ProgressReportingRecordSet reportProgress(RecordSet rset, Observer<Long> observer,
@@ -321,9 +323,13 @@ public class RecordSets {
 		}
 		
 		@Override
-		public Option<Record> nextCopy() {
-			return m_rset.nextCopy()
-						.peek(r -> ++m_count);
+		public Record nextCopy() {
+			Record next = m_rset.nextCopy();
+			if ( next != null ) {
+				++m_count;
+			}
+			
+			return next;
 		}
 		
 		@Override

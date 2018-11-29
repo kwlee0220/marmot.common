@@ -1,35 +1,33 @@
-package marmot.rset;
+package marmot;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import io.vavr.control.Option;
-import marmot.Record;
-import marmot.RecordSet;
+import javax.annotation.Nullable;
 
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class RecordSetIterator implements Iterator<Record> {
+class RecordSetIterator implements Iterator<Record> {
 	private final RecordSet m_rset;
-	private Option<Record> m_next;
+	@Nullable private Record m_next;
 	
-	public RecordSetIterator(RecordSet rset) {
+	RecordSetIterator(RecordSet rset) {
 		m_rset = rset;
 		m_next = m_rset.nextCopy();
 	}
 	
 	@Override
 	public boolean hasNext() {
-		return m_next.isDefined();
+		return m_next != null;
 	}
 
 	@Override
 	public Record next() {
-		if ( m_next.isDefined() ) {
-			Record next = m_next.get();
+		if ( m_next != null ) {
+			Record next = m_next;
 			m_next = m_rset.nextCopy();
 			
 			return next;

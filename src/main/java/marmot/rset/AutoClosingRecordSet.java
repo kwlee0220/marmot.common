@@ -1,6 +1,5 @@
 package marmot.rset;
 
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -9,10 +8,10 @@ import marmot.RecordSet;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-class AutoCloseRecordSet extends AbstractRecordSet {
+class AutoClosingRecordSet extends AbstractRecordSet {
 	private final RecordSet m_rset;
 	
-	AutoCloseRecordSet(RecordSet rset) {
+	AutoClosingRecordSet(RecordSet rset) {
 		m_rset = rset;
 	}
 
@@ -39,13 +38,14 @@ class AutoCloseRecordSet extends AbstractRecordSet {
 	}
 	
 	@Override
-	public Option<Record> nextCopy() {
-		checkNotClosed();
-		
-		return m_rset.nextCopy()
-					.orElse(() -> {
-						close();
-						return Option.none();
-					});
+	public Record nextCopy() {
+		Record next = m_rset.nextCopy();
+		if ( next == null ) {
+			closeInGuard();
+			return null;
+		}
+		else {
+			return next;
+		}
 	}
 }

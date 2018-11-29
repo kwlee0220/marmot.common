@@ -21,7 +21,7 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 	private Option<Record> m_peeked = null;
 	
 	PeekableRecordSet(RecordSet input) {
-		Objects.requireNonNull(input, "input RecordSet is null");
+		Objects.requireNonNull(input, "Peeking RecordSet is null");
 		
 		m_input = input;
 	}
@@ -40,7 +40,7 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 		checkNotClosed();
 
 		if ( m_peeked == null ) {
-			m_peeked = m_input.nextCopy();
+			m_peeked = Option.of(m_input.nextCopy());
 		}
 		return m_peeked.map(Record::duplicate);
 	}

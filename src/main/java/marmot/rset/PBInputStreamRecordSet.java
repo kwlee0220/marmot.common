@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
 
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
@@ -67,14 +66,14 @@ public class PBInputStreamRecordSet extends AbstractRecordSet {
 	}
 	
 	@Override
-	public Option<Record> nextCopy() {
+	public Record nextCopy() {
 		try {
 			RecordProto proto = RecordProto.parseDelimitedFrom(m_is);
 			if ( proto != null ) {
-				return Option.some(DefaultRecord.fromProto(m_schema, proto));
+				return DefaultRecord.fromProto(m_schema, proto);
 			}
 			else {
-				return Option.none();
+				return null;
 			}
 		}
 		catch ( IOException e ) {

@@ -17,13 +17,11 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import marmot.rset.RecordSetIterator;
 import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
 import utils.Throwables;
 import utils.Utilities;
 import utils.stream.FStream;
-import utils.stream.FStreamImpl;
 
 
 /**
@@ -54,12 +52,14 @@ public interface RecordSet extends Closeable {
 	 * @return	적재 여부. 레코드 세트에 더 이상의 레코드가 없는 경우는 false
 	 */
 	public default boolean next(Record output) {
-		return nextCopy()
-				.map(copy -> { 
-					output.set(copy, true);
-					return true;
-				})
-				.getOrElse(false);
+		Record next = nextCopy();
+		if ( next != null ) {
+			output.set(next, false);
+			return true;
+		}
+		else {
+			return false;
+		}
 	}
 	
 	/**
@@ -67,9 +67,9 @@ public interface RecordSet extends Closeable {
 	 * 
 	 * @return	읽은 레코드 객체.  레코드가 없는 경우는 {@link Option#none()}이 반환됨.
 	 */
-	public default Option<Record> nextCopy() {
+	public default Record nextCopy() {
 		Record output = DefaultRecord.of(getRecordSchema());
-		return ( next(output) ) ? Option.some(output) : Option.none();
+		return ( next(output) ) ? output : null;
 	}
 	
 	public default <S> S foldLeft(S accum, S stopper,
@@ -109,9 +109,9 @@ public interface RecordSet extends Closeable {
 		Preconditions.checkArgument(accum != null, "accum is null");
 		Preconditions.checkArgument(folder != null, "folder is null");
 
-		Option<Record> orec;
-		while ( (orec = nextCopy()).isDefined() ) {
-			accum = folder.apply(accum, orec.get());
+		Record rec;
+		while ( (rec = nextCopy()) != null ) {
+			accum = folder.apply(accum, rec);
 		}
 		
 		return accum;
@@ -133,9 +133,9 @@ public interface RecordSet extends Closeable {
 		Objects.requireNonNull(accum);
 		Objects.requireNonNull(consumer);
 
-		Option<Record> orec;
-		while ( (orec = nextCopy()).isDefined() ) {
-			consumer.accept(accum, orec.get());
+		Record rec;
+		while ( (rec = nextCopy()) != null ) {
+			consumer.accept(accum, rec);
 		}
 		
 		return accum;
@@ -202,10 +202,9 @@ public interface RecordSet extends Closeable {
 	 */
 	public default void forEachCopy(Consumer<? super Record> consumer,
 									Observer<Tuple2<Record,Throwable>> failObserver) {
-		Option<Record> orecord;
+		Record record;
 		try {
-			while ( (orecord = nextCopy()).isDefined() ) {
-				final Record record = orecord.get();
+			while ( (record = nextCopy()) != null ) {
 				try {
 					consumer.accept(record);
 				}
@@ -237,11 +236,11 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 리스트.
 	 */
 	public default List<Record> toList() {
-		Option<Record> record;
+		Record record;
 		List<Record> recordList = Lists.newArrayList();
 		try {
-			while ( (record = nextCopy()).isDefined() ) {
-				recordList.add(record.get());
+			while ( (record = nextCopy()) != null ) {
+				recordList.add(record);
 			}
 			
 			return recordList;
@@ -251,7 +250,7 @@ public interface RecordSet extends Closeable {
 		}
 	}
 	
-	public default Option<Record> getFirst() {
+	public default Record getFirst() {
 		try {
 			return nextCopy();
 		}
@@ -279,11 +278,7 @@ public interface RecordSet extends Closeable {
 	}
 	
 	public default FStream<Record> fstream() {
-		return new FStreamImpl<>(
-			"RecordSet::fstream",
-			() -> nextCopy(),
-			() -> close()
-		);
+		return new RecordSetStream(this);
 	}
 	
 	public default long count() {

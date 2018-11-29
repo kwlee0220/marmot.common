@@ -2,7 +2,6 @@ package marmot.rset;
 
 import java.util.Objects;
 
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -63,7 +62,9 @@ class FStreamRecordSet extends AbstractRecordSet {
 	}
 	
 	@Override
-	public Option<Record> nextCopy() {
-		return Option.of(m_stream.next());
+	public Record nextCopy() {
+		checkNotClosed();
+		
+		return m_stream.next();
 	}
 }

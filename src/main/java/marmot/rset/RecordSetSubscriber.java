@@ -2,7 +2,6 @@ package marmot.rset;
 
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSet;
 
@@ -21,12 +20,12 @@ class RecordSetSubscriber implements ObservableOnSubscribe<Record> {
 	@Override
 	public void subscribe(ObservableEmitter<Record> emitter) throws Exception {
 		try {
-			Option<Record> orec;
-			while ( (orec = m_rset.nextCopy()).isDefined() ) {
+			Record record;
+			while ( (record = m_rset.nextCopy()) != null ) {
 				if ( emitter.isDisposed() ) {
 					return;
 				}
-				emitter.onNext(orec.get());
+				emitter.onNext(record);
 			}
 			
 			if ( emitter.isDisposed() ) {
