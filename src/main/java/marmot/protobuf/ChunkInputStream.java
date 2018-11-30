@@ -2,6 +2,7 @@ package marmot.protobuf;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -16,6 +17,7 @@ import marmot.remote.protobuf.PBStreamClosedException;
 import net.jcip.annotations.GuardedBy;
 import utils.Guard;
 import utils.Throwables;
+import utils.UnitUtils;
 
 
 /**
@@ -24,6 +26,7 @@ import utils.Throwables;
  */
 public class ChunkInputStream extends InputStream {
 	private static final Logger s_logger = LoggerFactory.getLogger(ChunkInputStream.class);
+	private static final long TIMEOUT = UnitUtils.parseDuration("3s");
 	
 	private final int m_capacity;
 	
@@ -49,14 +52,33 @@ public class ChunkInputStream extends InputStream {
 	
 	@Override
 	public void close() throws IOException {
-		m_guard.run(() -> {
-			if ( !m_eos ) {
-				s_logger.info("{} is closed abruptly", getClass().getSimpleName());
-			}
-			
+		m_guard.lock();
+		try {
 			m_chunkQueue.clear();
 			m_closed = true;
-		}, true);
+			m_guard.signalAll();
+			
+			if ( !m_eos ) {
+				// Consumer쪽에서 먼저 강제로 스트림을 close시킨 경우는
+				// producer가 이를 인지해서 적절한 작업을 취할 때까지 일정기간 대기한다.
+				// 제한시간 까지 특별한 장업이 없으면 그냥 close 시킴
+				s_logger.info("{} is closed abruptly, timed-wait until the peer closes this",
+								getClass().getSimpleName());
+				
+				Date due = new Date(System.currentTimeMillis() + TIMEOUT);
+				try {
+					while ( !m_eos ) {
+						if ( !m_guard.awaitUntil(due) ) {
+							break;
+						}
+					}
+				}
+				catch ( InterruptedException ignored ) { }
+			}
+		}
+		finally {
+			m_guard.unlock();
+		}
 		
 		super.close();
 	}
