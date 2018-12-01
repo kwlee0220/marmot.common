@@ -1,12 +1,6 @@
 package marmot.type;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-
-import utils.Utilities;
 
 
 /**
@@ -33,15 +27,5 @@ public class DateTimeType extends DataType {
 	public LocalDateTime fromString(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? LocalDateTime.parse(str) : null;
-	}
-
-	@Override
-	public LocalDateTime readObject(DataInput in) throws IOException {
-		return Utilities.fromUTCEpocMillis(in.readLong(), ZoneId.systemDefault());
-	}
-
-	@Override
-	public void writeObject(Object obj, DataOutput out) throws IOException {
-		out.writeLong(Utilities.toUTCEpocMillis((LocalDateTime)obj));
 	}
 }

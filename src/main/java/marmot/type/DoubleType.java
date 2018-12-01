@@ -1,10 +1,5 @@
 package marmot.type;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
-
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
@@ -29,15 +24,5 @@ public class DoubleType extends DataType {
 	public Double fromString(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Double.parseDouble(str) : null;
-	}
-
-	@Override
-	public Double readObject(DataInput in) throws IOException {
-		return in.readDouble();
-	}
-
-	@Override
-	public void writeObject(Object obj, DataOutput out) throws IOException {
-		out.writeDouble((double)obj);
 	}
 }

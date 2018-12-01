@@ -1,11 +1,5 @@
 package marmot.type;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
-import java.io.DataOutput;
-import java.io.IOException;
-
 /**
  * 'Serializable'을 상속하는 이유는 spark 때문임.
  * 
@@ -79,17 +73,17 @@ public abstract class DataType {
 		}
 	}
 	
-	public Object fromBytes(byte[] bytes) {
-		try ( DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes)) ) {
-			return readObject(dis);
-		}
-		catch ( IOException e ) {
-			throw new RuntimeException(e);
-		}
-	}
+//	public Object fromBytes(byte[] bytes) {
+//		try ( DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes)) ) {
+//			return readObject(dis);
+//		}
+//		catch ( IOException e ) {
+//			throw new RuntimeException(e);
+//		}
+//	}
 
-	public abstract Object readObject(DataInput in) throws IOException;
-	public abstract void writeObject(Object obj, DataOutput out) throws IOException;
+//	public abstract Object readObject(DataInput in) throws IOException;
+//	public abstract void writeObject(Object obj, DataOutput out) throws IOException;
 	
 	@Override
 	public String toString() {

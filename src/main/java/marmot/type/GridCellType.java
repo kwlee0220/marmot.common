@@ -1,10 +1,5 @@
 package marmot.type;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
-
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
@@ -28,21 +23,5 @@ public class GridCellType extends DataType {
 	@Override
 	public GridCell fromString(String str) {
 		return GridCell.fromString(str);
-	}
-	
-	@Override
-	public GridCell readObject(DataInput in) throws IOException {
-		int row = in.readInt();
-		int col = in.readInt();
-		
-		return new GridCell(col, row);
-	}
-
-	@Override
-	public void writeObject(Object obj, DataOutput out) throws IOException {
-		GridCell cell = (GridCell)obj;
-		
-		out.writeInt(cell.getRowIdx());
-		out.writeInt(cell.getColIdx());
 	}
 }

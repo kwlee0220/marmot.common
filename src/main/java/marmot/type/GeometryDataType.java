@@ -69,35 +69,6 @@ public abstract class GeometryDataType extends DataType {
 		return GeoClientUtils.toWKT((Geometry)geom);
 	}
 	
-	@Override
-	public Geometry readObject(DataInput in) throws IOException {
-		byte code = in.readByte();
-		if ( code == 1 ) {
-			return readValidObject(in);
-		}
-		else if ( code == 0 ) {
-			return null;
-		}
-		else {
-			return (Geometry)newInstance();
-		}
-	}
-
-	@Override
-	public void writeObject(Object obj, DataOutput out) throws IOException {
-		Geometry geom = (Geometry)obj;
-		if ( geom == null ) {
-			out.writeByte(0);
-		}
-		else if ( !geom.isEmpty() ) {
-			out.writeByte(1);
-			writeValidObject(geom, out);
-		}
-		else {
-			out.writeByte(-1);
-		}
-	}
-	
 	public static GeometryDataType fromGeometries(Geometries geoms) {
 		switch ( geoms ) {
 			case POINT:

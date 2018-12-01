@@ -5,9 +5,10 @@ import java.io.DataOutput;
 import java.io.IOException;
 
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
 
+import marmot.geo.GeoClientUtils;
 import marmot.support.TypedObject;
-import marmot.type.DataType;
 
 /**
  * 
@@ -104,19 +105,28 @@ public class BuildingPostalAddressInfo implements TypedObject {
 
 	@Override
 	public void readFields(DataInput input) throws IOException {
-		m_geom = DataType.GEOMETRY.readObject(input);
-		m_id = input.readUTF();
-		String str = input.readUTF();
-		m_name = (str.length() > 0) ? str : null;
-		m_roadAddrCode = input.readUTF();
-		m_roadAddress = input.readUTF();
-		m_jibunAddrCode = input.readUTF();
-		m_jibunAddress = input.readUTF();
+		try {
+			byte[] wkb = new byte[input.readInt()];
+			input.readFully(wkb);
+			m_geom = GeoClientUtils.fromWKB(wkb);
+			m_id = input.readUTF();
+			String str = input.readUTF();
+			m_name = (str.length() > 0) ? str : null;
+			m_roadAddrCode = input.readUTF();
+			m_roadAddress = input.readUTF();
+			m_jibunAddrCode = input.readUTF();
+			m_jibunAddress = input.readUTF();
+		}
+		catch ( ParseException e ) {
+			throw new IOException("" + e);
+		}
 	}
 
 	@Override
 	public void writeFields(DataOutput output) throws IOException {
-		DataType.GEOMETRY.writeObject(m_geom, output);
+		byte[] wkb = GeoClientUtils.toWKB(m_geom);
+		output.writeInt(wkb.length);
+		output.write(wkb);
 		output.writeUTF(m_id);
 		if ( m_name != null ) {
 			output.writeUTF(m_name);

@@ -1,8 +1,5 @@
 package marmot;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
@@ -173,28 +170,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	
 	public Stream<Column> stream() {
 		return m_columns.values().stream();
-	}
-	
-	public static RecordSchema readFrom(DataInput input) throws IOException {
-		RecordSchema.Builder builder = RecordSchema.builder();
-		
-		short nCols = input.readShort();
-		for ( int i =0; i < nCols; ++i ) {
-			String name = input.readUTF();
-			DataType type = DataTypes.fromTypeCode(input.readByte());
-			
-			builder.addColumn(name, type);
-		}
-		
-		return builder.build();
-	}
-
-	public void writeInto(DataOutput out) throws IOException {
-		out.writeShort(m_columns.size());
-		for ( Column col: m_columns.values() ) {
-			out.writeUTF(col.name());
-			out.writeByte((byte)col.type().getTypeCode().ordinal());
-		}
 	}
 	
 	public FluentElementImpl toDocumentElement(String docElmName)  {
