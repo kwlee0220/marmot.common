@@ -28,7 +28,7 @@ public class DataUtils {
 		if ( obj == null ) {
 			return null;
 		}
-		else if ( type.getInstanceClass().isAssignableFrom(obj.getClass()) ) {
+		else if ( type.getInstanceClass().isInstance(obj) ) {
 			return obj;
 		}
 		
