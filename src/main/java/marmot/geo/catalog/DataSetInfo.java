@@ -7,7 +7,6 @@ import io.vavr.control.Option;
 import marmot.Column;
 import marmot.DataSetType;
 import marmot.GeometryColumnInfo;
-import marmot.GeometryColumnNotExistsException;
 import marmot.RecordSchema;
 import marmot.proto.service.DataSetInfoProto;
 import marmot.proto.service.DataSetInfoProto.DataSetGeometryInfoProto;
@@ -30,6 +29,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	private RecordSchema m_schema;
 	private String m_filePath;
 	private boolean m_compression = false;
+	private boolean m_mapOutputCompression = false;
 	private long m_blockSize = -1;
 	
 	@SuppressWarnings("unused")
@@ -135,6 +135,14 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	
 	public void setCompression(boolean flag) {
 		m_compression = flag;
+	}
+	
+	public boolean getMapOutputCompression() {
+		return m_mapOutputCompression;
+	}
+	
+	public void setMapOutputCompression(boolean flag) {
+		m_mapOutputCompression = flag;
 	}
 	
 	public long getBlockSize() {

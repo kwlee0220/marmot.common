@@ -15,8 +15,16 @@ import utils.stream.FStream;
  */
 public abstract class ExecutePlanOption {
 	public static final DisableLocalExecOption DISABLE_LOCAL_EXEC = new DisableLocalExecOption();
+	public static final MapOutputCompressCodecOption DISABLE_MAP_OUTPUT_COMPRESS
+																= new MapOutputCompressCodecOption("none");
+	public static final MapOutputCompressCodecOption COMPRESS_MAP_OUTPUT_BY_SNAPPY
+															= new MapOutputCompressCodecOption("snappy");
 	
 	public abstract void set(ExecutePlanOptionsProto.Builder builder);
+	
+	public static MapOutputCompressCodecOption MAP_OUTPUT_COMPRESS_CODEC(String codec) {
+		return new MapOutputCompressCodecOption(codec);
+	}
 	
 	public static ExecutePlanOptionsProto toProto(ExecutePlanOption... opts) {
 		return toProto(Arrays.asList(opts));
@@ -41,6 +49,13 @@ public abstract class ExecutePlanOption {
 						.first()
 						.isDefined();
 	}
+	
+	public static MapOutputCompressCodecOption getMapOutputCompressCodec(List<ExecutePlanOption> opts) {
+		return FStream.of(opts)
+						.castSafely(MapOutputCompressCodecOption.class)
+						.first()
+						.getOrNull();
+	}
 
 	public static List<ExecutePlanOption> fromProto(ExecutePlanOptionsProto proto) {
 		List<ExecutePlanOption> opts = Lists.newArrayList();
@@ -48,6 +63,12 @@ public abstract class ExecutePlanOption {
 		switch ( proto.getOptionalDisableLocalExecutionCase() ) {
 			case DISABLE_LOCAL_EXECUTION:
 				opts.add(DISABLE_LOCAL_EXEC);
+				break;
+			default:
+		}
+		switch ( proto.getOptionalMapOutputCompressCodecCase() ) {
+			case MAP_OUTPUT_COMPRESS_CODEC:
+				opts.add(MAP_OUTPUT_COMPRESS_CODEC(proto.getMapOutputCompressCodec()));
 				break;
 			default:
 		}
@@ -64,6 +85,27 @@ public abstract class ExecutePlanOption {
 		@Override
 		public String toString() {
 			return "disable_local_exec";
+		}
+	}
+	
+	public static class MapOutputCompressCodecOption extends ExecutePlanOption {
+		private String m_codec;
+		
+		MapOutputCompressCodecOption(String codec) {
+			m_codec = codec;
+		}
+		
+		public String getCodec() {
+			return m_codec;
+		}
+		
+		public void set(ExecutePlanOptionsProto.Builder builder) {
+			builder.setMapOutputCompressCodec(m_codec);
+		}
+		
+		@Override
+		public String toString() {
+			return "map_output_compress_codec";
 		}
 	}
 }

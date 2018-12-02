@@ -14,9 +14,6 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -32,6 +29,7 @@ import com.vividsolutions.jts.io.ParseException;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+import io.vavr.CheckedRunnable;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
@@ -96,8 +94,6 @@ import utils.stream.KVFStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class PBUtils {
-	private static final Logger s_logger = LoggerFactory.getLogger(PBUtils.class);
-	
 	public static final VoidProto VOID = VoidProto.newBuilder().build();
 	private static final VoidResponse VOID_RESPONSE = VoidResponse.newBuilder()
 																	.setVoid(VOID)
@@ -449,6 +445,38 @@ public class PBUtils {
 		response.onCompleted();
 	}
 	
+	public static void replyString(CheckedSupplier<String> supplier,
+									StreamObserver<StringResponse> response) {
+		try {
+			String ret = supplier.get();
+			response.onNext(StringResponse.newBuilder()
+										.setValue(ret)
+										.build());
+		}
+		catch ( Throwable e ) {
+			response.onNext(StringResponse.newBuilder()
+										.setError(PBUtils.toErrorProto(e))
+										.build());
+		}
+		response.onCompleted();
+	}
+	
+	public static void replyVoid(CheckedRunnable runnable,
+									StreamObserver<VoidResponse> response) {
+		try {
+			runnable.run();
+			response.onNext(VoidResponse.newBuilder()
+										.setVoid(VOID)
+										.build());
+		}
+		catch ( Throwable e ) {
+			response.onNext(VoidResponse.newBuilder()
+										.setError(PBUtils.toErrorProto(e))
+										.build());
+		}
+		response.onCompleted();
+	}
+	
 	public static byte[] toDelimitedBytes(Message proto) {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
@@ -526,7 +554,7 @@ public class PBUtils {
 	
 	public static Point fromProto(PointProto proto) {
 		double x = proto.getX();
-		if ( x == Double.NaN ) {
+		if ( Double.isNaN(x) ) {
 			return GeoClientUtils.EMPTY_POINT;
 		}
 		else {
