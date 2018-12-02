@@ -22,7 +22,7 @@ import marmot.MarmotInternalException;
 public class CsvParameters {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	
-	private CSVFormat m_format = CSVFormat.DEFAULT.withQuote(null);
+	private CSVFormat m_format = CSVFormat.DEFAULT.withQuote(null).withIgnoreSurroundingSpaces();
 	private Option<Charset> m_charset = Option.none();
 	private boolean m_headerFirst = false;
 	private Option<String> m_pointCols = Option.none();
@@ -102,7 +102,7 @@ public class CsvParameters {
 	}
 	
 	public CsvParameters trimField(boolean flag) {
-		m_format = m_format.withIgnoreSurroundingSpaces(flag);
+		m_format = m_format.withTrim(flag);
 		return this;
 	}
 	
