@@ -36,6 +36,16 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 		return m_input.getRecordSchema();
 	}
 	
+	public boolean hasNext() {
+		checkNotClosed();
+
+		if ( m_peeked == null ) {
+			m_peeked = Option.of(m_input.nextCopy());
+		}
+		
+		return m_peeked.isDefined();
+	}
+	
 	public Option<Record> peek() {
 		checkNotClosed();
 
@@ -52,10 +62,12 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 		if ( m_peeked != null ) {
 			boolean ret = m_peeked.peek(r -> output.set(r, true)).isDefined();
 			m_peeked = null;
+			
 			return ret;
 		}
-		
-		return m_input.next(output);
+		else {
+			return m_input.next(output);
+		}
 	}
 
 	@Override

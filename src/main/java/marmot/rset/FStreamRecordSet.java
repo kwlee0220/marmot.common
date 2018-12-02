@@ -29,11 +29,8 @@ class FStreamRecordSet extends AbstractRecordSet {
 		Objects.requireNonNull(stream);
 		
 		PeekableFStream<Record> peekable = stream.toPeekable();
-		Record first = peekable.peekNext();
-		if ( first == null ) {
-			throw new RecordSetException("RecordSchema is not specified");
-		}
-		m_schema = first.getSchema();
+		m_schema = peekable.peekNext().map(Record::getSchema)
+							.getOrElseThrow(()->new RecordSetException("RecordSchema is not specified"));
 		m_stream = peekable;
 	}
 	
@@ -51,20 +48,15 @@ class FStreamRecordSet extends AbstractRecordSet {
 	public boolean next(Record output) throws RecordSetException {
 		checkNotClosed();
 		
-		Record rec = m_stream.next();
-		if ( rec != null ) {
-			output.setAll(0, rec.getAll());
-			return true;
-		}
-		else {
-			return false;
-		}
+		return m_stream.next()
+						.peek(r -> output.setAll(0, r.getAll()))
+						.isDefined();
 	}
 	
 	@Override
 	public Record nextCopy() {
 		checkNotClosed();
 		
-		return m_stream.next();
+		return m_stream.next().getOrNull();
 	}
 }

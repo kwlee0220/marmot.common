@@ -14,11 +14,11 @@ import com.google.common.base.Preconditions;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import utils.stream.FStream;
-import utils.stream.PeekableFStream;
 
 /**
  * 
@@ -188,13 +188,14 @@ public class RecordSets {
 		return new PeekableRecordSet(rset);
 	}
 	
-	public static RecordSet asNonEmpty(RecordSet rset) {
+	public static Option<RecordSet> asNonEmpty(RecordSet rset) {
 		PeekableRecordSet peekable = RecordSets.toPeekable(rset);
-		if ( peekable.peek().isDefined() ) {
-			return peekable;
+		
+		if ( peekable.hasNext() ) {
+			return Option.some(peekable);
 		}
 		else {
-			return null;
+			return Option.none();
 		}
 	}
 	
@@ -218,24 +219,8 @@ public class RecordSets {
 		return concat(schema, FStream.of(rsets));
 	}
 	
-	public static RecordSet concat(Collection<? extends RecordSet> rsets) {
-		
-		
-		return concat(FStream.of(rsets));
-	}
-	
 	public static RecordSet concat(RecordSchema schema, FStream<? extends RecordSet> rsets) {
 		return ConcatedRecordSet.concat(schema, rsets);
-	}
-	
-	public static RecordSet concat(FStream<? extends RecordSet> rsets) {
-		PeekableFStream<? extends RecordSet> peekable = rsets.toPeekable();
-		RecordSet first = peekable.next();
-		if ( first == null ) {
-			throw new IllegalArgumentException("no components RecordSet");
-		}
-		
-		return concat(first.getRecordSchema(), peekable);
 	}
 	
 	public static RecordSet concat(RecordSet rset1, RecordSet rset2) {

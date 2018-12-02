@@ -17,6 +17,7 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
+import marmot.rset.RecordSetStream;
 import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
 import utils.Throwables;

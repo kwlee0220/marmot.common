@@ -9,6 +9,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -68,13 +69,13 @@ public class TextLineFileRecordSet extends ConcatedRecordSet {
 
 	@Override
 	protected RecordSet loadNext() {
-		File next;
-		while ( (next = m_files.next()) != null ) {
+		Option<File> next;
+		while ( (next = m_files.next()).isDefined() ) {
 			try {
-				getLogger().debug("loading TextFile: {}", next);
+				File file = next.get();
+				getLogger().debug("loading TextFile: {}", file);
 				
-				BufferedReader reader = Files.newBufferedReader(next.toPath(),
-																m_params.charset());
+				BufferedReader reader = Files.newBufferedReader(file.toPath(), m_params.charset());
 				return new InnerRecordSet(reader);
 			}
 			catch ( IOException ignored ) { }

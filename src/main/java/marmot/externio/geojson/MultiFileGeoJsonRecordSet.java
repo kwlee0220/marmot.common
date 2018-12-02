@@ -20,6 +20,7 @@ import marmot.RecordSetException;
 import marmot.geo.geotools.GeoToolsUtils;
 import marmot.geo.geotools.SimpleFeatureRecordSet;
 import marmot.rset.ConcatedRecordSet;
+import utils.Unchecked;
 import utils.io.FileUtils;
 import utils.stream.FStream;
 
@@ -49,7 +50,7 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			m_files = FStream.of(files);
 			m_charset = charset;
 			
-			m_first = parseGeoJson(m_files.next(), m_charset);
+			m_first = parseGeoJson(m_files.next().get(), m_charset);
 			m_schema = m_first.getRecordSchema();
 		}
 		catch ( IOException e ) {
@@ -82,14 +83,9 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			return rset;
 		}
 		else {
-			File next;
-			while ( (next = m_files.next()) != null ) {
-				try {
-					return parseGeoJson(next, m_charset);
-				}
-				catch ( IOException ignored ) { }
-			}
-			return null;
+			return m_files.next()
+							.map(file -> Unchecked.supplyRTE(() -> parseGeoJson(file, m_charset)))
+							.getOrNull();
 		}
 	}
 	

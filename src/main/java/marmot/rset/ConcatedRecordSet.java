@@ -95,7 +95,7 @@ public abstract class ConcatedRecordSet extends AbstractRecordSet {
 
 		@Override
 		protected RecordSet loadNext() {
-			return m_components.next();
+			return m_components.next().getOrNull();
 		}
 	}
 }

@@ -93,15 +93,13 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 
 	@Override
 	protected InnerRecordSet loadNext() {
-		File next;
-		while ( (next = m_files.next()) != null ) {
-			try {
-				getLogger().info("loading path={}", next);
-				return new InnerRecordSet(next);
-			}
-			catch ( Exception ignored ) { }
-		}
-		return null;
+		return m_files.next()
+						.map(this::loadRecordSet)
+						.getOrNull();
+	}
+	private InnerRecordSet loadRecordSet(File file) {
+		getLogger().info("loading path={}", file);
+		return new InnerRecordSet(file);
 	}
 	
 	public static RecordSchema loadRecordSchema(File start, Charset charset) throws IOException {
