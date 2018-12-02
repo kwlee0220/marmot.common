@@ -29,8 +29,8 @@ service PlanExecutionService {
 	
 	rpc executeModule(StringProto) returns (VoidResponse);
 	
-	rpc getMapOutputCompression(VoidProto) returns (BoolResponse);
-	rpc setMapOutputCompression(BoolProto) returns (BoolResponse);
+	rpc getDefaultMapOutputCompressCodec(VoidProto) returns (StringResponse);
+	rpc setDefaultMapOutputCompressCodec(StringProto) returns (VoidResponse);
 }
 
 service PlanExecutionListenerService {
@@ -61,6 +61,9 @@ message CreatePlanExecutionRequest {
 message ExecutePlanOptionsProto {
 	oneof optional_disable_local_execution {
 		bool disable_local_execution = 1;
+	}
+	oneof optional_map_output_compress_codec {
+		string map_output_compress_codec = 2;
 	}
 }
 

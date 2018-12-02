@@ -12,4 +12,5 @@ public abstract class PlanExecution extends ExecutableExecution<Void> {
 	public abstract RecordSchema getRecordSchema();
 	
 	public abstract void setDisableLocalExecution(boolean flag);
+	public abstract void setMapOutputCompressCodec(String codec);
 }
