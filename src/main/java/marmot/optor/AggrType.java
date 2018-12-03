@@ -33,7 +33,7 @@ public enum AggrType {
 	public static AggrType fromCode(int code) {
 		return FStream.of(values())
 						.filter(a -> a.getCode() == code)
-						.first()
+						.next()
 						.getOrNull();
 	}
 	

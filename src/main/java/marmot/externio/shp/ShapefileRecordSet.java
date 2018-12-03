@@ -107,7 +107,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 											.map(file -> Try.of(() -> loadDataStore(file, charset)))
 											.filter(Try::isSuccess)
 											.map(Try::get)
-											.first()
+											.next()
 											.getOrNull();
 		if ( store == null ) {
 			throw new IllegalArgumentException("no valid Shapefile: path=" + start);

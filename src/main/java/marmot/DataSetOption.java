@@ -65,35 +65,35 @@ public abstract class DataSetOption {
 	public static boolean hasForce(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(ForceOption.class)
-						.first()
+						.next()
 						.isDefined();
 	}
 	
 	public static boolean hasAppend(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(AppendOption.class)
-						.first()
+						.next()
 						.isDefined();
 	}
 	
 	public static boolean hasCompression(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(CompressOption.class)
-						.first()
+						.next()
 						.isDefined();
 	}
 	
 	public static Option<GeometryColumnInfo> getGeometryColumnInfo(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(GeomColumnInfoOption.class)
-						.first()
+						.next()
 						.map(GeomColumnInfoOption::get);
 	}
 	
 	public static Option<Long> getBlockSize(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(BlockSizeOption.class)
-						.first()
+						.next()
 						.map(BlockSizeOption::get);
 	}
 

@@ -111,7 +111,7 @@ public enum PBMarmotError {
 	public static PBMarmotError fromClass(Class<?> cls) {
 		return FStream.of(values())
 					.filter(error -> error.getExceptionClass().equals(cls))
-					.first()
+					.next()
 					.getOrNull();
 	}
 }

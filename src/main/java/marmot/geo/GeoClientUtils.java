@@ -277,14 +277,14 @@ public class GeoClientUtils {
 				return GEOM_FACT.createMultiPolygon(flatten(geom, Polygon.class)
 														.toArray(Polygon.class));
 			case POLYGON:
-				return flatten(geom, Polygon.class).first().getOrElse(EMPTY_POLYGON);
+				return flatten(geom, Polygon.class).next().getOrElse(EMPTY_POLYGON);
 			case POINT:
-				return flatten(geom, Point.class).first().getOrElse(EMPTY_POINT);
+				return flatten(geom, Point.class).next().getOrElse(EMPTY_POINT);
 			case MULTIPOINT:
 				return toMultiPoint(flatten(geom, Point.class)
 										.toArray(Point.class));
 			case LINESTRING:
-				return flatten(geom, LineString.class).first().getOrElse(EMPTY_LINESTRING);
+				return flatten(geom, LineString.class).next().getOrElse(EMPTY_LINESTRING);
 			case MULTILINESTRING:
 				return GEOM_FACT.createMultiLineString(flatten(geom, LineString.class)
 														.toArray(LineString.class));
@@ -310,17 +310,17 @@ public class GeoClientUtils {
 													.toArray(Polygon.class));
 		}
 		else if ( Polygon.class == dstType ) {
-			return (T)flatten(geom, Polygon.class).first().getOrElse(EMPTY_POLYGON);
+			return (T)flatten(geom, Polygon.class).next().getOrElse(EMPTY_POLYGON);
 		}
 		else if ( Point.class == dstType ) {
-			return (T)flatten(geom, Point.class).first().getOrElse(EMPTY_POINT);
+			return (T)flatten(geom, Point.class).next().getOrElse(EMPTY_POINT);
 		}
 		else if ( MultiPoint.class == dstType ) {
 			return (T)toMultiPoint(flatten(geom, Point.class)
 													.toArray(Point.class));
 		}
 		else if ( LineString.class == dstType ) {
-			return (T)flatten(geom, LineString.class).first().getOrElse(EMPTY_LINESTRING);
+			return (T)flatten(geom, LineString.class).next().getOrElse(EMPTY_LINESTRING);
 		}
 		else if ( MultiLineString.class == dstType ) {
 			return (T)GEOM_FACT.createMultiLineString(flatten(geom, LineString.class)

@@ -214,7 +214,7 @@ public class PBUtils {
 		try {
 			return Option.of((T)KVFStream.of(proto.getAllFields())
 									.filter(kv -> kv.key().getName().equals(field))
-									.first()
+									.next()
 									.map(kv -> kv.value())
 									.getOrNull());
 		}
@@ -227,7 +227,7 @@ public class PBUtils {
 		try {
 			return KVFStream.of(proto.getAllFields())
 								.filter(kv -> kv.key().getName().equals(field))
-								.first()
+								.next()
 								.map(kv -> (String)kv.value());
 		}
 		catch ( Exception e ) {
@@ -240,7 +240,7 @@ public class PBUtils {
 		try {
 			return(T)KVFStream.of(proto.getAllFields())
 									.filter(kv -> kv.key().getName().equals(field))
-									.first()
+									.next()
 									.map(kv -> kv.value())
 									.getOrElseThrow(()
 										-> new PBException("unknown field: name=" + field
