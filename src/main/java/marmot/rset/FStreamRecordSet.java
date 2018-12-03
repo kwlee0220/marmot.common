@@ -7,7 +7,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import utils.stream.FStream;
-import utils.stream.PeekableFStream;
+import utils.stream.PrependableFStream;
 
 /**
  * 
@@ -28,10 +28,10 @@ class FStreamRecordSet extends AbstractRecordSet {
 	FStreamRecordSet(FStream<Record> stream) {
 		Objects.requireNonNull(stream);
 		
-		PeekableFStream<Record> peekable = stream.toPeekable();
-		m_schema = peekable.peekNext().map(Record::getSchema)
+		PrependableFStream<Record> prependable = stream.toPrependable();
+		m_schema = prependable.peekNext().map(Record::getSchema)
 							.getOrElseThrow(()->new RecordSetException("RecordSchema is not specified"));
-		m_stream = peekable;
+		m_stream = prependable;
 	}
 	
 	@Override
