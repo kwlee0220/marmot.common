@@ -14,17 +14,17 @@ buildscript {
 		jcenter()
 	}
 	dependencies {
-		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
+		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.7'
 	}
 }
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.2.0"
+        artifact = "com.google.protobuf:protoc:3.5.1-1"
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.2.0'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.16.1'
         }
     }
     generateProtoTasks {
@@ -46,7 +46,8 @@ repositories {
 }
 
 
-ext.grpc_version = '1.8.0'
+ext.grpc_version = '1.16.1'
+ext.protobuf_version = '3.5.1'
 ext.mvel2_version = '2.4.0.Final'
 ext.geotools_version = '17.2'
 ext.commons_csv_version = '1.5'
@@ -73,9 +74,11 @@ dependencies {
 	compile "org.apache.httpcomponents:httpclient:${httpclient_version}"
 	
 	// grpc
-	compile "io.grpc:grpc-netty:${grpc_version}"
+	compile "io.grpc:grpc-netty-shaded:${grpc_version}"
 	compile "io.grpc:grpc-protobuf:${grpc_version}"
 	compile "io.grpc:grpc-stub:${grpc_version}"
+	compile "com.google.protobuf:protobuf-java-util:${protobuf_version}"
+	
 	
 	// Joda-Time
 	compile "joda-time:joda-time:${joda_time_version}"

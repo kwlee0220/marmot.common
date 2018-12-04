@@ -497,6 +497,17 @@ message EstimateIDWProto {
 		EstimateIDWOptionsProto options = 7;
 	}
 }
+message InterpolateSpatiallyProto {
+	string geom_column = 1;
+	string param_dataset = 2;
+	string value_columns = 3;
+	double radius = 4;
+	oneof optional_top_k {
+		int32 top_k = 5;
+	}
+	string output_columns = 6;
+	string interpolation_method = 7;
+}
 message EstimateKernelDensityProto {
 	string geom_column = 1;
 	string dataset = 2;
@@ -883,6 +894,7 @@ message OperatorProto {
 		LoadGetisOrdGiProto load_getis_ord_gi = 603;
 		EstimateIDWProto estimate_idw = 605;
 		EstimateKernelDensityProto estimate_kernel_density = 606;
+		InterpolateSpatiallyProto interpolate_spatially = 607;
 		
 		// graph algorithm operators
 		ExpandNodeCoverageProto expand_node_coverage = 650;
