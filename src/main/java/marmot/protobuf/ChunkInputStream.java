@@ -153,7 +153,12 @@ public class ChunkInputStream extends InputStream {
 	}
 	
 	public void endOfSupply(Throwable cause) {
-		m_guard.run(() -> { m_eos = true; m_cause = cause; }, true);
+		m_guard.run(() -> {
+			if ( !m_eos ) {
+				m_eos = true;
+				m_cause = cause;
+			}
+		}, true);
 	}
 	
 	@Override
