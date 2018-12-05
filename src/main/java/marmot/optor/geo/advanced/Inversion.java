@@ -7,7 +7,7 @@ package marmot.optor.geo.advanced;
 public class Inversion extends WeightFunction {
 	private final WeightFunction m_wfunc;
 	
-	public static Inversion of(String paramStr) {
+	public static Inversion ofParameter(String paramStr) {
 		WeightFunction wfunc = WeightFunction.fromString(paramStr);
 		
 		return new Inversion(wfunc);

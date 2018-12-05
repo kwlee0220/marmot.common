@@ -7,7 +7,7 @@ package marmot.optor.geo.advanced;
 public class Exponential extends WeightFunction {
 	private final double m_beta;
 	
-	public static Exponential of(String paramStr) {
+	public static Exponential ofParameter(String paramStr) {
 		double beta = Double.parseDouble(paramStr);
 		
 		return new Exponential(beta);

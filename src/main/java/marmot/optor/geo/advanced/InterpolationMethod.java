@@ -40,20 +40,20 @@ public abstract class InterpolationMethod {
 		}
 		
 		try {
-			Method ctor = interClass.getMethod("using", String.class);
+			Method ctor = interClass.getMethod("ofParameter", String.class);
 			Object obj = ctor.invoke(null, methodParam);
 			if ( obj instanceof InterpolationMethod ) {
 				return (InterpolationMethod)obj;
 			}
 			else {
-				String details = String.format("%s.using(String) does not create "
+				String details = String.format("%s.ofParameter(String) does not create "
 												+ "an InterpolationMethod object",
 												interClass.getSimpleName());
 				throw new IllegalArgumentException(details);
 			}
 		}
 		catch ( NoSuchMethodException e ) {
-			String details = String.format("%s does not provide the static method: %s(String)",
+			String details = String.format("%s does not provide the static method: %s.ofParameter(String)",
 											interClass.getName(), interClass.getSimpleName());
 			throw new IllegalArgumentException(details);
 		}

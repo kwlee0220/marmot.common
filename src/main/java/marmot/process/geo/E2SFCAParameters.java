@@ -1,44 +1,40 @@
 package marmot.process.geo;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
+import marmot.optor.geo.advanced.WeightFunction;
 import marmot.proto.process.E2SFCAParametersProto;
 import marmot.support.DataUtils;
 import marmot.support.PBSerializable;
-import utils.stream.FStream;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
 public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
-	private static final String COLUMN_SEPARATOR = "#";
-	
-	private static final String INPUT_DATASET = "input_dataset";
-	private static final String PARAM_DATASET = "param_dataset";
+	private static final String CONSUMER_DATASET = "consumer_dataset";
+	private static final String PROVIDER_DATASET = "provider_dataset";
 	private static final String OUTPUT_DATASET = "output_dataset";
-	private static final String INPUT_FEATURE_COLUMNS = "input_features";
-	private static final String PARAM_FEATURE_COLUMNS = "param_features";
+	private static final String CONSUMER_FEATURE_COLUMNS = "consumer_features";
+	private static final String PROVIDER_FEATURE_COLUMNS = "provider_features";
 	private static final String OUTPUT_COLUMNS = "output_features";
-	private static final String TAGGED_COLUMNS = "tagged_columns";
-	private static final String RADIUS = "radius";
-	private static final String DISTANCE_DECAY_FUNC = "distance_decay_func";
-
+	private static final String SERIVCE_DISTANCE = "service_distance";
+	private static final String WEIGHT_FUNC = "weight_function";
+	
 	public static E2SFCAParameters fromProto(E2SFCAParametersProto proto) {
 		E2SFCAParameters params = new E2SFCAParameters();
-		params.inputDataset(proto.getInputDataset());
-		params.paramDataset(proto.getParamDataset());
-		params.outputDataset(proto.getOutputDataset());
-		params.inputFeatureColumns(proto.getInputFeatures().split(","));
-		params.paramFeatureColumns(proto.getParamFeatures().split(","));
-		params.outputFeatureColumns(proto.getOutputFeatures().split(","));
-		params.taggedColumns(proto.getTaggedColumns().split(","));
-		params.radius(proto.getRadius());
-		params.distanceDecayFunction(DistanceDecayFunctions.fromString(proto.getDistanceDecayFunc()));
+		params.setConsumerDataset(proto.getConsumerDataset());
+		params.setProviderDataset(proto.getProviderDataset());
+		params.setOutputDataset(proto.getOutputDataset());
+		params.setConsumerFeatureColumns(proto.getConsumerFeatures());
+		params.setProviderFeatureColumns(proto.getProviderFeatures());
+		params.setOutputFeatureColumns(proto.getOutputFeatures());
+		params.setServiceDistance(proto.getServiceDistance());
+		params.setWeightFunction(WeightFunction.fromString(proto.getWeightFunction()));
 		
 		return params;
 	}
@@ -46,23 +42,21 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	@Override
 	public E2SFCAParametersProto toProto() {
 		return E2SFCAParametersProto.newBuilder()
-							.setInputDataset(inputDataset())
-							.setParamDataset(paramDataset())
-							.setOutputDataset(outputDataset())
-							.setInputFeatures(FStream.of(inputFeatureColumns()).join(","))
-							.setParamFeatures(FStream.of(paramFeatureColumns()).join(","))
-							.setOutputFeatures(FStream.of(outputFeatureColumns()).join(","))
-							.setTaggedColumns(FStream.of(outputFeatureColumns()).join(","))
-							.setRadius(radius())
-							.setDistanceDecayFunc(distanceDecayFunction().toString())
-							.build();
+									.setConsumerDataset(getConsumerDataset())
+									.setProviderDataset(getProviderDataset())
+									.setOutputDataset(getOutputDataset())
+									.setConsumerFeatures(getConsumerFeatureColumns())
+									.setProviderFeatures(getProviderFeatureColumns())
+									.setOutputFeatures(getOutputFeatureColumns())
+									.setServiceDistance(getServiceDistance())
+									.setWeightFunction(getWeightFunction().toStringExpr())
+									.build();
 	}
 	
 	private final Map<String,String> m_params;
 	
 	public E2SFCAParameters() {
 		m_params = Maps.newHashMap();
-		m_params.put(TAGGED_COLUMNS, "");
 	}
 	
 	public E2SFCAParameters(Map<String,String> paramsMap) {
@@ -79,79 +73,170 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 		return m_params;
 	}
 	
-	public String inputDataset() {
-		return (String)m_params.get(INPUT_DATASET);
-	}
-	public void inputDataset(String dsId) {
-		m_params.put(INPUT_DATASET, dsId);
-	}
-	
-	public String paramDataset() {
-		return (String)m_params.get(PARAM_DATASET);
-	}
-	public void paramDataset(String dsId) {
-		m_params.put(PARAM_DATASET, dsId);
+	public String getConsumerDataset() {
+		String str = m_params.get(CONSUMER_DATASET);
+		if ( str == null ) {
+			throw new IllegalArgumentException("consumer dataset id is missing");
+		}
+		
+		return str;
 	}
 	
-	public String outputDataset() {
-		return (String)m_params.get(OUTPUT_DATASET);
+	/**
+	 * 입력 데이터세트 식별자를 설정한다.
+	 * 
+	 * @param dsId	데이터세트 식별자.
+	 */
+	public void setConsumerDataset(String dsId) {
+		Objects.requireNonNull(dsId, "consumer dataset id");
+		
+		m_params.put(CONSUMER_DATASET, dsId);
 	}
-	public void outputDataset(String dsId) {
+	
+	public String getProviderDataset() {
+		String str = m_params.get(PROVIDER_DATASET);
+		if ( str == null ) {
+			throw new IllegalArgumentException("provider dataset id is missing");
+		}
+		
+		return str;
+	}
+	
+	/**
+	 * 인자 데이터세트 식별자를 설정한다.
+	 * 
+	 * @param dsId	데이터세트 식별자.
+	 */
+	public void setProviderDataset(String dsId) {
+		Objects.requireNonNull(dsId, "provider dataset id");
+		
+		m_params.put(PROVIDER_DATASET, dsId);
+	}
+	
+	public String getOutputDataset() {
+		String str = m_params.get(OUTPUT_DATASET);
+		if ( str == null ) {
+			throw new IllegalArgumentException("output dataset id is missing");
+		}
+		
+		return str;
+	}
+	
+	/**
+	 * 결과 데이터세트 식별자를 설정한다.
+	 * 
+	 * @param dsId	데이터세트 식별자.
+	 */
+	public void setOutputDataset(String dsId) {
+		Objects.requireNonNull(dsId, "output dataset");
+		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
 	
-	public List<String> inputFeatureColumns() {
-		return Arrays.asList(m_params.get(INPUT_FEATURE_COLUMNS).split(COLUMN_SEPARATOR));
-	}
-	public void inputFeatureColumns(List<String> cols) {
-		m_params.put(INPUT_FEATURE_COLUMNS, FStream.of(cols).join(COLUMN_SEPARATOR));
-	}
-	public void inputFeatureColumns(String... cols) {
-		inputFeatureColumns(Arrays.asList(cols));
-	}
-	
-	public List<String> paramFeatureColumns() {
-		return Arrays.asList(m_params.get(PARAM_FEATURE_COLUMNS).split(COLUMN_SEPARATOR));
-	}
-	public void paramFeatureColumns(List<String> cols) {
-		m_params.put(PARAM_FEATURE_COLUMNS, FStream.of(cols).join(COLUMN_SEPARATOR));
-	}
-	public void paramFeatureColumns(String... cols) {
-		paramFeatureColumns(Arrays.asList(cols));
+	public String getConsumerFeatureColumns() {
+		String str = m_params.get(CONSUMER_FEATURE_COLUMNS);
+		if ( str == null ) {
+			throw new IllegalArgumentException("consumer features are missing");
+		}
+		
+		return str;
 	}
 	
-	public List<String> outputFeatureColumns() {
-		return Arrays.asList(m_params.get(OUTPUT_COLUMNS).split(COLUMN_SEPARATOR));
-	}
-	public void outputFeatureColumns(List<String> cols) {
-		m_params.put(OUTPUT_COLUMNS, FStream.of(cols).join(COLUMN_SEPARATOR));
-	}
-	public void outputFeatureColumns(String... cols) {
-		outputFeatureColumns(Arrays.asList(cols));
-	}
-	
-	public List<String> taggedColumns() {
-		return Arrays.asList(m_params.get(TAGGED_COLUMNS).split(COLUMN_SEPARATOR));
-	}
-	public void taggedColumns(List<String> cols) {
-		m_params.put(TAGGED_COLUMNS, FStream.of(cols).join(COLUMN_SEPARATOR));
-	}
-	public void taggedColumns(String... cols) {
-		taggedColumns(Arrays.asList(cols));
+	/**
+	 * 입력 데이터세트내 대상 속성 컬럼 리스트를 설정한다.
+	 * <p>
+	 * 하나 이상의 컬럼을 지정하는 경우는 쉼표(',')로 컬럼 이름이 구분되어야 한다.
+	 * 
+	 * @param cols	컬럼 이름 리스트.
+	 */
+	public void setConsumerFeatureColumns(String cols) {
+		Objects.requireNonNull(cols, "consumer feature column list");
+		
+		m_params.put(CONSUMER_FEATURE_COLUMNS, cols);
 	}
 	
-	public double radius() {
-		return DataUtils.asDouble(m_params.get(RADIUS));
-	}
-	public void radius(double distance) {
-		m_params.put(RADIUS, ""+distance);
+	public String getProviderFeatureColumns() {
+		String str = m_params.get(PROVIDER_FEATURE_COLUMNS);
+		if ( str == null ) {
+			throw new IllegalArgumentException("provider features are missing");
+		}
+		
+		return str;
 	}
 	
-	public DistanceDecayFunction distanceDecayFunction() {
-		return DistanceDecayFunctions.fromString((String)m_params.get(DISTANCE_DECAY_FUNC));
+	/**
+	 * 인자 데이터세트내 대상 속성 컬럼 리스트를 설정한다.
+	 * <p>
+	 * 하나 이상의 컬럼을 지정하는 경우는 쉼표(',')로 컬럼 이름이 구분되어야 한다.
+	 * 
+	 * @param cols	컬럼 이름 리스트.
+	 */
+	public void setProviderFeatureColumns(String cols) {
+		Objects.requireNonNull(cols, "parameter feature column list");
+		
+		m_params.put(PROVIDER_FEATURE_COLUMNS, cols);
 	}
-	public void distanceDecayFunction(DistanceDecayFunction func) {
-		m_params.put(DISTANCE_DECAY_FUNC, func.toString());
+	
+	public String getOutputFeatureColumns() {
+		String str = m_params.get(OUTPUT_COLUMNS);
+		if ( str == null ) {
+			throw new IllegalArgumentException("output columns are missing");
+		}
+		
+		return str;
+	}
+	
+	/**
+	 * 결과 속성 컬럼 리스트를 설정한다.
+	 * <p>
+	 * 하나 이상의 컬럼을 지정하는 경우는 쉼표(',')로 컬럼 이름이 구분되어야 한다.
+	 * 
+	 * @param cols	컬럼 이름 리스트.
+	 */
+	public void setOutputFeatureColumns(String cols) {
+		Objects.requireNonNull(cols, "parameter feature column list");
+		
+		m_params.put(OUTPUT_COLUMNS, cols);
+	}
+	
+	public double getServiceDistance() {
+		String str = m_params.get(SERIVCE_DISTANCE);
+		if ( str == null ) {
+			throw new IllegalArgumentException("service distance is missing");
+		}
+
+		return DataUtils.asDouble(str);
+	}
+	
+	/**
+	 * E2SFCA 작업 1단계에서 사용하는 검색 반경을 설정한다.
+	 * 
+	 *  @param distance	반경.
+	 */
+	public void setServiceDistance(double distance) {
+		Preconditions.checkArgument(distance > 0, "search radius for step1 should be larger than zero");
+		
+		m_params.put(SERIVCE_DISTANCE, ""+distance);
+	}
+	
+	public WeightFunction getWeightFunction() {
+		String str = m_params.get(WEIGHT_FUNC);
+		if ( str == null ) {
+			throw new IllegalArgumentException("weight function is missing");
+		}
+
+		return WeightFunction.fromString(str);
+	}
+	
+	/**
+	 * E2SFCA 작업 중 사용하는 weight function을 설정한다.
+	 * 
+	 * @param  wfunc	weight function
+	 */
+	public void setWeightFunction(WeightFunction wfunc) {
+		Objects.requireNonNull(wfunc, "weight function");
+		
+		m_params.put(WEIGHT_FUNC, wfunc.toStringExpr());
 	}
 	
 	@Override

@@ -12,7 +12,7 @@ public class BoxCox extends WeightFunction {
 	private final double m_beta;
 	private final double m_lambda;
 	
-	public static BoxCox of(String paramStr) {
+	public static BoxCox ofParameter(String paramStr) {
 		List<String> parts = CSV.parse(paramStr, ',', '\\');
 		double beta = Double.parseDouble(parts.get(0));
 		double lambda = Double.parseDouble(parts.get(1));

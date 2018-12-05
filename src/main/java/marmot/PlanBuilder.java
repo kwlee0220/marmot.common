@@ -62,7 +62,6 @@ import marmot.proto.optor.FindMaxValueRecordProto;
 import marmot.proto.optor.FlattenGeometryProto;
 import marmot.proto.optor.GroupByKeyProto;
 import marmot.proto.optor.HashJoinProto;
-import marmot.proto.optor.InterpolateSpatiallyProto;
 import marmot.proto.optor.LISAWeightProto;
 import marmot.proto.optor.LoadCsvFileProto;
 import marmot.proto.optor.LoadCustomTextFileProto;
@@ -98,6 +97,7 @@ import marmot.proto.optor.SortProto;
 import marmot.proto.optor.SpatialBlockJoinProto;
 import marmot.proto.optor.SpatialClipJoinProto;
 import marmot.proto.optor.SpatialDifferenceJoinProto;
+import marmot.proto.optor.SpatialInterpolationProto;
 import marmot.proto.optor.SpatialIntersectionJoinProto;
 import marmot.proto.optor.SpatialKnnInnerJoinProto;
 import marmot.proto.optor.SpatialKnnOuterJoinProto;
@@ -2325,7 +2325,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder interplateSpatially(String geomColumn, String paramDataSet,
+	public PlanBuilder spatialInterpolation(String geomColumn, String paramDataSet,
 											String valueColumns, double radius,
 											String outputColumns, InterpolationMethod method) {
 		Objects.requireNonNull(geomColumn, "input Geometry column");
@@ -2334,7 +2334,7 @@ public class PlanBuilder {
 		Objects.requireNonNull(outputColumns, "output columns");
 		Objects.requireNonNull(method, "interpolation method");
 		
-		InterpolateSpatiallyProto op = InterpolateSpatiallyProto.newBuilder()
+		SpatialInterpolationProto op = SpatialInterpolationProto.newBuilder()
 													.setGeomColumn(geomColumn)
 													.setParamDataset(paramDataSet)
 													.setValueColumns(valueColumns)
@@ -2344,11 +2344,11 @@ public class PlanBuilder {
 													.build();
 		
 		return add(OperatorProto.newBuilder()
-								.setInterpolateSpatially(op)
+								.setSpatialInterpolation(op)
 								.build());
 	}
 	
-	public PlanBuilder interplateSpatially(String geomColumn, String paramDataSet,
+	public PlanBuilder spatialInterpolation(String geomColumn, String paramDataSet,
 											String valueColumns, double radius, int topK,
 											String outputColumns, InterpolationMethod method) {
 		Objects.requireNonNull(geomColumn, "input Geometry column");
@@ -2358,7 +2358,7 @@ public class PlanBuilder {
 		Objects.requireNonNull(method, "interpolation method");
 		Preconditions.checkArgument(topK > 0, "invalid top-k");
 		
-		InterpolateSpatiallyProto op = InterpolateSpatiallyProto.newBuilder()
+		SpatialInterpolationProto op = SpatialInterpolationProto.newBuilder()
 													.setGeomColumn(geomColumn)
 													.setParamDataset(paramDataSet)
 													.setValueColumns(valueColumns)
@@ -2369,7 +2369,7 @@ public class PlanBuilder {
 													.build();
 		
 		return add(OperatorProto.newBuilder()
-								.setInterpolateSpatially(op)
+								.setSpatialInterpolation(op)
 								.build());
 	}
 	

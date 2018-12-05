@@ -12,11 +12,11 @@ import utils.stream.FStream;
 public class IDWInterpolation extends InterpolationMethod {
 	private final WeightFunction m_wfunc;
 	
-	public static IDWInterpolation power(double power) {
-		return new IDWInterpolation(Power.using(power));
+	public static IDWInterpolation ofPower(double power) {
+		return new IDWInterpolation(Power.of(power));
 	}
 	
-	public static IDWInterpolation using(String weightFuncStr) {
+	public static IDWInterpolation ofParameter(String weightFuncStr) {
 		WeightFunction wfunc = WeightFunction.fromString(weightFuncStr);
 		return new IDWInterpolation(wfunc);
 	}

@@ -29,30 +29,30 @@ public abstract class WeightFunction {
 			throw new IllegalArgumentException("invalid interpolation string: " + str);
 		}
 		String funcName = str.substring(0, idx);
-		String funcParam = str.substring(idx+1);
+		String paramsStr = str.substring(idx+1);
 		
-		Class<? extends WeightFunction> interClass = FUNCTIONS.get(funcName);
-		if ( interClass == null ) {
-			throw new IllegalArgumentException("invalid interpolation name: name='"
+		Class<? extends WeightFunction> funcClass = FUNCTIONS.get(funcName);
+		if ( funcClass == null ) {
+			throw new IllegalArgumentException("invalid weight-function name: name='"
 												+ funcName + "'");
 		}
 		
 		try {
-			Method ctor = interClass.getMethod("of", String.class);
-			Object obj = ctor.invoke(null, funcParam);
+			Method ctor = funcClass.getMethod("ofParameter", String.class);
+			Object obj = ctor.invoke(null, paramsStr);
 			if ( obj instanceof WeightFunction ) {
 				return (WeightFunction)obj;
 			}
 			else {
 				String details = String.format("%s.of(String) does not create "
 												+ "an WeightFunction object",
-												interClass.getSimpleName());
+												funcClass.getSimpleName());
 				throw new IllegalArgumentException(details);
 			}
 		}
 		catch ( NoSuchMethodException e ) {
-			String details = String.format("%s does not provide the static method: %s.of(String)",
-											interClass.getName(), interClass.getSimpleName());
+			String details = String.format("%s does not provide the static method: %s.ofParameter(String)",
+											funcClass.getName(), funcClass.getSimpleName());
 			throw new IllegalArgumentException(details);
 		}
 		catch ( Exception e ) {

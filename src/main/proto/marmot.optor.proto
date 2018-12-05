@@ -497,7 +497,7 @@ message EstimateIDWProto {
 		EstimateIDWOptionsProto options = 7;
 	}
 }
-message InterpolateSpatiallyProto {
+message SpatialInterpolationProto {
 	string geom_column = 1;
 	string param_dataset = 2;
 	string value_columns = 3;
@@ -894,7 +894,7 @@ message OperatorProto {
 		LoadGetisOrdGiProto load_getis_ord_gi = 603;
 		EstimateIDWProto estimate_idw = 605;
 		EstimateKernelDensityProto estimate_kernel_density = 606;
-		InterpolateSpatiallyProto interpolate_spatially = 607;
+		SpatialInterpolationProto spatial_interpolation = 607;
 		
 		// graph algorithm operators
 		ExpandNodeCoverageProto expand_node_coverage = 650;

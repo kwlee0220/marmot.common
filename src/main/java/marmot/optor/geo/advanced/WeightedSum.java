@@ -12,11 +12,11 @@ import utils.stream.FStream;
 public class WeightedSum extends InterpolationMethod {
 	private final WeightFunction m_wfunc;
 	
-	public static WeightedSum using(WeightFunction wfunc) {
+	public static WeightedSum with(WeightFunction wfunc) {
 		return new WeightedSum(wfunc);
 	}
 	
-	public static WeightedSum using(String weightFuncStr) {
+	public static WeightedSum ofParameter(String weightFuncStr) {
 		WeightFunction wfunc = WeightFunction.fromString(weightFuncStr);
 		return new WeightedSum(wfunc);
 	}

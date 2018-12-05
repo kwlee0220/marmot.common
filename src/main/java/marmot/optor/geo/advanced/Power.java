@@ -7,13 +7,13 @@ package marmot.optor.geo.advanced;
 public class Power extends WeightFunction {
 	private final double m_beta;
 	
-	public static Power of(String paramStr) {
+	public static Power ofParameter(String paramStr) {
 		double beta = Double.parseDouble(paramStr);
 		
 		return new Power(beta);
 	}
 	
-	public static Power using(double beta) {
+	public static Power of(double beta) {
 		return new Power(beta);
 	}
 	

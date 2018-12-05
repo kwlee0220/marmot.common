@@ -21,7 +21,7 @@ class UserDefinedInterpolation extends InterpolationMethod {
 	private final Map<String,Object> m_vars = Maps.newHashMap();
 	private final Serializable m_compiled;
 	
-	public static UserDefinedInterpolation using(String expr) {
+	public static UserDefinedInterpolation ofParameter(String expr) {
 		return new UserDefinedInterpolation(expr);
 	}
 	
