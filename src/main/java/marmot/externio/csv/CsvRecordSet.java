@@ -77,6 +77,23 @@ public class CsvRecordSet extends AbstractRecordSet {
 					s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
 					colName = replaced;
 				}
+				// marmot에서는 컬럼이름에 공백문자가  들어가는 것을 허용하지 않기 때문에
+				// 공백문자를 '_' 문제로 치환시킨다.
+				if ( colName.indexOf(' ') > 0 )  {
+					String replaced = colName.replaceAll(" ", "_");
+					s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
+					colName = replaced;
+				}
+				if ( colName.indexOf('(') > 0 )  {
+					String replaced = colName.replaceAll("\\(", "_");
+					s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
+					colName = replaced;
+				}
+				if ( colName.indexOf(')') > 0 )  {
+					String replaced = colName.replaceAll("\\)", "_");
+					s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
+					colName = replaced;
+				}
 				builder.addColumn(colName, DataType.STRING);
 			}
 			

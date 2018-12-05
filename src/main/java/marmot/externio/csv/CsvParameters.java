@@ -129,7 +129,8 @@ public class CsvParameters {
 				return Tuple.of(rec.get(0), rec.get(1));
 			}
 			catch ( IOException ignored ) {
-				throw new MarmotInternalException("" + ignored);
+				throw new MarmotInternalException("fails to parse 'point_col' paramenter: "
+													+ cols + ", cause=" + ignored);
 			}
 		});
 	}
