@@ -167,6 +167,9 @@ message Expand1Proto {
 }
 message ParseCsvProto {
 	message OptionsProto {
+		oneof optional_header_columns {
+			string header_columns = 1;
+		}
 		oneof optional_quote {
 			string quote = 2;
 		}
@@ -185,7 +188,6 @@ message ParseCsvProto {
 		oneof optional_comment_marker {
 			string comment_marker = 7;
 		}
-		repeated string header_column = 1;
 	}
 	
 	string delimiter = 1;

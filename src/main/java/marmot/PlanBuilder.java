@@ -502,7 +502,7 @@ public class PlanBuilder {
 
 	@Operator(protoId="parseCsv", name="CSV 파싱")
 	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-								@Parameter(protoId="options/headerColumn", name="헤더")String[] header) {
+								@Parameter(protoId="options/headerColumn", name="헤더")String header) {
 		return parseCsv(delim, HEADER(header));
 	}
 

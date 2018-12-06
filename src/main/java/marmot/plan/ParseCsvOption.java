@@ -1,7 +1,5 @@
 package marmot.plan;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -21,16 +19,8 @@ public abstract class ParseCsvOption {
 	
 	public abstract void set(OptionsProto.Builder builder);
 	
-	public static HeaderOption HEADER(String[] header) {
+	public static HeaderOption HEADER(String header) {
 		Objects.requireNonNull(header, "header is null");
-		Preconditions.checkArgument(header.length > 0, "header is empty"); 
-		
-		return new HeaderOption(Arrays.asList(header));
-	}
-	
-	public static HeaderOption HEADER(Collection<String> header) {
-		Objects.requireNonNull(header, "header is null");
-		Preconditions.checkArgument(header.size() > 0, "header is empty"); 
 		
 		return new HeaderOption(header);
 	}
@@ -66,8 +56,11 @@ public abstract class ParseCsvOption {
 	public static ParseCsvOption[] fromProto(OptionsProto proto) {
 		ParseCsvOption[] opts = new ParseCsvOption[0];
 
-		if ( proto.getHeaderColumnCount() > 0 ) {
-			opts = ArrayUtils.add(opts, HEADER(proto.getHeaderColumnList()));
+		switch ( proto.getOptionalHeaderColumnsCase() ) {
+			case HEADER_COLUMNS:
+				opts = ArrayUtils.add(opts, HEADER(proto.getHeaderColumns()));
+				break;
+			default:
 		}
 		switch ( proto.getOptionalQuoteCase() ) {
 			case QUOTE:
@@ -110,23 +103,23 @@ public abstract class ParseCsvOption {
 	}
 	
 	public static class HeaderOption extends ParseCsvOption {
-		private final Iterable<String> m_header;
+		private final String m_header;
 		
-		private HeaderOption(Iterable<String> header) {
+		private HeaderOption(String header) {
 			m_header = header;
 		}
 		
-		public Iterable<String> get() {
+		public String get() {
 			return m_header;
 		}
 		
 		public void set(OptionsProto.Builder builder) {
-			builder.addAllHeaderColumn(m_header);
+			builder.setHeaderColumns(m_header);
 		}
 		
 		@Override
 		public String toString() {
-			return String.format("header=%s", FStream.of(m_header).join(","));
+			return String.format("header=%s", m_header);
 		}
 	}
 	
