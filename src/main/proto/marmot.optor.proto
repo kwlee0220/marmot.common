@@ -153,7 +153,7 @@ message UpdateProto {
 	RecordScriptProto script = 1;
 }
 message ExpandProto {
-	repeated ColumnProto column = 1;
+	string column_decls = 1;
 	oneof optional_initializer {
 		RecordScriptProto initializer = 2;
 	}

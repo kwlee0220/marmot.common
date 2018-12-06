@@ -582,26 +582,19 @@ public class PlanBuilder {
 	}
 
 	public PlanBuilder expand(String colDecls) {
-		ExpandProto.Builder builder = ExpandProto.newBuilder();
-		RecordSchema.parse(colDecls)
-					.columnFStream()
-					.map(Column::toProto)
-					.forEach(builder::addColumn);
-		
-		ExpandProto expand = builder.build();
+		ExpandProto expand = ExpandProto.newBuilder()
+										.setColumnDecls(colDecls)
+										.build();
 		return add(OperatorProto.newBuilder()
 								.setExpand(expand)
 								.build());
 	}
 
 	public PlanBuilder expand(String colDecls, RecordScript initializer) {
-		ExpandProto.Builder builder = ExpandProto.newBuilder();
-		RecordSchema.parse(colDecls)
-					.columnFStream()
-					.map(Column::toProto)
-					.forEach(builder::addColumn);
-		
-		ExpandProto expand = builder.setInitializer(initializer.toProto()).build();
+		ExpandProto expand = ExpandProto.newBuilder()
+										.setColumnDecls(colDecls)
+										.setInitializer(initializer.toProto())
+										.build();
 		return add(OperatorProto.newBuilder()
 								.setExpand(expand)
 								.build());
