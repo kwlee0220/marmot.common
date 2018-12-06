@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
-import marmot.DataSet;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -17,7 +16,7 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.externio.ImportIntoDataSet;
 import marmot.externio.ImportParameters;
-import marmot.externio.ImportPlanSupplier;
+import marmot.support.MetaPlanLoader;
 import utils.CSV;
 import utils.CommandLine;
 import utils.StopWatch;
@@ -108,8 +107,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	private static class ImportCsvFileIntoDataSet extends ImportCsv {
 		private final File m_start;
 		
-		ImportCsvFileIntoDataSet(File file, CsvParameters csvParams,
-								ImportParameters importParams) {
+		ImportCsvFileIntoDataSet(File file, CsvParameters csvParams, ImportParameters importParams) {
 			super(csvParams, importParams);
 			
 			m_start = file;
@@ -122,7 +120,12 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 
 		@Override
 		protected Option<Plan> loadMetaPlan() {
-			return ImportPlanSupplier.from(m_start).get();
+			try {
+				return MetaPlanLoader.load(m_start);
+			}
+			catch ( IOException e ) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 	

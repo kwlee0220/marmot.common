@@ -17,8 +17,8 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.externio.ImportIntoDataSet;
 import marmot.externio.ImportParameters;
-import marmot.externio.ImportPlanSupplier;
 import marmot.rset.SingleThreadSuppliedRecordSet;
+import marmot.support.MetaPlanLoader;
 import utils.CommandLine;
 import utils.StopWatch;
 import utils.Throwables;
@@ -64,7 +64,7 @@ public class ImportShapefile extends ImportIntoDataSet {
 	@Override
 	protected Option<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
-			Option<Plan> importPlan = ImportPlanSupplier.from(m_start).get();
+			Option<Plan> importPlan = MetaPlanLoader.load(m_start);
 			Option<Plan> prePlan = getPrePlan();
 			
 			if ( importPlan.isEmpty() && prePlan.isEmpty() ) {

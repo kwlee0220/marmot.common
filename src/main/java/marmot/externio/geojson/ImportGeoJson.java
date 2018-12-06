@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 
 import io.vavr.control.Option;
 import marmot.Column;
-import marmot.DataSet;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -18,8 +17,8 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.externio.ImportIntoDataSet;
 import marmot.externio.ImportParameters;
-import marmot.externio.ImportPlanSupplier;
 import marmot.rset.RecordSets;
+import marmot.support.MetaPlanLoader;
 import utils.CommandLine;
 import utils.StopWatch;
 import utils.Throwables;
@@ -124,7 +123,12 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 
 		@Override
 		protected Option<Plan> loadMetaPlan() {
-			return ImportPlanSupplier.from(m_start).get();
+			try {
+				return MetaPlanLoader.load(m_start);
+			}
+			catch ( IOException e ) {
+				throw new RuntimeException(e);
+			}
 		}
 	}
 	

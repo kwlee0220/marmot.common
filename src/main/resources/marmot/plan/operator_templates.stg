@@ -26,7 +26,16 @@ update(expr, init=[]) ::= <<
 }
 >>
 
-expand(col_name, col_type, init=[]) ::= <<
+expand(col_decs, init=[]) ::= <<
+{ "expand": {
+    "column_decls": "<col_decs>" <if(init)>,
+    "initializer": { "expr": "<init>" }
+    <endif>
+  }
+}
+>>
+
+expand1(col_name, col_type, init=[]) ::= <<
 { "expand1": {
     "columnName": "<col_name>",
     "columnType": "<col_type>"<if(init)>,
@@ -40,7 +49,7 @@ parse_csv(header, delim=",", quote=[]) ::= <<
 { "parseCsv": {
     "delimiter": "<delim>",
     "options": {
-      "headerColumn": "<header>"<if(quote)>,
+      "headerColumns": "<header>"<if(quote)>,
       "quote": "<quote>"
       <endif>
     }
@@ -158,13 +167,6 @@ load_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[])
   }
 }
 >>
-
-
-<! ---------------------------------------------- !>
-<! ---------------------------------------------- !>
-<!                  ���� ������                      !>
-<! ---------------------------------------------- !>
-<! ---------------------------------------------- !>
 
 query(dsid, key_dsid, rel="intersects") ::= <<
 { "queryDataset": {
