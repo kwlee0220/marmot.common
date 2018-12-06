@@ -28,9 +28,6 @@ service PlanExecutionService {
 	rpc getProcessRecordSchema(ExecuteProcessRequest) returns (RecordSchemaResponse);
 	
 	rpc executeModule(StringProto) returns (VoidResponse);
-	
-	rpc getDefaultMapOutputCompressCodec(VoidProto) returns (StringResponse);
-	rpc setDefaultMapOutputCompressCodec(StringProto) returns (VoidResponse);
 }
 
 service PlanExecutionListenerService {

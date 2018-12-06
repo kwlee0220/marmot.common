@@ -202,9 +202,6 @@ public interface MarmotRuntime {
 	 */
 	public void deleteDir(String folder);
 	
-	public String getDefaultMapOutputCompressCodec();
-	public void setDefaultMapOutputCompressCodec(String codec);
-	
 	/**
 	 * {@link Plan} 빌더 객체를 생성한다.
 	 * 
