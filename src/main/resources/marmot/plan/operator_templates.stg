@@ -45,12 +45,14 @@ expand1(col_name, col_type, init=[]) ::= <<
 }
 >>
 
-parse_csv(header, delim=",", quote=[]) ::= <<
+parse_csv(header, delim=",", quote=[], comment=[]) ::= <<
 { "parseCsv": {
     "delimiter": "<delim>",
     "options": {
       "headerColumns": "<header>"<if(quote)>,
       "quote": "<quote>"
+      <endif><if(comment)>,
+      "commentMarker": "<comment>"
       <endif>
     }
   }
