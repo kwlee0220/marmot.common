@@ -522,8 +522,6 @@ message EstimateKernelDensityProto {
 }
 
 
-
-
 message NestedLoopSpatialJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
@@ -914,7 +912,6 @@ message OperatorProto {
 		SpatialDifferenceJoinProto spatial_difference_join = 708;
 		SpatialReduceJoinProto spatial_reduce_join = 709;
 		ArcGisSpatialJoinProto arcgis_join = 710;
-		
 		
 		LoadSpatialClusterIndexFileProto load_spatial_cluster_index_file = 771;
 		LoadSpatialIndexJoinProto load_spatial_index_join = 773;
