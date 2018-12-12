@@ -13,7 +13,6 @@ import com.google.common.collect.Lists;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
-import io.vavr.control.Option;
 import marmot.DataSet;
 import marmot.DataSetOption;
 import marmot.MarmotRuntime;
@@ -24,6 +23,7 @@ import marmot.proto.optor.OperatorProto;
 import marmot.rset.RecordSets;
 import utils.Throwables;
 import utils.async.ProgressReporter;
+import utils.func.FOption;
 
 /**
  * 
@@ -34,7 +34,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	
 	protected abstract RecordSet loadRecordSet(MarmotRuntime marmot);
-	protected abstract Option<Plan> loadImportPlan(MarmotRuntime marmot);
+	protected abstract FOption<Plan> loadImportPlan(MarmotRuntime marmot);
 	
 	public ImportIntoDataSet(ImportParameters params) {
 		Objects.requireNonNull(params);
@@ -57,7 +57,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 		try {
 			String dsId = m_params.getDatasetId();
 			
-			Option<Plan> importPlan = loadImportPlan(marmot)
+			FOption<Plan> importPlan = loadImportPlan(marmot)
 											.map(this::adjustImportPlan);
 			
 			RecordSet rset0 = loadRecordSet(marmot);
@@ -68,9 +68,9 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 			DataSet ds;
 			if ( !append ) {
 				List<DataSetOption> optList = Lists.newArrayList();
-				m_params.getGeometryColumnInfo().forEach(info -> optList.add(GEOMETRY(info)));
-				m_params.getBlockSize().forEach(sz -> optList.add(BLOCK_SIZE(sz)));
-				m_params.getCompress().forEach(b -> optList.add(COMPRESS));
+				m_params.getGeometryColumnInfo().ifPresent(info -> optList.add(GEOMETRY(info)));
+				m_params.getBlockSize().ifPresent(sz -> optList.add(BLOCK_SIZE(sz)));
+				m_params.getCompress().ifPresent(b -> optList.add(COMPRESS));
 				
 				if ( force ) {
 					optList.add(FORCE);
@@ -78,7 +78,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				DataSetOption[] opts = Iterables.toArray(optList, DataSetOption.class);
 				
 				RecordSchema outSchema = rset.getRecordSchema();
-				if ( importPlan.isDefined() ) {
+				if ( importPlan.isPresent() ) {
 					outSchema = marmot.getOutputRecordSchema(importPlan.get(), outSchema);
 				}
 				ds = marmot.createDataSet(dsId, outSchema, opts);
@@ -87,7 +87,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				ds = marmot.getDataSet(m_params.getDatasetId());
 			}
 
-			if ( importPlan.isDefined() ) {
+			if ( importPlan.isPresent() ) {
 				return ds.append(rset, importPlan.get());
 			}
 			else {

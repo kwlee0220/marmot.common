@@ -1,8 +1,8 @@
 package marmot.optor;
 
-import io.vavr.control.Option;
 import marmot.proto.optor.JoinOptionsProto;
 import marmot.support.PBSerializable;
+import utils.func.FOption;
 
 /**
  * 
@@ -10,7 +10,7 @@ import marmot.support.PBSerializable;
  */
 public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 	private JoinType m_joinType = JoinType.INNER_JOIN;
-	private Option<Integer> m_workerCount = Option.none();
+	private FOption<Integer> m_workerCount = FOption.empty();
 	
 	public static final JoinOptions INNER_JOIN() {
 		return new JoinOptions().joinType(JoinType.INNER_JOIN);
@@ -61,17 +61,17 @@ public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 		return this;
 	}
 	
-	public Option<Integer> workerCount() {
+	public FOption<Integer> workerCount() {
 		return m_workerCount;
 	}
 	
-	public JoinOptions workerCount(Option<Integer> count) {
+	public JoinOptions workerCount(FOption<Integer> count) {
 		m_workerCount = count;
 		return this;
 	}
 	
 	public JoinOptions workerCount(int count) {
-		m_workerCount = count > 0 ? Option.some(count) : Option.none();
+		m_workerCount = count > 0 ? FOption.of(count) : FOption.empty();
 		return this;
 	}
 
@@ -91,7 +91,7 @@ public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 	public JoinOptionsProto toProto() {
 		JoinOptionsProto.Builder builder = JoinOptionsProto.newBuilder()
 												.setJoinType(m_joinType.toProto());
-		m_workerCount.forEach(cnt -> builder.setWorkerCount(cnt));
+		m_workerCount.ifPresent(cnt -> builder.setWorkerCount(cnt));
 		return builder.build();
 	}
 }

@@ -49,8 +49,8 @@ class FStreamRecordSet extends AbstractRecordSet {
 		checkNotClosed();
 		
 		return m_stream.next()
-						.peek(r -> output.setAll(0, r.getAll()))
-						.isDefined();
+						.ifPresent(r -> output.setAll(0, r.getAll()))
+						.isPresent();
 	}
 	
 	@Override

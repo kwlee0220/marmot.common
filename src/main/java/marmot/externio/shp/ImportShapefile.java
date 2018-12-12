@@ -7,7 +7,6 @@ import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
 
-import io.vavr.control.Option;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -23,6 +22,7 @@ import utils.CommandLine;
 import utils.StopWatch;
 import utils.Throwables;
 import utils.UnitUtils;
+import utils.func.FOption;
 
 /**
  * 
@@ -40,7 +40,7 @@ public class ImportShapefile extends ImportIntoDataSet {
 	private ImportShapefile(File start, ShapefileParameters shpParams,
 							ImportParameters importParams) {
 		super(importParams);
-		Preconditions.checkArgument(importParams.getGeometryColumnInfo().isDefined());
+		Preconditions.checkArgument(importParams.getGeometryColumnInfo().isPresent());
 		
 		m_start = start;
 		m_shpParams = shpParams;
@@ -62,49 +62,49 @@ public class ImportShapefile extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected Option<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
-			Option<Plan> importPlan = MetaPlanLoader.load(m_start);
-			Option<Plan> prePlan = getPrePlan();
+			FOption<Plan> importPlan = MetaPlanLoader.load(m_start);
+			FOption<Plan> prePlan = getPrePlan();
 			
-			if ( importPlan.isEmpty() && prePlan.isEmpty() ) {
-				return Option.none();
+			if ( importPlan.isAbsent() && prePlan.isAbsent() ) {
+				return FOption.empty();
 			}
-			if ( importPlan.isEmpty() ) {
+			if ( importPlan.isAbsent() ) {
 				return prePlan;
 			}
-			if ( prePlan.isEmpty() ) {
+			if ( prePlan.isAbsent() ) {
 				return importPlan;
 			}
 			
-			return Option.some(Plan.concat(prePlan.get(), importPlan.get()));
+			return FOption.of(Plan.concat(prePlan.get(), importPlan.get()));
 		}
 		catch ( Exception e ) {
 			throw Throwables.toRuntimeException(e);
 		}
 	}
 	
-	private Option<Plan> getPrePlan() {
+	private FOption<Plan> getPrePlan() {
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
-		Option<String> oshpSrid = m_shpParams.shpSrid();
-		if ( oshpSrid.isDefined() ) {
+		FOption<String> oshpSrid = m_shpParams.shpSrid();
+		if ( oshpSrid.isPresent() ) {
 			String shpSrid = oshpSrid.get();
 			if ( !shpSrid.equals(info.srid()) ) {
-				return Option.some(new PlanBuilder("import_shapefile")
+				return FOption.of(new PlanBuilder("import_shapefile")
 										.transformCrs(info.name(), shpSrid, info.srid())
 										.build());
 			}
 		}
 		
-		return Option.none();
+		return FOption.empty();
 	}
 	
 	public static final void run(MarmotRuntime marmot, CommandLine cl) throws IOException {
 		File shpFile = new File(cl.getArgument("shp_file"));
 		String dsId = cl.getString("dataset");
-		Option<Charset> charset = cl.getOptionString("charset")
+		FOption<Charset> charset = cl.getOptionString("charset")
 									.map(Charset::forName);
-		Option<String> shpSrid = cl.getOptionString("shp_srid");
+		FOption<String> shpSrid = cl.getOptionString("shp_srid");
 		String srid = cl.getString("srid");
 		long blkSize = cl.getOptionString("block_size")
 						.map(UnitUtils::parseByteSize)
@@ -124,8 +124,8 @@ public class ImportShapefile extends ImportIntoDataSet {
 													.setForce(force)
 													.setAppend(append);
 		ShapefileParameters shpParams = ShapefileParameters.create();
-		charset.forEach(shpParams::charset);
-		shpSrid.forEach(shpParams::shpSrid);
+		charset.ifPresent(shpParams::charset);
+		shpSrid.ifPresent(shpParams::shpSrid);
 		
 		ImportShapefile importFile = ImportShapefile.from(shpFile, shpParams, params);
 		importFile.getProgressObservable()

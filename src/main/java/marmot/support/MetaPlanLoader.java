@@ -9,9 +9,9 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.io.FilenameUtils;
 
-import io.vavr.control.Option;
 import marmot.Plan;
 import marmot.plan.STScriptPlanLoader;
+import utils.func.FOption;
 
 /**
  * 
@@ -21,35 +21,35 @@ public class MetaPlanLoader {
 	private static final String ST_PLAN_SUFFIX = "meta.st";
 	private static final String JSON_PLAN_SUFFIX = "meta.json";
 	
-	public static Option<Plan> load(File start) throws IOException {
-		Option<Plan> plan = tryToLoadTemplatePlan(start);
-		if ( plan.isEmpty() ) {
+	public static FOption<Plan> load(File start) throws IOException {
+		FOption<Plan> plan = tryToLoadTemplatePlan(start);
+		if ( plan.isAbsent() ) {
 			plan = tryToLoadJsonPlan(start);
 		}
 		
 		return plan;
 	}
 	
-	private static Option<Plan> tryToLoadTemplatePlan(File start) throws IOException {
+	private static FOption<Plan> tryToLoadTemplatePlan(File start) throws IOException {
 		File metaFile = getMetaPlanFile(start, ST_PLAN_SUFFIX);
 		if ( metaFile.exists() ) {
-			return Option.some(STScriptPlanLoader.load(metaFile));
+			return FOption.of(STScriptPlanLoader.load(metaFile));
 		}
 		else {
-			return Option.none();
+			return FOption.empty();
 		}
 	}
 	
-	private static Option<Plan> tryToLoadJsonPlan(File start) throws IOException {
+	private static FOption<Plan> tryToLoadJsonPlan(File start) throws IOException {
 		File metaFile = getMetaPlanFile(start, JSON_PLAN_SUFFIX);
 		if ( metaFile.exists() ) {
 			try ( Reader reader = new InputStreamReader(new FileInputStream(metaFile),
 														StandardCharsets.UTF_8) ) {
-				return Option.some(Plan.parseJson(reader));
+				return FOption.of(Plan.parseJson(reader));
 			}
 		}
 		else {
-			return Option.none();
+			return FOption.empty();
 		}
 	}
 	

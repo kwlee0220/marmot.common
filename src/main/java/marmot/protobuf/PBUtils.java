@@ -84,6 +84,7 @@ import utils.Size2i;
 import utils.Throwables;
 import utils.Unchecked.CheckedSupplier;
 import utils.UnitUtils;
+import utils.func.FOption;
 import utils.func.Result;
 import utils.io.IOUtils;
 import utils.stream.FStream;
@@ -177,13 +178,13 @@ public class PBUtils {
 		try {
 			ByteString serialized = proto.getSerialized();
 			
-			Option<String> clsName = getOptionField(proto, "object_class");
+			FOption<String> clsName = getOptionField(proto, "object_class");
 			Class<?> protoCls = Class.forName(proto.getProtoClass());
 
 			Method parseFrom = protoCls.getMethod("parseFrom", ByteString.class);
 			Message optorProto = (Message)parseFrom.invoke(null, serialized);
 			
-			if ( clsName.isDefined() ) {
+			if ( clsName.isPresent() ) {
 				Class<?> cls = Class.forName(clsName.get());
 				Method fromProto = cls.getMethod("fromProto", protoCls);
 				return (T)fromProto.invoke(null, optorProto);
@@ -210,20 +211,20 @@ public class PBUtils {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> Option<T> getOptionField(Message proto, String field) {
+	public static <T> FOption<T> getOptionField(Message proto, String field) {
 		try {
-			return Option.of((T)KVFStream.of(proto.getAllFields())
-									.filter(kv -> kv.key().getName().equals(field))
-									.next()
-									.map(kv -> kv.value())
-									.getOrNull());
-		}
+			return FOption.ofNullable((T)KVFStream.of(proto.getAllFields())
+												.filter(kv -> kv.key().getName().equals(field))
+												.next()
+												.map(kv -> kv.value())
+												.getOrNull());
+					}
 		catch ( Exception e ) {
 			throw new PBException("fails to get the field " + field, e);
 		}
 	}
 
-	public static Option<String> getOptionalStringField(Message proto, String field) {
+	public static FOption<String> getOptionalStringField(Message proto, String field) {
 		try {
 			return KVFStream.of(proto.getAllFields())
 								.filter(kv -> kv.key().getName().equals(field))
@@ -361,8 +362,8 @@ public class PBUtils {
 		
 		PeekingIterator<T> piter = Iterators.peekingIterator(respIter);
 		T proto = piter.peek();
-		Option<ErrorProto> error = getOptionField(proto, "error");
-		if ( error.isDefined() ) {
+		FOption<ErrorProto> error = getOptionField(proto, "error");
+		if ( error.isPresent() ) {
 			throw Throwables.toRuntimeException(toException(error.get()));
 		}
 		

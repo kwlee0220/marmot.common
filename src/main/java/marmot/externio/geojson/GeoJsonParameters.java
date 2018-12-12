@@ -3,7 +3,7 @@ package marmot.externio.geojson;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import io.vavr.control.Option;
+import utils.func.FOption;
 
 /**
  * 
@@ -12,8 +12,8 @@ import io.vavr.control.Option;
 public class GeoJsonParameters {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	
-	private Option<Charset> m_charset = Option.none();
-	private Option<String> m_srcSrid = Option.none();
+	private FOption<Charset> m_charset = FOption.empty();
+	private FOption<String> m_srcSrid = FOption.empty();
 	
 	public static GeoJsonParameters create() {
 		return new GeoJsonParameters();
@@ -24,16 +24,16 @@ public class GeoJsonParameters {
 	}
 	
 	public GeoJsonParameters charset(Charset charset) {
-		m_charset = Option.of(charset);
+		m_charset = FOption.ofNullable(charset);
 		return this;
 	}
 	
 	public GeoJsonParameters sourceSrid(String srid) {
-		m_srcSrid = Option.of(srid);
+		m_srcSrid = FOption.ofNullable(srid);
 		return this;
 	}
 	
-	public Option<String> sourceSrid() {
+	public FOption<String> sourceSrid() {
 		return m_srcSrid;
 	}
 	

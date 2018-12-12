@@ -47,7 +47,7 @@ public abstract class ExecutePlanOption {
 		return FStream.of(opts)
 						.castSafely(DisableLocalExecOption.class)
 						.next()
-						.isDefined();
+						.isPresent();
 	}
 	
 	public static MapOutputCompressCodecOption getMapOutputCompressCodec(List<ExecutePlanOption> opts) {

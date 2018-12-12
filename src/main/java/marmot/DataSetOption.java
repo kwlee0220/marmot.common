@@ -8,10 +8,10 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import io.vavr.control.Option;
 import marmot.proto.service.DataSetOptionsProto;
 import marmot.protobuf.PBUtils;
 import utils.UnitUtils;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 
@@ -66,31 +66,31 @@ public abstract class DataSetOption {
 		return FStream.of(opts)
 						.castSafely(ForceOption.class)
 						.next()
-						.isDefined();
+						.isPresent();
 	}
 	
 	public static boolean hasAppend(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(AppendOption.class)
 						.next()
-						.isDefined();
+						.isPresent();
 	}
 	
 	public static boolean hasCompression(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(CompressOption.class)
 						.next()
-						.isDefined();
+						.isPresent();
 	}
 	
-	public static Option<GeometryColumnInfo> getGeometryColumnInfo(List<DataSetOption> opts) {
+	public static FOption<GeometryColumnInfo> getGeometryColumnInfo(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(GeomColumnInfoOption.class)
 						.next()
 						.map(GeomColumnInfoOption::get);
 	}
 	
-	public static Option<Long> getBlockSize(List<DataSetOption> opts) {
+	public static FOption<Long> getBlockSize(List<DataSetOption> opts) {
 		return FStream.of(opts)
 						.castSafely(BlockSizeOption.class)
 						.next()

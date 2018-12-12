@@ -41,7 +41,7 @@ class AutoClosingRecordSet extends AbstractRecordSet {
 	public Record nextCopy() {
 		Record next = m_rset.nextCopy();
 		if ( next == null ) {
-			closeInGuard();
+			close();
 			return null;
 		}
 		else {

@@ -2,8 +2,8 @@ package marmot.geo.command;
 
 import com.google.common.base.Preconditions;
 
-import io.vavr.control.Option;
 import utils.UnitUtils;
+import utils.func.FOption;
 
 
 /**
@@ -11,31 +11,31 @@ import utils.UnitUtils;
  * @author Kang-Woo Lee (ETRI)
  */
 public class ClusterDataSetOptions {
-	private Option<String> m_quadKeyFilePath = Option.none();
-	private Option<Double> m_sampleRatio = Option.none();
-	private Option<Double> m_blockFillRatio = Option.none();
-	private Option<Long> m_blockSize = Option.none();
-	private Option<Integer> m_workerCount = Option.none();
+	private FOption<String> m_quadKeyFilePath = FOption.empty();
+	private FOption<Double> m_sampleRatio = FOption.empty();
+	private FOption<Double> m_blockFillRatio = FOption.empty();
+	private FOption<Long> m_blockSize = FOption.empty();
+	private FOption<Integer> m_workerCount = FOption.empty();
 	
 	public static ClusterDataSetOptions create() {
 		return new ClusterDataSetOptions();
 	}
 	
-	public Option<String> quadKeyFilePath() {
+	public FOption<String> quadKeyFilePath() {
 		return m_quadKeyFilePath;
 	}
 	
-	public ClusterDataSetOptions quadKeyFilePath(Option<String> path) {
+	public ClusterDataSetOptions quadKeyFilePath(FOption<String> path) {
 		m_quadKeyFilePath = path;
 		return this;
 	}
 	
-	public Option<Double> sampleRatio() {
+	public FOption<Double> sampleRatio() {
 		return m_sampleRatio;
 	}
 	
-	public ClusterDataSetOptions sampleRatio(Option<Double> ratio) {
-		if ( ratio.isDefined() ) {
+	public ClusterDataSetOptions sampleRatio(FOption<Double> ratio) {
+		if ( ratio.isPresent() ) {
 			Preconditions.checkArgument(ratio.get() > 0, "invalid sample_ratio: value=" + ratio);
 		}
 		
@@ -43,12 +43,12 @@ public class ClusterDataSetOptions {
 		return this;
 	}
 	
-	public Option<Double> blockFillRatio() {
+	public FOption<Double> blockFillRatio() {
 		return m_blockFillRatio;
 	}
 	
-	public ClusterDataSetOptions blockFillRatio(Option<Double> ratio) {
-		if ( ratio.isDefined() ) {
+	public ClusterDataSetOptions blockFillRatio(FOption<Double> ratio) {
+		if ( ratio.isPresent() ) {
 			Preconditions.checkArgument(ratio.get() > 0, "invalid block_fill_ratio: value=" + ratio);
 		}
 		
@@ -56,17 +56,17 @@ public class ClusterDataSetOptions {
 		return this;
 	}
 	
-	public Option<Long> blockSize() {
+	public FOption<Long> blockSize() {
 		return m_blockSize;
 	}
 	
 	public ClusterDataSetOptions blockSize(long blkSize) {
 		Preconditions.checkArgument(blkSize > 0, "invalid block_size=" + blkSize);
-		return blockSize(Option.some(blkSize));
+		return blockSize(FOption.of(blkSize));
 	}
 	
-	public ClusterDataSetOptions blockSize(Option<Long> blkSize) {
-		if ( blkSize.isDefined() ) {
+	public ClusterDataSetOptions blockSize(FOption<Long> blkSize) {
+		if ( blkSize.isPresent() ) {
 			Preconditions.checkArgument(blkSize.get() > 0, "invalid block_size: value=" + blkSize);
 		}
 		
@@ -74,17 +74,17 @@ public class ClusterDataSetOptions {
 		return this;
 	}
 	
-	public Option<Integer> workerCount() {
+	public FOption<Integer> workerCount() {
 		return m_workerCount;
 	}
 	
 	public ClusterDataSetOptions workerCount(int count) {
 		Preconditions.checkArgument(count > 0, "invalid worker_count=" + count);
-		return workerCount(Option.some(count));
+		return workerCount(FOption.of(count));
 	}
 	
-	public ClusterDataSetOptions workerCount(Option<Integer> count) {
-		if ( count.isDefined() ) {
+	public ClusterDataSetOptions workerCount(FOption<Integer> count) {
+		if ( count.isPresent() ) {
 			Preconditions.checkArgument(count.get() > 0, "invalid worker_count: value=" + count);
 		}
 		
@@ -96,12 +96,12 @@ public class ClusterDataSetOptions {
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		
-		m_quadKeyFilePath.forEach(path -> builder.append(String.format("quad_keys=%s,", path)));
-		m_sampleRatio.forEach(ratio -> builder.append(String.format("sampling=%.1f%%,", ratio*100)));
-		m_blockFillRatio.forEach(ratio -> builder.append(String.format("fill_ratio=%.1f%%,", ratio*100)));
-		m_blockSize.forEach(size -> builder.append(String.format("block=%s,",
+		m_quadKeyFilePath.ifPresent(path -> builder.append(String.format("quad_keys=%s,", path)));
+		m_sampleRatio.ifPresent(ratio -> builder.append(String.format("sampling=%.1f%%,", ratio*100)));
+		m_blockFillRatio.ifPresent(ratio -> builder.append(String.format("fill_ratio=%.1f%%,", ratio*100)));
+		m_blockSize.ifPresent(size -> builder.append(String.format("block=%s,",
 													UnitUtils.toByteSizeString(size, "mb", "%.0f"))));
-		m_workerCount.forEach(count -> builder.append(String.format("workers=%d,", count)));
+		m_workerCount.ifPresent(count -> builder.append(String.format("workers=%d,", count)));
 		
 		if ( builder.length() > 0 ) {
 			builder.setLength(builder.length()-1);

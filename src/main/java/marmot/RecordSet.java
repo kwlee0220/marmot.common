@@ -17,11 +17,11 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Option;
 import io.vavr.control.Try;
-import marmot.rset.RecordSetStream;
 import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
 import utils.Throwables;
 import utils.Utilities;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 
@@ -279,7 +279,17 @@ public interface RecordSet extends Closeable {
 	}
 	
 	public default FStream<Record> fstream() {
-		return new RecordSetStream(this);
+		return new FStream<Record>() {
+			@Override
+			public void close() throws Exception {
+				RecordSet.this.close();
+			}
+
+			@Override
+			public FOption<Record> next() {
+				return FOption.ofNullable(RecordSet.this.nextCopy());
+			}
+		};
 	}
 	
 	public default long count() {

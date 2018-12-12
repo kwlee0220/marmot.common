@@ -14,10 +14,10 @@ import com.google.common.base.Preconditions;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 /**
@@ -188,14 +188,14 @@ public class RecordSets {
 		return new PeekableRecordSet(rset);
 	}
 	
-	public static Option<RecordSet> asNonEmpty(RecordSet rset) {
+	public static FOption<RecordSet> asNonEmpty(RecordSet rset) {
 		PeekableRecordSet peekable = RecordSets.toPeekable(rset);
 		
 		if ( peekable.hasNext() ) {
-			return Option.some(peekable);
+			return FOption.of(peekable);
 		}
 		else {
-			return Option.none();
+			return FOption.empty();
 		}
 	}
 	

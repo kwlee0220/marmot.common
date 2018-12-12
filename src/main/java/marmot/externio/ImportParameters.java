@@ -1,16 +1,16 @@
 package marmot.externio;
 
-import io.vavr.control.Option;
 import marmot.GeometryColumnInfo;
+import utils.func.FOption;
 
 public class ImportParameters {
 	private String m_dsId;
-	private Option<GeometryColumnInfo> m_geomColInfo = Option.none();
+	private FOption<GeometryColumnInfo> m_geomColInfo = FOption.empty();
 	private boolean m_force = false;
 	private boolean m_append = false;
-	private Option<Long> m_blockSize = Option.none();
-	private Option<Boolean> m_compress = Option.none();
-	private Option<Integer> m_reportInterval = Option.none();
+	private FOption<Long> m_blockSize = FOption.empty();
+	private FOption<Boolean> m_compress = FOption.empty();
+	private FOption<Integer> m_reportInterval = FOption.empty();
 
 	public static ImportParameters create() {
 		return new ImportParameters();
@@ -25,17 +25,17 @@ public class ImportParameters {
 		return this;
 	}
 	
-	public Option<GeometryColumnInfo> getGeometryColumnInfo() {
+	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {
 		return m_geomColInfo;
 	}
 	
 	public ImportParameters setGeometryColumnInfo(GeometryColumnInfo info) {
-		m_geomColInfo = Option.of(info);
+		m_geomColInfo = FOption.ofNullable(info);
 		return this;
 	}
 	
 	public ImportParameters setGeometryColumnInfo(String geomCol, String srid) {
-		m_geomColInfo = Option.some(new GeometryColumnInfo(geomCol, srid));
+		m_geomColInfo = FOption.of(new GeometryColumnInfo(geomCol, srid));
 		return this;
 	}
 	
@@ -57,35 +57,35 @@ public class ImportParameters {
 		return this;
 	}
 	
-	public Option<Long> getBlockSize() {
+	public FOption<Long> getBlockSize() {
 		return m_blockSize;
 	}
 	
 	public ImportParameters setBlockSize(long blockSize) {
-		m_blockSize = blockSize > 0 ? Option.some(blockSize) : Option.none();
+		m_blockSize = blockSize > 0 ? FOption.of(blockSize) : FOption.empty();
 		return this;
 	}
 	
-	public Option<Boolean> getCompress() {
+	public FOption<Boolean> getCompress() {
 		return m_compress;
 	}
 	
-	public ImportParameters setCompress(Option<Boolean> flag) {
+	public ImportParameters setCompress(FOption<Boolean> flag) {
 		m_compress = flag;
 		return this;
 	}
 	
 	public ImportParameters setCompress(boolean flag) {
-		m_compress = Option.some(flag);
+		m_compress = FOption.of(flag);
 		return this;
 	}
 	
-	public Option<Integer> getReportInterval() {
+	public FOption<Integer> getReportInterval() {
 		return m_reportInterval;
 	}
 	
 	public ImportParameters setReportInterval(int interval) {
-		m_reportInterval = (interval > 0) ? Option.some(interval) : Option.none();
+		m_reportInterval = (interval > 0) ? FOption.of(interval) : FOption.empty();
 		return this;
 	}
 }

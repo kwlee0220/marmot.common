@@ -9,7 +9,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -19,6 +18,7 @@ import marmot.externio.geojson.MultiFileGeoJsonRecordSet;
 import marmot.rset.AbstractRecordSet;
 import marmot.rset.ConcatedRecordSet;
 import marmot.type.DataType;
+import utils.func.FOption;
 import utils.io.FileUtils;
 import utils.stream.FStream;
 
@@ -69,8 +69,8 @@ public class TextLineFileRecordSet extends ConcatedRecordSet {
 
 	@Override
 	protected RecordSet loadNext() {
-		Option<File> next;
-		while ( (next = m_files.next()).isDefined() ) {
+		FOption<File> next;
+		while ( (next = m_files.next()).isPresent() ) {
 			try {
 				File file = next.get();
 				getLogger().debug("loading TextFile: {}", file);

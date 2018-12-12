@@ -3,13 +3,13 @@ package marmot.externio.text;
 import java.io.File;
 import java.io.IOException;
 
-import io.vavr.control.Option;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.RecordSet;
 import marmot.externio.ImportIntoDataSet;
 import marmot.externio.ImportParameters;
 import marmot.support.MetaPlanLoader;
+import utils.func.FOption;
 
 /**
  * 
@@ -32,7 +32,7 @@ public class ImportTextFile extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected Option<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
 			return MetaPlanLoader.load(m_start);
 		}

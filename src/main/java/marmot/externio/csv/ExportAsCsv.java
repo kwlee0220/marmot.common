@@ -19,6 +19,7 @@ import marmot.rset.RecordSets;
 import marmot.type.DataType;
 import utils.CommandLine;
 import utils.async.ProgressReporter;
+import utils.func.FOption;
 
 
 /**
@@ -103,17 +104,17 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 												.headerFirst(cl.hasOption("header_first"))
 												.tiger(cl.hasOption("tiger"));
 		cl.getOptionString("delim").map(s -> s.trim().charAt(0))
-									.forEach(csvParams::delimiter);
+									.ifPresent(csvParams::delimiter);
 		cl.getOptionString("quote").map(s -> s.trim().charAt(0))
-									.forEach(csvParams::quote);
-		cl.getOptionString("charset").map(Charset::forName).forEach(csvParams::charset);
-		cl.getOptionString("point_col").forEach(csvParams::pointColumn);
-		cl.getOptionString("csv_srid").forEach(csvParams::csvSrid);
+									.ifPresent(csvParams::quote);
+		cl.getOptionString("charset").map(Charset::forName).ifPresent(csvParams::charset);
+		cl.getOptionString("point_col").ifPresent(csvParams::pointColumn);
+		cl.getOptionString("csv_srid").ifPresent(csvParams::csvSrid);
 
 		String dsId = cl.getArgument(0);
 		ExportAsCsv export = new ExportAsCsv(dsId, csvParams);
 		
-		Option<String> output = cl.getOptionString("output");
+		FOption<String> output = cl.getOptionString("output");
 		BufferedWriter writer = ExternIoUtils.toWriter(output, csvParams.charset());
 		return export.run(marmot, writer);
 	}

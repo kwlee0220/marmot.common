@@ -91,7 +91,7 @@ class ExportAsShapefile {
 
 				ShapefileDumper dumper = new ShapefileDumper(m_outputDir);
 				dumper.setCharset(m_params.charset());
-				m_params.splitSize().forEach(size -> {
+				m_params.splitSize().ifPresent(size -> {
 					dumper.setMaxDbfSize(size);
 					dumper.setMaxShpSize(size);
 				});

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import io.vavr.control.Option;
 import marmot.Column;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
@@ -23,6 +22,7 @@ import utils.CommandLine;
 import utils.StopWatch;
 import utils.Throwables;
 import utils.UnitUtils;
+import utils.func.FOption;
 
 /**
  * 
@@ -31,7 +31,7 @@ import utils.UnitUtils;
 public abstract class ImportGeoJson extends ImportIntoDataSet {
 	protected final GeoJsonParameters m_gjsonParams;
 	
-	protected abstract Option<Plan> loadMetaPlan();
+	protected abstract FOption<Plan> loadMetaPlan();
 	
 	public static ImportGeoJson from(File file, GeoJsonParameters csvParams,
 									ImportParameters importParams) {
@@ -40,13 +40,13 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	
 	public static ImportGeoJson from(BufferedReader reader, GeoJsonParameters csvParams,
 									ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, Option.none(), csvParams, importParams);
+		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvParams, importParams);
 	}
 	
 	public static ImportGeoJson from(BufferedReader reader, Plan plan,
 									GeoJsonParameters csvParams,
 									ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, Option.some(plan), csvParams,
+		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvParams,
 												importParams);
 	}
 
@@ -57,41 +57,41 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected Option<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
-			Option<Plan> importPlan = loadMetaPlan();
-			Option<Plan> prePlan = getPrePlan();
+			FOption<Plan> importPlan = loadMetaPlan();
+			FOption<Plan> prePlan = getPrePlan();
 			
-			if ( importPlan.isEmpty() && prePlan.isEmpty() ) {
-				return Option.none();
+			if ( importPlan.isAbsent() && prePlan.isAbsent() ) {
+				return FOption.empty();
 			}
-			if ( importPlan.isEmpty() ) {
+			if ( importPlan.isAbsent() ) {
 				return prePlan;
 			}
-			if ( prePlan.isEmpty() ) {
+			if ( prePlan.isAbsent() ) {
 				return importPlan;
 			}
 			
-			return Option.some(Plan.concat(prePlan.get(), importPlan.get()));
+			return FOption.of(Plan.concat(prePlan.get(), importPlan.get()));
 		}
 		catch ( Exception e ) {
 			throw Throwables.toRuntimeException(e);
 		}
 	}
 	
-	private Option<Plan> getPrePlan() {
-		Option<String> osrcSrid = m_gjsonParams.sourceSrid();
+	private FOption<Plan> getPrePlan() {
+		FOption<String> osrcSrid = m_gjsonParams.sourceSrid();
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
-		if ( osrcSrid.isDefined() ) {
+		if ( osrcSrid.isPresent() ) {
 			String srcSrid = osrcSrid.get();
 			if ( !srcSrid.equals(info.srid()) ) {
-				return Option.some(new PlanBuilder("import_geojson")
+				return FOption.of(new PlanBuilder("import_geojson")
 										.transformCrs(info.name(), srcSrid, info.srid())
 										.build());
 			}
 		}
 		
-		return Option.none();
+		return FOption.empty();
 	}
 	
 	private static class ImportCsvFileIntoDataSet extends ImportGeoJson {
@@ -122,7 +122,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected Option<Plan> loadMetaPlan() {
+		protected FOption<Plan> loadMetaPlan() {
 			try {
 				return MetaPlanLoader.load(m_start);
 			}
@@ -134,9 +134,9 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	
 	private static class ImportCsvStreamIntoDataSet extends ImportGeoJson {
 		private final BufferedReader m_reader;
-		private final Option<Plan> m_plan;
+		private final FOption<Plan> m_plan;
 		
-		ImportCsvStreamIntoDataSet(BufferedReader reader, Option<Plan> plan,
+		ImportCsvStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
 									GeoJsonParameters csvParams, ImportParameters importParams) {
 			super(csvParams, importParams);
 			
@@ -166,7 +166,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected Option<Plan> loadMetaPlan() {
+		protected FOption<Plan> loadMetaPlan() {
 			return m_plan;
 		}
 	}
@@ -177,7 +177,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		Charset cs = cl.getOptionString("charset")
 						.map(Charset::forName)
 						.getOrElse(DEFAULT_CHARSET);
-		Option<String> srcSrid = cl.getOptionString("src_srid");
+		FOption<String> srcSrid = cl.getOptionString("src_srid");
 		String dsId = cl.getString("dataset");
 		String geomCol = cl.getOptionString("geom_col").getOrElse("the_geom");
 		String srid = cl.getString("srid");
@@ -197,7 +197,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 												.setForce(force);
 		GeoJsonParameters gjsonParams = GeoJsonParameters.create()
 												.charset(cs);
-		srcSrid.forEach(gjsonParams::sourceSrid);
+		srcSrid.ifPresent(gjsonParams::sourceSrid);
 		
 		ImportIntoDataSet importFile = ImportGeoJson.from(file, gjsonParams, params);
 		importFile.getProgressObservable()

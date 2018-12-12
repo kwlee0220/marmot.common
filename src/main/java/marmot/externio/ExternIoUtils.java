@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 
-import io.vavr.control.Option;
 import utils.UnitUtils;
+import utils.func.FOption;
 
 /**
  * 
@@ -20,9 +20,9 @@ public class ExternIoUtils {
 	}
 	
 	private static final int DEFAULT_BUFFER_SIZE = (int)UnitUtils.parseByteSize("32kb");
-	public static BufferedWriter toWriter(Option<String> output, Charset charset)
+	public static BufferedWriter toWriter(FOption<String> output, Charset charset)
 		throws IOException {
-		if ( output.isDefined() ) {
+		if ( output.isPresent() ) {
 			File file = new File(output.get());
 		    return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), charset));
 		}

@@ -3,7 +3,6 @@ package marmot.geo.catalog;
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Envelope;
 
-import io.vavr.control.Option;
 import marmot.Column;
 import marmot.DataSetType;
 import marmot.GeometryColumnInfo;
@@ -13,6 +12,7 @@ import marmot.proto.service.DataSetInfoProto.DataSetGeometryInfoProto;
 import marmot.proto.service.DataSetTypeProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
+import utils.func.FOption;
 
 
 /**
@@ -23,7 +23,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	private String m_id;
 	private String m_dir;
 	private DataSetType m_type;
-	private Option<GeometryColumnInfo> m_geomColInfo = Option.none();
+	private FOption<GeometryColumnInfo> m_geomColInfo = FOption.empty();
 	private Envelope m_bounds = new Envelope();
 	private long m_count = 0;
 	private RecordSchema m_schema;
@@ -66,7 +66,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 		return m_schema;
 	}
 	
-	public Option<GeometryColumnInfo> getGeometryColumnInfo() {
+	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {
 		return m_geomColInfo;
 	}
 	
@@ -78,11 +78,11 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	}
 	
 	public void setGeometryColumnInfo(String geomCol, String srid) {
-		setGeometryColumnInfo(Option.some(new GeometryColumnInfo(geomCol, srid)));
+		setGeometryColumnInfo(FOption.of(new GeometryColumnInfo(geomCol, srid)));
 	}
 	
-	public void setGeometryColumnInfo(Option<GeometryColumnInfo> info) {
-		if ( info.isDefined() ) {
+	public void setGeometryColumnInfo(FOption<GeometryColumnInfo> info) {
+		if ( info.isPresent() ) {
 			String colName = info.get().name();
 			Column col = m_schema.getColumn(colName, null);
 			if ( col == null ) {
@@ -162,7 +162,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 				.append(m_id);
 		m_geomColInfo.map(GeometryColumnInfo::name)
 					.map(m_schema::getColumn)
-					.forEach(col -> builder.append("," + col));
+					.ifPresent(col -> builder.append("," + col));
 		return builder.append("]").toString();
 	}
 	
@@ -191,9 +191,9 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 		info.m_count = proto.getRecordCount();
 		info.m_filePath = proto.getHdfsPath();
 		
-		Option<DataSetGeometryInfoProto> gip = PBUtils.getOptionField(proto, "geometry_info");
-		gip.forEach(geom -> {
-			info.m_geomColInfo = Option.some(new GeometryColumnInfo(geom.getColumn(),
+		FOption<DataSetGeometryInfoProto> gip = PBUtils.getOptionField(proto, "geometry_info");
+		gip.ifPresent(geom -> {
+			info.m_geomColInfo = FOption.of(new GeometryColumnInfo(geom.getColumn(),
 																	geom.getSrid()));
 			info.m_bounds = PBUtils.fromProto(geom.getBounds());
 		});
@@ -215,7 +215,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 												.setHdfsPath(m_filePath)
 												.setBlockSize(getBlockSize())
 												.setCompression(m_compression);
-		m_geomColInfo.forEach(geomCol -> {
+		m_geomColInfo.ifPresent(geomCol -> {
 			DataSetGeometryInfoProto geomProto = DataSetGeometryInfoProto.newBuilder()
 												.setColumn(geomCol.name())
 												.setSrid(geomCol.srid())

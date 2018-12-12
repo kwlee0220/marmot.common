@@ -8,6 +8,7 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Geometry;
 
 import io.vavr.control.Option;
+import utils.func.FOption;
 
 /**
  * 
@@ -285,6 +286,6 @@ public interface MarmotRuntime {
 	
 	public void createKafkaTopic(String topic, boolean force);
 	
-	public void copyToHdfsFile(String path, Iterator<byte[]> blocks, Option<Long> blockSize)
+	public void copyToHdfsFile(String path, Iterator<byte[]> blocks, FOption<Long> blockSize)
 		throws IOException;
 }

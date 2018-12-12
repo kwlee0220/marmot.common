@@ -7,7 +7,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import io.vavr.Tuple2;
-import io.vavr.control.Option;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -22,6 +21,7 @@ import utils.CommandLine;
 import utils.StopWatch;
 import utils.Throwables;
 import utils.UnitUtils;
+import utils.func.FOption;
 
 /**
  * 
@@ -30,7 +30,7 @@ import utils.UnitUtils;
 public abstract class ImportCsv extends ImportIntoDataSet {
 	protected final CsvParameters m_csvParams;
 	
-	protected abstract Option<Plan> loadMetaPlan();
+	protected abstract FOption<Plan> loadMetaPlan();
 	
 	public static ImportCsv from(File file, CsvParameters csvParams,
 											ImportParameters importParams) {
@@ -39,13 +39,13 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	
 	public static ImportCsv from(BufferedReader reader, CsvParameters csvParams,
 											ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, Option.none(), csvParams, importParams);
+		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvParams, importParams);
 	}
 	
 	public static ImportCsv from(BufferedReader reader, Plan plan,
 											CsvParameters csvParams,
 											ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, Option.some(plan), csvParams,
+		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvParams,
 												importParams);
 	}
 
@@ -56,32 +56,32 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected Option<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
-			Option<Plan> importPlan = loadMetaPlan();
-			Option<Plan> toPointPlan = getToPointPlan();
+			FOption<Plan> importPlan = loadMetaPlan();
+			FOption<Plan> toPointPlan = getToPointPlan();
 			
-			if ( importPlan.isEmpty() && toPointPlan.isEmpty() ) {
-				return Option.none();
+			if ( importPlan.isAbsent() && toPointPlan.isAbsent() ) {
+				return FOption.empty();
 			}
-			if ( importPlan.isEmpty() ) {
+			if ( importPlan.isAbsent() ) {
 				return toPointPlan;
 			}
-			if ( toPointPlan.isEmpty() ) {
+			if ( toPointPlan.isAbsent() ) {
 				return importPlan;
 			}
 			
-			return Option.some(Plan.concat(toPointPlan.get(), importPlan.get()));
+			return FOption.of(Plan.concat(toPointPlan.get(), importPlan.get()));
 		}
 		catch ( Exception e ) {
 			throw Throwables.toRuntimeException(e);
 		}
 	}
 
-	private Option<Plan> getToPointPlan() {
+	private FOption<Plan> getToPointPlan() {
 		if ( !m_csvParams.pointColumn().isDefined()
-			|| !m_params.getGeometryColumnInfo().isDefined() ) {
-			return Option.none();
+			|| !m_params.getGeometryColumnInfo().isPresent() ) {
+			return FOption.empty();
 		}
 		
 		PlanBuilder builder = new PlanBuilder("import_csv");
@@ -101,7 +101,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 			}
 		}
 		
-		return Option.some(builder.build());
+		return FOption.of(builder.build());
 	}
 	
 	private static class ImportCsvFileIntoDataSet extends ImportCsv {
@@ -119,7 +119,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected Option<Plan> loadMetaPlan() {
+		protected FOption<Plan> loadMetaPlan() {
 			try {
 				return MetaPlanLoader.load(m_start);
 			}
@@ -131,9 +131,9 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	
 	private static class ImportCsvStreamIntoDataSet extends ImportCsv {
 		private final BufferedReader m_reader;
-		private final Option<Plan> m_plan;
+		private final FOption<Plan> m_plan;
 		
-		ImportCsvStreamIntoDataSet(BufferedReader reader, Option<Plan> plan,
+		ImportCsvStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
 									CsvParameters csvParams, ImportParameters importParams) {
 			super(csvParams, importParams);
 			
@@ -152,7 +152,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected Option<Plan> loadMetaPlan() {
+		protected FOption<Plan> loadMetaPlan() {
 			return m_plan;
 		}
 	}
@@ -163,16 +163,16 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		Charset charset = cl.getOptionString("charset")
 							.map(Charset::forName)
 							.getOrElse(DEFAULT_CHARSET);
-		Option<Character> delim = cl.getOptionString("delim").map(s -> s.charAt(0));
+		FOption<Character> delim = cl.getOptionString("delim").map(s -> s.charAt(0));
 		
-		Option<Character> quote = cl.getOptionString("quote").map(s -> s.charAt(0));
-		Option<String[]> header = cl.getOptionString("header")
+		FOption<Character> quote = cl.getOptionString("quote").map(s -> s.charAt(0));
+		FOption<String[]> header = cl.getOptionString("header")
 									.map(s -> CSV.parseAsArray(s, ',', '\\'));
 		boolean headerFirst = cl.hasOption("header_first");
 		boolean trimField = cl.hasOption("trim_field");
-		Option<String> nullString = cl.getOptionString("null_string");
-		Option<String> pointCols = cl.getOptionString("point_col");
-		Option<String> csvSrid = cl.getOptionString("csv_srid");
+		FOption<String> nullString = cl.getOptionString("null_string");
+		FOption<String> pointCols = cl.getOptionString("point_col");
+		FOption<String> csvSrid = cl.getOptionString("csv_srid");
 		String dsId = cl.getString("dataset");
 		String geomCol = cl.getOptionString("geom_col").getOrNull();
 		String srid = cl.getOptionString("srid").getOrNull();
@@ -183,8 +183,8 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		boolean append = cl.hasOption("a");
 		int reportInterval = cl.getOptionInt("report_interval").getOrElse(-1);
 		
-		if ( cl.hasOption("wgs84") && csvSrid.isEmpty() ) {
-			csvSrid = Option.some("EPSG:4326");
+		if ( cl.hasOption("wgs84") && csvSrid.isAbsent() ) {
+			csvSrid = FOption.of("EPSG:4326");
 		}
 		
 		StopWatch watch = StopWatch.start();
@@ -203,12 +203,12 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 												.charset(charset)
 												.headerFirst(headerFirst)
 												.trimField(trimField);
-		delim.forEach(csvParams::delimiter);
-		quote.forEach(csvParams::quote);
-		header.forEach(csvParams::header);
-		nullString.forEach(csvParams::nullString);
-		pointCols.forEach(csvParams::pointColumn);
-		csvSrid.forEach(csvParams::csvSrid);
+		delim.ifPresent(csvParams::delimiter);
+		quote.ifPresent(csvParams::quote);
+		header.ifPresent(csvParams::header);
+		nullString.ifPresent(csvParams::nullString);
+		pointCols.ifPresent(csvParams::pointColumn);
+		csvSrid.ifPresent(csvParams::csvSrid);
 		
 		ImportIntoDataSet importFile = ImportCsv.from(file, csvParams, importParams);
 		importFile.getProgressObservable()

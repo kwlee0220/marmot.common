@@ -15,10 +15,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import io.vavr.control.Option;
 import marmot.MarmotRuntime;
 import utils.CommandLine;
 import utils.UnitUtils;
+import utils.func.FOption;
 import utils.io.IOUtils;
 
 
@@ -31,7 +31,7 @@ public class UploadFiles {
 	private final File m_start;
 	private PathMatcher m_pathMatcher;
 	private final String m_dest;
-	private Option<Long> m_blockSize = Option.none();
+	private FOption<Long> m_blockSize = FOption.empty();
 	private boolean m_force = false;
 	
 	public static void run(MarmotRuntime marmot, CommandLine cl) throws Exception {
@@ -41,7 +41,7 @@ public class UploadFiles {
 		
 		File start = new File(cl.getArgument(0));
 		String dest = cl.getArgument(1);
-		Option<Long> blockSize = cl.getOptionString("block_size")
+		FOption<Long> blockSize = cl.getOptionString("block_size")
 									.map(UnitUtils::parseByteSize);
 		String glob = cl.getOptionString("glob").getOrNull();
 		boolean force = cl.hasOption("f");
@@ -70,16 +70,16 @@ public class UploadFiles {
 		return this;
 	}
 	
-	public Option<Long> blockSize() {
+	public FOption<Long> blockSize() {
 		return m_blockSize;
 	}
 	
 	public UploadFiles blockSize(long size) {
-		m_blockSize = (size > 0) ? Option.some(size) : Option.none();
+		m_blockSize = (size > 0) ? FOption.of(size) : FOption.empty();
 		return this;
 	}
 	
-	public UploadFiles blockSize(Option<Long> size) {
+	public UploadFiles blockSize(FOption<Long> size) {
 		m_blockSize = size;
 		return this;
 	}
