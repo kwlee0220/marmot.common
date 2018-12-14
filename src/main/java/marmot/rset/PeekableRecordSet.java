@@ -4,13 +4,13 @@ import java.util.Objects;
 
 import org.slf4j.Logger;
 
-import io.vavr.control.Option;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.support.ProgressReportable;
 import utils.StopWatch;
+import utils.func.FOption;
 
 /**
  * 
@@ -18,7 +18,7 @@ import utils.StopWatch;
  */
 public class PeekableRecordSet extends AbstractRecordSet implements ProgressReportable {
 	private final RecordSet m_input;
-	private Option<Record> m_peeked = null;
+	private FOption<Record> m_peeked = null;
 	
 	PeekableRecordSet(RecordSet input) {
 		Objects.requireNonNull(input, "Peeking RecordSet is null");
@@ -40,17 +40,17 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 		checkNotClosed();
 
 		if ( m_peeked == null ) {
-			m_peeked = Option.of(m_input.nextCopy());
+			m_peeked = FOption.ofNullable(m_input.nextCopy());
 		}
 		
-		return m_peeked.isDefined();
+		return m_peeked.isPresent();
 	}
 	
-	public Option<Record> peek() {
+	public FOption<Record> peek() {
 		checkNotClosed();
 
 		if ( m_peeked == null ) {
-			m_peeked = Option.of(m_input.nextCopy());
+			m_peeked = FOption.ofNullable(m_input.nextCopy());
 		}
 		return m_peeked.map(Record::duplicate);
 	}
@@ -60,7 +60,7 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 		checkNotClosed();
 		
 		if ( m_peeked != null ) {
-			boolean ret = m_peeked.peek(r -> output.set(r, true)).isDefined();
+			boolean ret = m_peeked.ifPresent(r -> output.set(r, true)).isPresent();
 			m_peeked = null;
 			
 			return ret;

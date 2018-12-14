@@ -1,6 +1,7 @@
 package marmot.rset;
 
-import io.vavr.control.Option;
+import java.util.Objects;
+
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -12,24 +13,22 @@ import net.jcip.annotations.GuardedBy;
  */
 class CloserAttachedRecordSet extends AbstractRecordSet {
 	private final RecordSet m_rset;
-	@GuardedBy("this") private Option<Runnable> m_closer;
+	@GuardedBy("this") private Runnable m_closer;
 	
 	CloserAttachedRecordSet(RecordSet rset, Runnable closer) {
+		Objects.requireNonNull(closer, "closer");
+		
 		m_rset = rset;
-		m_closer = Option.of(closer);
+		m_closer = closer;
 	}
 
 	@Override
 	protected void closeInGuard() {
 		m_rset.closeQuietly();
+		
 		synchronized ( this ) {
-			m_closer.forEach(Runnable::run);
-			m_closer = null;
+			m_closer.run();
 		}
-	}
-	
-	public void setCloser(Runnable closer) {
-		m_closer = Option.of(closer);
 	}
 
 	@Override

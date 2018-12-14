@@ -36,7 +36,7 @@ public class PBRecordSetInputStream extends InputStream {
 	
 	public static PBRecordSetInputStream from(RecordSchema schema,
 											FStream<Record> rstream) throws IOException {
-		return from(RecordSets.from(schema, rstream));
+		return from(RecordSet.from(schema, rstream));
 	}
 	
 	private PBRecordSetInputStream(RecordSet rset) {

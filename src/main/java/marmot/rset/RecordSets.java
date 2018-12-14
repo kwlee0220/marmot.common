@@ -2,9 +2,6 @@ package marmot.rset;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -25,102 +22,13 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class RecordSets {
-	public static final RecordSet NULL = empty(RecordSchema.EMPTY);
+	public static final RecordSet NULL = RecordSet.empty(RecordSchema.EMPTY);
 	
 	private RecordSets() {
-		throw new AssertionError();
+		throw new AssertionError("Should not be called: class=" + RecordSets.class);
 	}
 	
-	/**
-	 * 빈 레코드세트 객체를 생성한다.
-	 * 
-	 * @param schema	레코드 세트의 스키마.
-	 * @return		{@link RecordSet} 객체.
-	 */
-	public static RecordSet empty(RecordSchema schema) {
-		return new EmptyRecordSet(schema);
-	}
 	
-	/**
-	 * 주어진 레코드들로 구성된 레코드 세트를 생성한다.
-	 * <p>
-	 * 올바른 동작을 위해서는 인자인 {@code schema}와 레코드들의 스키마는 동일하여야 한다.
-	 * 
-	 * @param schema	생성될 레코드 세트의 스키마.
-	 * @param records	레코드 세트에 포함될 레코드 집합.
-	 * @return	레코드 세트
-	 */
-	public static RecordSet from(RecordSchema schema, Iterable<? extends Record> records) {
-		Objects.requireNonNull(records);
-		
-		return new IteratorRecordSet(schema, records.iterator());
-	}
-	
-	/**
-	 * 주어진 레코드들로 구성된 레코드 세트를 생성한다.
-	 * <p>
-	 * 레코드 집합에는 반드시 하나 이상의 레코드가 포함되어야 한다.
-	 * 
-	 * @param records	레코드 세트에 포함될 레코드 집합.
-	 * @return	레코드 세트
-	 * @throws IllegalArgumentException	입력 레코드 집합이 빈 경우.
-	 */
-	public static RecordSet from(Iterable<? extends Record> records) {
-		Objects.requireNonNull(records);
-		
-		Iterator<? extends Record> iter = records.iterator();
-		Preconditions.checkArgument(iter.hasNext(), "records is empty");
-		
-		RecordSchema schema = iter.next().getSchema();
-		return from(schema, records.iterator());
-	}
-	
-	/**
-	 * 주어진 레코드의 Iterator로부터 레코드 세트를 생성한다.
-	 * <p>
-	 * 올바른 동작을 위해서는 인자인 {@code schema}와 레코드들의 스키마는 동일하여야 한다.
-	 * 
-	 * @param schema	생성될 레코드 세트의 스키마.
-	 * @param records	레코드 세트에 포함될 레코드 집합.
-	 * @return	레코드 세트
-	 */
-	public static RecordSet from(RecordSchema schema, Iterator<? extends Record> records) {
-		return new IteratorRecordSet(schema, records);
-	}
-	
-	public static RecordSet from(RecordSchema schema, FStream<Record> fstream) {
-		Objects.requireNonNull(schema, "RecordSchema is null");
-		Objects.requireNonNull(fstream, "FStream is null");
-		
-		return new FStreamRecordSet(schema, fstream);
-	}
-	
-	public static RecordSet from(FStream<Record> fstream) {
-		Objects.requireNonNull(fstream, "FStream is null");
-		
-		return new FStreamRecordSet(fstream);
-	}
-	
-	/**
-	 * 단일 레코드로 구성된 레코드 세트를 생성한다.
-	 * 
-	 * @param record	레코드 세트에 포함될 레코드.
-	 * @return	레코드 세트
-	 */
-	public static RecordSet of(Record record) {
-		Objects.requireNonNull(record, "record is null");
-		
-		List<Record> records = Collections.singletonList(record);
-		return RecordSets.from(record.getSchema(), records);
-	}
-	
-	public static RecordSet from(Record... records) {
-		Objects.requireNonNull(records, "records is null");
-		Preconditions.checkArgument(records.length > 0, "records are empty");
-		
-		RecordSchema schema = records[0].getSchema();
-		return from(schema, Arrays.asList(records));
-	}
 	
 //	public static RecordSet from(RecordSchema schema, Observable<Record> records) {
 //		PipedRecordSet pipe = new PipedRecordSet(schema);
@@ -204,7 +112,7 @@ public class RecordSets {
 		Objects.requireNonNull(tail);
 //		Preconditions.checkArgument(head.getSchema().equals(tail.getRecordSchema()));
 		
-		return concat(tail.getRecordSchema(), RecordSets.from(head), tail);
+		return concat(tail.getRecordSchema(), RecordSet.of(head), tail);
 	}
 	
 	public static RecordSet concat(RecordSet rset1, Record tail) {
@@ -212,7 +120,7 @@ public class RecordSets {
 		Objects.requireNonNull(tail);
 		Preconditions.checkArgument(rset1.getRecordSchema().equals(tail.getSchema()));
 		
-		return concat(rset1.getRecordSchema(), rset1, RecordSets.from(tail));
+		return concat(rset1.getRecordSchema(), rset1, RecordSet.of(tail));
 	}
 	
 	public static RecordSet concat(RecordSchema schema, Collection<? extends RecordSet> rsets) {

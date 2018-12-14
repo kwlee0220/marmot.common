@@ -41,9 +41,9 @@ import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.Record;
 import marmot.RecordSchema;
+import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.geo.GeoClientUtils;
-import marmot.rset.RecordSets;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
 import utils.Unchecked;
@@ -179,7 +179,7 @@ public class GeoToolsUtils {
 													RecordSchema schema, String srid,
 													Iterable<Record> records) {
 		SimpleFeatureType sfType = toSimpleFeatureType(sfTypeName, srid, schema);
-		return new MarmotFeatureCollection(sfType, () -> RecordSets.from(records));
+		return new MarmotFeatureCollection(sfType, () -> RecordSet.from(records));
 	}
 	
 	public static ShapefileDataStore openShapefileDataStore(File shpFile) throws IOException {

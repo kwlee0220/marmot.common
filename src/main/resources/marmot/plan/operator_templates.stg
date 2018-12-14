@@ -1,5 +1,5 @@
-load(dsId) ::= <<
-{ "loadDataset": { "name": "<dsId>"} }
+load(ds_id) ::= <<
+{ "loadDataset": { "name": "<ds_id>"} }
 >>
 
 filter(pred, init=[]) ::= <<
@@ -26,20 +26,19 @@ update(expr, init=[]) ::= <<
 }
 >>
 
-expand(col_decs, init=[]) ::= <<
+expand(col_decls, init=[]) ::= <<
 { "expand": {
-    "column_decls": "<col_decs>" <if(init)>,
+    "column_decls": "<col_decls>" <if(init)>,
     "initializer": { "expr": "<init>" }
     <endif>
   }
 }
 >>
 
-expand1(col_name, col_type, init=[]) ::= <<
+define_column(col_decl, init=[]) ::= <<
 { "expand1": {
-    "columnName": "<col_name>",
-    "columnType": "<col_type>"<if(init)>,
-    "initValue": { "expr": "<init>" }
+    "columnDecl": "<col_decl>"<if(init)>,
+    "initialValue": { "expr": "<init>" }
     <endif>
   }
 }
@@ -67,16 +66,16 @@ assign_uid(col) ::= <<
 { "assignUid": { "uidColumn": "<col>" } }
 >>
 
-sort(sort_cols_expr) ::= <<
-{ "sort": { "sortColumns": "<sort_cols_expr>" } }
->>
-
 pick_top_k(cols_expr, k) ::= <<
 { "pickTopK": {
     "sortKeyColumns": "<cols_expr>",
     "topK": <k>
   }
 }
+>>
+
+sort(sort_cols_expr) ::= <<
+{ "sort": { "sortColumns": "<sort_cols_expr>" } }
 >>
 
 distinct(cols, nworkers=[]) ::= <<

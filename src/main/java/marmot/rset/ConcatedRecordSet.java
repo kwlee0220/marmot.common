@@ -2,6 +2,8 @@ package marmot.rset;
 
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -13,7 +15,7 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public abstract class ConcatedRecordSet extends AbstractRecordSet {
-	private RecordSet m_current = null;
+	@Nullable private RecordSet m_current = null;	// null이면 first-call 의미
 	private boolean m_eos = false;
 	
 	abstract protected RecordSet loadNext();

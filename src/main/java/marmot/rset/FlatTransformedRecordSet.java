@@ -29,7 +29,7 @@ public class FlatTransformedRecordSet extends AbstractRecordSet {
 		m_outSchema = outSchema;
 		
 		m_inputRecord = DefaultRecord.of(input.getRecordSchema());
-		m_transformeds = RecordSets.empty(outSchema);
+		m_transformeds = RecordSet.empty(outSchema);
 	}
 	
 	@Override

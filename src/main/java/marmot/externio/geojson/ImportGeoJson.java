@@ -16,7 +16,6 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.externio.ImportIntoDataSet;
 import marmot.externio.ImportParameters;
-import marmot.rset.RecordSets;
 import marmot.support.MetaPlanLoader;
 import utils.CommandLine;
 import utils.StopWatch;
@@ -115,7 +114,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 													? new Column(tarGeomCol, col.type()) : col)
 										.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 										.build();
-				rset = RecordSets.from(schema, rset.fstream());
+				rset = RecordSet.from(schema, rset.fstream());
 			}
 			
 			return rset;
@@ -155,7 +154,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 														? new Column(tarGeomCol, col.type()) : col)
 											.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 											.build();
-					rset = RecordSets.from(schema, rset.fstream());
+					rset = RecordSet.from(schema, rset.fstream());
 				}
 				
 				return rset;

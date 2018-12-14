@@ -39,7 +39,8 @@ public class PipedRecordSet extends AbstractRecordSet {
 		/** Consumer가 (오류 발생으로) 더이상 데이터를 읽지 않게된 상태 */
 		CONSUMER_CLOSED,
 		/** 레코드 채널이 폐쇄된 상태. */
-		CLOSED };
+		CLOSED
+	};
 
 	private final RecordSchema m_schema;
 	private final int m_maxQueueLength;

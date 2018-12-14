@@ -1,10 +1,7 @@
 package marmot;
 
-import static marmot.plan.ParseCsvOption.HEADER;
-
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -49,13 +46,13 @@ import marmot.proto.optor.CascadeGeometryProto;
 import marmot.proto.optor.CentroidTransformProto;
 import marmot.proto.optor.ClusterChroniclesProto;
 import marmot.proto.optor.ConsumeByGroupProto;
+import marmot.proto.optor.DefineColumnProto;
 import marmot.proto.optor.DissolveProto;
 import marmot.proto.optor.DistinctProto;
 import marmot.proto.optor.DropEmptyGeometryProto;
 import marmot.proto.optor.DropProto;
 import marmot.proto.optor.EstimateIDWProto;
 import marmot.proto.optor.EstimateKernelDensityProto;
-import marmot.proto.optor.Expand1Proto;
 import marmot.proto.optor.ExpandProto;
 import marmot.proto.optor.FindFirstReducerProto;
 import marmot.proto.optor.FindMaxValueRecordProto;
@@ -63,7 +60,6 @@ import marmot.proto.optor.FlattenGeometryProto;
 import marmot.proto.optor.GroupByKeyProto;
 import marmot.proto.optor.HashJoinProto;
 import marmot.proto.optor.LISAWeightProto;
-import marmot.proto.optor.LoadCsvFileProto;
 import marmot.proto.optor.LoadCustomTextFileProto;
 import marmot.proto.optor.LoadDataSetProto;
 import marmot.proto.optor.LoadGetisOrdGiProto;
@@ -229,54 +225,6 @@ public class PlanBuilder {
 								.build());
 		
 	}
-
-	/**
-	 * 주어진 경로의 텍스트 파일을 읽어 RecordSet을 로드하는 작업을 추가한다.
-	 * <p>
-	 * 텍스트 파일의 각 라인은 하나의 레코드로 매핑되고,
-	 * 적제되는 레코드 세트의 스키마는 {@link DataType#LONG} 형식의 'key'과
-	 * {@link DataType#STRING} 형식의 'text'로 구성된다.
-	 * 
-	 * @param pathes	읽을 텍스트 파일의 경로.
-	 * @param commentPrefix	comment로 간주하는 첫번째 컬럼 문자.
-	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
-	 */
-	public PlanBuilder loadTextFile(Collection<String> pathes, String commentPrefix) {
-		Objects.requireNonNull(pathes);
-		Preconditions.checkArgument(pathes.size() > 0, "pathes is empty");
-		Objects.requireNonNull(commentPrefix);
-		Preconditions.checkArgument(commentPrefix.length() > 0, "comment prefix is empty");
-		
-		LoadTextFileProto load = LoadTextFileProto.newBuilder()
-												.addAllPaths(pathes)
-												.setCommentPrefix(commentPrefix)
-												.build();
-		return add(OperatorProto.newBuilder()
-								.setLoadTextfile(load)
-								.build());
-	}
-	
-	/**
-	 * 주어진 디렉토리에 저장된 CSV 파일들을 읽어 {@link RecordSet}를 구성하는
-	 * 연산을 작업 계획에 추가한다.
-	 * <p>
-	 * 주어진 디렉토리 외에도 모든 하위 디렉토리에 위치한 CSV 파일을 읽어 레코드 세트로 구성한다.
-	 * 각 CSV 파일로부터 레코드를 구성은 디렉토리에 위치한 {@code _meta.xml} 파일에
-	 * 기술된 방법으로 파싱한다. 
-	 * 
-	 * @param csvPath	읽을 CSV 파일들이 저장된 폴더.
-	 * @return		작업이 추가된 {@link PlanBuilder} 객체.
-	 */
-	public PlanBuilder loadCsvFile(String csvPath) {
-		Preconditions.checkArgument(csvPath != null, "csvPath is null");
-		
-		LoadCsvFileProto load = LoadCsvFileProto.newBuilder()
-												.setPath(csvPath)
-												.build();
-		return add(OperatorProto.newBuilder()
-								.setLoadCsvfile(load)
-								.build());
-	}
 	
 	public PlanBuilder loadCustomTextFile(String path) {
 		Preconditions.checkArgument(path != null, "path is null");
@@ -322,23 +270,23 @@ public class PlanBuilder {
 								.build());
 	}
 	
-////	/**
-////	 * JMS 인터페이스를 이용하여 주어진 위치의 큐에 저장된 레코드를 읽어
-////	 * {@link RecordSet}를 구성하는 명령을 추가한다.
-////	 * 
-////	 * @param brokerUrl		JMS 프로토콜을 통해 접근할 JMS 브로커 URL.
-////	 * @param queueName 	접속 대상 큐 이름.
-////	 * @param recordSchema	생성될 레코드 세트의 스키마.
-////	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
-////	 */
-////	public PlanBuilder loadJmsQueue(String brokerUrl, String queueName, RecordSchema recordSchema) {
-////		return add(LoadJmsQueue.builder()
-////								.brokerUrl(brokerUrl)
-////								.queue(queueName)
-////								.recordSchema(recordSchema)
-////								.build());
-////	}
-////
+//	/**
+//	 * JMS 인터페이스를 이용하여 주어진 위치의 큐에 저장된 레코드를 읽어
+//	 * {@link RecordSet}를 구성하는 명령을 추가한다.
+//	 * 
+//	 * @param brokerUrl		JMS 프로토콜을 통해 접근할 JMS 브로커 URL.
+//	 * @param queueName 	접속 대상 큐 이름.
+//	 * @param recordSchema	생성될 레코드 세트의 스키마.
+//	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
+//	 */
+//	public PlanBuilder loadJmsQueue(String brokerUrl, String queueName, RecordSchema recordSchema) {
+//		return add(LoadJmsQueue.builder()
+//								.brokerUrl(brokerUrl)
+//								.queue(queueName)
+//								.recordSchema(recordSchema)
+//								.build());
+//	}
+//
 	//***********************************************************************
 	//	주요 레코드 세트 저장 연산자들
 	//***********************************************************************
@@ -433,20 +381,20 @@ public class PlanBuilder {
 								.build());
 	}
 	
-////	/**
-////	 * JMS 인터페이스를 이용하여 주어진 위치의 큐에 저장하는 명령을 추가한다.
-////	 * 
-////	 * @param brokerUrl		JMS 프로토콜을 통해 접근할 JMS 브로커 URL.
-////	 * @param queueName 	접속 대상 큐 이름.
-////	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
-////	 */
-////	public PlanBuilder storeIntoQueue(String brokerUrl, String queueName) {
-////		return add(StoreIntoJmsQueue.builder()
-////									.brokerUrl(brokerUrl)
-////									.queue(queueName)
-////									.build());
-////	}
-////	
+//	/**
+//	 * JMS 인터페이스를 이용하여 주어진 위치의 큐에 저장하는 명령을 추가한다.
+//	 * 
+//	 * @param brokerUrl		JMS 프로토콜을 통해 접근할 JMS 브로커 URL.
+//	 * @param queueName 	접속 대상 큐 이름.
+//	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
+//	 */
+//	public PlanBuilder storeIntoQueue(String brokerUrl, String queueName) {
+//		return add(StoreIntoJmsQueue.builder()
+//									.brokerUrl(brokerUrl)
+//									.queue(queueName)
+//									.build());
+//	}
+//	
 //
 //	//***********************************************************************
 //	//	주요 레코드 세트 연산자들
@@ -500,34 +448,6 @@ public class PlanBuilder {
 								.build());
 	}
 
-	@Operator(protoId="parseCsv", name="CSV 파싱")
-	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-								@Parameter(protoId="options/headerColumn", name="헤더")String header) {
-		return parseCsv(delim, HEADER(header));
-	}
-
-//	@Operator(protoId="parseCsv", name="CSV 파싱")
-//	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-//								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
-//								@Parameter(protoId="options/nullString", name="Null 간주 문자열")String nullString) {
-//		return parseCsv(delim, HEADER(header), NULL_STRING(nullString));
-//	}
-
-//	@Operator(protoId="parseCsv", name="CSV 파싱")
-//	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-//								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
-//								@Parameter(protoId="options/quote", name="quote 문자")char quote) {
-//		return parseCsv(delim, HEADER(header), QUOTE(quote));
-//	}
-
-//	@Operator(protoId="parseCsv", name="CSV 파싱")
-//	public PlanBuilder parseCsv(@Parameter(protoId="delimiter", name="구분자")char delim,
-//								@Parameter(protoId="options/headerColumn", name="헤더")String[] header,
-//								@Parameter(protoId="options/quote", name="quote 문자")char quote,
-//								@Parameter(protoId="options/nullString", name="Null 간주 문자열")String nullString) {
-//		return parseCsv(delim, HEADER(header), QUOTE(quote), NULL_STRING(nullString));
-//	}
-
 	public PlanBuilder parseCsv(char delim, ParseCsvOption... opts) {
 		ParseCsvProto.Builder builder = ParseCsvProto.newBuilder()
 															.setDelimiter("" + delim);
@@ -542,13 +462,6 @@ public class PlanBuilder {
 	@Operator(protoId="update", name="컬럼값 변경")
 	public PlanBuilder update(@Parameter(protoId="script/expr", name="변경식") String updateExpr) {
 		return update(RecordScript.of(updateExpr));
-	}
-
-//	@Operator(protoId="update", name="컬럼값 변경")
-	public PlanBuilder update(@Parameter(protoId="script/initializer", name="변경식 초기화") String initExpr,
-							@Parameter(protoId="script/expr", name="변경식") String updateExpr) {
-		return update(RecordScript.of(updateExpr)
-							.setInitializer(initExpr));
 	}
 	
 	public PlanBuilder update(RecordScript expr) {
@@ -590,6 +503,10 @@ public class PlanBuilder {
 								.build());
 	}
 
+	public PlanBuilder expand(String colDecls, String initializer) {
+		return expand(colDecls, RecordScript.of(initializer));
+	}
+
 	public PlanBuilder expand(String colDecls, RecordScript initializer) {
 		ExpandProto expand = ExpandProto.newBuilder()
 										.setColumnDecls(colDecls)
@@ -600,67 +517,26 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder expand(String colDecls, String initializer) {
-		return expand(colDecls, RecordScript.of(initializer));
+	public PlanBuilder defineColumn(String colDecl, String initializer) {
+		return defineColumn(colDecl, RecordScript.of(initializer));
 	}
 
-	public PlanBuilder expand1(String colDecls) {
-		RecordSchema schema = RecordSchema.parse(colDecls);
-		if ( schema.getColumnCount() > 1 ) {
-			throw new IllegalArgumentException("cannot support expand multiple columns");
-		}
-		Column col = schema.getColumnAt(0);
-		
-		return expand1(col.name(), col.type());
-	}
-
-	public PlanBuilder expand1(String colDecls, String initializer) {
-		RecordSchema schema = RecordSchema.parse(colDecls);
-		if ( schema.getColumnCount() > 1 ) {
-			throw new IllegalArgumentException("cannot support expand multiple columns");
-		}
-		Column col = schema.getColumnAt(0);
-		
-		return expand1(col.name(), col.type(), initializer);
-	}
-
-	public PlanBuilder expand1(String colDecls, RecordScript initializer) {
-		RecordSchema schema = RecordSchema.parse(colDecls);
-		if ( schema.getColumnCount() > 1 ) {
-			throw new IllegalArgumentException("cannot support expand multiple columns");
-		}
-		Column col = schema.getColumnAt(0);
-		
-		return expand1(col.name(), col.type(), initializer);
-	}
-
-	@Operator(protoId="expand1", name="컬럼 추가")
-	public PlanBuilder expand1(@Parameter(protoId="columnName", name="컬럼 이름") String colName,
-								@Parameter(protoId="columnType", name="컬럼 타입") DataType colType) {
-		Expand1Proto expand = Expand1Proto.newBuilder()
-											.setColumnName(colName)
-											.setColumnTypeValue(colType.getTypeCode().ordinal())
+	public PlanBuilder defineColumn(String colDecl) {
+		DefineColumnProto op = DefineColumnProto.newBuilder()
+											.setColumnDecl(colDecl)
 											.build();
 		return add(OperatorProto.newBuilder()
-								.setExpand1(expand)
+								.setDefineColumn(op)
 								.build());
 	}
 
-//	@Operator(protoId="expand1", name="컬럼 추가")
-	public PlanBuilder expand1(@Parameter(protoId="columnName", name="컬럼 이름") String colName,
-							@Parameter(protoId="columnType", name="컬럼 타입") DataType colType,
-							@Parameter(protoId="initValue/expr", name="컬럼 초기화식") String colInit) {
-		return expand1(colName, colType, RecordScript.of(colInit));
-	}
-
-	public PlanBuilder expand1(String colName, DataType colType, RecordScript initValue) {
-		Expand1Proto expand = Expand1Proto.newBuilder()
-											.setColumnName(colName)
-											.setColumnTypeValue(colType.getTypeCode().ordinal())
-											.setInitValue(initValue.toProto())
+	public PlanBuilder defineColumn(String colDecl, RecordScript initValue) {
+		DefineColumnProto op = DefineColumnProto.newBuilder()
+											.setColumnDecl(colDecl)
+											.setInitialValue(initValue.toProto())
 											.build();
 		return add(OperatorProto.newBuilder()
-								.setExpand1(expand)
+								.setDefineColumn(op)
 								.build());
 	}
 
@@ -812,19 +688,7 @@ public class PlanBuilder {
 			m_cmpCols = cmpKeyCols;
 		}
 		
-		/**
-		 * {@link PlanBuilder#groupBy(String)} 작업을 수행시 필요한 reducer의 갯수를
-		 * 설정한다.
-		 * 
-		 * @param count		reducer 갯수
-		 * @return 작업이 추가된 {@link GroupByPlanBuilder} 객체.
-		 */
-		public GroupByPlanBuilder workerCount(int count) {
-			m_workerCount = Option.some(count);
-			return this;
-		}
-		
-		public GroupByPlanBuilder tagWith(String tagCols) {
+		public GroupByPlanBuilder withTags(String tagCols) {
 			m_tagCols = Option.of(tagCols);
 			return this;
 		}
@@ -841,6 +705,47 @@ public class PlanBuilder {
 			m_orderKeyCols = Option.some(orderCols);
 			
 			return this;
+		}
+		
+		/**
+		 * {@link PlanBuilder#groupBy(String)} 작업을 수행시 필요한 reducer의 갯수를
+		 * 설정한다.
+		 * 
+		 * @param count		reducer 갯수
+		 * @return 작업이 추가된 {@link GroupByPlanBuilder} 객체.
+		 */
+		public GroupByPlanBuilder workerCount(int count) {
+			m_workerCount = Option.some(count);
+			return this;
+		}
+		
+		/**
+		 * {@link PlanBuilder#groupBy(String)} 작업으로 그룹핑된 각 레코드 그룹에 대해
+		 * 집계 함수를 적용시켜 결과 레코드 세트를 출력하는 작업을 추가한다.
+		 * 
+		 * @param aggrFuncs		 각 레코드 그룹에 적용할 집계함수 리스트. 
+		 * @return 작업이 추가된 {@link PlanBuilder} 객체.
+		 */
+		public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
+			return aggregate(Arrays.asList(aggrFuncs));
+		}
+		
+		public PlanBuilder aggregate(List<AggregateFunction> aggrFuncs) {
+			ValueAggregateReducerProto varp
+								= FStream.of(aggrFuncs)
+										.map(AggregateFunction::toProto)
+										.foldLeft(ValueAggregateReducerProto.newBuilder(),
+													(builder,aggr) -> builder.addAggregate(aggr))
+										.build();
+
+			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
+																.setGrouper(groupByKey())
+																.setValAggregate(varp)
+																.build();
+			
+			return m_planBuilder.add(OperatorProto.newBuilder()
+													.setTransformByGroup(transform)
+													.build());
 		}
 		
 		public PlanBuilder apply(SerializedProto func) {
@@ -885,35 +790,6 @@ public class PlanBuilder {
 		public ToIntermediateBuilder reduceScript() {
 			return new ScriptRecordSetReducerBuilder(m_planBuilder, this)
 						.new ToIntermediateBuilder();
-		}
-		
-		/**
-		 * {@link PlanBuilder#groupBy(String)} 작업으로 그룹핑된 각 레코드 그룹에 대해
-		 * 집계 함수를 적용시켜 결과 레코드 세트를 출력하는 작업을 추가한다.
-		 * 
-		 * @param aggrFuncs		 각 레코드 그룹에 적용할 집계함수 리스트. 
-		 * @return 작업이 추가된 {@link PlanBuilder} 객체.
-		 */
-		public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
-			return aggregate(Arrays.asList(aggrFuncs));
-		}
-		
-		public PlanBuilder aggregate(List<AggregateFunction> aggrFuncs) {
-			ValueAggregateReducerProto varp
-								= FStream.of(aggrFuncs)
-										.map(AggregateFunction::toProto)
-										.foldLeft(ValueAggregateReducerProto.newBuilder(),
-													(builder,aggr) -> builder.addAggregate(aggr))
-										.build();
-
-			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-																.setGrouper(groupByKey())
-																.setValAggregate(varp)
-																.build();
-			
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setTransformByGroup(transform)
-													.build());
 		}
 		
 		/**

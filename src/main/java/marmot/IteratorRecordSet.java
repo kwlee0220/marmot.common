@@ -1,11 +1,9 @@
-package marmot.rset;
+package marmot;
 
 import java.util.Iterator;
 import java.util.Objects;
 
-import marmot.Record;
-import marmot.RecordSchema;
-import marmot.RecordSetException;
+import marmot.rset.AbstractRecordSet;
 
 /**
  * 
@@ -13,7 +11,7 @@ import marmot.RecordSetException;
  */
 class IteratorRecordSet extends AbstractRecordSet {
 	private final RecordSchema m_schema;
-	private Iterator<? extends Record> m_iter;
+	private final Iterator<? extends Record> m_iter;
 	
 	IteratorRecordSet(RecordSchema schema, Iterator<? extends Record> iter) {
 		Objects.requireNonNull(schema, "RecordSchema is null");

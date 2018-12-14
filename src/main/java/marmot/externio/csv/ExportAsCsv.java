@@ -86,7 +86,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 			else if ( m_csvParams.tiger() ) {
 				String decl = String.format("%s:string", geomCol);
 				String initExpr = String.format("ST_AsHexString(%s)", geomCol);
-				builder = builder.expand1(decl, initExpr);
+				builder = builder.defineColumn(decl, initExpr);
 				builder = builder.project(String.format("%s,*-{%s}", geomCol, geomCol));
 			}
 		}
