@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 
 import marmot.proto.RecordProto;
