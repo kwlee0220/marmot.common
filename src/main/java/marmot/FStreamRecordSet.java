@@ -28,7 +28,7 @@ class FStreamRecordSet extends AbstractRecordSet {
 		
 		PrependableFStream<Record> prependable = stream.toPrependable();
 		m_schema = prependable.peekNext()
-							.map(Record::getSchema)
+							.map(Record::getRecordSchema)
 							.getOrElseThrow(()->new RecordSetException("RecordSchema is not known"));
 		m_stream = prependable;
 	}

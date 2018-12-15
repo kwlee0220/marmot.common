@@ -118,7 +118,7 @@ public class RecordSets {
 	public static RecordSet concat(RecordSet rset1, Record tail) {
 		Objects.requireNonNull(rset1);
 		Objects.requireNonNull(tail);
-		Preconditions.checkArgument(rset1.getRecordSchema().equals(tail.getSchema()));
+		Preconditions.checkArgument(rset1.getRecordSchema().equals(tail.getRecordSchema()));
 		
 		return concat(rset1.getRecordSchema(), rset1, RecordSet.of(tail));
 	}

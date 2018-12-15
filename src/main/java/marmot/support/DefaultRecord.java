@@ -23,8 +23,6 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class DefaultRecord implements Record {
-	private static final long serialVersionUID = -3109868025763529441L;
-	
 	public static final DefaultRecord NULL = DefaultRecord.of(RecordSchema.NULL);
 	private static final Object UNDEFINED = new Object();
 	
@@ -51,7 +49,7 @@ public class DefaultRecord implements Record {
 	 * @return	스키마 객체.
 	 */
 	@Override
-	public RecordSchema getSchema() {
+	public RecordSchema getRecordSchema() {
 		return m_schema;
 	}
 
@@ -81,6 +79,7 @@ public class DefaultRecord implements Record {
 			return m_values[col.ordinal()];
 		}
 		if ( m_overflow != null ) {
+System.err.println("OOOOOOOVVVVEEEERRRRR");
 			Object value = m_overflow.get(name);
 			if ( value != null ) {
 				return value;
@@ -97,6 +96,7 @@ public class DefaultRecord implements Record {
 			return m_values[col.ordinal()];
 		}
 		if ( m_overflow != null ) {
+System.err.println("OOOOOOOVVVVEEEERRRRR");
 			Object value = m_overflow.get(name);
 			if ( value != null ) {
 				return value;
@@ -135,6 +135,7 @@ public class DefaultRecord implements Record {
 			if ( m_overflow == null ) {
 				m_overflow = Maps.newHashMap();
 			}
+System.err.println("OOOOOOOVVVVEEEERRRRR");
 			m_overflow.put(name, value);
 		}
 		return this;
@@ -167,12 +168,12 @@ public class DefaultRecord implements Record {
 	 */
 	@Override
 	public DefaultRecord set(Record src, boolean copyOverflow) {
-		if ( getSchema().equals(src.getSchema()) ) {
+		if ( getRecordSchema().equals(src.getRecordSchema()) ) {
 			setAll(src.getAll());
 		}
 		else {
-			RecordSchema srcSchema = src.getSchema();
-			getSchema().forEachIndexedColumn((idx,col) -> {
+			RecordSchema srcSchema = src.getRecordSchema();
+			getRecordSchema().forEachIndexedColumn((idx,col) -> {
 				Column srcCol = srcSchema.getColumn(col.name(), null);
 				if ( srcCol != null ) {
 					set(idx, src.get(srcCol.ordinal()));
@@ -185,6 +186,7 @@ public class DefaultRecord implements Record {
 		}
 		
 		if ( ((DefaultRecord)src).m_overflow != null ) {
+System.err.println("OOOOOOOVVVVEEEERRRRR");
 			((DefaultRecord)src).m_overflow.entrySet()
 							.stream()
 							.forEach(ent -> set(ent.getKey(), ent.getValue()));
@@ -251,6 +253,7 @@ public class DefaultRecord implements Record {
 
 	@Override
 	public void removeOverflow(String name) {
+System.err.println("OOOOOOOVVVVEEEERRRRR");
 		if ( m_overflow != null ) {
 			m_overflow.remove(name);
 		}
@@ -266,6 +269,7 @@ public class DefaultRecord implements Record {
 	
 	public DefaultRecord remove(String name) {
 		if ( m_overflow.remove(name) != null ) {
+System.err.println("OOOOOOOVVVVEEEERRRRR");
 			return this;
 		}
 

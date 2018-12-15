@@ -53,28 +53,14 @@ public interface RecordSet extends Closeable {
 	 * @param output	다음 레코드가 저장될 객체.
 	 * @return	적재 여부. 레코드 세트에 더 이상의 레코드가 없는 경우는 false
 	 */
-	public default boolean next(Record output) {
-		Objects.requireNonNull(output, "output Record");
-		
-		Record next = nextCopy();
-		if ( next != null ) {
-			output.set(next, false);
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
+	public boolean next(Record output);
 	
 	/**
 	 * 레코드 세트의 다음번 레코드를 읽어 반환한다.
 	 * 
 	 * @return	읽은 레코드 객체.  레코드가 없는 경우는 {@link Option#none()}이 반환됨.
 	 */
-	public default Record nextCopy() {
-		Record output = DefaultRecord.of(getRecordSchema());
-		return ( next(output) ) ? output : null;
-	}
+	public Record nextCopy();
 
 	/**
 	 * 빈 레코드세트 객체를 생성한다.
@@ -92,6 +78,16 @@ public interface RecordSet extends Closeable {
 			@Override
 			public RecordSchema getRecordSchema() {
 				return schema;
+			}
+			
+			@Override
+			public boolean next(Record output) {
+				return false;
+			}
+
+			@Override
+			public Record nextCopy() {
+				return null;
 			}
 		};
 	}
@@ -132,7 +128,7 @@ public interface RecordSet extends Closeable {
 		Objects.requireNonNull(records, "records is null");
 		Preconditions.checkArgument(records.length > 0, "records are empty");
 		
-		RecordSchema schema = records[0].getSchema();
+		RecordSchema schema = records[0].getRecordSchema();
 		return from(schema, Arrays.asList(records));
 	}
 
@@ -151,7 +147,7 @@ public interface RecordSet extends Closeable {
 		Iterator<? extends Record> iter = records.iterator();
 		Preconditions.checkArgument(iter.hasNext(), "Record Iterable is empty");
 		
-		RecordSchema schema = iter.next().getSchema();
+		RecordSchema schema = iter.next().getRecordSchema();
 		return from(schema, records.iterator());
 	}
 

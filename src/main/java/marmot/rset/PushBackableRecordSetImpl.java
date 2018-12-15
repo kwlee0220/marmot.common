@@ -63,7 +63,7 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 	@Override
 	public void pushBack(Record record) {
 		checkNotClosed();
-		Preconditions.checkArgument(m_input.getRecordSchema().equals(record.getSchema()),
+		Preconditions.checkArgument(m_input.getRecordSchema().equals(record.getRecordSchema()),
 									"Push-backed record is incompatible");
 		
 		m_pushBackeds.push(record.duplicate());

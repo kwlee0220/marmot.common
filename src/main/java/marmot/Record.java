@@ -1,8 +1,8 @@
 package marmot;
 
-import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -25,20 +25,20 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public interface Record extends Serializable, PBSerializable<RecordProto> {
+public interface Record extends PBSerializable<RecordProto> {
 	/**
 	 * 레코드의 스키마 객체를 반환한다.
 	 * 
 	 * @return	스키마 객체.
 	 */
-	public RecordSchema getSchema();
+	public RecordSchema getRecordSchema();
 	
 	public default int getColumnCount() {
-		return getSchema().getColumnCount();
+		return getRecordSchema().getColumnCount();
 	}
 	
 	public default boolean existsColumn(String name) {
-		return getSchema().getColumn(name, null) != null;
+		return getRecordSchema().getColumn(name, null) != null;
 	}
 
 	/**
@@ -77,10 +77,10 @@ public interface Record extends Serializable, PBSerializable<RecordProto> {
 	public Object[] getAll();
 	
 	public default Map<String,Object> toMap() {
-		Map<String,Object> valueMap = Maps.newLinkedHashMap();
+		Map<String,Object> valueMap = new LinkedHashMap<>();
 		
 		Object[] values = getAll();
-		for ( Column col: getSchema().getColumnAll() ) {
+		for ( Column col: getRecordSchema().getColumnAll() ) {
 			valueMap.put(col.name(), values[col.ordinal()]);
 		}
 		
@@ -306,7 +306,7 @@ public interface Record extends Serializable, PBSerializable<RecordProto> {
 	}
 	
 	public default void copyTo(Map<String,Object> context) {
-		getSchema().forEachIndexedColumn((i,c) -> context.put(c.name(), get(i)));
+		getRecordSchema().forEachIndexedColumn((i,c) -> context.put(c.name(), get(i)));
 	}
 	
 	public default void fromProto(RecordProto proto) {
@@ -319,7 +319,7 @@ public interface Record extends Serializable, PBSerializable<RecordProto> {
 	public default RecordProto toProto() {
 		RecordProto.Builder builder = RecordProto.newBuilder();
 		
-		RecordSchema schema = getSchema();
+		RecordSchema schema = getRecordSchema();
 		Object[] values = getAll();
 		
 		for ( int i =0; i < values.length; ++i ) {
