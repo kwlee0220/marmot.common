@@ -1,14 +1,10 @@
 package marmot;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,7 +23,6 @@ import marmot.type.DataTypes;
 import utils.CSV;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
-import utils.xml.FluentElementImpl;
 
 
 /**
@@ -40,14 +35,12 @@ import utils.xml.FluentElementImpl;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializable  {
-	private static final long serialVersionUID = 1L;
-	
+public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	/** Empty RecordSchema */
 	public static final RecordSchema NULL = builder().build();
 	public static final RecordSchema EMPTY = builder().build();
 	
-	private transient final LinkedHashMap<String,Column> m_columns;
+	private final LinkedHashMap<String,Column> m_columns;
 	
 	/**
 	 * 0개의 컬럼으로 구성된 레코드 스키마를 생성한다.
@@ -56,7 +49,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * {@link RecordSchema#builder()}를 통한 레코드 스키마 생성을 권장한다.
 	 */
 	public RecordSchema() {
-		m_columns = Maps.newLinkedHashMap();
+		m_columns = new LinkedHashMap<>(); 
 	}
 	
 	private RecordSchema(LinkedHashMap<String,Column> columns) {
@@ -82,7 +75,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * 
 	 * @param name	컬럼이름
 	 * @return	컬럼 정보 객체
-	 * @throws NoSuchElementException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우
+	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우
 	 */
 	public Column getColumn(String name) {
 		Column col = m_columns.get(name.toLowerCase());
@@ -102,7 +95,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @return	컬럼 정보 객체
 	 * @param defValue	컬럼이 존재하지 않는 경우 반환될 기본 컬럼 객체
 	 */
-	public Column getColumn(String name, Column defValue) {
+	public Column getColumnOrDefault(String name, Column defValue) {
 		Objects.requireNonNull(name, "column name is null");
 		
 		Column col = m_columns.get(name.toLowerCase());
@@ -171,10 +164,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	public Stream<Column> stream() {
 		return m_columns.values().stream();
 	}
-	
-	public FluentElementImpl toDocumentElement(String docElmName)  {
-		return FluentElementImpl.create(docElmName);
-	}
 
 	public static RecordSchema fromProto(RecordSchemaProto proto) {
 		Objects.requireNonNull(proto, "RecordSchemaProto");
@@ -239,10 +228,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	
 	@Override
 	public String toString() {
-		return m_columns.values().
-						stream()
-						.map(Column::toString)
-						.collect(Collectors.joining(","));
+		return columnFStream().map(Column::toString).join(",");
 	}
 	
 	public interface IndexedColumnAccessor {
@@ -250,13 +236,9 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	}
 	
 	public Builder toBuilder() {
-//		return new Builder(Maps.newLinkedHashMap(m_columns));
 		// 별도 다시 생성하여 사용하지 않으면, column 객체의 공유로 인해
 		// 문제가 발생할 수 있음.
-		Builder builder = builder();
-		m_columns.values().stream()
-				.forEach(c -> builder.addColumn(c.name(), c.type()));
-		return builder;
+		return columnFStream().foldLeft(builder(), (b,c) -> b.addColumn(c));
 	}
 	
 	public static Builder builder() {
@@ -388,25 +370,25 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 	}
 	
-	private Object writeReplace() {
-		return new SerializationProxy(this);
-	}
-	
-	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
-		throw new InvalidObjectException("Use Serialization Proxy instead.");
-	}
-
-	private static class SerializationProxy implements Serializable {
-		private static final long serialVersionUID = 3679701773697698351L;
-		
-		private final RecordSchemaProto m_proto;
-		
-		private SerializationProxy(RecordSchema mcKey) {
-			m_proto = mcKey.toProto();
-		}
-		
-		private Object readResolve() {
-			return RecordSchema.fromProto(m_proto);
-		}
-	}
+//	private Object writeReplace() {
+//		return new SerializationProxy(this);
+//	}
+//	
+//	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+//		throw new InvalidObjectException("Use Serialization Proxy instead.");
+//	}
+//
+//	private static class SerializationProxy implements Serializable {
+//		private static final long serialVersionUID = 3679701773697698351L;
+//		
+//		private final RecordSchemaProto m_proto;
+//		
+//		private SerializationProxy(RecordSchema mcKey) {
+//			m_proto = mcKey.toProto();
+//		}
+//		
+//		private Object readResolve() {
+//			return RecordSchema.fromProto(m_proto);
+//		}
+//	}
 }

@@ -47,7 +47,7 @@ public abstract class AbstractRecordSet implements RecordSet, LoggerSettable {
 		
 		Record next = nextCopy();
 		if ( next != null ) {
-			output.set(next, false);
+			output.set(next);
 			return true;
 		}
 		else {

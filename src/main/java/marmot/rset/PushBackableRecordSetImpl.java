@@ -40,7 +40,7 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 		checkNotClosed();
 		
 		if ( !m_pushBackeds.isEmpty() ) {
-			record.set(m_pushBackeds.pop(), false);
+			record.set(m_pushBackeds.pop());
 			return true;
 		}
 		else {

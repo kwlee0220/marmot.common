@@ -33,7 +33,7 @@ class IteratorRecordSet extends AbstractRecordSet {
 		checkNotClosed();
 		
 		if ( m_iter.hasNext() ) {
-			record.set(m_iter.next(), true);
+			record.set(m_iter.next());
 			return true;
 		}
 		else {

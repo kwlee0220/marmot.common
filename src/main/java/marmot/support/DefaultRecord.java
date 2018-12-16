@@ -3,14 +3,14 @@ package marmot.support;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import marmot.Column;
+import marmot.ColumnNotFoundException;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.proto.RecordProto;
@@ -26,16 +26,11 @@ public class DefaultRecord implements Record {
 	public static final DefaultRecord NULL = DefaultRecord.of(RecordSchema.NULL);
 	private static final Object UNDEFINED = new Object();
 	
-	private RecordSchema m_schema;
+	private final RecordSchema m_schema;
 	private final Object[] m_values;
-	private Map<String,Object> m_overflow;
 	
 	public static DefaultRecord of(RecordSchema schema) {
 		return new DefaultRecord(schema);
-	}
-	
-	private DefaultRecord() {
-		m_values = new Object[0];
 	}
 	
 	private DefaultRecord(RecordSchema schema) {
@@ -58,10 +53,14 @@ public class DefaultRecord implements Record {
 	 * 
 	 * @param index	대상 컬럼 순번.
 	 * @return 컬럼 값.
-	 * @throws IndexOutOfBoundsException	컬럼 순번이 유효하지 않은 경우.
+	 * @throws ColumnNotFoundException	컬럼 순번이 유효하지 않은 경우.
 	 */
 	@Override
 	public Object get(int index) {
+		if ( index < 0 || index >= m_values.length ) {
+			throw new ColumnNotFoundException("invalid column ordinal: " + index);
+		}
+		
 		return m_values[index];
 	}
 
@@ -70,40 +69,18 @@ public class DefaultRecord implements Record {
 	 * 
 	 * @param name	컬럼이름.
 	 * @return 컬럼 값.
-	 * @throws NoSuchElementException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우.
+	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우.
 	 */
 	@Override
 	public Object get(String name) {
-		Column col = m_schema.getColumn(name, null);
+		Objects.requireNonNull(name, "column name");
+		
+		Column col = m_schema.getColumnOrDefault(name, null);
 		if ( col != null ) {
 			return m_values[col.ordinal()];
 		}
-		if ( m_overflow != null ) {
-System.err.println("OOOOOOOVVVVEEEERRRRR");
-			Object value = m_overflow.get(name);
-			if ( value != null ) {
-				return value;
-			}
-		}
 		
-		throw new NoSuchElementException("column name=" + name);
-	}
-
-	@Override
-	public Object get(String name, Object defValue) {
-		Column col = m_schema.getColumn(name, null);
-		if ( col != null ) {
-			return m_values[col.ordinal()];
-		}
-		if ( m_overflow != null ) {
-System.err.println("OOOOOOOVVVVEEEERRRRR");
-			Object value = m_overflow.get(name);
-			if ( value != null ) {
-				return value;
-			}
-		}
-		
-		return defValue;
+		throw new ColumnNotFoundException("column name=" + name);
 	}
 	
 	/**
@@ -117,28 +94,18 @@ System.err.println("OOOOOOOVVVVEEEERRRRR");
 		return m_values;
 	}
 	
-	/**
-	 * 이름에 해당하는 컬럼 값을 변경시킨다.
-	 * 만일 주어진 이름에 해당하는 컬럼이 없는 경우는 overflow로 저장된다.
-	 * 
-	 * @param name	컬럼 이름.
-	 * @param value	컬럼 값.
-	 * @return	갱신된 레코드 객체.
-	 */
 	@Override
 	public DefaultRecord set(String name, Object value) {
-		Column col = m_schema.getColumn(name, null);
+		Objects.requireNonNull(name, "column name");
+		
+		Column col = m_schema.getColumnOrDefault(name, null);
 		if ( col != null ) {
 			m_values[col.ordinal()] = value;
+			return this;
 		}
 		else {
-			if ( m_overflow == null ) {
-				m_overflow = Maps.newHashMap();
-			}
-System.err.println("OOOOOOOVVVVEEEERRRRR");
-			m_overflow.put(name, value);
+			throw new ColumnNotFoundException("name=" + name);
 		}
-		return this;
 	}
 	
 	/**
@@ -147,10 +114,14 @@ System.err.println("OOOOOOOVVVVEEEERRRRR");
 	 * @param idx	컬럼 순번.
 	 * @param value	컬럼 값.
 	 * @return	갱신된 레코드 객체.
-	 * @throws IndexOutOfBoundsException	컬럼 순번이 유효하지 않은 경우.
+	 * @throws ColumnNotFoundException	컬럼 순번이 유효하지 않은 경우.
 	 */
 	@Override
 	public DefaultRecord set(int idx, Object value) {
+		if ( idx < 0 || idx >= m_values.length ) {
+			throw new ColumnNotFoundException("invalid column ordinal: " + idx);
+		}
+		
 		m_values[idx] = value;
 		return this;
 	}
@@ -163,33 +134,21 @@ System.err.println("OOOOOOOVVVVEEEERRRRR");
 	 * {@code true}인 경우는 복사하고, 그렇지 않은 경우는 복사하지 않는다.
 	 * 
 	 * @param src	값을 복사해 올 대상 레코드.
-	 * @param copyOverflow	src 레코드에 overflow column에 대한 복사 여부.
 	 * @return	갱신된 레코드 객체.
 	 */
 	@Override
-	public DefaultRecord set(Record src, boolean copyOverflow) {
-		if ( getRecordSchema().equals(src.getRecordSchema()) ) {
+	public DefaultRecord set(Record src) {
+		if ( m_schema.equals(src.getRecordSchema()) ) {
 			setAll(src.getAll());
 		}
 		else {
 			RecordSchema srcSchema = src.getRecordSchema();
-			getRecordSchema().forEachIndexedColumn((idx,col) -> {
-				Column srcCol = srcSchema.getColumn(col.name(), null);
+			m_schema.forEachIndexedColumn((idx,col) -> {
+				Column srcCol = srcSchema.getColumnOrDefault(col.name(), null);
 				if ( srcCol != null ) {
 					set(idx, src.get(srcCol.ordinal()));
 				}
 			});
-		}
-		
-		if ( !copyOverflow || !(src instanceof DefaultRecord) ) {
-			return this;
-		}
-		
-		if ( ((DefaultRecord)src).m_overflow != null ) {
-System.err.println("OOOOOOOVVVVEEEERRRRR");
-			((DefaultRecord)src).m_overflow.entrySet()
-							.stream()
-							.forEach(ent -> set(ent.getKey(), ent.getValue()));
 		}
 		
 		return this;
@@ -252,58 +211,8 @@ System.err.println("OOOOOOOVVVVEEEERRRRR");
 	}
 
 	@Override
-	public void removeOverflow(String name) {
-System.err.println("OOOOOOOVVVVEEEERRRRR");
-		if ( m_overflow != null ) {
-			m_overflow.remove(name);
-		}
-	}
-
-	@Override
 	public void clear() {
-		for ( int i =0; i < m_values.length; ++i ) {
-			m_values[i] = null;
-		}
-		m_overflow = null;
-	}
-	
-	public DefaultRecord remove(String name) {
-		if ( m_overflow.remove(name) != null ) {
-System.err.println("OOOOOOOVVVVEEEERRRRR");
-			return this;
-		}
-
-		Column col = m_schema.getColumn(name, null);
-		if ( col != null ) {
-			m_values[col.ordinal()] = null;
-		}
-		
-		return this;
-	}
-	
-	public int getInt(String name, int defValue) {
-		Object value = get(name, null);
-		return value != null ? DataUtils.asInt(value) : defValue;
-	}
-	
-	public long getLong(String name, long defValue) {
-		Object value = get(name, null);
-		return value != null ? DataUtils.asLong(value) : defValue;
-	}
-	
-	public double getDouble(String name, double defValue) {
-		Object value = get(name, null);
-		return value != null ? DataUtils.asDouble(value) : defValue;
-	}
-	
-	public boolean getBoolean(String name, boolean defValue) {
-		Object value = get(name, null);
-		return value != null ? DataUtils.asBoolean(value) : defValue;
-	}
-	
-	public String getString(String name) {
-		Object v = get(name);
-		return v != null ? v.toString() : null;
+		Arrays.fill(m_values, null);
 	}
 	
 	/**
@@ -313,7 +222,7 @@ System.err.println("OOOOOOOVVVVEEEERRRRR");
 	 */
 	public DefaultRecord duplicate() {
 		DefaultRecord copy = DefaultRecord.of(m_schema);
-		copy.set(this, true);
+		copy.set(this);
 		
 		return copy;
 	}
@@ -334,9 +243,6 @@ System.err.println("OOOOOOOVVVVEEEERRRRR");
 	@Override
 	public String toString() {
 		Stream<String> colNameStream = m_schema.getColumnNameAll().stream();
-		if ( m_overflow != null ) {
-			colNameStream = Stream.concat(colNameStream, m_overflow.keySet().stream());
-		}
 		return colNameStream
 					.map(n -> {
 						Object v = get(n);

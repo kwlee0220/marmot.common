@@ -5,11 +5,8 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.stream.IntStream;
 
-import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Geometry;
 
 import marmot.proto.RecordProto;
@@ -37,7 +34,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	}
 	
 	public default boolean existsColumn(String name) {
-		return getRecordSchema().getColumn(name, null) != null;
+		return getRecordSchema().getColumnOrDefault(name, null) != null;
 	}
 
 	/**
@@ -54,18 +51,9 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 
 	 * @param name	컬럼이름.
 	 * @return 컬럼 값.
-	 * @throws NoSuchElementException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우.
+	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우.
 	 */
-	public Object get(String name);
-
-	/**
-	 * 컬럼이름에 해당하는 <p>
-	 * 
-	 * @param name		컬럼이름.
-	 * @param defValue	이름에 해당하는 컬럼이 존재하지 않는 경우 반환될 값.
-	 * @return 컬럼 값.
-	 */
-	public Object get(String name, Object defValue);
+	public Object get(String name) throws ColumnNotFoundException;
 	
 	/**
 	 * 레코드의 모든 컬럼 값들을 리스트 형태로 반환한다.
@@ -88,13 +76,14 @@ public interface Record extends PBSerializable<RecordProto> {
 	
 	/**
 	 * 이름에 해당하는 컬럼 값을 변경시킨다.
-	 * 만일 주어진 이름에 해당하는 컬럼이 없는 경우는 overflow로 저장된다.
+	 * 만일 주어진 이름에 해당하는 컬럼이 없는 경우는 {@link ColumnNotFoundException} 예외를 발생시킨다.
 	 * 
 	 * @param name	컬럼 이름.
 	 * @param value	컬럼 값.
 	 * @return	갱신된 레코드 객체.
+	 * @throws ColumnNotFoundException	이름에 해당하는 컬럼이 존재하지 않는 경우.
 	 */
-	public Record set(String name, Object value);
+	public Record set(String name, Object value) throws ColumnNotFoundException;
 	
 	/**
 	 * 순번에 해당하는 컬럼 값을 변경시킨다.
@@ -102,7 +91,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * @param idx	컬럼 순번.
 	 * @param value	컬럼 값.
 	 * @return	갱신된 레코드 객체.
-	 * @throws IndexOutOfBoundsException	컬럼 순번이 유효하지 않은 경우.
+	 * @throws ColumnNotFoundException	컬럼 순번이 유효하지 않은 경우.
 	 */
 	public Record set(int idx, Object value);
 	
@@ -110,14 +99,11 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 주어진 레코드({@code src})의 모든 컬럼들을 복사해 온다.
 	 * src 레코드에 정의된 모든 컬럼 값들 중에서 본 레코드의 동일 이름의 컬럼이 존재하는 경우
 	 * 해당 레코드 값으로 복사한다.
-	 * 만일 src 레코드에 overflow 컬럼이 존재하는 경우는 {@code copyOverflow} 인자에 따라
-	 * {@code true}인 경우는 복사하고, 그렇지 않은 경우는 복사하지 않는다.
 	 * 
 	 * @param src	값을 복사해 올 대상 레코드.
-	 * @param copyOverflow	src 레코드에 overflow column에 대한 복사 여부.
 	 * @return	갱신된 레코드 객체.
 	 */
-	public Record set(Record src, boolean copyOverflow);
+	public Record set(Record src);
 	
 	/**
 	 * 맵 객체를 이용하여 레코드 컬럼 값을 설정한다.
@@ -158,8 +144,6 @@ public interface Record extends PBSerializable<RecordProto> {
 		return setAll(start, Arrays.asList(values));
 	}
 	
-	public void removeOverflow(String name);
-	
 	public void clear();
 	
 	/**
@@ -172,86 +156,67 @@ public interface Record extends PBSerializable<RecordProto> {
 	public default int getInt(int idx) {
 		return DataUtils.asInt(get(idx));
 	}
-	
-	public default int getInt(String name, int defValue) {
-		Object value = get(name);
-		return value != null ? DataUtils.asInt(value) : defValue;
+	public default int getInt(String name) {
+		return DataUtils.asInt(get(name));
 	}
 	
 	public default long getLong(int idx) {
 		return DataUtils.asLong(get(idx));
 	}
-	
-	public default long getLong(String name, long defValue) {
-		Object value = get(name);
-		return value != null ? DataUtils.asLong(value) : defValue;
+	public default long getLong(String name) {
+		return DataUtils.asLong(get(name));
 	}
 	
 	public default short getShort(int idx) {
 		return DataUtils.asShort(get(idx));
 	}
-	
-	public default short getShort(String name, short defValue) {
-		Object value = get(name);
-		return value != null ? DataUtils.asShort(value) : defValue;
-	}
-	
-	public default double getDouble(String name, double defValue) {
-		Object value = get(name);
-		return value != null ? DataUtils.asDouble(value) : defValue;
+	public default short getShort(String name) {
+		return DataUtils.asShort(get(name));
 	}
 	
 	public default double getDouble(int idx) {
 		return DataUtils.asDouble(get(idx));
 	}
-	
-	public default float getFloat(String name, float defValue) {
-		Object value = get(name);
-		return value != null ? DataUtils.asFloat(value) : defValue;
+	public default double getDouble(String name) {
+		return DataUtils.asDouble(get(name));
 	}
 	
 	public default float getFloat(int idx) {
 		return DataUtils.asFloat(get(idx));
 	}
-	
-	public default boolean getBoolean(String name, boolean defValue) {
-		Object value = get(name);
-		return value != null ? DataUtils.asBoolean(value) : defValue;
+	public default float getFloat(String name) {
+		return DataUtils.asFloat(get(name));
 	}
+
 	public default boolean getBoolean(int idx) {
 		return DataUtils.asBoolean(get(idx));
+	}
+	public default boolean getBoolean(String name, boolean defValue) {
+		return DataUtils.asBoolean(get(name));
 	}
 	
 	public default String getString(int idx) {
 		Object v = get(idx);
 		return v != null ? v.toString() : null;
 	}
-	
 	public default String getString(String name) {
 		Object v = get(name);
 		return v != null ? v.toString() : null;
 	}
 	
-	public default String getString(String name, String defValue) {
-		Object v = get(name, defValue);
-		return v != null ? v.toString() : defValue;
-	}
-	
 	public default byte getByte(int idx) {
 		return DataUtils.asByte(get(idx));
 	}
-	
-	public default byte getByte(String name, byte defValue) {
-		Object value = get(name);
-		return value != null ? DataUtils.asByte(value) : defValue;
+	public default byte getByte(String name) {
+		return DataUtils.asByte(get(name));
 	}
 	
 	public default byte[] getBinary(int idx) {
-		Preconditions.checkArgument(idx >= 0 && idx < getColumnCount(),
-									"invalid column index, idx=" + idx);
-		
 		Object value = get(idx);
-		if ( value instanceof byte[] ) {
+		if ( value == null ) {
+			return null;
+		}
+		else if ( value instanceof byte[] ) {
 			return (byte[])value;
 		}
 		else {
@@ -262,8 +227,6 @@ public interface Record extends PBSerializable<RecordProto> {
 	}
 	
 	public default byte[] getBinary(String name) {
-		Objects.requireNonNull(name, "column name is null");
-		
 		Object value = get(name);
 		if ( value != null ) {
 			if ( value instanceof byte[] ) {
@@ -275,30 +238,21 @@ public interface Record extends PBSerializable<RecordProto> {
 				throw new IllegalArgumentException(msg);
 			}
 		}
-		else if ( existsColumn(name) ) {
-			return null;
-		}
 		else {
-			String msg = String.format("unknown column name: '%s'", name);
-			throw new IllegalArgumentException(msg);
+			return null;
 		}
 	}
 	
 	public default Geometry getGeometry(int idx) {
-		Object v = get(idx);
-		return v != null ? (Geometry)v : null;
+		return (Geometry)get(idx);
 	}
-	
 	public default Geometry getGeometry(String name) {
-		Object v = get(name);
-		return v != null ? (Geometry)v : null;
+		return (Geometry)get(name);
 	}
 	
 	public default LocalDateTime getDateTime(int idx) {
-		Object v = get(idx);
-		return v != null ? (LocalDateTime)v : null;
+		return (LocalDateTime)get(idx);
 	}
-	
 	public default LocalDateTime getDateTime(String name) {
 		Object v = get(name);
 		return v != null ? (LocalDateTime)v : null;

@@ -28,7 +28,7 @@ public class TransformedRecordSet extends AbstractRecordSet {
 	
 	public TransformedRecordSet(RecordSet input, RecordSchema outSchema,
 								Function<Record,Record> transform) {
-		this(input, outSchema, (ir,or) -> or.set(transform.apply(ir), true));
+		this(input, outSchema, (ir,or) -> or.set(transform.apply(ir)));
 	}
 	
 	public TransformedRecordSet(RecordSet input, RecordSchema outSchema,

@@ -60,7 +60,7 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 		checkNotClosed();
 		
 		if ( m_peeked != null ) {
-			boolean ret = m_peeked.ifPresent(r -> output.set(r, true)).isPresent();
+			boolean ret = m_peeked.ifPresent(r -> output.set(r)).isPresent();
 			m_peeked = null;
 			
 			return ret;
