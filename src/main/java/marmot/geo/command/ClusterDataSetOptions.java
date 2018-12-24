@@ -43,6 +43,13 @@ public class ClusterDataSetOptions {
 		return this;
 	}
 	
+	public ClusterDataSetOptions sampleRatio(double ratio) {
+		Preconditions.checkArgument(ratio > 0, "invalid sample_ratio: value=" + ratio);
+		
+		m_sampleRatio = FOption.of(ratio);
+		return this;
+	}
+	
 	public FOption<Double> blockFillRatio() {
 		return m_blockFillRatio;
 	}
@@ -53,6 +60,13 @@ public class ClusterDataSetOptions {
 		}
 		
 		m_blockFillRatio = ratio;
+		return this;
+	}
+	
+	public ClusterDataSetOptions blockFillRatio(double ratio) {
+		Preconditions.checkArgument(ratio > 0, "invalid block_fill_ratio: value=" + ratio);
+		
+		m_blockFillRatio = FOption.of(ratio);
 		return this;
 	}
 	

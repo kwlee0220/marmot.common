@@ -19,6 +19,7 @@ import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import marmot.command.ImportParameters;
 import marmot.proto.optor.OperatorProto;
 import marmot.rset.RecordSets;
 import utils.Throwables;
@@ -55,7 +56,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 		}
 		
 		try {
-			String dsId = m_params.getDatasetId();
+			String dsId = m_params.getDataSetId();
 			
 			FOption<Plan> importPlan = loadImportPlan(marmot)
 											.map(this::adjustImportPlan);
@@ -84,7 +85,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				ds = marmot.createDataSet(dsId, outSchema, opts);
 			}
 			else {
-				ds = marmot.getDataSet(m_params.getDatasetId());
+				ds = marmot.getDataSet(m_params.getDataSetId());
 			}
 
 			if ( importPlan.isPresent() ) {
@@ -106,7 +107,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				break;
 			default:
 				plan = plan.toBuilder()
-							.store(m_params.getDatasetId())
+							.store(m_params.getDataSetId())
 							.build();
 				break;
 		}

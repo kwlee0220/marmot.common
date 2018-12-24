@@ -12,21 +12,25 @@ import org.apache.commons.csv.QuoteMode;
 
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.control.Option;
 import marmot.MarmotInternalException;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import utils.CSV;
+import utils.func.FOption;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
+@Command(description="CSV parsing parameters")
 public class CsvParameters {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	
 	private CSVFormat m_format = CSVFormat.DEFAULT.withQuote(null).withIgnoreSurroundingSpaces();
-	private Option<Charset> m_charset = Option.none();
+	private FOption<Charset> m_charset = FOption.empty();
 	private boolean m_headerFirst = false;
-	private Option<String> m_pointCols = Option.none();
-	private Option<String> m_csvSrid = Option.none();
+	private FOption<String> m_pointCols = FOption.empty();
+	private FOption<String> m_csvSrid = FOption.empty();
 	private boolean m_tiger = false;
 	
 	public static CsvParameters create() {
@@ -44,25 +48,35 @@ public class CsvParameters {
 	public Charset charset() {
 		return m_charset.getOrElse(DEFAULT_CHARSET);
 	}
+
+	@Option(names={"-charset"}, paramLabel="charset-string",
+			description={"Character encoding of the target CSV file"})
+	public CsvParameters charset(String charset) {
+		m_charset = FOption.ofNullable(charset)
+							.map(Charset::forName);
+		return this;
+	}
 	
 	public CsvParameters charset(Charset charset) {
-		m_charset = Option.of(charset);
+		m_charset = FOption.ofNullable(charset);
 		return this;
 	}
 	
 	public char delimiter() {
 		return m_format.getDelimiter();
 	}
-	
+
+	@Option(names={"-delim"}, paramLabel="char", description={"delimiter for CSV file"})
 	public CsvParameters delimiter(Character delim) {
 		m_format = m_format.withDelimiter(delim);
 		return this;
 	}
 	
-	public Option<Character> quote() {
-		return Option.of(m_format.getQuoteCharacter());
+	public FOption<Character> quote() {
+		return FOption.ofNullable(m_format.getQuoteCharacter());
 	}
-	
+
+	@Option(names={"-quote"}, paramLabel="char", description={"quote character for CSV file"})
 	public CsvParameters quote(char quote) {
 		m_format = m_format.withQuote(quote).withQuoteMode(QuoteMode.MINIMAL);
 		return this;
@@ -76,7 +90,8 @@ public class CsvParameters {
 	public boolean headerFirst() {
 		return m_headerFirst;
 	}
-	
+
+	@Option(names={"-header_first"}, description="consider the first line as header")
 	public CsvParameters headerFirst(boolean flag) {
 		m_headerFirst = flag;
 		return this;
@@ -85,39 +100,48 @@ public class CsvParameters {
 	public boolean tiger() {
 		return m_tiger;
 	}
-	
+
+	@Option(names={"-tiger"}, description="use the tiger format")
 	public CsvParameters tiger(boolean flag) {
 		m_tiger = flag;
 		return this;
 	}
-	
-	public CsvParameters header(String... header) {
-		m_format = m_format.withHeader(header);
+
+	@Option(names={"-header"}, paramLabel="column_list", description={"header field list"})
+	public CsvParameters header(String header) {
+		Objects.requireNonNull(header, "CSV header");
+		
+		String[] cols = CSV.parseAsArray(header, ',', '\\');
+		m_format = m_format.withHeader(cols);
 		return this;
 	}
-	
+
+	@Option(names={"-null_string"}, paramLabel="string",
+			description="null string for column value")
 	public CsvParameters nullString(String str) {
 		m_format = m_format.withNullString(str);
 		return this;
 	}
-	
+
+	@Option(names={"-trim_field"}, description="ignore surrouding spaces")
 	public CsvParameters trimField(boolean flag) {
 		m_format = m_format.withTrim(flag);
 		return this;
 	}
-	
+
+	@Option(names={"-point_col"}, paramLabel="xy-columns", description="X,Y columns for point")
 	public CsvParameters pointColumn(String pointCols) {
 		Objects.requireNonNull(pointCols, "Point columns are null");
 		
-		m_pointCols = Option.of(pointCols);
+		m_pointCols = FOption.ofNullable(pointCols);
 		return this;
 	}
 	
-	public Option<Tuple2<String,String>> pointColumn() {
+	public FOption<Tuple2<String,String>> pointColumn() {
 		return m_pointCols.map(cols -> {
 			try {
 				CSVFormat format = CSVFormat.DEFAULT.withDelimiter(delimiter());
-				quote().forEach(format::withQuote);
+				quote().ifPresent(format::withQuote);
 				CSVRecord rec = format.parse(new StringReader(cols))
 										.getRecords()
 										.get(0);
@@ -134,13 +158,14 @@ public class CsvParameters {
 			}
 		});
 	}
-	
+
+	@Option(names={"-csv_srid"}, paramLabel="EPSG-code", description="EPSG code for input CSV file")
 	public CsvParameters csvSrid(String srid) {
-		m_csvSrid = Option.of(srid);
+		m_csvSrid = FOption.ofNullable(srid);
 		return this;
 	}
 	
-	public Option<String> csvSrid() {
+	public FOption<String> csvSrid() {
 		return m_csvSrid;
 	}
 	

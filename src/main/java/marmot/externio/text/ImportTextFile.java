@@ -6,8 +6,8 @@ import java.io.IOException;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.RecordSet;
+import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
-import marmot.externio.ImportParameters;
 import marmot.support.MetaPlanLoader;
 import utils.func.FOption;
 

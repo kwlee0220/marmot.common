@@ -14,8 +14,8 @@ import marmot.PlanBuilder;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
-import marmot.externio.ImportParameters;
 import marmot.support.MetaPlanLoader;
 import utils.CommandLine;
 import utils.StopWatch;
@@ -79,7 +79,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	}
 	
 	private FOption<Plan> getPrePlan() {
-		FOption<String> osrcSrid = m_gjsonParams.sourceSrid();
+		FOption<String> osrcSrid = m_gjsonParams.geoJsonSrid();
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
 		if ( osrcSrid.isPresent() ) {
 			String srcSrid = osrcSrid.get();
@@ -188,15 +188,16 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		
 		StopWatch watch = StopWatch.start();
 		
-		ImportParameters params = ImportParameters.create()
-												.setDatasetId(dsId)
-												.setGeometryColumnInfo(geomCol, srid)
-												.setBlockSize(blkSize)
-												.setReportInterval(reportInterval)
-												.setForce(force);
+		ImportParameters params = new ImportParameters();
+		params.setDataSetId(dsId);
+		params.setGeometryColumnInfo(geomCol, srid);
+		params.setBlockSize(blkSize);
+		params.setReportInterval(reportInterval);
+		params.setForce(force);
+		
 		GeoJsonParameters gjsonParams = GeoJsonParameters.create()
 												.charset(cs);
-		srcSrid.ifPresent(gjsonParams::sourceSrid);
+		srcSrid.ifPresent(gjsonParams::geoJsonSrid);
 		
 		ImportIntoDataSet importFile = ImportGeoJson.from(file, gjsonParams, params);
 		importFile.getProgressObservable()

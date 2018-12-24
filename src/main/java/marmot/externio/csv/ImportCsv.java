@@ -13,10 +13,9 @@ import marmot.Plan;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
-import marmot.externio.ImportParameters;
 import marmot.support.MetaPlanLoader;
-import utils.CSV;
 import utils.CommandLine;
 import utils.StopWatch;
 import utils.Throwables;
@@ -32,19 +31,17 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	
 	protected abstract FOption<Plan> loadMetaPlan();
 	
-	public static ImportCsv from(File file, CsvParameters csvParams,
-											ImportParameters importParams) {
+	public static ImportCsv from(File file, CsvParameters csvParams, ImportParameters importParams) {
 		return new ImportCsvFileIntoDataSet(file, csvParams, importParams);
 	}
 	
 	public static ImportCsv from(BufferedReader reader, CsvParameters csvParams,
-											ImportParameters importParams) {
+								ImportParameters importParams) {
 		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvParams, importParams);
 	}
 	
-	public static ImportCsv from(BufferedReader reader, Plan plan,
-											CsvParameters csvParams,
-											ImportParameters importParams) {
+	public static ImportCsv from(BufferedReader reader, Plan plan, CsvParameters csvParams,
+								ImportParameters importParams) {
 		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvParams,
 												importParams);
 	}
@@ -79,7 +76,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	}
 
 	private FOption<Plan> getToPointPlan() {
-		if ( !m_csvParams.pointColumn().isDefined()
+		if ( !m_csvParams.pointColumn().isPresent()
 			|| !m_params.getGeometryColumnInfo().isPresent() ) {
 			return FOption.empty();
 		}
@@ -94,7 +91,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 															ptCols._1, ptCols._2);
 		builder = builder.project(prjExpr);
 			
-		if ( m_csvParams.csvSrid().isDefined() ) {
+		if ( m_csvParams.csvSrid().isPresent() ) {
 			String srcSrid = m_csvParams.csvSrid().get();
 			if ( !srcSrid.equals(info.srid()) ) {
 				builder = builder.transformCrs(info.name(), srcSrid, info.srid());
@@ -166,8 +163,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		FOption<Character> delim = cl.getOptionString("delim").map(s -> s.charAt(0));
 		
 		FOption<Character> quote = cl.getOptionString("quote").map(s -> s.charAt(0));
-		FOption<String[]> header = cl.getOptionString("header")
-									.map(s -> CSV.parseAsArray(s, ',', '\\'));
+		FOption<String> header = cl.getOptionString("header");
 		boolean headerFirst = cl.hasOption("header_first");
 		boolean trimField = cl.hasOption("trim_field");
 		FOption<String> nullString = cl.getOptionString("null_string");
@@ -189,12 +185,12 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		
 		StopWatch watch = StopWatch.start();
 		
-		ImportParameters importParams = ImportParameters.create()
-														.setDatasetId(dsId)
-														.setBlockSize(blkSize)
-														.setReportInterval(reportInterval)
-														.setForce(force)
-														.setAppend(append);
+		ImportParameters importParams = new ImportParameters();
+		importParams.setDataSetId(dsId);
+		importParams.setBlockSize(blkSize);
+		importParams.setReportInterval(reportInterval);
+		importParams.setForce(force);
+		importParams.setAppend(append);
 		if ( geomCol != null && srid != null ) {
 			importParams.setGeometryColumnInfo(geomCol, srid);
 		}

@@ -4,6 +4,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
@@ -17,7 +19,7 @@ import marmot.RecordSet;
 public class ExportAsGeoJson {
 	private final String m_dsId;
 	private boolean m_prettyPrinter = false;
-	private boolean m_wgs84 = false;
+	@Nullable private String m_gjsonSrid;
 	
 	public ExportAsGeoJson(String dsId) {
 		Objects.requireNonNull(dsId, "dataset id is null");
@@ -30,8 +32,8 @@ public class ExportAsGeoJson {
 		return this;
 	}
 	
-	public ExportAsGeoJson wgs84(boolean flags) {
-		m_wgs84 = flags;
+	public ExportAsGeoJson setGeoJSONSrid(String srid) {
+		m_gjsonSrid = srid;
 		return this;
 	}
 	
@@ -49,8 +51,8 @@ public class ExportAsGeoJson {
 	private RecordSet locateRecordSet(MarmotRuntime marmot, GeometryColumnInfo info) {
 		PlanBuilder builder = marmot.planBuilder("export_geojson")
 										.load(m_dsId);
-		if ( m_wgs84 && !"EPSG:4326".equals(info.srid()) ) {
-			builder.transformCrs(info.name(), info.srid(), "EPSG:4326");
+		if ( m_gjsonSrid != null && !m_gjsonSrid.equals(info.srid()) ) {
+			builder.transformCrs(info.name(), info.srid(), m_gjsonSrid);
 		}
 		
 		return marmot.executeLocally(builder.build());

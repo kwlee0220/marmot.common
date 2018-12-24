@@ -1,8 +1,5 @@
 package marmot;
 
-import java.io.InvalidObjectException;
-import java.io.ObjectInputStream;
-import java.io.Serializable;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -14,9 +11,7 @@ import marmot.support.PBSerializable;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public final class GeometryColumnInfo implements Serializable,
-											PBSerializable<GeometryColumnInfoProto> {
-	private static final long serialVersionUID = 792377915715871408L;
+public final class GeometryColumnInfo implements PBSerializable<GeometryColumnInfoProto> {
 	private static final Pattern PATTERN = Pattern.compile("(\\S+)\\s*\\(\\s*(\\S+)\\s*\\)");
 	
 	private final String m_name;
@@ -75,30 +70,30 @@ public final class GeometryColumnInfo implements Serializable,
 	@Override
 	public GeometryColumnInfoProto toProto() {
 		return GeometryColumnInfoProto.newBuilder()
-								.setName(m_name)
-								.setSrid(m_srid)
-								.build();
+									.setName(m_name)
+									.setSrid(m_srid)
+									.build();
 	}
 	
-	private Object writeReplace() {
-		return new SerializationProxy(this);
-	}
-	
-	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
-		throw new InvalidObjectException("Use Serialization Proxy instead.");
-	}
-
-	private static class SerializationProxy implements Serializable {
-		private static final long serialVersionUID = -9086142636497979939L;
-		
-		private final GeometryColumnInfoProto m_proto;
-		
-		private SerializationProxy(GeometryColumnInfo info) {
-			m_proto = info.toProto();
-		}
-		
-		private Object readResolve() {
-			return GeometryColumnInfo.fromProto(m_proto);
-		}
-	}
+//	private Object writeReplace() {
+//		return new SerializationProxy(this);
+//	}
+//	
+//	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+//		throw new InvalidObjectException("Use Serialization Proxy instead.");
+//	}
+//
+//	private static class SerializationProxy implements Serializable {
+//		private static final long serialVersionUID = -9086142636497979939L;
+//		
+//		private final GeometryColumnInfoProto m_proto;
+//		
+//		private SerializationProxy(GeometryColumnInfo info) {
+//			m_proto = info.toProto();
+//		}
+//		
+//		private Object readResolve() {
+//			return GeometryColumnInfo.fromProto(m_proto);
+//		}
+//	}
 }

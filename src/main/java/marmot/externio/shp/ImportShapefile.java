@@ -14,8 +14,8 @@ import marmot.PlanBuilder;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
-import marmot.externio.ImportParameters;
 import marmot.rset.SingleThreadSuppliedRecordSet;
 import marmot.support.MetaPlanLoader;
 import utils.CommandLine;
@@ -40,7 +40,8 @@ public class ImportShapefile extends ImportIntoDataSet {
 	private ImportShapefile(File start, ShapefileParameters shpParams,
 							ImportParameters importParams) {
 		super(importParams);
-		Preconditions.checkArgument(importParams.getGeometryColumnInfo().isPresent());
+		Preconditions.checkArgument(importParams.getGeometryColumnInfo().isPresent(),
+									"GeometryColumnInfo is missing");
 		
 		m_start = start;
 		m_shpParams = shpParams;
@@ -116,13 +117,14 @@ public class ImportShapefile extends ImportIntoDataSet {
 		StopWatch watch = StopWatch.start();
 		
 		
-		ImportParameters params = ImportParameters.create()
-													.setDatasetId(dsId)
-													.setGeometryColumnInfo("the_geom", srid)
-													.setBlockSize(blkSize)
-													.setReportInterval(reportInterval)
-													.setForce(force)
-													.setAppend(append);
+		ImportParameters params = new ImportParameters();
+		params.setDataSetId(dsId);
+		params.setGeometryColumnInfo("the_geom", srid);
+		params.setBlockSize(blkSize);
+		params.setReportInterval(reportInterval);
+		params.setForce(force);
+		params.setAppend(append);
+		
 		ShapefileParameters shpParams = ShapefileParameters.create();
 		charset.ifPresent(shpParams::charset);
 		shpSrid.ifPresent(shpParams::shpSrid);

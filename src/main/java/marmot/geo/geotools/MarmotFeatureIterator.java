@@ -57,7 +57,9 @@ public class MarmotFeatureIterator implements SimpleFeatureIterator {
 		}
 		
 		++m_count;
-		return m_featBuilder.buildFeature(m_idPrefix + m_count);
+		SimpleFeature feature = m_featBuilder.buildFeature(m_idPrefix + m_count);
+//		System.out.println(feature);
+		return feature;
 	}
 
 	@Override

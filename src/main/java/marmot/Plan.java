@@ -28,6 +28,12 @@ public class Plan implements PBSerializable<PlanProto> {
 		return m_proto.getOperatorsCount();
 	}
 	
+	public Plan setName(String name) {
+		return new Plan(m_proto.toBuilder()
+								.setName(name)
+								.build());
+	}
+	
 	public List<OperatorProto> getOperatorProtos() {
 		return m_proto.getOperatorsList();
 	}

@@ -36,7 +36,7 @@ expand(col_decls, init=[]) ::= <<
 >>
 
 define_column(col_decl, init=[]) ::= <<
-{ "expand1": {
+{ "defineColumn": {
     "columnDecl": "<col_decl>"<if(init)>,
     "initialValue": { "expr": "<init>" }
     <endif>
@@ -263,7 +263,7 @@ match_spatially(param_dsid, rel="intersects", negated=[], geom_col="the_geom") :
 }
 >>
 
-intersection(left_geomcol, right_geomcol, out_geomcol) ::= <<
+intersection(left_geomcol, right_geomcol, out_geomcol="the_geom") ::= <<
 { "binarySpatialIntersection": {
   	"leftGeometryColumn": "<left_geomcol>",
   	"rightGeometryColumn": "<right_geomcol>",
@@ -272,25 +272,25 @@ intersection(left_geomcol, right_geomcol, out_geomcol) ::= <<
 }
 >>
 
-assign_gridcell(dsid, width, height) ::= <<
+assign_gridcell(dsid, cell_width, cell_height) ::= <<
 { "assignSquareGridCell": {
     "grid": {
       "dataset": "<dsid>",
-      "cellSize": { "width": <width>, "height": <height> }
+      "cellSize": { "width": <cell_width>, "height": <cell_height> }
     },
     "geometryColumn": "the_geom",
     "ignoreOutside": true
   }
 }
 >>
-assign_gridcell_bounds(tlx, tly, brx, bry, width, height) ::= <<
+assign_gridcell_bounds(tlx, tly, brx, bry, cell_width, cell_height) ::= <<
 { "assignSquareGridCell": {
     "grid": {
       "bounds": {
         "tl": { "x": <tlx>, "y": <tly> },
         "br": { "x": <brx>, "y": <bry> }
       }
-      "cellSize": { "width": <width>, "height": <height> }
+      "cellSize": { "width": <cell_width>, "height": <cell_height> }
     },
     "geometryColumn": "the_geom",
     "ignoreOutside": true

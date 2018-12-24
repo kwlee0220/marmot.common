@@ -15,7 +15,7 @@ public class ExportRecordSetAsShapefile extends ExportAsShapefile {
 	private final String m_srid;
 	
 	public ExportRecordSetAsShapefile(RecordSet source, String srid,
-							String outputDir, ShapefileParameters params) {
+										String outputDir, ShapefileParameters params) {
 		super(outputDir, params);
 		
 		Objects.requireNonNull(source, "source RecordSet is null");
