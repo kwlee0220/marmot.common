@@ -20,7 +20,7 @@ import marmot.geo.geotools.GeoToolsUtils;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.rset.RecordSets;
 import utils.async.CancellableWork;
-import utils.async.ExecutableExecution;
+import utils.async.AbstractThreadedExecution;
 import utils.async.ProgressiveExecution;
 
 /**
@@ -66,7 +66,7 @@ class ExportAsShapefile {
 		return exec;
 	}
 	
-	private class ExportExecution extends ExecutableExecution<Long>
+	private class ExportExecution extends AbstractThreadedExecution<Long>
 									implements ProgressiveExecution<Long,Long>, CancellableWork {
 		private final RecordSet m_source;
 		private final String m_srid;

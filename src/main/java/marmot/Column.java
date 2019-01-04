@@ -17,12 +17,16 @@ public final class Column implements PBSerializable<ColumnProto> {
 	private final short m_ordinal;
 	
 	public Column(String name, DataType type, int ordinal) {
+		Objects.requireNonNull(name, "column name");
+		
 		m_name = name;
 		m_type = type;
 		m_ordinal = (short)ordinal;
 	}
 
 	public Column(String name, DataType type) {
+		Objects.requireNonNull(name, "column name");
+		
 		m_name = name;
 		m_type = type;
 		m_ordinal = -1;

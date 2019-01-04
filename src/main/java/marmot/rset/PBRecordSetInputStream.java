@@ -16,7 +16,7 @@ import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.support.DefaultRecord;
-import utils.async.ExecutableExecution;
+import utils.async.AbstractThreadedExecution;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 
@@ -56,7 +56,7 @@ public class PBRecordSetInputStream extends InputStream {
 	
 	@Override
 	public void close() throws IOException {
-		m_pump.cancel();
+		m_pump.cancel(true);
 		m_pipe.close();
 	}
 
@@ -70,7 +70,7 @@ public class PBRecordSetInputStream extends InputStream {
 		return m_pipe.read(b, off, len);
 	}
 	
-	private static class RecordSetPump extends ExecutableExecution<Void> {
+	private static class RecordSetPump extends AbstractThreadedExecution<Void> {
 		private final RecordSet m_rset;
 		private final OutputStream m_os;
 		

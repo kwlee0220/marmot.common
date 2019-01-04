@@ -9,7 +9,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
@@ -67,6 +66,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * @return	이름에 해당하는 컬럼이 존재하는 경우는 true, 그렇지 않은 경우는 false
 	 */
 	public boolean existsColumn(String name) {
+		Objects.requireNonNull(name, "column name");
+		
 		return m_columns.containsKey(name.toLowerCase());
 	}
 	
@@ -78,6 +79,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우
 	 */
 	public Column getColumn(String name) {
+		Objects.requireNonNull(name, "column name");
+		
 		Column col = m_columns.get(name.toLowerCase());
 		if ( col == null ) {
 			throw new ColumnNotFoundException("name=" + name + ", schema=" + m_columns.keySet());
@@ -96,7 +99,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * @param defValue	컬럼이 존재하지 않는 경우 반환될 기본 컬럼 객체
 	 */
 	public Column getColumnOrDefault(String name, Column defValue) {
-		Objects.requireNonNull(name, "column name is null");
+		Objects.requireNonNull(name, "column name");
 		
 		Column col = m_columns.get(name.toLowerCase());
 		return col != null ? col : defValue;
@@ -144,10 +147,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		return FStream.of(m_columns.values());
 	}
 	
-	public Stream<Column> columnStream() {
-		return m_columns.values().stream();
-	}
-	
 	public RecordSchema duplicate() {
 		return RecordSchema.builder()
 							.addColumnAll(getColumnAll())
@@ -159,10 +158,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		for ( int i =0; it.hasNext(); ++i ) {
 			accessor.access(i, it.next());
 		}
-	}
-	
-	public Stream<Column> stream() {
-		return m_columns.values().stream();
 	}
 
 	public static RecordSchema fromProto(RecordSchemaProto proto) {

@@ -1,13 +1,13 @@
 package marmot;
 
-import utils.async.ExecutableExecution;
+import utils.async.AbstractThreadedExecution;
 
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public abstract class PlanExecution extends ExecutableExecution<Void> {
+public abstract class PlanExecution extends AbstractThreadedExecution<Void> {
 	public abstract Plan getPlan();
 	public abstract RecordSchema getRecordSchema();
 	
