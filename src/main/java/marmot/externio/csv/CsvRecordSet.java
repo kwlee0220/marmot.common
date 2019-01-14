@@ -68,8 +68,6 @@ public class CsvRecordSet extends AbstractRecordSet {
 		else {
 			RecordSchema.Builder builder = RecordSchema.builder();
 			for ( String colName: m_parser.getHeaderMap().keySet() ) {
-				colName = colName.toLowerCase();
-				
 				// marmot에서는 컬럼이름에 '.'이 들어가는 것을 허용하지 않기 때문에
 				// '.' 문자를 '_' 문제로 치환시킨다.
 				if ( colName.indexOf('.') > 0 )  {

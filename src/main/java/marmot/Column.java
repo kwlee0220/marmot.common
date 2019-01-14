@@ -12,24 +12,26 @@ import marmot.type.DataTypes;
  * @author Kang-Woo Lee (ETRI)
  */
 public final class Column implements PBSerializable<ColumnProto> {
-	private final String m_name;
+	private final ColumnName m_name;
 	private final DataType m_type;
 	private final short m_ordinal;
-	
-	public Column(String name, DataType type, int ordinal) {
+
+	public Column(String name, DataType type) {
 		Objects.requireNonNull(name, "column name");
+		Objects.requireNonNull(type, "column type");
+
+		m_name = new ColumnName(name);
+		m_type = type;
+		m_ordinal = -1;
+	}
+	
+	Column(ColumnName name, DataType type, int ordinal) {
+		Objects.requireNonNull(name, "column name");
+		Objects.requireNonNull(type, "column type");
 		
 		m_name = name;
 		m_type = type;
 		m_ordinal = (short)ordinal;
-	}
-
-	public Column(String name, DataType type) {
-		Objects.requireNonNull(name, "column name");
-		
-		m_name = name;
-		m_type = type;
-		m_ordinal = -1;
 	}
 	
 	/**
@@ -38,7 +40,7 @@ public final class Column implements PBSerializable<ColumnProto> {
 	 * @return	컬럼 이름.
 	 */
 	public String name() {
-		return m_name;
+		return m_name.get();
 	}
 	
 	/**
@@ -68,7 +70,7 @@ public final class Column implements PBSerializable<ColumnProto> {
 	
 	@Override
 	public String toString() {
-		return m_name + ":" + ((m_type != null) ?m_type.getName() : "?");
+		return m_name.get() + ":" + ((m_type != null) ?m_type.getName() : "?");
 	}
 	
 	@Override
@@ -100,7 +102,7 @@ public final class Column implements PBSerializable<ColumnProto> {
 	@Override
 	public ColumnProto toProto() {
 		return ColumnProto.newBuilder()
-							.setName(m_name)
+							.setName(m_name.get())
 							.setTypeCodeValue(m_type.getTypeCode().ordinal())
 							.build();
 	}

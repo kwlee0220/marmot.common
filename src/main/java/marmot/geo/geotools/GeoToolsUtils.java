@@ -130,13 +130,18 @@ public class GeoToolsUtils {
 									ds.getRecordSchema());
 	}
 	
+	/**
+	 * SimpleFeatureType로부터 RecordSchema 객체를 생성한다.
+	 * 
+	 * @param sfType	SimpleFeatureType 타입
+	 * @return	RecordSchema
+	 */
 	public static RecordSchema toRecordSchema(SimpleFeatureType sfType) {
 		RecordSchema.Builder builder = RecordSchema.builder();
 		for ( AttributeDescriptor desc: sfType.getAttributeDescriptors() ) {
-			String name = desc.getLocalName().toLowerCase();
 			Class<?> instCls = desc.getType().getBinding();
 			DataType attrType = DataTypes.fromInstanceClass(instCls);
-			builder.addColumn(name, attrType);
+			builder.addColumn(desc.getLocalName(), attrType);
 		}
 		
 		return builder.build();

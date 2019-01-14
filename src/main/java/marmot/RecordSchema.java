@@ -4,13 +4,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
@@ -39,24 +40,13 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public static final RecordSchema NULL = builder().build();
 	public static final RecordSchema EMPTY = builder().build();
 	
-	private final LinkedHashMap<String,Column> m_columns;
+	private final LinkedHashMap<ColumnName,Column> m_columns;
 	
-	/**
-	 * 0개의 컬럼으로 구성된 레코드 스키마를 생성한다.
-	 * <p>
-	 * 본 생성자는 시스템 내부적으로 사용하는 것으로, 본 생성자를 사용하는 것은 권장되지 않는다.
-	 * {@link RecordSchema#builder()}를 통한 레코드 스키마 생성을 권장한다.
-	 */
-	public RecordSchema() {
-		m_columns = new LinkedHashMap<>(); 
-	}
-	
-	private RecordSchema(LinkedHashMap<String,Column> columns) {
-		m_columns = FStream.of(columns.values())
-							.zipWithIndex()
-							.map(t -> new Column(t._1.name().toLowerCase(), t._1.type(), t._2))
-							.toKVFStream(Column::name)
-							.toMap(Maps.newLinkedHashMap());
+	private RecordSchema(LinkedHashMap<ColumnName,Column> columns) {
+		m_columns = new LinkedHashMap<>(columns.size());
+		for ( Map.Entry<ColumnName, Column> ent: columns.entrySet() ) {
+			m_columns.put(ent.getKey(), ent.getValue());
+		}
 	}
 	
 	/**
@@ -68,7 +58,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public boolean existsColumn(String name) {
 		Objects.requireNonNull(name, "column name");
 		
-		return m_columns.containsKey(name.toLowerCase());
+		return m_columns.containsKey(new ColumnName(name));
 	}
 	
 	/**
@@ -81,9 +71,10 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public Column getColumn(String name) {
 		Objects.requireNonNull(name, "column name");
 		
-		Column col = m_columns.get(name.toLowerCase());
+		Column col = m_columns.get(new ColumnName(name));
 		if ( col == null ) {
-			throw new ColumnNotFoundException("name=" + name + ", schema=" + m_columns.keySet());
+			throw new ColumnNotFoundException("name=" + name
+											+ ", schema=" + m_columns.keySet());
 		}
 		
 		return col;
@@ -101,7 +92,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public Column getColumnOrDefault(String name, Column defValue) {
 		Objects.requireNonNull(name, "column name");
 		
-		Column col = m_columns.get(name.toLowerCase());
+		Column col = m_columns.get(new ColumnName(name));
 		return col != null ? col : defValue;
 	}
 	
@@ -130,7 +121,9 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * @return	컬럼 이름 집합
 	 */
 	public Set<String> getColumnNameAll() {
-		return Collections.unmodifiableSet(m_columns.keySet());
+		return FStream.of(m_columns.keySet())
+						.map(ColumnName::get)
+						.toCollection(new LinkedHashSet<>());
 	}
 	
 	/**
@@ -241,14 +234,10 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	}
 	
 	public static class Builder {
-		private LinkedHashMap<String, Column> m_columns;
+		private LinkedHashMap<ColumnName, Column> m_columns;
 		
 		private Builder() {
 			m_columns = Maps.newLinkedHashMap();
-		}
-		
-		private Builder(LinkedHashMap<String,Column> columns) {
-			m_columns = columns;
 		}
 		
 		public int size() {
@@ -260,59 +249,62 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		}
 		
 		public boolean existsColumn(String name) {
-			Preconditions.checkArgument(name != null, "name should not be null");
+			Objects.requireNonNull(name, "column name");
 			
-			return m_columns.containsKey(name);
+			return m_columns.containsKey(new ColumnName(name));
 		}
 		
 		public Builder addColumn(String name, DataType type) {
-			Preconditions.checkArgument(name != null, "name should not be null");
+			Objects.requireNonNull(name, "column name");
+			Objects.requireNonNull(type, "column type");
 			
-			if ( m_columns.putIfAbsent(name, new Column(name, type, m_columns.size())) != null ) {
+			ColumnName cname = new ColumnName(name);
+			Column col = new Column(cname, type, m_columns.size());
+			if ( m_columns.putIfAbsent(cname, col) != null ) {
 				throw new IllegalArgumentException("column already exists: name=" + name);
 			}
 			return this;
 		}
 		
 		public Builder addColumn(Column col) {
-			Preconditions.checkArgument(col != null, "Column is null");
+			Objects.requireNonNull(col, "column");
 			
 			return addColumn(col.name(), col.type());
 		}
 		
 		public Builder addColumnIfAbsent(String name, DataType type) {
-			Preconditions.checkArgument(name != null, "name should not be null");
-			
-			m_columns.putIfAbsent(name, new Column(name, type, m_columns.size()));
+			Objects.requireNonNull(name, "column name");
+			Objects.requireNonNull(type, "column type");
+
+			ColumnName cname = new ColumnName(name);
+			Column col = new Column(cname, type, m_columns.size());
+			m_columns.putIfAbsent(cname, col);
 			return this;
 		}
 		
 		public Builder addOrReplaceColumn(String name, DataType type) {
 			Objects.requireNonNull(name, "column name");
 			Objects.requireNonNull(type, "column type");
+
+			ColumnName cname = new ColumnName(name);
 			
-			name = name.toLowerCase();
-			LinkedHashMap<String,Column> columns = Maps.newLinkedHashMap();
-			boolean replaced = false;
-			for ( Column col: m_columns.values() ) {
-				if ( name.equals(col.name()) ) {
-					columns.put(name, new Column(name, type));
-					replaced = true;
-				}
-				else {
-					columns.put(col.name(), col);
-				}
+			Column col = m_columns.get(cname);
+			if ( col != null ) {
+				LinkedHashMap<ColumnName, Column> old = m_columns;
+				m_columns = new LinkedHashMap<>(old.size());
+				FStream.of(old.values())
+						.map(c -> c == col ? new Column(name, type) : c)
+						.forEach(this::addColumn);
 			}
-			if ( !replaced ) {
-				columns.put(name, new Column(name, type));
+			else {
+				addColumn(name, type);
 			}
 			
-			m_columns = columns;
 			return this;
 		}
 		
 		public Builder addColumnAll(Column... columns) {
-			Preconditions.checkArgument(columns != null, "columns should not be null");
+			Objects.requireNonNull(columns, "columns");
 			
 			for ( Column col: columns ) {
 				addColumn(col.name(), col.type());
@@ -321,7 +313,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		}
 		
 		public Builder addColumnAll(Iterable<Column> columns) {
-			Preconditions.checkArgument(columns != null, "columns should not be null");
+			Objects.requireNonNull(columns, "columns");
 			
 			for ( Column col: columns ) {
 				addColumn(col.name(), col.type());
@@ -331,7 +323,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		}
 		
 		public Builder addOrReplaceColumnAll(Column... columns) {
-			Preconditions.checkArgument(columns != null, "columns should not be null");
+			Objects.requireNonNull(columns, "columns");
 			
 			for ( Column col: columns ) {
 				addOrReplaceColumn(col.name(), col.type());
@@ -340,7 +332,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		}
 		
 		public Builder addOrReplaceColumnAll(Iterable<Column> columns) {
-			Preconditions.checkArgument(columns != null, "columns should not be null");
+			Objects.requireNonNull(columns, "columns");
 			
 			for ( Column col: columns ) {
 				addOrReplaceColumn(col.name(), col.type());
@@ -351,9 +343,14 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		public Builder removeColumn(String colName) {
 			Objects.requireNonNull(colName, "column name");
 			
-			m_columns = KVFStream.of(m_columns)
-								.filterKey(k -> !k.equals(colName))
-								.toMap(new LinkedHashMap<String,Column>());
+			ColumnName key = new ColumnName(colName);
+			LinkedHashMap<ColumnName, Column> old = m_columns;
+			m_columns = new LinkedHashMap<>(old.size());
+			KVFStream.of(old)
+					.filterKey(k -> !k.equals(key))
+					.toValueStream()
+					.forEach(this::addColumn);
+			
 			return this;
 		}
 		
@@ -365,26 +362,4 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 							.collect(Collectors.joining(","));
 		}
 	}
-	
-//	private Object writeReplace() {
-//		return new SerializationProxy(this);
-//	}
-//	
-//	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
-//		throw new InvalidObjectException("Use Serialization Proxy instead.");
-//	}
-//
-//	private static class SerializationProxy implements Serializable {
-//		private static final long serialVersionUID = 3679701773697698351L;
-//		
-//		private final RecordSchemaProto m_proto;
-//		
-//		private SerializationProxy(RecordSchema mcKey) {
-//			m_proto = mcKey.toProto();
-//		}
-//		
-//		private Object readResolve() {
-//			return RecordSchema.fromProto(m_proto);
-//		}
-//	}
 }
