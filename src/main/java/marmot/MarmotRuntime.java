@@ -7,7 +7,6 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import io.vavr.control.Option;
 import utils.func.FOption;
 
 /**
@@ -255,24 +254,24 @@ public interface MarmotRuntime {
 	 */
 	public RecordSet executeLocally(Plan plan, RecordSet input);
 	
-	public Option<Record> executeToRecord(Plan plan, ExecutePlanOption... opts);
-	public default Option<Geometry> executeToGeometry(Plan plan, ExecutePlanOption... opts) {
+	public FOption<Record> executeToRecord(Plan plan, ExecutePlanOption... opts);
+	public default FOption<Geometry> executeToGeometry(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getGeometry(0));
 	}
-	public default Option<Integer> executeToInt(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<Integer> executeToInt(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getInt(0));
 	}
-	public default Option<Long> executeToLong(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<Long> executeToLong(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getLong(0));
 	}
-	public default Option<Double> executeToDouble(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<Double> executeToDouble(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getDouble(0));
 	}
-	public default Option<String> executeToString(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<String> executeToString(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getString(0));
 	}
 	@SuppressWarnings("unchecked")
-	public default <T> Option<T> executeToSingle(Plan plan, ExecutePlanOption... opts) {
+	public default <T> FOption<T> executeToSingle(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> (T)r.get(0));
 	}
 	

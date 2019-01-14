@@ -47,7 +47,7 @@ public class RecordSets {
 		return pipe;
 	}
 	
-	public static CloserAttachedRecordSet attachCloser(RecordSet rset, Runnable closer) {
+	public static RecordSet attachCloser(RecordSet rset, Runnable closer) {
 		Objects.requireNonNull(rset, "Base RecordSet");
 		Objects.requireNonNull(closer, "Closer");
 		

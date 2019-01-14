@@ -8,6 +8,7 @@ import com.vividsolutions.jts.geom.Envelope;
 import marmot.proto.service.SpatialClusterInfoProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
+import utils.UnitUtils;
 
 
 /**
@@ -73,5 +74,11 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 									.setRecordCount(m_count)
 									.setByteLength(m_length)
 									.build();
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("SpatialCluster[qkey=%s, count=%d, size=%s]", m_quadKey,
+							m_count, UnitUtils.toByteSizeString(m_length));
 	}
 }

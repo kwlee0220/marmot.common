@@ -16,7 +16,6 @@ import com.google.common.collect.Lists;
 import io.reactivex.Observer;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.control.Option;
 import io.vavr.control.Try;
 import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
@@ -58,7 +57,7 @@ public interface RecordSet extends Closeable {
 	/**
 	 * 레코드 세트의 다음번 레코드를 읽어 반환한다.
 	 * 
-	 * @return	읽은 레코드 객체.  레코드가 없는 경우는 {@link Option#none()}이 반환됨.
+	 * @return	읽은 레코드 객체.  레코드가 없는 경우는 {@code null}이 반환됨.
 	 */
 	public Record nextCopy();
 

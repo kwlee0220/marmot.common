@@ -288,7 +288,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		}
 		
 		public Builder addOrReplaceColumn(String name, DataType type) {
-			Preconditions.checkArgument(name != null, "name should not be null");
+			Objects.requireNonNull(name, "column name");
+			Objects.requireNonNull(type, "column type");
 			
 			name = name.toLowerCase();
 			LinkedHashMap<String,Column> columns = Maps.newLinkedHashMap();
