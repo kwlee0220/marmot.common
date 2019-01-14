@@ -6,10 +6,10 @@ import java.util.function.Consumer;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import io.vavr.control.Option;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
+import utils.func.FOption;
 
 /**
  * 
@@ -155,7 +155,7 @@ public interface DataSet {
 	 */
 	public RecordSet read();
 	
-	public RecordSet queryRange(Envelope range, Option<String> filterExpr);
+	public RecordSet queryRange(Envelope range, FOption<String> filterExpr);
 	
 	public default void apply(Consumer<RecordSet> consumer) {
 		try ( RecordSet rset = read() ) {
@@ -198,6 +198,6 @@ public interface DataSet {
 	public SpatialIndexInfo cluster(ClusterDataSetOptions opts);
 	
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
-//	public RecordSet readSpatialCluster(String quadKey, Option<String> filterExpr);
+//	public RecordSet readSpatialCluster(String quadKey, FOption<String> filterExpr);
 	public InputStream readRawSpatialCluster(String quadKey);
 }
