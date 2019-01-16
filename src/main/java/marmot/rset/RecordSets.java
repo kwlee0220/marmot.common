@@ -22,22 +22,11 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class RecordSets {
-	public static final RecordSet NULL = RecordSet.empty(RecordSchema.EMPTY);
+	public static final RecordSet NULL = RecordSet.empty(RecordSchema.NULL);
 	
 	private RecordSets() {
 		throw new AssertionError("Should not be called: class=" + RecordSets.class);
 	}
-	
-	
-	
-//	public static RecordSet from(RecordSchema schema, Observable<Record> records) {
-//		PipedRecordSet pipe = new PipedRecordSet(schema);
-//		records
-//			.subscribeOn(Schedulers.io())
-//			.subscribe(pipe::supply, pipe::endOfSupply, pipe::endOfSupply);
-//		
-//		return pipe;
-//	}
 	
 	public static RecordSet from(RecordSchema schema, Observable<Record> records,
 								int queueLength) {

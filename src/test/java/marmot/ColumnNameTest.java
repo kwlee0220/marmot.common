@@ -17,9 +17,9 @@ public class ColumnNameTest {
 	
 	@Test
 	public void test01() throws Exception {
-		ColumnName name1 = new ColumnName("col1");
-		ColumnName name2 = new ColumnName("COL1");
-		ColumnName name3 = new ColumnName("COL2");
+		ColumnName name1 = ColumnName.of("col1");
+		ColumnName name2 = ColumnName.of("COL1");
+		ColumnName name3 = ColumnName.of("COL2");
 		
 		Assert.assertEquals(name1, name2);
 		Assert.assertEquals(name1.hashCode(), name2.hashCode());

@@ -3,6 +3,7 @@ package marmot.optor.geo.advanced;
 import java.util.List;
 
 import utils.CSV;
+import utils.CSV;
 
 /**
  * 
@@ -13,7 +14,7 @@ public class BoxCox extends WeightFunction {
 	private final double m_lambda;
 	
 	public static BoxCox ofParameter(String paramStr) {
-		List<String> parts = CSV.parse(paramStr, ',', '\\');
+		List<String> parts = CSV.parseCsv(paramStr, ',', '\\').toList();
 		double beta = Double.parseDouble(parts.get(0));
 		double lambda = Double.parseDouble(parts.get(1));
 		

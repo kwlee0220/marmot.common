@@ -19,7 +19,7 @@ public class Interval implements Serializable {
 
 	public static final Interval EMPTY = new Interval(-1, -1);
 	
-	private final org.joda.time.Interval m_jodaInterval;
+	private transient final org.joda.time.Interval m_jodaInterval;
 	
 	public static Interval between(LocalDateTime start, LocalDateTime end) {
 		return between(DateTimeFunctions.ST_DTToMillis(start),

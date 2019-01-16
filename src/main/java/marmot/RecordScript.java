@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.mvel2.integration.VariableResolverFactory;
+import org.mvel2.integration.impl.MapVariableResolverFactory;
 
 import com.google.common.collect.Maps;
 
@@ -98,20 +99,21 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		return this;
 	}
 	
-	public void initialize(Map<String, Object> vars) {
-		m_initializer.forEach(init -> init.execute(vars));
-	}
-	
 	public void initialize(VariableResolverFactory resolverFact) {
 		m_initializer.forEach(init -> init.execute(resolverFact));
 	}
 	
-	public Object execute(Map<String, Object> vars) {
-		return m_script.execute(vars);
+	public void initialize(Map<String,Object> variables) {
+		VariableResolverFactory fact = new MapVariableResolverFactory(variables);
+		m_initializer.forEach(init -> init.execute(fact));
 	}
 	
 	public Object execute(VariableResolverFactory resolverFact) {
 		return m_script.execute(resolverFact);
+	}
+	
+	public Object execute(Map<String,Object> variables) {
+		return m_script.execute(new MapVariableResolverFactory(variables));
 	}
 
 	public static RecordScript fromProto(RecordScriptProto proto) {

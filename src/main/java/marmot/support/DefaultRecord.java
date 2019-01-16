@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import com.google.common.base.Preconditions;
 
 import marmot.Column;
+import marmot.ColumnName;
 import marmot.ColumnNotFoundException;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -72,10 +73,10 @@ public class DefaultRecord implements Record {
 	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우.
 	 */
 	@Override
-	public Object get(String name) {
+	public Object get(ColumnName name) {
 		Objects.requireNonNull(name, "column name");
 		
-		Column col = m_schema.getColumnOrDefault(name, null);
+		Column col = m_schema.getColumnOrNull(name);
 		if ( col != null ) {
 			return m_values[col.ordinal()];
 		}
@@ -95,10 +96,10 @@ public class DefaultRecord implements Record {
 	}
 	
 	@Override
-	public DefaultRecord set(String name, Object value) {
+	public DefaultRecord set(ColumnName name, Object value) {
 		Objects.requireNonNull(name, "column name");
 		
-		Column col = m_schema.getColumnOrDefault(name, null);
+		Column col = m_schema.getColumnOrNull(name);
 		if ( col != null ) {
 			m_values[col.ordinal()] = value;
 			return this;
@@ -144,7 +145,7 @@ public class DefaultRecord implements Record {
 		else {
 			RecordSchema srcSchema = src.getRecordSchema();
 			m_schema.forEachIndexedColumn((idx,col) -> {
-				Column srcCol = srcSchema.getColumnOrDefault(col.name(), null);
+				Column srcCol = srcSchema.getColumnOrNull(col.name());
 				if ( srcCol != null ) {
 					set(idx, src.get(srcCol.ordinal()));
 				}
@@ -161,7 +162,7 @@ public class DefaultRecord implements Record {
 	 * @param values 	설정할 값을 가진 맵 객체.
 	 */
 	@Override
-	public DefaultRecord set(Map<String,Object> values) {
+	public DefaultRecord set(Map<ColumnName,Object> values) {
 		for ( int i =0; i < m_schema.getColumnCount(); ++i ) {
 			final Column col = m_schema.getColumnAt(i);
 			

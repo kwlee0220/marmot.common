@@ -8,7 +8,9 @@ import java.util.Map;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import marmot.ColumnName;
 import marmot.support.DataUtils;
+import utils.CSV;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 
@@ -17,7 +19,7 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class KMeansParameters {
-	private static final String COLUMN_SEPARATOR = "#";
+	private static final char COLUMN_SEPARATOR = '#';
 	
 	private static final String INPUT_DATASET = "input_dataset";
 	private static final String OUTPUT_DATASET = "output_dataset";
@@ -62,13 +64,15 @@ public class KMeansParameters {
 	}
 	
 	
-	public List<String> featureColumns() {
-		return Arrays.asList(m_params.get(FEATURE_COLUMNS).split(COLUMN_SEPARATOR));
+	public List<ColumnName> featureColumns() {
+		return CSV.parseCsv(m_params.get(FEATURE_COLUMNS), COLUMN_SEPARATOR)
+					.map(ColumnName::of)
+					.toList();
 	}
-	public void featureColumns(List<String> cols) {
+	public void featureColumns(List<ColumnName> cols) {
 		m_params.put(FEATURE_COLUMNS, FStream.of(cols).join(COLUMN_SEPARATOR));
 	}
-	public void featureColumns(String... cols) {
+	public void featureColumns(ColumnName... cols) {
 		featureColumns(Arrays.asList(cols));
 	}
 	

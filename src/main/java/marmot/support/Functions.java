@@ -49,7 +49,7 @@ public class Functions {
 	@MVELFunction(name="ST_StringFromCsv")
 	public static List<String> ST_StringFromCsv(String csv, String delim) {
 		if ( csv != null ) {
-			return CSV.parse(csv, delim.charAt(0), '\\');
+			return CSV.parseCsv(csv, delim.charAt(0), '\\').toList();
 		}
 		else {
 			return null;

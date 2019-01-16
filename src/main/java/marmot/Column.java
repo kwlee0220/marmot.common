@@ -1,5 +1,8 @@
 package marmot;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Objects;
 
 import marmot.proto.ColumnProto;
@@ -11,16 +14,22 @@ import marmot.type.DataTypes;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public final class Column implements PBSerializable<ColumnProto> {
+public final class Column implements PBSerializable<ColumnProto>, Serializable {
+	private static final long serialVersionUID = -6927116766846648026L;
+	
 	private final ColumnName m_name;
 	private final DataType m_type;
 	private final short m_ordinal;
 
 	public Column(String name, DataType type) {
+		this(ColumnName.of(name), type);
+	}
+
+	public Column(ColumnName name, DataType type) {
 		Objects.requireNonNull(name, "column name");
 		Objects.requireNonNull(type, "column type");
 
-		m_name = new ColumnName(name);
+		m_name = name;
 		m_type = type;
 		m_ordinal = -1;
 	}
@@ -39,8 +48,8 @@ public final class Column implements PBSerializable<ColumnProto> {
 	 * 
 	 * @return	컬럼 이름.
 	 */
-	public String name() {
-		return m_name.get();
+	public ColumnName name() {
+		return m_name;
 	}
 	
 	/**
@@ -93,10 +102,9 @@ public final class Column implements PBSerializable<ColumnProto> {
 	}
 	
 	public static Column fromProto(ColumnProto proto) {
-		String name = proto.getName().toLowerCase();
 		DataType type = DataTypes.fromTypeCode((byte)proto.getTypeCodeValue());
 		
-		return new Column(name, type);
+		return new Column(proto.getName(), type);
 	}
 
 	@Override
@@ -105,5 +113,27 @@ public final class Column implements PBSerializable<ColumnProto> {
 							.setName(m_name.get())
 							.setTypeCodeValue(m_type.getTypeCode().ordinal())
 							.build();
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 4661876959105417945L;
+		
+		private transient final String m_strRep;
+		
+		private SerializationProxy(Column mcKey) {
+			m_strRep = mcKey.toString();
+		}
+		
+		private Object readResolve() {
+			return Column.parse(m_strRep);
+		}
 	}
 }

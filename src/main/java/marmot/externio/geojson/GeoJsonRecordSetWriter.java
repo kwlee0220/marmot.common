@@ -146,7 +146,7 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 				continue;
 			}
 			
-			writer.name(col.name());
+			writer.name(col.name().get());
 			
 			Object field = record.get(i);
 			if ( field != null ) {

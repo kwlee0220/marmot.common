@@ -14,7 +14,10 @@ import marmot.proto.ValueProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.DataUtils;
 import marmot.support.PBSerializable;
+import utils.func.FOption;
 import utils.stream.FStream;
+import utils.stream.KVFStream;
+import utils.stream.KeyValue;
 
 
 /**
@@ -34,7 +37,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	}
 	
 	public default boolean existsColumn(String name) {
-		return getRecordSchema().getColumnOrDefault(name, null) != null;
+		return getRecordSchema().getColumnOrNull(name) != null;
 	}
 
 	/**
@@ -53,7 +56,10 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * @return 컬럼 값.
 	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우.
 	 */
-	public Object get(String name) throws ColumnNotFoundException;
+	public Object get(ColumnName name) throws ColumnNotFoundException;
+	public default Object get(String name) throws ColumnNotFoundException {
+		return get(ColumnName.of(name));
+	}
 	
 	/**
 	 * 레코드의 모든 컬럼 값들을 리스트 형태로 반환한다.
@@ -63,8 +69,8 @@ public interface Record extends PBSerializable<RecordProto> {
 	 */
 	public Object[] getAll();
 	
-	public default Map<String,Object> toMap() {
-		Map<String,Object> valueMap = new LinkedHashMap<>();
+	public default Map<ColumnName,Object> toMap() {
+		Map<ColumnName,Object> valueMap = new LinkedHashMap<>();
 		
 		Object[] values = getAll();
 		for ( Column col: getRecordSchema().getColumnAll() ) {
@@ -72,6 +78,28 @@ public interface Record extends PBSerializable<RecordProto> {
 		}
 		
 		return valueMap;
+	}
+	
+	public default KVFStream<ColumnName,Object> fstream() {
+		return new KVFStream<ColumnName, Object>() {
+			private final RecordSchema m_schema = getRecordSchema();
+			private int m_idx = 0;
+
+			@Override
+			public FOption<KeyValue<ColumnName, Object>> next() {
+				if ( m_idx >= m_schema.getColumnCount() ) {
+					return FOption.empty();
+				}
+				
+				Column col = m_schema.getColumnAt(m_idx);
+				Object val = get(m_idx);
+				++m_idx;
+				
+				return FOption.of(KeyValue.of(col.name(), val));
+			}
+
+			@Override public void close() throws Exception { }
+		};
 	}
 	
 	/**
@@ -83,7 +111,10 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * @return	갱신된 레코드 객체.
 	 * @throws ColumnNotFoundException	이름에 해당하는 컬럼이 존재하지 않는 경우.
 	 */
-	public Record set(String name, Object value) throws ColumnNotFoundException;
+	public Record set(ColumnName name, Object value) throws ColumnNotFoundException;
+	public default Record set(String name, Object value) throws ColumnNotFoundException {
+		return set(ColumnName.of(name), value);
+	}
 	
 	/**
 	 * 순번에 해당하는 컬럼 값을 변경시킨다.
@@ -112,7 +143,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * @param values 	설정할 값을 가진 맵 객체.
 	 * @return	갱신된 레코드 객체.
 	 */
-	public Record set(Map<String,Object> values);
+	public Record set(Map<ColumnName,Object> values);
 	
 	/**
 	 * 주어진 레코드의 모든 컬럼들을 복사해 온다.
@@ -256,10 +287,6 @@ public interface Record extends PBSerializable<RecordProto> {
 	public default LocalDateTime getDateTime(String name) {
 		Object v = get(name);
 		return v != null ? (LocalDateTime)v : null;
-	}
-	
-	public default void copyTo(Map<String,Object> context) {
-		getRecordSchema().forEachIndexedColumn((i,c) -> context.put(c.name(), get(i)));
 	}
 	
 	public default void fromProto(RecordProto proto) {

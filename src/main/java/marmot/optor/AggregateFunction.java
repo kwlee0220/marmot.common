@@ -1,5 +1,6 @@
 package marmot.optor;
 
+import marmot.ColumnName;
 import utils.CSV;
 import utils.stream.FStream;
 
@@ -9,9 +10,9 @@ import utils.stream.FStream;
  */
 public class AggregateFunction {
 	public AggrType m_type;
-	public String m_aggrColumn;		// nullable
-	public String m_resultColumn;
-	public String m_args;			// nullable
+	public ColumnName m_aggrColumn;		// nullable
+	public ColumnName m_resultColumn;
+	public String m_args;				// nullable
 	
 	public static AggregateFunction COUNT() {
 		return new AggregateFunction(AggrType.COUNT, null, "count");
@@ -28,9 +29,12 @@ public class AggregateFunction {
 	public static AggregateFunction SUM(String col) {
 		return new AggregateFunction(AggrType.SUM, col, "sum");
 	}
-	
+
+	public static AggregateFunction AVG(ColumnName col) {
+		return new AggregateFunction(AggrType.AVG, col, ColumnName.of("avg"));
+	}
 	public static AggregateFunction AVG(String col) {
-		return new AggregateFunction(AggrType.AVG, col, "avg");
+		return AVG(ColumnName.of(col));
 	}
 	
 	public static AggregateFunction STDDEV(String col) {
@@ -54,23 +58,33 @@ public class AggregateFunction {
 		return new AggregateFunction(AggrType.CONCAT_STR, col, "concat", delim);
 	}
 	
-	public AggregateFunction(AggrType type, String aggrCol, String outCol) {
+	public AggregateFunction(AggrType type, ColumnName aggrCol, ColumnName outCol) {
 		m_type = type;
 		m_aggrColumn = aggrCol;
 		m_resultColumn = outCol;
 	}
+	public AggregateFunction(AggrType type, String aggrCol, String outCol) {
+		this(type, ColumnName.of(aggrCol), ColumnName.of(outCol));
+	}
 	
-	public AggregateFunction(AggrType type, String aggrCol, String outCol,
+	public AggregateFunction(AggrType type, ColumnName aggrCol, ColumnName outCol,
 							String args) {
 		m_type = type;
 		m_aggrColumn = aggrCol;
 		m_resultColumn = outCol;
 		m_args = args;
 	}
+	public AggregateFunction(AggrType type, String aggrCol, String outCol,
+							String args) {
+		this(type, ColumnName.of(aggrCol), ColumnName.of(outCol), args);
+	}
 	
-	public AggregateFunction as(String outCol) {
+	public AggregateFunction as(ColumnName outCol) {
 		m_resultColumn = outCol;
 		return this;
+	}
+	public AggregateFunction as(String outCol) {
+		return as(ColumnName.of(outCol));
 	}
 	
 	private static final String DELIM = "?";
@@ -85,10 +99,10 @@ public class AggregateFunction {
 	}
 
     public static AggregateFunction fromProto(String proto) {
-    	String[] parts = CSV.parseAsArray(proto, '?', '\\');
+    	String[] parts = CSV.parseCsvAsArray(proto, '?', '\\');
     	
     	String args = (parts.length > 1) ? parts[1] : null;
-    	String[] comps = CSV.parseAsArray(parts[0], ',', '\\');
+    	String[] comps = CSV.parseCsvAsArray(parts[0], ',', '\\');
     	if ( comps.length == 3 ) {
     		throw new IllegalArgumentException("invalid AggregateFunction: str=" + proto);
     	}
@@ -96,7 +110,7 @@ public class AggregateFunction {
     	if ( aggrCol.length() == 0 ) {
     		aggrCol = null;
     	}
-    	String outCol = comps[2].trim();
+    	ColumnName outCol = ColumnName.of(comps[2].trim());
 
         AggrType type = AggrType.valueOf(comps[0].toUpperCase());
         AggregateFunction func;

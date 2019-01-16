@@ -14,16 +14,22 @@ import marmot.support.PBSerializable;
 public final class GeometryColumnInfo implements PBSerializable<GeometryColumnInfoProto> {
 	private static final Pattern PATTERN = Pattern.compile("(\\S+)\\s*\\(\\s*(\\S+)\\s*\\)");
 	
-	private final String m_name;
+	private final ColumnName m_name;
 	private final String m_srid;
 	
-	public GeometryColumnInfo(String colName, String srid) {
+	public GeometryColumnInfo(ColumnName colName, String srid) {
+		Objects.requireNonNull(colName, "column name");
+		Objects.requireNonNull(srid, "SRID");
+		
 		m_name = colName;
 		m_srid = srid;
 	}
+	public GeometryColumnInfo(String colName, String srid) {
+		this(ColumnName.of(colName), srid);
+	}
 	
 	public final String name() {
-		return m_name;
+		return m_name.get();
 	}
 	
 	public final String srid() {
@@ -70,30 +76,8 @@ public final class GeometryColumnInfo implements PBSerializable<GeometryColumnIn
 	@Override
 	public GeometryColumnInfoProto toProto() {
 		return GeometryColumnInfoProto.newBuilder()
-									.setName(m_name)
+									.setName(m_name.get())
 									.setSrid(m_srid)
 									.build();
 	}
-	
-//	private Object writeReplace() {
-//		return new SerializationProxy(this);
-//	}
-//	
-//	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
-//		throw new InvalidObjectException("Use Serialization Proxy instead.");
-//	}
-//
-//	private static class SerializationProxy implements Serializable {
-//		private static final long serialVersionUID = -9086142636497979939L;
-//		
-//		private final GeometryColumnInfoProto m_proto;
-//		
-//		private SerializationProxy(GeometryColumnInfo info) {
-//			m_proto = info.toProto();
-//		}
-//		
-//		private Object readResolve() {
-//			return GeometryColumnInfo.fromProto(m_proto);
-//		}
-//	}
 }

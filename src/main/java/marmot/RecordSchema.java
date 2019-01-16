@@ -19,7 +19,6 @@ import marmot.proto.ColumnProto;
 import marmot.proto.RecordSchemaProto;
 import marmot.support.PBSerializable;
 import marmot.type.DataType;
-import marmot.type.DataTypes;
 import utils.CSV;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
@@ -38,7 +37,6 @@ import utils.stream.KVFStream;
 public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	/** Empty RecordSchema */
 	public static final RecordSchema NULL = builder().build();
-	public static final RecordSchema EMPTY = builder().build();
 	
 	private final LinkedHashMap<ColumnName,Column> m_columns;
 	
@@ -55,10 +53,13 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * @param name	대상 컬럼 이름
 	 * @return	이름에 해당하는 컬럼이 존재하는 경우는 true, 그렇지 않은 경우는 false
 	 */
-	public boolean existsColumn(String name) {
+	public boolean existsColumn(ColumnName name) {
 		Objects.requireNonNull(name, "column name");
 		
-		return m_columns.containsKey(new ColumnName(name));
+		return m_columns.containsKey(name);
+	}
+	public boolean existsColumn(String name) {
+		return existsColumn(ColumnName.of(name));
 	}
 	
 	/**
@@ -68,10 +69,10 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * @return	컬럼 정보 객체
 	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우
 	 */
-	public Column getColumn(String name) {
+	public Column getColumn(ColumnName name) {
 		Objects.requireNonNull(name, "column name");
 		
-		Column col = m_columns.get(new ColumnName(name));
+		Column col = m_columns.get(name);
 		if ( col == null ) {
 			throw new ColumnNotFoundException("name=" + name
 											+ ", schema=" + m_columns.keySet());
@@ -79,21 +80,24 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		
 		return col;
 	}
+	public Column getColumn(String name) {
+		return getColumn(ColumnName.of(name));
+	}
 	
 	/**
 	 * 주어진 이름의 컬럼의 존재 여부를 반환한다.
-	 * 만일 해당 이름에 해당하는 컬럼이 존재하지 않는 경우는 인자로 전달된
-	 * 기본 컬럼 객체 {@code defValue}를 반환한다.
+	 * 만일 해당 이름에 해당하는 컬럼이 존재하지 않는 경우는 {@code null}를 반환한다.
 	 * 
 	 * @param name	컬럼이름
 	 * @return	컬럼 정보 객체
-	 * @param defValue	컬럼이 존재하지 않는 경우 반환될 기본 컬럼 객체
 	 */
-	public Column getColumnOrDefault(String name, Column defValue) {
-		Objects.requireNonNull(name, "column name");
+	public Column getColumnOrNull(ColumnName cname) {
+		Objects.requireNonNull(cname, "column name");
 		
-		Column col = m_columns.get(new ColumnName(name));
-		return col != null ? col : defValue;
+		return m_columns.get(cname);
+	}
+	public Column getColumnOrNull(String name) {
+		return getColumnOrNull(ColumnName.of(name));
 	}
 	
 	/**
@@ -135,8 +139,13 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public Collection<Column> getColumnAll() {
 		return Collections.unmodifiableCollection(m_columns.values());
 	}
-	
-	public FStream<Column> columnFStream() {
+
+	/**
+	 * 레코드 스키마에 정의된 모든 컬럼 객체 스트림을 반환한다.
+	 * 
+	 * @return	컬럼 스트림
+	 */
+	public FStream<Column> getColumnStream() {
 		return FStream.of(m_columns.values());
 	}
 	
@@ -200,23 +209,15 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	}
 	
 	public static RecordSchema parse(String schemaStr) {
-		Builder builder = RecordSchema.builder();
-		for ( String colSpec: CSV.get().parse(schemaStr.trim()) ) {
-			String[] parts = colSpec.split(":");
-			if ( parts.length != 2 ) {
-				throw new IllegalArgumentException("invalid RecordSchema string: schema='"
-													+ schemaStr + "', column='"
-													+ colSpec + "'");
-			}
-			
-			builder.addColumn(parts[0].trim(), DataTypes.fromName(parts[1]));
-		}
-		return builder.build();
+		return CSV.parseCsv(schemaStr)
+					.map(Column::parse)
+					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+					.build();
 	}
 	
 	@Override
 	public String toString() {
-		return columnFStream().map(Column::toString).join(",");
+		return getColumnStream().map(Column::toString).join(",");
 	}
 	
 	public interface IndexedColumnAccessor {
@@ -226,7 +227,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public Builder toBuilder() {
 		// 별도 다시 생성하여 사용하지 않으면, column 객체의 공유로 인해
 		// 문제가 발생할 수 있음.
-		return columnFStream().foldLeft(builder(), (b,c) -> b.addColumn(c));
+		return getColumnStream().foldLeft(builder(), (b,c) -> b.addColumn(c));
 	}
 	
 	public static Builder builder() {
@@ -251,19 +252,21 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		public boolean existsColumn(String name) {
 			Objects.requireNonNull(name, "column name");
 			
-			return m_columns.containsKey(new ColumnName(name));
+			return m_columns.containsKey(ColumnName.of(name));
 		}
 		
-		public Builder addColumn(String name, DataType type) {
+		public Builder addColumn(ColumnName name, DataType type) {
 			Objects.requireNonNull(name, "column name");
 			Objects.requireNonNull(type, "column type");
 			
-			ColumnName cname = new ColumnName(name);
-			Column col = new Column(cname, type, m_columns.size());
-			if ( m_columns.putIfAbsent(cname, col) != null ) {
+			Column col = new Column(name, type, m_columns.size());
+			if ( m_columns.putIfAbsent(name, col) != null ) {
 				throw new IllegalArgumentException("column already exists: name=" + name);
 			}
 			return this;
+		}
+		public Builder addColumn(String name, DataType type) {
+			return addColumn(ColumnName.of(name), type);
 		}
 		
 		public Builder addColumn(Column col) {
@@ -276,19 +279,17 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 			Objects.requireNonNull(name, "column name");
 			Objects.requireNonNull(type, "column type");
 
-			ColumnName cname = new ColumnName(name);
+			ColumnName cname = ColumnName.of(name);
 			Column col = new Column(cname, type, m_columns.size());
 			m_columns.putIfAbsent(cname, col);
 			return this;
 		}
 		
-		public Builder addOrReplaceColumn(String name, DataType type) {
+		public Builder addOrReplaceColumn(ColumnName name, DataType type) {
 			Objects.requireNonNull(name, "column name");
 			Objects.requireNonNull(type, "column type");
-
-			ColumnName cname = new ColumnName(name);
 			
-			Column col = m_columns.get(cname);
+			Column col = m_columns.get(name);
 			if ( col != null ) {
 				LinkedHashMap<ColumnName, Column> old = m_columns;
 				m_columns = new LinkedHashMap<>(old.size());
@@ -301,6 +302,9 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 			}
 			
 			return this;
+		}
+		public Builder addOrReplaceColumn(String name, DataType type) {
+			return addOrReplaceColumn(ColumnName.of(name), type);
 		}
 		
 		public Builder addColumnAll(Column... columns) {
@@ -343,7 +347,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		public Builder removeColumn(String colName) {
 			Objects.requireNonNull(colName, "column name");
 			
-			ColumnName key = new ColumnName(colName);
+			ColumnName key = ColumnName.of(colName);
 			LinkedHashMap<ColumnName, Column> old = m_columns;
 			m_columns = new LinkedHashMap<>(old.size());
 			KVFStream.of(old)

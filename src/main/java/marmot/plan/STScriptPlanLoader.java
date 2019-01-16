@@ -25,7 +25,7 @@ import utils.io.IOUtils;
  * @author Kang-Woo Lee (ETRI)
  */
 public class STScriptPlanLoader {
-	private static final Map VARS = Maps.newHashMap();
+	private static final Map<?,?> VARS = Maps.newHashMap();
 	private static final String TEMPLATE_GROUP_RESOURCE = "marmot/plan/operator_templates.stg";
 	private static Lazy<STGroup> s_tmpltGroup = Lazy.of(STScriptPlanLoader::loadTemplateGroup);
 	

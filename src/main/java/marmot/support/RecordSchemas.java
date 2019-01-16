@@ -18,7 +18,7 @@ public class RecordSchemas {
 		Objects.requireNonNull(schemas, "RecordSchemas are null");
 		
 		return FStream.of(schemas)
-					.flatMap(s -> FStream.of(s.getColumnAll()))
+					.flatMap(RecordSchema::getColumnStream)
 					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 					.build();
 	}

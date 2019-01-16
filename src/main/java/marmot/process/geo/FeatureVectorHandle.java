@@ -5,25 +5,27 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
+import marmot.ColumnName;
 import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.Record;
 import marmot.RecordSet;
 import marmot.support.DefaultRecord;
+import utils.stream.FStream;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
 public class FeatureVectorHandle {
-	private final List<String> m_colNames;
+	private final List<ColumnName> m_colNames;
 	
-	public FeatureVectorHandle(List<String> colNames) {
+	public FeatureVectorHandle(List<ColumnName> colNames) {
 		m_colNames = colNames;
 	}
 	
-	public List<String> getColumnNames() {
+	public List<ColumnName> getColumnNames() {
 		return m_colNames;
 	}
 	
@@ -46,7 +48,8 @@ public class FeatureVectorHandle {
 	
 	@Override
 	public String toString() {
-		return m_colNames.stream().collect(Collectors.joining(",", "{", "}"));
+		return FStream.of(m_colNames)
+						.join(",", "{", "}");
 	}
 	
 	public List<FeatureVector> sampleInitialCentroids(MarmotRuntime marmot,

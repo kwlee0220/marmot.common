@@ -694,10 +694,10 @@ public class PlanBuilder {
 		}
 		
 		public GroupByPlanBuilder orderBy(String orderCols) {
-			Set<String> cols = Sets.newHashSet(CSV.parse(m_cmpCols, ',', '\\'));
-			String commonCols = FStream.of(CSV.parse(orderCols, ',', '\\'))
-										.filter(cols::contains)
-										.join(",");
+			Set<String> cols = Sets.newHashSet(CSV.parseCsv(m_cmpCols, ',', '\\').toList());
+			String commonCols = CSV.parseCsv(orderCols, ',', '\\')
+									.filter(cols::contains)
+									.join(",");
 			if ( commonCols.length() > 0 ) {
 				throw new IllegalArgumentException("order-by key should not be "
 													+ "a group-by key: cols=" + commonCols);

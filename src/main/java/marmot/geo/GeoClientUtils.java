@@ -7,7 +7,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.geotools.geometry.jts.Geometries;
@@ -40,6 +39,7 @@ import com.vividsolutions.jts.io.WKTWriter;
 import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 import marmot.Column;
+import marmot.ColumnName;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
@@ -407,11 +407,11 @@ public class GeoClientUtils {
 		return FStream.of(new GeometryIterator<>(geom));
 	}
 
-	public static final String DEFAULT_GEOM_COLUMN = "the_geom";
+	public static final ColumnName DEFAULT_GEOM_COLUMN = ColumnName.of("the_geom");
 	public static Column findDefaultGeometryColumn(RecordSchema schema) {
-		List<Column> geomColList = schema.getColumnAll().stream()
+		List<Column> geomColList = schema.getColumnStream()
 										.filter(col -> col.type().isGeometryType())
-										.collect(Collectors.toList());
+										.toList();
 		if ( geomColList.size() == 1 ) {
 			return geomColList.get(0);
 		}

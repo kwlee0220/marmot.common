@@ -96,7 +96,7 @@ public class GeoToolsUtils {
 		
 		Map<String,Integer> abbrs = Maps.newHashMap();
 		schema.forEachIndexedColumn((idx, col) -> {
-			String colName = col.name();
+			String colName = col.name().get();
 			if ( colName.length() > 10 ) {
 				colName = colName.substring(0, 9);
 				int seqno = abbrs.getOrDefault(colName, 0);

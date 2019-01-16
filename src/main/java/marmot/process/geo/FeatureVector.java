@@ -11,6 +11,7 @@ import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Point;
 
 import marmot.Column;
+import marmot.ColumnName;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.geo.GeoClientUtils;
@@ -25,7 +26,7 @@ import utils.stream.FStream;
 public class FeatureVector implements Serializable {
 	private static final long serialVersionUID = 1192199487862315068L;
 	
-	private Object[] m_values;
+	private transient Object[] m_values;
 	
 	@SuppressWarnings("unused")
 	private FeatureVector() { }
@@ -164,10 +165,10 @@ public class FeatureVector implements Serializable {
 		}
 	}
 	
-	public static List<String> validate(RecordSchema schema, List<String> featureColNames) {
+	public static List<String> validate(RecordSchema schema, List<ColumnName> featureColNames) {
 		List<String> msgs = Lists.newArrayList();
-		for ( String colName: featureColNames ) {
-			Column col = schema.getColumnOrDefault(colName, null);
+		for ( ColumnName colName: featureColNames ) {
+			Column col = schema.getColumnOrNull(colName);
 			if ( col == null ) {
 				msgs.add(String.format("unknown column: %s", colName));
 			}

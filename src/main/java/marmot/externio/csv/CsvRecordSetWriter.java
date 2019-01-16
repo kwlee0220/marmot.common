@@ -80,12 +80,12 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 		CSVFormat format = m_params.formatForWrite();
 
 		RecordSchema schema = rset.getRecordSchema();
-		String[] header = schema.columnFStream()
+		String[] header = schema.getColumnStream()
 								.map(Column::name)
 								.toArray(String.class);
 		format = format.withHeader(header);
 		
-		Column[] cols = schema.columnFStream().toArray(Column.class);
+		Column[] cols = schema.getColumnStream().toArray(Column.class);
 		CSVPrinter printer = format.print(m_writer);
 		
 		long nrecs = 0;

@@ -22,8 +22,8 @@ public class ColumnTest {
 		Column col1 = new Column("col1", DataType.STRING);
 		Column col2 = new Column("col2", DataType.INT);
 		
-		Assert.assertEquals("col1", col1.name());
-		Assert.assertEquals("col2", col2.name());
+		Assert.assertEquals("col1", col1.name().get());
+		Assert.assertEquals("col2", col2.name().get());
 		
 		Assert.assertEquals(DataType.STRING, col1.type());
 		Assert.assertEquals(DataType.INT, col2.type());
@@ -31,7 +31,7 @@ public class ColumnTest {
 	
 	@Test(expected=NullPointerException.class)
 	public void test02() throws Exception {
-		new Column(null, DataType.STRING);
+		new Column((String)null, DataType.STRING);
 	}
 	
 	@Test(expected=NullPointerException.class)

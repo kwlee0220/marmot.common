@@ -111,7 +111,7 @@ public class CsvParameters {
 	public CsvParameters header(String header) {
 		Objects.requireNonNull(header, "CSV header");
 		
-		String[] cols = CSV.parseAsArray(header, ',', '\\');
+		String[] cols = CSV.parseCsvAsArray(header);
 		m_format = m_format.withHeader(cols);
 		return this;
 	}
