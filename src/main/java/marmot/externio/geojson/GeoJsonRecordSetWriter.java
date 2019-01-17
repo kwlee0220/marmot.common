@@ -126,7 +126,8 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 		return nrecs;
 	}
 	
-	private void write(JsonWriter writer, Record record, String geomColName) throws IOException {
+	private void write(JsonWriter writer, Record record, String geomColName)
+		throws IOException {
 		writer.beginObject();
 		
 		writer.name("type").value("Feature");
@@ -140,13 +141,14 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 		
 		writer.name("properties");
 		writer.beginObject();
+		
 		for ( int i = 0; i < schema.getColumnCount(); ++i ) {
 			Column col = schema.getColumnAt(i);
-			if ( col.name().equals(geomColName) ) {
+			if ( col.matches(geomColName) ) {
 				continue;
 			}
 			
-			writer.name(col.name().get());
+			writer.name(col.name());
 			
 			Object field = record.get(i);
 			if ( field != null ) {

@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
-import marmot.ColumnName;
 import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -19,13 +18,13 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class FeatureVectorHandle {
-	private final List<ColumnName> m_colNames;
+	private final List<String> m_colNames;
 	
-	public FeatureVectorHandle(List<ColumnName> colNames) {
+	public FeatureVectorHandle(List<String> colNames) {
 		m_colNames = colNames;
 	}
 	
-	public List<ColumnName> getColumnNames() {
+	public List<String> getColumnNames() {
 		return m_colNames;
 	}
 	

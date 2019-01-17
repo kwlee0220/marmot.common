@@ -37,12 +37,12 @@ public class RecordSchemaTest {
 											.build();
 
 		Assert.assertEquals(3, schema.getColumnCount());
-		Assert.assertEquals(true, schema.existsColumn(ColumnName.of("col1")));
-		Assert.assertEquals(true, schema.existsColumn(ColumnName.of("Col1")));
-		Assert.assertEquals(true, schema.existsColumn(ColumnName.of("col2")));
-		Assert.assertEquals(true, schema.existsColumn(ColumnName.of("Col3")));
+		Assert.assertEquals(true, schema.existsColumn("col1"));
+		Assert.assertEquals(true, schema.existsColumn("Col1"));
+		Assert.assertEquals(true, schema.existsColumn("col2"));
+		Assert.assertEquals(true, schema.existsColumn("Col3"));
 		
-		Assert.assertEquals("col1", schema.getColumn("COL1").name().get());
+		Assert.assertEquals("col1", schema.getColumn("COL1").name());
 	}
 	
 	@Test
@@ -65,9 +65,9 @@ public class RecordSchemaTest {
 		Assert.assertEquals(3, cols.size());
 		
 		Iterator<Column> iter = cols.iterator();
-		Assert.assertEquals("col1", iter.next().name().get());
-		Assert.assertEquals("COL2", iter.next().name().get());
-		Assert.assertEquals("Col3", iter.next().name().get());
+		Assert.assertEquals("col1", iter.next().name());
+		Assert.assertEquals("COL2", iter.next().name());
+		Assert.assertEquals("Col3", iter.next().name());
 		Assert.assertEquals(false, iter.hasNext());
 	}
 	
@@ -84,9 +84,9 @@ public class RecordSchemaTest {
 										.build();
 
 		Assert.assertEquals(3, schema2.getColumnCount());
-		Assert.assertEquals(true, schema2.existsColumn(ColumnName.of("Col1")));
-		Assert.assertEquals(true, schema2.existsColumn(ColumnName.of("col2")));
-		Assert.assertEquals(true, schema2.existsColumn(ColumnName.of("Col3")));
+		Assert.assertEquals(true, schema2.existsColumn("Col1"));
+		Assert.assertEquals(true, schema2.existsColumn("col2"));
+		Assert.assertEquals(true, schema2.existsColumn("Col3"));
 		Assert.assertEquals(DataType.SHORT, schema2.getColumn("cOL2").type());
 		
 		RecordSchema schema3 = schema.toBuilder()
@@ -94,10 +94,10 @@ public class RecordSchemaTest {
 										.build();
 
 		Assert.assertEquals(4, schema3.getColumnCount());
-		Assert.assertEquals(true, schema3.existsColumn(ColumnName.of("Col1")));
-		Assert.assertEquals(true, schema3.existsColumn(ColumnName.of("col2")));
-		Assert.assertEquals(true, schema3.existsColumn(ColumnName.of("Col3")));
-		Assert.assertEquals(true, schema3.existsColumn(ColumnName.of("col4")));
+		Assert.assertEquals(true, schema3.existsColumn("Col1"));
+		Assert.assertEquals(true, schema3.existsColumn("col2"));
+		Assert.assertEquals(true, schema3.existsColumn("Col3"));
+		Assert.assertEquals(true, schema3.existsColumn("col4"));
 		Assert.assertEquals(DataType.SHORT, schema3.getColumn("col4").type());
 	}
 	
@@ -110,9 +110,9 @@ public class RecordSchemaTest {
 		Assert.assertEquals(3, cols.size());
 		
 		Iterator<Column> iter = cols.iterator();
-		Assert.assertEquals("col1", iter.next().name().get());
-		Assert.assertEquals("COL2", iter.next().name().get());
-		Assert.assertEquals("Col3", iter.next().name().get());
+		Assert.assertEquals("col1", iter.next().name());
+		Assert.assertEquals("COL2", iter.next().name());
+		Assert.assertEquals("Col3", iter.next().name());
 		Assert.assertEquals(false, iter.hasNext());
 	}
 }

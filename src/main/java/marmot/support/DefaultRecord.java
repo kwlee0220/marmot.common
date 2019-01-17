@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import com.google.common.base.Preconditions;
 
 import marmot.Column;
-import marmot.ColumnName;
 import marmot.ColumnNotFoundException;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -73,7 +72,7 @@ public class DefaultRecord implements Record {
 	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우.
 	 */
 	@Override
-	public Object get(ColumnName name) {
+	public Object get(String name) {
 		Objects.requireNonNull(name, "column name");
 		
 		Column col = m_schema.getColumnOrNull(name);
@@ -96,7 +95,7 @@ public class DefaultRecord implements Record {
 	}
 	
 	@Override
-	public DefaultRecord set(ColumnName name, Object value) {
+	public DefaultRecord set(String name, Object value) {
 		Objects.requireNonNull(name, "column name");
 		
 		Column col = m_schema.getColumnOrNull(name);
@@ -162,7 +161,7 @@ public class DefaultRecord implements Record {
 	 * @param values 	설정할 값을 가진 맵 객체.
 	 */
 	@Override
-	public DefaultRecord set(Map<ColumnName,Object> values) {
+	public DefaultRecord set(Map<String,Object> values) {
 		for ( int i =0; i < m_schema.getColumnCount(); ++i ) {
 			final Column col = m_schema.getColumnAt(i);
 			

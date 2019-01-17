@@ -9,6 +9,7 @@ import marmot.proto.ColumnProto;
 import marmot.support.PBSerializable;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
+import utils.CIString;
 
 /**
  * 
@@ -17,24 +18,20 @@ import marmot.type.DataTypes;
 public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	private static final long serialVersionUID = -6927116766846648026L;
 	
-	private final ColumnName m_name;
+	private final CIString m_name;
 	private final DataType m_type;
 	private final short m_ordinal;
 
 	public Column(String name, DataType type) {
-		this(ColumnName.of(name), type);
-	}
-
-	public Column(ColumnName name, DataType type) {
 		Objects.requireNonNull(name, "column name");
 		Objects.requireNonNull(type, "column type");
 
-		m_name = name;
+		m_name = CIString.of(name);
 		m_type = type;
 		m_ordinal = -1;
 	}
 	
-	Column(ColumnName name, DataType type, int ordinal) {
+	Column(CIString name, DataType type, int ordinal) {
 		Objects.requireNonNull(name, "column name");
 		Objects.requireNonNull(type, "column type");
 		
@@ -48,7 +45,11 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	 * 
 	 * @return	컬럼 이름.
 	 */
-	public ColumnName name() {
+	public String name() {
+		return m_name.get();
+	}
+	
+	CIString columnName() {
 		return m_name;
 	}
 	
@@ -75,6 +76,10 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 		String typeStr = parts[1].trim();
 		return new Column(parts[0].trim(),
 							typeStr.equals("?") ? null : DataTypes.fromName(typeStr));
+	}
+	
+	public boolean matches(String name) {
+		return m_name.matches(name);
 	}
 	
 	@Override

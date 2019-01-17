@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import marmot.proto.GeometryColumnInfoProto;
 import marmot.support.PBSerializable;
+import utils.CIString;
 
 /**
  * 
@@ -14,10 +15,10 @@ import marmot.support.PBSerializable;
 public final class GeometryColumnInfo implements PBSerializable<GeometryColumnInfoProto> {
 	private static final Pattern PATTERN = Pattern.compile("(\\S+)\\s*\\(\\s*(\\S+)\\s*\\)");
 	
-	private final ColumnName m_name;
+	private final CIString m_name;
 	private final String m_srid;
 	
-	public GeometryColumnInfo(ColumnName colName, String srid) {
+	public GeometryColumnInfo(CIString colName, String srid) {
 		Objects.requireNonNull(colName, "column name");
 		Objects.requireNonNull(srid, "SRID");
 		
@@ -25,7 +26,7 @@ public final class GeometryColumnInfo implements PBSerializable<GeometryColumnIn
 		m_srid = srid;
 	}
 	public GeometryColumnInfo(String colName, String srid) {
-		this(ColumnName.of(colName), srid);
+		this(CIString.of(colName), srid);
 	}
 	
 	public final String name() {

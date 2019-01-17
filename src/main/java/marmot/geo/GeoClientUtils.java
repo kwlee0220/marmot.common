@@ -39,7 +39,6 @@ import com.vividsolutions.jts.io.WKTWriter;
 import com.vividsolutions.jts.precision.GeometryPrecisionReducer;
 
 import marmot.Column;
-import marmot.ColumnName;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
@@ -407,7 +406,7 @@ public class GeoClientUtils {
 		return FStream.of(new GeometryIterator<>(geom));
 	}
 
-	public static final ColumnName DEFAULT_GEOM_COLUMN = ColumnName.of("the_geom");
+	private static final String DEFAULT_GEOM_COLUMN = "the_geom";
 	public static Column findDefaultGeometryColumn(RecordSchema schema) {
 		List<Column> geomColList = schema.getColumnStream()
 										.filter(col -> col.type().isGeometryType())
@@ -420,7 +419,7 @@ public class GeoClientUtils {
 		}
 		else { // if ( geomColList.size() > 1 ) {
 			Column defCol = geomColList.stream()
-										.filter(col -> col.name().equals(DEFAULT_GEOM_COLUMN))
+										.filter(col -> col.matches(DEFAULT_GEOM_COLUMN))
 										.findAny()
 										.orElse(null);
 			if ( defCol != null ) {
