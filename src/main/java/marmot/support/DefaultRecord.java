@@ -75,12 +75,7 @@ public class DefaultRecord implements Record {
 	public Object get(String name) {
 		Objects.requireNonNull(name, "column name");
 		
-		Column col = m_schema.getColumnOrNull(name);
-		if ( col != null ) {
-			return m_values[col.ordinal()];
-		}
-		
-		throw new ColumnNotFoundException("column name=" + name);
+		return m_values[m_schema.getColumn(name).ordinal()];
 	}
 	
 	/**
@@ -98,14 +93,10 @@ public class DefaultRecord implements Record {
 	public DefaultRecord set(String name, Object value) {
 		Objects.requireNonNull(name, "column name");
 		
-		Column col = m_schema.getColumnOrNull(name);
-		if ( col != null ) {
-			m_values[col.ordinal()] = value;
-			return this;
-		}
-		else {
-			throw new ColumnNotFoundException("name=" + name);
-		}
+		Column col = m_schema.getColumn(name);
+		m_values[col.ordinal()] = value;
+		
+		return this;
 	}
 	
 	/**
@@ -144,10 +135,9 @@ public class DefaultRecord implements Record {
 		else {
 			RecordSchema srcSchema = src.getRecordSchema();
 			m_schema.forEachIndexedColumn((idx,col) -> {
-				Column srcCol = srcSchema.getColumnOrNull(col.name());
-				if ( srcCol != null ) {
-					set(idx, src.get(srcCol.ordinal()));
-				}
+				srcSchema.findColumn(col.name())
+						.map(c -> src.get(c.ordinal()))
+						.ifPresent(v -> set(idx, v));
 			});
 		}
 		
@@ -196,17 +186,17 @@ public class DefaultRecord implements Record {
 	 * @return	갱신된 레코드 객체.
 	 */
 	@Override
-	public DefaultRecord setAll(Object[] values) {
+	public DefaultRecord setAll(Object... values) {
 		System.arraycopy(values, 0, m_values, 0, Math.min(m_values.length, values.length));
 		return this;
 	}
 
 	@Override
-	public DefaultRecord setAll(int startIdx, Object[] values) {
-		Preconditions.checkArgument(startIdx >= 0, "invalid start index");
+	public DefaultRecord setAll(int start, Object[] values) {
+		Preconditions.checkArgument(start >= 0, "invalid start index");
 		
-		System.arraycopy(values, 0, m_values, startIdx,
-						Math.min(startIdx+m_values.length, values.length));
+		int count = Math.min(m_values.length - start, values.length);
+		System.arraycopy(values, 0, m_values, start, count);
 		return this;
 	}
 

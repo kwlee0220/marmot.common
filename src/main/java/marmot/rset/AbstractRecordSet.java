@@ -24,7 +24,7 @@ public abstract class AbstractRecordSet implements RecordSet, LoggerSettable {
 	
 	protected abstract void closeInGuard();
 	
-	public boolean isClosed() {
+	public final boolean isClosed() {
 		return m_closed.get();
 	}
 
@@ -33,11 +33,13 @@ public abstract class AbstractRecordSet implements RecordSet, LoggerSettable {
 		if ( m_closed.compareAndSet(false, true) ) {
 			try {
 				closeInGuard();
-				m_closed.set(true);
 			}
 			catch ( Throwable e ) {
 				getLogger().warn("fails to close RecordSet: " + this
 								+ ", cause=" + Throwables.unwrapThrowable(e));
+			}
+			finally {
+				m_closed.set(true);
 			}
 		}
 	}
@@ -71,7 +73,7 @@ public abstract class AbstractRecordSet implements RecordSet, LoggerSettable {
 		m_logger = logger;
 	}
 	
-	protected void checkNotClosed() {
+	protected final void checkNotClosed() {
 		if ( isClosed() ) {
 			throw new RecordSetClosedException("already closed: this=" + getClass());
 		}

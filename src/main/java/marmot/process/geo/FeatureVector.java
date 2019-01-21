@@ -167,14 +167,14 @@ public class FeatureVector implements Serializable {
 	public static List<String> validate(RecordSchema schema, List<String> featureColNames) {
 		List<String> msgs = Lists.newArrayList();
 		for ( String colName: featureColNames ) {
-			Column col = schema.getColumnOrNull(colName);
-			if ( col == null ) {
-				msgs.add(String.format("unknown column: %s", colName));
-			}
-			else if ( !validate(col) ) {
-				msgs.add(String.format("invalid feature column type: name=%s type=%s",
-										colName, col.type()));
-			}
+			schema.findColumn(colName)
+					.ifPresent(col -> {
+						if ( !validate(col) ) {
+							msgs.add(String.format("invalid feature column type: name=%s type=%s",
+													colName, col.type()));
+						}
+					})
+					.ifAbsent(() -> msgs.add(String.format("unknown column: %s", colName)));
 		}
 		
 		return msgs;

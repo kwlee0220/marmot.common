@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.Objects;
 
 import marmot.rset.AbstractRecordSet;
+import utils.io.IOUtils;
 
 /**
  * 
@@ -21,23 +22,26 @@ class IteratorRecordSet extends AbstractRecordSet {
 		m_iter = iter;
 	}
 	
-	@Override protected void closeInGuard() { }
+	@Override protected void closeInGuard() {
+		if ( m_iter instanceof AutoCloseable ) {
+			IOUtils.closeQuietly((AutoCloseable)m_iter);
+		}
+	}
 
 	@Override
 	public RecordSchema getRecordSchema() {
 		return m_schema;
 	}
-
+	
 	@Override
-	public boolean next(Record record) throws RecordSetException {
+	public Record nextCopy() {
 		checkNotClosed();
 		
 		if ( m_iter.hasNext() ) {
-			record.set(m_iter.next());
-			return true;
+			return m_iter.next();
 		}
 		else {
-			return false;
+			return null;
 		}
 	}
 }

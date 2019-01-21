@@ -21,6 +21,7 @@ import marmot.support.PBSerializable;
 import marmot.type.DataType;
 import utils.CIString;
 import utils.CSV;
+import utils.func.FOption;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
 
@@ -72,31 +73,22 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * @throws ColumnNotFoundException	컬럼이름에 해당하는 컬럼이 존재하지 않는 경우
 	 */
 	public Column getColumn(String name) {
-		Objects.requireNonNull(name, "column name");
-		
-		Column col = m_columns.get(CIString.of(name));
-		if ( col == null ) {
-			throw new ColumnNotFoundException("name=" + name
-											+ ", schema=" + m_columns.keySet());
-		}
-		
-		return col;
+		return findColumn(name)
+				.getOrElseThrow(() -> new ColumnNotFoundException("name=" + name
+														+ ", schema=" + m_columns.keySet()));
 	}
 	
 	/**
 	 * 주어진 이름의 컬럼의 존재 여부를 반환한다.
-	 * 만일 해당 이름에 해당하는 컬럼이 존재하지 않는 경우는 {@code null}를 반환한다.
+	 * 만일 해당 이름에 해당하는 컬럼이 존재하지 않는 경우는 {link FOption#empty}를 반환한다.
 	 * 
 	 * @param name	컬럼이름
 	 * @return	컬럼 정보 객체
 	 */
-	public Column getColumnOrNull(CIString cname) {
-		Objects.requireNonNull(cname, "column name");
+	public FOption<Column> findColumn(String name) {
+		Objects.requireNonNull(name, "column name");
 		
-		return m_columns.get(cname);
-	}
-	public Column getColumnOrNull(String name) {
-		return getColumnOrNull(CIString.of(name));
+		return FOption.ofNullable(m_columns.get(CIString.of(name)));
 	}
 	
 	/**

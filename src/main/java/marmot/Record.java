@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.IntStream;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -37,7 +36,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	}
 	
 	public default boolean existsColumn(String name) {
-		return getRecordSchema().getColumnOrNull(name) != null;
+		return getRecordSchema().findColumn(name).isPresent();
 	}
 
 	/**
@@ -148,13 +147,15 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 					컬럼 값의 순서는 레코드 스크마에 정의된 컬럼 순서와 같아야 한다.
 	 * @return	갱신된 레코드 객체.
 	 */
-	public default Record setAll(Object[] values) {
+	public default Record setAll(Object... values) {
 		return setAll(Arrays.asList(values));
 	}
 	
-	public default Record setAll(int start, List<Object> values) {
-		IntStream.range(0, values.size())
-				.forEach(idx -> set(start+idx, values.get(idx)));
+	public default Record setAll(int start, List<?> values) {
+		for ( int i = start; i < getColumnCount(); ++i ) {
+			set(i, get(i));
+		}
+		
 		return this;
 	}
 	

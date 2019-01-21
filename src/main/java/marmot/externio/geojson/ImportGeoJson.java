@@ -105,7 +105,6 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
-			@SuppressWarnings("resource")
 			RecordSet rset = new MultiFileGeoJsonRecordSet(m_start, m_gjsonParams.charset());
 			String tarGeomCol = m_params.getGeometryColumnInfo().get().name();
 			if ( !"geometry".equals(tarGeomCol) ) {

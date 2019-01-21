@@ -94,26 +94,11 @@ public interface RecordSet extends Closeable {
 	/**
 	 * 레코드 스트림에 속한 레코드로부터 레코드 세트를 생성한다.
 	 * 
-	 * @param fstream	레코드 스트림
-	 * @return	레코드 세트
-	 */
-	public static RecordSet from(FStream<Record> fstream) {
-		Objects.requireNonNull(fstream, "FStream is null");
-		
-		return new FStreamRecordSet(fstream);
-	}
-
-	/**
-	 * 레코드 스트림에 속한 레코드로부터 레코드 세트를 생성한다.
-	 * 
 	 * @param schema	레코드 스크마.
 	 * @param fstream	레코드 스트림
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, FStream<Record> fstream) {
-		Objects.requireNonNull(schema, "RecordSchema is null");
-		Objects.requireNonNull(fstream, "FStream is null");
-		
 		return new FStreamRecordSet(schema, fstream);
 	}
 
@@ -160,7 +145,6 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, Iterable<? extends Record> records) {
-		Objects.requireNonNull(schema, "RecordSchema");
 		Objects.requireNonNull(records);
 		
 		return new IteratorRecordSet(schema, records.iterator());
@@ -176,79 +160,103 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, Iterator<? extends Record> records) {
-		Objects.requireNonNull(schema, "RecordSchema");
-		Objects.requireNonNull(records, "Record iterator");
-		
 		return new IteratorRecordSet(schema, records);
 	}
 	
 	public default <S> S foldLeft(S accum, S stopper,
 									BiFunction<? super S,? super Record,? extends S> folder) {
-		Preconditions.checkArgument(accum != null, "accum is null");
-		Preconditions.checkArgument(folder != null, "folder is null");
-		
-		if ( accum.equals(stopper) ) {
-			return accum;
-		}
+		Objects.requireNonNull(accum, "accum is null");
+		Objects.requireNonNull(folder, "folder is null");
 
-		Record record = DefaultRecord.of(getRecordSchema());
-		while ( next(record) ) {
-			accum = folder.apply(accum, record);
+		try {
 			if ( accum.equals(stopper) ) {
 				return accum;
 			}
+	
+			Record record = DefaultRecord.of(getRecordSchema());
+			while ( next(record) ) {
+				accum = folder.apply(accum, record);
+				if ( accum.equals(stopper) ) {
+					return accum;
+				}
+			}
+			
+			return accum;
 		}
-		
-		return accum;
+		finally {
+			closeQuietly();
+		}
 	}
 	
-	public default <S> S foldLeft(S accum, BiFunction<? super S,? super Record,? extends S> folder) {
-		Preconditions.checkArgument(accum != null, "accum is null");
-		Preconditions.checkArgument(folder != null, "folder is null");
+	public default <S> S foldLeft(S accum,
+								BiFunction<? super S,? super Record,? extends S> folder) {
+		Objects.requireNonNull(accum, "accum is null");
+		Objects.requireNonNull(folder, "folder is null");
 
-		Record record = DefaultRecord.of(getRecordSchema());
-		while ( next(record) ) {
-			accum = folder.apply(accum, record);
+		try {
+			Record record = DefaultRecord.of(getRecordSchema());
+			while ( next(record) ) {
+				accum = folder.apply(accum, record);
+			}
+			
+			return accum;
 		}
-		
-		return accum;
+		finally {
+			closeQuietly();
+		}
 	}
 	
 	public default <S> S foldLeftCopy(S accum,
 									BiFunction<? super S,? super Record,? extends S> folder) {
-		Preconditions.checkArgument(accum != null, "accum is null");
-		Preconditions.checkArgument(folder != null, "folder is null");
+		Objects.requireNonNull(accum, "accum is null");
+		Objects.requireNonNull(folder, "folder is null");
 
-		Record rec;
-		while ( (rec = nextCopy()) != null ) {
-			accum = folder.apply(accum, rec);
+		try {
+			Record rec;
+			while ( (rec = nextCopy()) != null ) {
+				accum = folder.apply(accum, rec);
+			}
+			
+			return accum;
 		}
-		
-		return accum;
+		finally {
+			closeQuietly();
+		}
 	}
 	
 	public default <S> S collectLeft(S accum, BiConsumer<? super S,? super Record> consumer) {
 		Objects.requireNonNull(accum);
 		Objects.requireNonNull(consumer);
 
-		Record record = DefaultRecord.of(getRecordSchema());
-		while ( next(record) ) {
-			consumer.accept(accum, record);
+		try {
+			Record record = DefaultRecord.of(getRecordSchema());
+			while ( next(record) ) {
+				consumer.accept(accum, record);
+			}
+			
+			return accum;
 		}
-		
-		return accum;
+		finally {
+			closeQuietly();
+		}
 	}
 	
-	public default <S> S collectLeftCopy(S accum, BiConsumer<? super S,? super Record> consumer) {
+	public default <S> S collectLeftCopy(S accum,
+										BiConsumer<? super S,? super Record> consumer) {
 		Objects.requireNonNull(accum);
 		Objects.requireNonNull(consumer);
 
-		Record rec;
-		while ( (rec = nextCopy()) != null ) {
-			consumer.accept(accum, rec);
+		try {
+			Record rec;
+			while ( (rec = nextCopy()) != null ) {
+				consumer.accept(accum, rec);
+			}
+			
+			return accum;
 		}
-		
-		return accum;
+		finally {
+			closeQuietly();
+		}
 	}
 	
 	/**
@@ -288,7 +296,8 @@ public interface RecordSet extends Closeable {
 						failObserver.onNext(Tuple.of(record.duplicate(), e));
 					}
 					else if ( this instanceof LoggerSettable ) {
-						((LoggerSettable)this).getLogger().warn("fails to consume record: " + record, e);
+						((LoggerSettable)this).getLogger()
+												.warn("fails to consume record: " + record, e);
 					}
 				}
 			}
@@ -296,6 +305,9 @@ public interface RecordSet extends Closeable {
 		catch ( Throwable e ) {
 			Throwables.throwIfInstanceOf(e, RecordSetException.class);
 			throw new RecordSetException(e);
+		}
+		finally {
+			closeQuietly();
 		}
 	}
 	
@@ -332,6 +344,9 @@ public interface RecordSet extends Closeable {
 			Throwables.throwIfInstanceOf(e, RecordSetException.class);
 			throw new RecordSetException(e);
 		}
+		finally {
+			closeQuietly();
+		}
 	}
 	
 	public default void forEachCopy(Consumer<? super Record> consumer) {
@@ -346,18 +361,7 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 리스트.
 	 */
 	public default List<Record> toList() {
-		Record record;
-		List<Record> recordList = Lists.newArrayList();
-		try {
-			while ( (record = nextCopy()) != null ) {
-				recordList.add(record);
-			}
-			
-			return recordList;
-		}
-		finally {
-			closeQuietly();
-		}
+		return collectLeftCopy(Lists.newArrayList(), (c,r) -> c.add(r));
 	}
 	
 	public default Record getFirst() {

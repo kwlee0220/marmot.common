@@ -84,7 +84,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	public void setGeometryColumnInfo(FOption<GeometryColumnInfo> info) {
 		if ( info.isPresent() ) {
 			String colName = info.get().name();
-			Column col = m_schema.getColumnOrNull(colName);
+			Column col = m_schema.findColumn(colName).getOrNull();
 			if ( col == null ) {
 				throw new IllegalArgumentException("No such geometry column: name=" + colName);
 			}

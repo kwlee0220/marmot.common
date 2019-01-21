@@ -5,7 +5,6 @@ import java.util.Objects;
 import io.vavr.control.Try;
 import marmot.rset.AbstractRecordSet;
 import utils.stream.FStream;
-import utils.stream.PrependableFStream;
 
 /**
  * 
@@ -17,20 +16,10 @@ class FStreamRecordSet extends AbstractRecordSet {
 	
 	FStreamRecordSet(RecordSchema schema, FStream<Record> stream) {
 		Objects.requireNonNull(schema, "RecordSchema is null");
-		Objects.requireNonNull(stream);
+		Objects.requireNonNull(stream, "FStream");
 		
 		m_schema = schema;
 		m_stream = stream;
-	}
-	
-	FStreamRecordSet(FStream<Record> stream) {
-		Objects.requireNonNull(stream);
-		
-		PrependableFStream<Record> prependable = stream.toPrependable();
-		m_schema = prependable.peekNext()
-							.map(Record::getRecordSchema)
-							.getOrElseThrow(()->new RecordSetException("RecordSchema is not known"));
-		m_stream = prependable;
 	}
 	
 	@Override
@@ -41,15 +30,6 @@ class FStreamRecordSet extends AbstractRecordSet {
 	@Override
 	public RecordSchema getRecordSchema() {
 		return m_schema;
-	}
-
-	@Override
-	public boolean next(Record output) throws RecordSetException {
-		checkNotClosed();
-		
-		return m_stream.next()
-						.ifPresent(r -> output.setAll(0, r.getAll()))
-						.isPresent();
 	}
 	
 	@Override

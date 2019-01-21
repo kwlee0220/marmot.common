@@ -28,7 +28,9 @@ class RecordSetIterator implements Iterator<Record> {
 	public Record next() {
 		if ( m_next != null ) {
 			Record next = m_next;
-			m_next = m_rset.nextCopy();
+			if ( (m_next = m_rset.nextCopy()) == null ) {
+				m_rset.closeQuietly();
+			}
 			
 			return next;
 		}

@@ -6,7 +6,6 @@ import java.util.regex.Pattern;
 
 import marmot.proto.GeometryColumnInfoProto;
 import marmot.support.PBSerializable;
-import utils.CIString;
 
 /**
  * 
@@ -15,22 +14,19 @@ import utils.CIString;
 public final class GeometryColumnInfo implements PBSerializable<GeometryColumnInfoProto> {
 	private static final Pattern PATTERN = Pattern.compile("(\\S+)\\s*\\(\\s*(\\S+)\\s*\\)");
 	
-	private final CIString m_name;
+	private final String m_name;
 	private final String m_srid;
 	
-	public GeometryColumnInfo(CIString colName, String srid) {
+	public GeometryColumnInfo(String colName, String srid) {
 		Objects.requireNonNull(colName, "column name");
 		Objects.requireNonNull(srid, "SRID");
 		
 		m_name = colName;
 		m_srid = srid;
 	}
-	public GeometryColumnInfo(String colName, String srid) {
-		this(CIString.of(colName), srid);
-	}
 	
 	public final String name() {
-		return m_name.get();
+		return m_name;
 	}
 	
 	public final String srid() {
@@ -47,13 +43,13 @@ public final class GeometryColumnInfo implements PBSerializable<GeometryColumnIn
 		}
 		
 		GeometryColumnInfo other = (GeometryColumnInfo)obj;
-		return Objects.equals(m_name, other.m_name)
+		return m_name.equalsIgnoreCase(other.m_name)
 			&& Objects.equals(m_srid, other.m_srid);
 	}
 	
 	@Override
 	public int hashCode() {
-		return Objects.hash(m_name, m_srid);
+		return Objects.hash(m_name.toLowerCase(), m_srid);
 	}
 	
 	public static GeometryColumnInfo fromString(String str) {
@@ -77,7 +73,7 @@ public final class GeometryColumnInfo implements PBSerializable<GeometryColumnIn
 	@Override
 	public GeometryColumnInfoProto toProto() {
 		return GeometryColumnInfoProto.newBuilder()
-									.setName(m_name.get())
+									.setName(m_name)
 									.setSrid(m_srid)
 									.build();
 	}

@@ -440,9 +440,8 @@ public class PlanBuilder {
 		Objects.requireNonNull(predicate, "predicate is null");
 		
 		ScriptFilterProto filter = ScriptFilterProto.newBuilder()
-										.setPredicate(predicate.toProto())
-										.build();
-		
+													.setPredicate(predicate.toProto())
+													.build();
 		return add(OperatorProto.newBuilder()
 								.setFilterScript(filter)
 								.build());
