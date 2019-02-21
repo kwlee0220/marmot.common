@@ -32,11 +32,11 @@ public abstract class BufferOption extends GeomOpOption {
 												List<? extends GeomOpOption> opts) {
 		Objects.requireNonNull(opts, "GeomOpOption list is null");
 		
-		List<BufferOption> matcheds = FStream.of(opts)
+		List<BufferOption> matcheds = FStream.from(opts)
 											.castSafely(BufferOption.class)
 											.toList();
 		if ( matcheds.size() > 0 ) {
-			OptionsProto proto =  FStream.of(matcheds)
+			OptionsProto proto =  FStream.from(matcheds)
 											.collectLeft(OptionsProto.newBuilder(),
 														(b,o) -> o.set(b))
 											.build();

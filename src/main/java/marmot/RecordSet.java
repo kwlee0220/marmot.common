@@ -10,13 +10,14 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import io.reactivex.Observer;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Try;
+import marmot.rset.IteratorRecordSet;
+import marmot.rset.RecordSetIterator;
 import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
 import utils.Throwables;
@@ -92,6 +93,20 @@ public interface RecordSet extends Closeable {
 	}
 
 	/**
+	 * 단일 레코드로 구성된 레코드 세트를 생성한다.
+	 * 
+	 * @param record	레코드 세트에 포함될 레코드.
+	 * @return	레코드 세트
+	 */
+	public static RecordSet of(Record... records) {
+		Utilities.checkNotNullArgument(records, "records is null");
+		Utilities.checkArgument(records.length > 0, "records.length > 0, but: " + records.length);
+		
+		RecordSchema schema = records[0].getRecordSchema();
+		return from(schema, Arrays.asList(records));
+	}
+
+	/**
 	 * 레코드 스트림에 속한 레코드로부터 레코드 세트를 생성한다.
 	 * 
 	 * @param schema	레코드 스크마.
@@ -100,20 +115,6 @@ public interface RecordSet extends Closeable {
 	 */
 	public static RecordSet from(RecordSchema schema, FStream<Record> fstream) {
 		return new FStreamRecordSet(schema, fstream);
-	}
-
-	/**
-	 * 단일 레코드로 구성된 레코드 세트를 생성한다.
-	 * 
-	 * @param record	레코드 세트에 포함될 레코드.
-	 * @return	레코드 세트
-	 */
-	public static RecordSet of(Record... records) {
-		Objects.requireNonNull(records, "records is null");
-		Preconditions.checkArgument(records.length > 0, "records are empty");
-		
-		RecordSchema schema = records[0].getRecordSchema();
-		return from(schema, Arrays.asList(records));
 	}
 
 	/**
@@ -126,10 +127,10 @@ public interface RecordSet extends Closeable {
 	 * @throws IllegalArgumentException	입력 레코드 집합이 빈 경우.
 	 */
 	public static RecordSet from(Iterable<? extends Record> records) {
-		Objects.requireNonNull(records);
+		Utilities.checkNotNullArgument(records, "records is null");
 		
 		Iterator<? extends Record> iter = records.iterator();
-		Preconditions.checkArgument(iter.hasNext(), "Record Iterable is empty");
+		Utilities.checkArgument(iter.hasNext(), "Record Iterable is empty");
 		
 		RecordSchema schema = iter.next().getRecordSchema();
 		return from(schema, records.iterator());
@@ -145,7 +146,8 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, Iterable<? extends Record> records) {
-		Objects.requireNonNull(records);
+		Utilities.checkNotNullArgument(schema, "schema is null");
+		Utilities.checkNotNullArgument(records, "records is null");
 		
 		return new IteratorRecordSet(schema, records.iterator());
 	}
@@ -160,13 +162,15 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, Iterator<? extends Record> records) {
+		Utilities.checkNotNullArgument(schema, "schema is null");
+		Utilities.checkNotNullArgument(records, "records is null");
+		
 		return new IteratorRecordSet(schema, records);
 	}
 	
 	public default <S> S foldLeft(S accum, S stopper,
-									BiFunction<? super S,? super Record,? extends S> folder) {
-		Objects.requireNonNull(accum, "accum is null");
-		Objects.requireNonNull(folder, "folder is null");
+								BiFunction<? super S,? super Record,? extends S> folder) {
+		Utilities.checkNotNullArgument(folder, "folder is null");
 
 		try {
 			if ( accum.equals(stopper) ) {
@@ -190,8 +194,7 @@ public interface RecordSet extends Closeable {
 	
 	public default <S> S foldLeft(S accum,
 								BiFunction<? super S,? super Record,? extends S> folder) {
-		Objects.requireNonNull(accum, "accum is null");
-		Objects.requireNonNull(folder, "folder is null");
+		Utilities.checkNotNullArgument(folder, "folder is null");
 
 		try {
 			Record record = DefaultRecord.of(getRecordSchema());
@@ -208,12 +211,10 @@ public interface RecordSet extends Closeable {
 	
 	public default <S> S foldLeftCopy(S accum,
 									BiFunction<? super S,? super Record,? extends S> folder) {
-		Objects.requireNonNull(accum, "accum is null");
-		Objects.requireNonNull(folder, "folder is null");
+		Utilities.checkNotNullArgument(folder, "folder is null");
 
 		try {
-			Record rec;
-			while ( (rec = nextCopy()) != null ) {
+			for ( Record rec = nextCopy(); rec != null; rec = nextCopy() ) {
 				accum = folder.apply(accum, rec);
 			}
 			
@@ -225,8 +226,7 @@ public interface RecordSet extends Closeable {
 	}
 	
 	public default <S> S collectLeft(S accum, BiConsumer<? super S,? super Record> consumer) {
-		Objects.requireNonNull(accum);
-		Objects.requireNonNull(consumer);
+		Utilities.checkNotNullArgument(consumer, "consumer is null");
 
 		try {
 			Record record = DefaultRecord.of(getRecordSchema());
@@ -243,12 +243,10 @@ public interface RecordSet extends Closeable {
 	
 	public default <S> S collectLeftCopy(S accum,
 										BiConsumer<? super S,? super Record> consumer) {
-		Objects.requireNonNull(accum);
-		Objects.requireNonNull(consumer);
+		Utilities.checkNotNullArgument(consumer, "consumer is null");
 
 		try {
-			Record rec;
-			while ( (rec = nextCopy()) != null ) {
+			for ( Record rec = nextCopy(); rec != null; rec = nextCopy() ) {
 				consumer.accept(accum, rec);
 			}
 			
@@ -285,6 +283,8 @@ public interface RecordSet extends Closeable {
 	 */
 	public default void forEach(Consumer<? super Record> consumer,
 								Observer<Tuple2<Record,Throwable>> failObserver) {
+		Utilities.checkNotNullArgument(consumer, "consumer is null");
+		
 		Record record = DefaultRecord.of(getRecordSchema());
 		try {
 			while ( next(record) ) {
@@ -324,6 +324,8 @@ public interface RecordSet extends Closeable {
 	 */
 	public default void forEachCopy(Consumer<? super Record> consumer,
 									Observer<Tuple2<Record,Throwable>> failObserver) {
+		Utilities.checkNotNullArgument(consumer, "consumer is null");
+		
 		Record record;
 		try {
 			while ( (record = nextCopy()) != null ) {

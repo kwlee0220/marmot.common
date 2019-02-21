@@ -74,4 +74,29 @@ public class DefaultRecordTest {
 		Object[] v2 = new Object[]{"aaa", 30, 31.7d};
 		Assert.assertArrayEquals(v2, m_record.getAll());
 	}
+	
+	@Test
+	public void test07() throws Exception {
+		Record rec2 = DefaultRecord.of(m_schema);
+		rec2.setAll("a", 1, 2d);
+		
+		m_record.set(rec2);
+		Assert.assertEquals("a", m_record.get("coL1"));
+		Assert.assertEquals(1, m_record.get("cOl2"));
+		Assert.assertEquals(2d, m_record.get("COL3"));
+		
+		RecordSchema schema2 = RecordSchema.builder()
+											.addColumn("cOl1", DataType.STRING)
+											.addColumn("Col3", DataType.DOUBLE)
+											.addColumn("CoL4", DataType.SHORT)
+											.build();
+		rec2 = DefaultRecord.of(schema2);
+		rec2.setAll("a", 3.14d, 17);
+
+		m_record.setAll("aaa", 15, 12.5d);
+		m_record.set(rec2);
+		Assert.assertEquals("a", m_record.get("cOL1"));
+		Assert.assertEquals(15, m_record.get("cOl2"));
+		Assert.assertEquals(3.14d, m_record.get("COL3"));
+	}
 }

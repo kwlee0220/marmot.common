@@ -47,7 +47,7 @@ public class FeatureVectorHandle {
 	
 	@Override
 	public String toString() {
-		return FStream.of(m_colNames)
+		return FStream.from(m_colNames)
 						.join(",", "{", "}");
 	}
 	

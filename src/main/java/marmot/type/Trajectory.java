@@ -112,7 +112,7 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 	}
 	
 	public static Trajectory fromProto(TrajectoryProto proto) {
-		List<Sample> samples = FStream.of(proto.getSampleList())
+		List<Sample> samples = FStream.from(proto.getSampleList())
 												.map(Sample::fromProto)
 												.toList();
 		return new Trajectory(samples);
@@ -120,7 +120,7 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 
 	@Override
 	public TrajectoryProto toProto() {
-		return FStream.of(m_samples)
+		return FStream.from(m_samples)
 					.map(Sample::toProto)
 					.foldLeft(TrajectoryProto.newBuilder(), (b,s) -> b.addSample(s))
 					.build();

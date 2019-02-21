@@ -10,6 +10,7 @@ import marmot.support.PBSerializable;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
 import utils.CIString;
+import utils.Utilities;
 
 /**
  * 
@@ -23,8 +24,8 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	private final short m_ordinal;
 
 	public Column(String name, DataType type) {
-		Objects.requireNonNull(name, "column name");
-		Objects.requireNonNull(type, "column type");
+		Utilities.checkNotNullArgument(name, "column name is null");
+		Utilities.checkNotNullArgument(type, "column type is null");
 
 		m_name = CIString.of(name);
 		m_type = type;

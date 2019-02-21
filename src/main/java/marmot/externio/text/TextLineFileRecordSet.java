@@ -49,7 +49,7 @@ public class TextLineFileRecordSet extends ConcatedRecordSet {
 			
 			getLogger().info("loading TextFile: from={}, nfiles={}", start, files.size());
 
-			m_files = FStream.of(files);
+			m_files = FStream.from(files);
 		}
 		catch ( IOException e ) {
 			throw new RecordSetException("fails to parse TextFile", e);

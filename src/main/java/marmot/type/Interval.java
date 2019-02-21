@@ -101,18 +101,18 @@ public class Interval implements Serializable {
 	}
 	
 	public static List<Interval> cluster(List<Long> points, long threshold) {
-		List<Interval> intervals = FStream.of(points)
+		List<Interval> intervals = FStream.from(points)
 											.map(pt -> Interval.between(pt, pt))
 											.toList();
 
 		final List<Interval> clusters = Lists.newArrayList();
 		for ( Interval intvl: intervals ) {
 			List<Interval> neighbors
-						= FStream.of(clusters)
+						= FStream.from(clusters)
 								.filter(c -> Math.abs(c.distance(intvl)) <= threshold)
 								.toList();
 			clusters.removeAll(neighbors);
-			Interval merged = FStream.of(neighbors)
+			Interval merged = FStream.from(neighbors)
 									.foldLeft(intvl, (i,c) -> Interval.merge(i, c));
 			clusters.add(merged);
 		}

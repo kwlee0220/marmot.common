@@ -6,8 +6,8 @@ option java_package = "marmot.proto.service";
 package marmot.proto.service;
 
 import public "marmot.proto";
-import public "marmot.optor.proto";
 import public "marmot.service.proto";
+import public "marmot.optor.proto";
 import public "marmot.service.exec.proto";
 
 service DataSetService {

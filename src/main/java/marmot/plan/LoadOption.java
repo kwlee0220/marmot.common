@@ -27,7 +27,7 @@ public abstract class LoadOption {
 	public static LoadOptionsProto toProto(List<LoadOption> opts) {
 		Objects.requireNonNull(opts, "LoadOption are null");
 		
-		return FStream.of(opts)
+		return FStream.from(opts)
 					.collectLeft(LoadOptionsProto.newBuilder(),
 								(b,o) -> o.set(b))
 					.build();

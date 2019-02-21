@@ -122,7 +122,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	}
 	
 	public DataSetInfo duplicate() {
-		DataSetInfo info = new DataSetInfo(m_id, m_type, m_schema.duplicate());
+		DataSetInfo info = new DataSetInfo(m_id, m_type, m_schema);
 		info.m_geomColInfo = m_geomColInfo;
 		info.m_filePath = m_filePath;
 		

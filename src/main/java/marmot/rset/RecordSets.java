@@ -113,7 +113,7 @@ public class RecordSets {
 	}
 	
 	public static RecordSet concat(RecordSchema schema, Collection<? extends RecordSet> rsets) {
-		return concat(schema, FStream.of(rsets));
+		return concat(schema, FStream.from(rsets));
 	}
 	
 	public static RecordSet concat(RecordSchema schema, FStream<? extends RecordSet> rsets) {

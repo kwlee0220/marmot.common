@@ -32,11 +32,11 @@ public abstract class GeomOpOption {
 												List<? extends GeomOpOption> opts) {
 		Objects.requireNonNull(opts, "GeomOpOption list is null");
 		
-		List<GeomOpOption> matcheds = FStream.of(opts)
+		List<GeomOpOption> matcheds = FStream.from(opts)
 											.castSafely(GeomOpOption.class)
 											.toList();
 		if ( matcheds.size() > 0 ) {
-			GeomOpOptionsProto proto =  FStream.of(matcheds)
+			GeomOpOptionsProto proto =  FStream.from(matcheds)
 												.collectLeft(GeomOpOptionsProto.newBuilder(),
 															(b,o) -> o.set(b))
 												.build();

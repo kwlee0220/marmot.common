@@ -35,23 +35,23 @@ public abstract class ExecutePlanOption {
 			return null;
 		}
 		
-		List<ExecutePlanOption> matcheds = FStream.of(opts)
+		List<ExecutePlanOption> matcheds = FStream.from(opts)
 											.castSafely(ExecutePlanOption.class)
 											.toList();
-		return FStream.of(matcheds)
+		return FStream.from(matcheds)
 					.collectLeft(ExecutePlanOptionsProto.newBuilder(), (b,o) -> o.set(b))
 					.build();
 	}
 	
 	public static boolean disableLocalExecution(List<ExecutePlanOption> opts) {
-		return FStream.of(opts)
+		return FStream.from(opts)
 						.castSafely(DisableLocalExecOption.class)
 						.next()
 						.isPresent();
 	}
 	
 	public static MapOutputCompressCodecOption getMapOutputCompressCodec(List<ExecutePlanOption> opts) {
-		return FStream.of(opts)
+		return FStream.from(opts)
 						.castSafely(MapOutputCompressCodecOption.class)
 						.next()
 						.getOrNull();

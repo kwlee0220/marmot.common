@@ -56,7 +56,7 @@ public class NormalizeParameters {
 		return Arrays.asList(m_params.get(INPUT_FEATURE_COLUMNS).split("#"));
 	}
 	public void inputFeatureColumns(List<String> cols) {
-		m_params.put(INPUT_FEATURE_COLUMNS, FStream.of(cols).join("#"));
+		m_params.put(INPUT_FEATURE_COLUMNS, FStream.from(cols).join("#"));
 	}
 	public void inputFeatureColumns(String... cols) {
 		inputFeatureColumns(Arrays.asList(cols));
@@ -66,7 +66,7 @@ public class NormalizeParameters {
 		return Arrays.asList(m_params.get(OUTPUT_COLUMNS).split("#"));
 	}
 	public void outputFeatureColumns(List<String> cols) {
-		m_params.put(OUTPUT_COLUMNS, FStream.of(cols).join("#"));
+		m_params.put(OUTPUT_COLUMNS, FStream.from(cols).join("#"));
 	}
 	public void outputFeatureColumns(String... cols) {
 		outputFeatureColumns(Arrays.asList(cols));

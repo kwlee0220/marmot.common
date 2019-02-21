@@ -140,7 +140,7 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 
 	@Override
 	public RecordScriptProto toProto() {
-		List<String> importeds = FStream.of(getImportedClassAll())
+		List<String> importeds = FStream.from(getImportedClassAll())
 										.map(ImportedClass::toString)
 										.toList();
 		RecordScriptProto.Builder builder = RecordScriptProto.newBuilder()

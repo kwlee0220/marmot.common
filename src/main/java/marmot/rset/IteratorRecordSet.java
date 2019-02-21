@@ -1,31 +1,27 @@
-package marmot;
+package marmot.rset;
 
 import java.util.Iterator;
-import java.util.Objects;
 
-import marmot.rset.AbstractRecordSet;
+import marmot.Record;
+import marmot.RecordSchema;
 import utils.io.IOUtils;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-class IteratorRecordSet extends AbstractRecordSet {
+public class IteratorRecordSet extends AbstractRecordSet {
 	private final RecordSchema m_schema;
 	private final Iterator<? extends Record> m_iter;
 	
-	IteratorRecordSet(RecordSchema schema, Iterator<? extends Record> iter) {
-		Objects.requireNonNull(schema, "RecordSchema is null");
-		Objects.requireNonNull(iter, "Iterator is null");
-		
+	public IteratorRecordSet(RecordSchema schema, Iterator<? extends Record> iter) {
 		m_schema = schema;
 		m_iter = iter;
 	}
 	
-	@Override protected void closeInGuard() {
-		if ( m_iter instanceof AutoCloseable ) {
-			IOUtils.closeQuietly((AutoCloseable)m_iter);
-		}
+	@Override
+	protected void closeInGuard() {
+		IOUtils.closeQuietly(m_iter);
 	}
 
 	@Override

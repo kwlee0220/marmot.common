@@ -29,12 +29,12 @@ public abstract class PredicateOption {
 												List<? extends PredicateOption> opts) {
 		Objects.requireNonNull(opts, "SpatialRelationOption list is null");
 		
-		List<PredicateOption> matcheds = FStream.of(opts)
+		List<PredicateOption> matcheds = FStream.from(opts)
 													.castSafely(PredicateOption.class)
 													.toList();
 		if ( matcheds.size() > 0 ) {
 			PredicateOptionsProto proto
-						= FStream.of(matcheds)
+						= FStream.from(matcheds)
 								.collectLeft(PredicateOptionsProto.newBuilder(),
 											(b,o) -> o.set(b))
 								.build();

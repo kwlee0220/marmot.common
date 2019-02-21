@@ -116,7 +116,7 @@ public class MVELScript {
 	}
 	
 	public static List<String> toImportClassesProto(List<ImportedClass> icList) {
-		return FStream.of(icList)
+		return FStream.from(icList)
 						.map(ImportedClass::toString)
 						.toList();
 	}

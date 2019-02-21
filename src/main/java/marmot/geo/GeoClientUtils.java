@@ -245,7 +245,7 @@ public class GeoClientUtils {
 	public static Geometry makeValid(Geometry geom) {
 		if ( geom instanceof MultiPolygon ) {
 			return toMultiPolygon(flatten(geom, Polygon.class)
-									.flatMap(p -> FStream.of(JTS.makeValid(p, false))))
+									.flatMap(p -> FStream.from(JTS.makeValid(p, false))))
 						.buffer(0);
 		}
 		else if ( geom instanceof Polygon ) {
@@ -348,7 +348,7 @@ public class GeoClientUtils {
 	
 	public static FStream<Geometry> flatten(Geometry geom) {
 		if ( geom instanceof GeometryCollection ) {
-			return FStream.<Geometry>of(new GeometryIterator<>((GeometryCollection)geom))
+			return FStream.<Geometry>from(new GeometryIterator<>((GeometryCollection)geom))
 							.flatMap(GeoClientUtils::flatten);
 		}
 		else {
@@ -403,7 +403,7 @@ public class GeoClientUtils {
 	}
 	
 	public static FStream<Geometry> fstream(GeometryCollection geom) {
-		return FStream.of(new GeometryIterator<>(geom));
+		return FStream.from(new GeometryIterator<>(geom));
 	}
 
 	private static final String DEFAULT_GEOM_COLUMN = "the_geom";

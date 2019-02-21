@@ -16,7 +16,6 @@ import marmot.plan.STScriptPlanLoader;
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.StoreIntoDataSetProto;
 import picocli.CommandLine.Mixin;
-import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import utils.func.FOption;
 import utils.io.IOUtils;
@@ -29,11 +28,12 @@ public class RunPlanCommand implements CheckedConsumer<MarmotRuntime> {
 	@Mixin private StoreDataSetParameters m_storeParams;
 	@Mixin private UsageHelp m_help;
 
-	@Parameters(paramLabel="output", index="0", arity="0..1",
+	@Parameters(paramLabel="plan_path", index="0", arity="1..1",
+				description="plan file path to run")
+	private String m_planPath;
+	@Parameters(paramLabel="output", index="1", arity="1..1",
 				description="dataset id for the result")
 	private String m_outDsId;
-	@Option(names={"-plan"}, paramLabel="file", description="plan file path to run")
-	private String m_planPath = null;
 	
 	@Override
 	public void accept(MarmotRuntime marmot) throws Exception {

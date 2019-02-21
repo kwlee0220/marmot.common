@@ -108,7 +108,7 @@ public class Plan implements PBSerializable<PlanProto> {
 	}
 	
 	public PlanBuilder toBuilder() {
-		return FStream.of(m_proto.getOperatorsList())
+		return FStream.from(m_proto.getOperatorsList())
 					.foldLeft(new PlanBuilder(getName()), (b,o) -> b.add(o));
 	}
 	
@@ -138,9 +138,9 @@ public class Plan implements PBSerializable<PlanProto> {
 	public static Plan concat(Plan plan1, Plan plan2) {
 		PlanBuilder builder = new PlanBuilder(plan1.getName());
 		
-		FStream.of(plan1.m_proto.getOperatorsList())
+		FStream.from(plan1.m_proto.getOperatorsList())
 				.foldLeft(builder, (b,o) -> b.add(o));
-		FStream.of(plan2.m_proto.getOperatorsList())
+		FStream.from(plan2.m_proto.getOperatorsList())
 				.foldLeft(builder, (b,o) -> b.add(o));
 		
 		return builder.build();

@@ -39,7 +39,7 @@ public class Functions {
 	@MVELFunction(name="ST_StringToCsv")
 	public static String ST_StringToCsv(Collection<String> list, String delim) {
 		if ( list != null ) {
-			return FStream.of(list).join(delim);
+			return FStream.from(list).join(delim);
 		}
 		else {
 			return null;

@@ -54,44 +54,44 @@ public abstract class DataSetOption {
 	public static DataSetOptionsProto toProto(List<? extends DataSetOption> opts) {
 		Objects.requireNonNull(opts, "GeomOpOption list is null");
 		
-		List<DataSetOption> matcheds = FStream.of(opts)
+		List<DataSetOption> matcheds = FStream.from(opts)
 											.castSafely(DataSetOption.class)
 											.toList();
-		return FStream.of(matcheds)
+		return FStream.from(matcheds)
 					.collectLeft(DataSetOptionsProto.newBuilder(), (b,o) -> o.set(b))
 					.build();
 	}
 	
 	public static boolean hasForce(List<DataSetOption> opts) {
-		return FStream.of(opts)
+		return FStream.from(opts)
 						.castSafely(ForceOption.class)
 						.next()
 						.isPresent();
 	}
 	
 	public static boolean hasAppend(List<DataSetOption> opts) {
-		return FStream.of(opts)
+		return FStream.from(opts)
 						.castSafely(AppendOption.class)
 						.next()
 						.isPresent();
 	}
 	
 	public static boolean hasCompression(List<DataSetOption> opts) {
-		return FStream.of(opts)
+		return FStream.from(opts)
 						.castSafely(CompressOption.class)
 						.next()
 						.isPresent();
 	}
 	
 	public static FOption<GeometryColumnInfo> getGeometryColumnInfo(List<DataSetOption> opts) {
-		return FStream.of(opts)
+		return FStream.from(opts)
 						.castSafely(GeomColumnInfoOption.class)
 						.next()
 						.map(GeomColumnInfoOption::get);
 	}
 	
 	public static FOption<Long> getBlockSize(List<DataSetOption> opts) {
-		return FStream.of(opts)
+		return FStream.from(opts)
 						.castSafely(BlockSizeOption.class)
 						.next()
 						.map(BlockSizeOption::get);

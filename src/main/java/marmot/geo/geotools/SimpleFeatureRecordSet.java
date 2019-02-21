@@ -48,7 +48,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 		
 		try {
 			m_schema = GeoToolsUtils.toRecordSchema(sfType);
-			m_types = m_schema.getColumnAll().stream()
+			m_types = m_schema.getColumns().stream()
 								.map(Column::type)
 								.toArray(sz -> new DataType[sz]);
 			
@@ -77,7 +77,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 		throws FactoryException {
 		try {
 			m_schema = GeoToolsUtils.toRecordSchema(sfType);
-			m_types = m_schema.getColumnAll().stream()
+			m_types = m_schema.getColumns().stream()
 								.map(Column::type)
 								.toArray(sz -> new DataType[sz]);
 			

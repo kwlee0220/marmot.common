@@ -27,7 +27,7 @@ public abstract class EstimateIDWOption {
 	public static EstimateIDWOptionsProto toProto(List<EstimateIDWOption> opts) {
 		Objects.requireNonNull(opts, "EstimateIDWOption are null");
 		
-		return FStream.of(opts)
+		return FStream.from(opts)
 					.collectLeft(EstimateIDWOptionsProto.newBuilder(),
 								(b,o) -> o.set(b))
 					.build();

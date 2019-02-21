@@ -19,8 +19,8 @@ import marmot.RecordSet;
 import marmot.geo.geotools.GeoToolsUtils;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.rset.RecordSets;
-import utils.async.CancellableWork;
 import utils.async.AbstractThreadedExecution;
+import utils.async.CancellableWork;
 import utils.async.ProgressiveExecution;
 
 /**

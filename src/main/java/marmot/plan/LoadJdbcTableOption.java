@@ -31,7 +31,7 @@ public abstract class LoadJdbcTableOption {
 		Objects.requireNonNull(opts, "LoadJdbcTableOptions are null");
 		Preconditions.checkArgument(opts.size() > 0, "LoadJdbcTableOption is empty"); 
 		
-		return FStream.of(opts)
+		return FStream.from(opts)
 					.collectLeft(OptionsProto.newBuilder(),
 								(b,o) -> o.set(b))
 					.build();

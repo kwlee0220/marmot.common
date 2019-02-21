@@ -38,8 +38,7 @@ expand(col_decls, init=[]) ::= <<
 define_column(col_decl, init=[]) ::= <<
 { "defineColumn": {
     "columnDecl": "<col_decl>"<if(init)>,
-    "initialValue": { "expr": "<init>" }
-    <endif>
+    "initialValue": { "expr": "<init>" }<endif> 
   }
 }
 >>
@@ -50,7 +49,8 @@ parse_csv(header, delim=",", quote=[], comment=[]) ::= <<
     "options": {
       "headerColumns": "<header>"<if(quote)>,
       "quote": "<quote>"
-      <endif><if(comment)>,
+      <endif> 
+      <if(comment)>,
       "commentMarker": "<comment>"
       <endif>
     }
@@ -91,11 +91,13 @@ aggregate(aggrs) ::= <<
 { "reduce": { "valAggregate": { "aggregate": [<aggrs:{a | "<a>"}; separator=",">] } } }
 >>
 
-aggregate_by_key(cmp_cols,aggrs,tag_cols=[]) ::= <<
+aggregate_by_key(cmp_cols,aggrs,tag_cols=[],nworkers=[]) ::= <<
 { "transformByGroup": {
   	"grouper": {
       "compareColumns": "<cmp_cols>"<if(tag_cols)>,
       "tagColumns" : "<tag_cols>"
+      <endif><if(nworkers)>,
+      "groupWorkerCount" : "<nworkers>"
       <endif>
   	},
   	"valAggregate": { "aggregate": [<aggrs:{aggr | "<aggr>"}; separator=",">] }
@@ -107,8 +109,8 @@ shard(count) ::= <<
 { "shard": { "partCount": <count> } }
 >>
 
-join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
-{ "equiJoin": {
+hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+{ "hashJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
@@ -117,8 +119,8 @@ join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
   }
 }
 >>
-semi_join(jcols, param_dsid, param_jcols, nworkers=[]) ::= <<
-{ "equiJoin": {
+semi_hash_join(jcols, param_dsid, param_jcols, nworkers=[]) ::= <<
+{ "hashJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
@@ -126,8 +128,8 @@ semi_join(jcols, param_dsid, param_jcols, nworkers=[]) ::= <<
   }
 }
 >>
-left_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
-{ "equiJoin": {
+left_outer_hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+{ "hashJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
@@ -136,8 +138,8 @@ left_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
   }
 }
 >>
-right_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
-{ "equiJoin": {
+right_outer_hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+{ "hashJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
@@ -146,8 +148,8 @@ right_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
   }
 }
 >>
-full_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
-{ "equiJoin": {
+full_outer_hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+{ "hashJoin": {
     "joinColumns": "<jcols>",
     "paramDataset": "<param_dsid>",
     "paramColumns": "<param_jcols>",
@@ -157,8 +159,8 @@ full_outerjoin(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
 }
 >>
 
-load_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
-{ "loadEquiJoin": {
+load_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+{ "loadHashJoin": {
     "leftDataset": "<left_dsid>",
     "leftJoinColumns": "<left_jcols>",
     "rightDataset": "<right_dsid>",

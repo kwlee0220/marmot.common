@@ -42,7 +42,7 @@ public class MultiFileCsvRecordSet extends ConcatedRecordSet {
 			
 			getLogger().info("loading CSVFile: from={}, nfiles={}", start, files.size());
 
-			m_files = FStream.of(files);
+			m_files = FStream.from(files);
 			m_params = params;
 			
 			m_first = loadNext();

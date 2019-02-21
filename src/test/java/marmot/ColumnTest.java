@@ -29,12 +29,12 @@ public class ColumnTest {
 		Assert.assertEquals(DataType.INT, col2.type());
 	}
 	
-	@Test(expected=NullPointerException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void test02() throws Exception {
 		new Column((String)null, DataType.STRING);
 	}
 	
-	@Test(expected=NullPointerException.class)
+	@Test(expected=IllegalArgumentException.class)
 	public void test03() throws Exception {
 		new Column("col1", null);
 	}

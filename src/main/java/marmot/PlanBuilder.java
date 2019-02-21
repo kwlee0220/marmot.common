@@ -447,14 +447,21 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder parseCsv(char delim, ParseCsvOption... opts) {
-		ParseCsvProto.Builder builder = ParseCsvProto.newBuilder()
-															.setDelimiter("" + delim);
-		builder.setOptions(ParseCsvOption.toProto(opts));
-		ParseCsvProto parse = builder.build();
-		
+	/**
+	 * 본 {@code PlanBuilder}에 입력 레코드에서 지정된 컬럼만으로 구성된 레코드들로
+	 * 이루어진 레코드 세트를 생성하는 연산을 추가한다.
+	 * 
+	 * @param columnSelection	생성될 레코드에 포함될 컬럼 표현식.
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
+	@Operator(protoId="project", name="컬럼 선택")
+	public PlanBuilder project(@Parameter(protoId="columnExpr", name="컬럼리스트")
+								String columnSelection) {
+		ProjectProto opProto = ProjectProto.newBuilder()
+										.setColumnExpr(columnSelection)
+										.build();
 		return add(OperatorProto.newBuilder()
-								.setParseCsv(parse)
+								.setProject(opProto)
 								.build());
 	}
 	
@@ -475,21 +482,26 @@ public class PlanBuilder {
 								.build());
 	}
 
-	/**
-	 * 본 {@code PlanBuilder}에 입력 레코드에서 지정된 컬럼만으로 구성된 레코드들로
-	 * 이루어진 레코드 세트를 생성하는 연산을 추가한다.
-	 * 
-	 * @param columnSelection	생성될 레코드에 포함될 컬럼 표현식.
-	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
-	 */
-	@Operator(protoId="project", name="컬럼 선택")
-	public PlanBuilder project(@Parameter(protoId="columnExpr", name="컬럼리스트")
-								String columnSelection) {
-		ProjectProto opProto = ProjectProto.newBuilder()
-										.setColumnExpr(columnSelection)
-										.build();
+	public PlanBuilder defineColumn(String colDecl, String initializer) {
+		return defineColumn(colDecl, RecordScript.of(initializer));
+	}
+
+	public PlanBuilder defineColumn(String colDecl) {
+		DefineColumnProto op = DefineColumnProto.newBuilder()
+											.setColumnDecl(colDecl)
+											.build();
 		return add(OperatorProto.newBuilder()
-								.setProject(opProto)
+								.setDefineColumn(op)
+								.build());
+	}
+
+	public PlanBuilder defineColumn(String colDecl, RecordScript initValue) {
+		DefineColumnProto op = DefineColumnProto.newBuilder()
+											.setColumnDecl(colDecl)
+											.setInitialValue(initValue.toProto())
+											.build();
+		return add(OperatorProto.newBuilder()
+								.setDefineColumn(op)
 								.build());
 	}
 
@@ -516,26 +528,14 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder defineColumn(String colDecl, String initializer) {
-		return defineColumn(colDecl, RecordScript.of(initializer));
-	}
-
-	public PlanBuilder defineColumn(String colDecl) {
-		DefineColumnProto op = DefineColumnProto.newBuilder()
-											.setColumnDecl(colDecl)
-											.build();
+	public PlanBuilder parseCsv(char delim, ParseCsvOption... opts) {
+		ParseCsvProto.Builder builder = ParseCsvProto.newBuilder()
+															.setDelimiter("" + delim);
+		builder.setOptions(ParseCsvOption.toProto(opts));
+		ParseCsvProto parse = builder.build();
+		
 		return add(OperatorProto.newBuilder()
-								.setDefineColumn(op)
-								.build());
-	}
-
-	public PlanBuilder defineColumn(String colDecl, RecordScript initValue) {
-		DefineColumnProto op = DefineColumnProto.newBuilder()
-											.setColumnDecl(colDecl)
-											.setInitialValue(initValue.toProto())
-											.build();
-		return add(OperatorProto.newBuilder()
-								.setDefineColumn(op)
+								.setParseCsv(parse)
 								.build());
 	}
 
@@ -731,7 +731,7 @@ public class PlanBuilder {
 		
 		public PlanBuilder aggregate(List<AggregateFunction> aggrFuncs) {
 			ValueAggregateReducerProto varp
-								= FStream.of(aggrFuncs)
+								= FStream.from(aggrFuncs)
 										.map(AggregateFunction::toProto)
 										.foldLeft(ValueAggregateReducerProto.newBuilder(),
 													(builder,aggr) -> builder.addAggregate(aggr))
@@ -961,7 +961,8 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder pickTopK(String sortKeyColSpecs, int topK) {
-		Preconditions.checkArgument(sortKeyColSpecs != null, "sort key columns name is null");
+		Objects.requireNonNull(sortKeyColSpecs, "sort key columns");
+		Preconditions.checkArgument(topK >= 1);
 		
 		PickTopKProto pick = PickTopKProto.newBuilder()
 										.setSortKeyColumns(sortKeyColSpecs)
@@ -1100,7 +1101,14 @@ public class PlanBuilder {
 	//***********************************************************************
 
 	/**
-	 * 주어진 이름의 데이터세트를 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
+	 * 주어진 식별자의 데이터세트를 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
+	 * <p>
+	 * 데이터세트 적재시 추가 정보를  {@link LoadOption}을 활용하여 전달하면
+	 * 현재 사용할 수 있는 정보는 다음과 같다.
+	 * <ul>
+	 * 	<li> {@link LoadOption.SplitCountOption}: 한 HDFS 디스크 블럭당 split 갯수를 지정.
+	 * 		별도로 지정하지 않은 경우 1로 간주된다.
+	 * </ul>
 	 * 
 	 * @param dsId	대상 데이터세트 이름.
 	 * @param opts	옵션 리스트.
@@ -1129,9 +1137,9 @@ public class PlanBuilder {
 	 * @return		작업이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder query(String dsId, SpatialRelation relation, Geometry key) {
-		Preconditions.checkArgument(dsId != null, "input dataset id");
-		Preconditions.checkArgument(relation != null, "relation is null");
-		Preconditions.checkArgument(key != null, "key is null");
+		Objects.requireNonNull(dsId, "input dataset id");
+		Objects.requireNonNull(relation, "relation is null");
+		Objects.requireNonNull(key, "key is null");
 				
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
 													.setName(dsId)
@@ -1149,8 +1157,8 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder query(String dsId, SpatialRelation relation, String keyDsId) {
-		Preconditions.checkArgument(dsId != null, "input dataset id");
-		Preconditions.checkArgument(relation != null, "relation is null");
+		Objects.requireNonNull(dsId, "input dataset id");
+		Objects.requireNonNull(relation, "relation is null");
 		Objects.requireNonNull(keyDsId, "key dataset id");
 				
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
@@ -1185,7 +1193,7 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder store(String dsId) {
-		Objects.requireNonNull(dsId, "dataset id is null");
+		Objects.requireNonNull(dsId, "dataset id");
 
 		StoreIntoDataSetProto store = StoreIntoDataSetProto.newBuilder()
 															.setId(dsId)
@@ -1528,7 +1536,7 @@ public class PlanBuilder {
 																.setName(geomCol)
 																.setSrid(srid)
 																.build();
-		String qkSrc = "quad_keys:" + FStream.of(quadKeys).join(",");
+		String qkSrc = "quad_keys:" + FStream.from(quadKeys).join(",");
 		
 		AttachQuadKeyProto attach = AttachQuadKeyProto.newBuilder()
 														.setGeometryColumnInfo(geomInfo)

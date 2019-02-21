@@ -46,7 +46,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 			if ( files.isEmpty() ) {
 				throw new IllegalArgumentException("no Shapefiles to read: path=" + start);
 			}
-			m_files = FStream.of(files);
+			m_files = FStream.from(files);
 			
 			ShapefileDataStore store = loadDataStore(files.get(0), m_charset);
 			try {

@@ -67,7 +67,7 @@ public class KMeansParameters {
 		return CSV.parseCsv(m_params.get(FEATURE_COLUMNS), COLUMN_SEPARATOR).toList();
 	}
 	public void featureColumns(List<String> cols) {
-		m_params.put(FEATURE_COLUMNS, FStream.of(cols).join(COLUMN_SEPARATOR));
+		m_params.put(FEATURE_COLUMNS, FStream.from(cols).join(COLUMN_SEPARATOR));
 	}
 	public void featureColumns(String... cols) {
 		featureColumns(Arrays.asList(cols));

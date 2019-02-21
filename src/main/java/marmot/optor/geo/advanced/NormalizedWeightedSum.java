@@ -27,7 +27,7 @@ public class NormalizedWeightedSum extends InterpolationMethod {
 
 	@Override
 	public double interpolate(List<SpatialFactor> factors) {
-		Interm result = FStream.of(factors)
+		Interm result = FStream.from(factors)
 							.map(factor -> new Interm(factor, m_wfunc))
 							.reduce((i1, i2) -> i1.add(i2));
 		return result.m_numerator / result.m_denominator;

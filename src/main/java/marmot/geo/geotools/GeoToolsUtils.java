@@ -95,7 +95,7 @@ public class GeoToolsUtils {
 		builder.setSRS(srid);
 		
 		Map<String,Integer> abbrs = Maps.newHashMap();
-		schema.forEachIndexedColumn((idx, col) -> {
+		schema.forEach(col -> {
 			String colName = col.name();
 			if ( colName.length() > 10 ) {
 				colName = colName.substring(0, 9);

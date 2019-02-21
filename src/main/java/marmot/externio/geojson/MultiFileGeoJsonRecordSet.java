@@ -47,7 +47,7 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			
 			getLogger().info("loading GeoJsonFile: from={}, nfiles={}", start, files.size());
 
-			m_files = FStream.of(files);
+			m_files = FStream.from(files);
 			m_charset = charset;
 			
 			m_first = parseGeoJson(m_files.next().get(), m_charset);

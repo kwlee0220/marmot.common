@@ -367,7 +367,7 @@ public class PBUtils {
 			throw Throwables.toRuntimeException(toException(error.get()));
 		}
 		
-		return FStream.of(piter);
+		return FStream.from(piter);
 	}
 	
 	public static void handle(VoidResponse resp) {
@@ -680,7 +680,7 @@ public class PBUtils {
 	}
 	
 	public static Map<String,String> fromProto(PropertiesProto proto) {
-		return FStream.of(proto.getPropertyList())
+		return FStream.from(proto.getPropertyList())
 				.foldLeft(Maps.newHashMap(), (map,kv) -> {
 					map.put(kv.getKey(), kv.getValue());
 					return map;
@@ -700,7 +700,7 @@ public class PBUtils {
 	}
 	
 	public static Map<String,Object> fromProto(KeyValueMapProto kvmProto) {
-		return FStream.of(kvmProto.getKeyValueList())
+		return FStream.from(kvmProto.getKeyValueList())
 					.toKVFStream(KeyValueProto::getKey, KeyValueProto::getValue)
 					.mapValue(vproto -> fromProto(vproto)._2)
 					.toMap();

@@ -134,10 +134,11 @@ public class DefaultRecord implements Record {
 		}
 		else {
 			RecordSchema srcSchema = src.getRecordSchema();
-			m_schema.forEachIndexedColumn((idx,col) -> {
+			
+			m_schema.forEach(col -> {
 				srcSchema.findColumn(col.name())
-						.map(c -> src.get(c.ordinal()))
-						.ifPresent(v -> set(idx, v));
+						.map(srcCol -> src.get(srcCol.ordinal()))
+						.ifPresent(srcV -> m_values[col.ordinal()] = srcV);
 			});
 		}
 		
@@ -232,7 +233,7 @@ public class DefaultRecord implements Record {
 	
 	@Override
 	public String toString() {
-		Stream<String> colNameStream = m_schema.getColumnNameAll().stream();
+		Stream<String> colNameStream = m_schema.getColumnNames().stream();
 		return colNameStream
 					.map(n -> {
 						Object v = get(n);
@@ -249,7 +250,7 @@ public class DefaultRecord implements Record {
 	
 	public static DefaultRecord fromProto(RecordSchema schema, RecordProto proto) {
 		DefaultRecord record = DefaultRecord.of(schema);
-		List<Object> columns = FStream.of(proto.getColumnList())
+		List<Object> columns = FStream.from(proto.getColumnList())
 									.map(vp -> PBUtils.fromProto(vp)._2)
 									.toList();
 		record.setAll(columns);

@@ -13,10 +13,10 @@ import marmot.protobuf.PBUtils;
 import marmot.support.DataUtils;
 import marmot.support.PBSerializable;
 import marmot.support.RecordMap;
+import utils.KeyValue;
 import utils.func.FOption;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
-import utils.stream.KeyValue;
 
 
 /**
@@ -36,7 +36,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	}
 	
 	public default boolean existsColumn(String name) {
-		return getRecordSchema().findColumn(name).isPresent();
+		return getRecordSchema().existsColumn(name);
 	}
 
 	/**
@@ -278,7 +278,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	}
 	
 	public default void fromProto(RecordProto proto) {
-		List<Object> values = FStream.of(proto.getColumnList())
+		List<Object> values = FStream.from(proto.getColumnList())
 									.map(vp -> PBUtils.fromProto(vp)._2)
 									.toList();
 		setAll(values);

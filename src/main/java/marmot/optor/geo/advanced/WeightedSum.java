@@ -28,7 +28,7 @@ public class WeightedSum extends InterpolationMethod {
 	@Override
 	public double interpolate(List<SpatialFactor> factors) {
 		if ( factors.size() > 0 ) {
-			return FStream.of(factors)
+			return FStream.from(factors)
 						.mapToDouble(factor -> factor.weighted(m_wfunc))
 						.sum();
 		}

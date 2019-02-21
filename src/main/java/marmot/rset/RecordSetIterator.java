@@ -1,20 +1,23 @@
-package marmot;
+package marmot.rset;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import javax.annotation.Nullable;
 
+import marmot.Record;
+import marmot.RecordSet;
+
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-class RecordSetIterator implements Iterator<Record> {
+public class RecordSetIterator implements Iterator<Record> {
 	private final RecordSet m_rset;
 	@Nullable private Record m_next;
 	
-	RecordSetIterator(RecordSet rset) {
+	public RecordSetIterator(RecordSet rset) {
 		m_rset = rset;
 		m_next = m_rset.nextCopy();
 	}

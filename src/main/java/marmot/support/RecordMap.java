@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
+
 import marmot.ColumnNotFoundException;
 import marmot.Record;
 
@@ -93,7 +95,7 @@ public class RecordMap implements Map<String,Object> {
 
 	@Override
 	public Set<String> keySet() {
-		return m_record.getRecordSchema().getColumnNameAll();
+		return Sets.newHashSet(m_record.getRecordSchema().getColumnNames());
 	}
 
 	@Override
