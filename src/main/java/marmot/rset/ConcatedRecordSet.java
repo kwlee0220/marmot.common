@@ -1,13 +1,13 @@
 package marmot.rset;
 
-import java.util.Objects;
-
 import javax.annotation.Nullable;
 
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import utils.Utilities;
+import utils.io.IOUtils;
 import utils.stream.FStream;
 
 /**
@@ -18,6 +18,13 @@ public abstract class ConcatedRecordSet extends AbstractRecordSet {
 	@Nullable private RecordSet m_current = null;	// null이면 first-call 의미
 	private boolean m_eos = false;
 	
+	/**
+	 * 다음으로 접근할 레코드 세트 객체를 반환한다.
+	 * <p>
+	 * 만일 더 이상의 레코드 세트가 없는 경우는 {@code null}을 반환한다.
+	 * 
+	 * @return 레코드 세트 객체 또는 {@code null}.
+	 */
 	abstract protected RecordSet loadNext();
 	
 	protected ConcatedRecordSet() {
@@ -26,9 +33,7 @@ public abstract class ConcatedRecordSet extends AbstractRecordSet {
 	
 	@Override
 	protected void closeInGuard() {
-		if ( m_current != null ) {
-			m_current.closeQuietly();
-		}
+		IOUtils.closeQuietly(m_current);
 		
 		super.close();
 	}
@@ -67,16 +72,18 @@ public abstract class ConcatedRecordSet extends AbstractRecordSet {
 		return true;
 	}
 	
-	public static ConcatedRecordSet concat(RecordSchema schema, FStream<? extends RecordSet> components) {
+	public static ConcatedRecordSet concat(RecordSchema schema,
+											FStream<? extends RecordSet> components) {
 		return new FStreamConcatedRecordSet(schema, components);
 	}
 	private static class FStreamConcatedRecordSet extends ConcatedRecordSet {
 		private final RecordSchema m_schema;
 		private final FStream<? extends RecordSet> m_components;
 		
-		private FStreamConcatedRecordSet(RecordSchema schema, FStream<? extends RecordSet> components) {
-			Objects.requireNonNull(schema);
-			Objects.requireNonNull(components);
+		private FStreamConcatedRecordSet(RecordSchema schema,
+										FStream<? extends RecordSet> components) {
+			Utilities.checkNotNullArgument(schema, "schema is null");
+			Utilities.checkNotNullArgument(components, "components is null");
 			
 			m_schema = schema;
 			m_components = components;

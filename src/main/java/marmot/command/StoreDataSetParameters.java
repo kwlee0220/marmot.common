@@ -45,10 +45,20 @@ public class StoreDataSetParameters {
 		m_force = flag;
 	}
 	
+	/**
+	 * 기존 데이터세트에 추가 여부를 반환한다.
+	 * 
+	 * @return 기존 데이터세트에 추가 여부
+	 */
 	public boolean getAppend() {
 		return m_append;
 	}
 
+	/**
+	 * 기존 데이터세트에 추가 여부를 설정한다.
+	 * 
+	 * @param flag	기존 데이터 세트에 추가여부.
+	 */
 	@Option(names={"-a", "-append"}, description="append to the existing dataset")
 	public void setAppend(boolean flag) {
 		m_append = flag;

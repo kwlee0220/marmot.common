@@ -63,8 +63,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 			
 			RecordSet rset0 = loadRecordSet(marmot);
 			RecordSet rset = m_params.getReportInterval()
-								.map(n -> (RecordSet)RecordSets.reportProgress(rset0, m_subject, n))
-								.getOrElse(rset0);
+								.transform(rset0, (r,n) -> RecordSets.reportProgress(r, m_subject, n));
 
 			DataSet ds;
 			if ( !append ) {
@@ -78,22 +77,16 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				}
 				DataSetOption[] opts = Iterables.toArray(optList, DataSetOption.class);
 				
-				RecordSchema outSchema = rset.getRecordSchema();
-				if ( importPlan.isPresent() ) {
-					outSchema = marmot.getOutputRecordSchema(importPlan.get(), outSchema);
-				}
+				RecordSchema outSchema = importPlan.transform(rset.getRecordSchema(),
+														(s,p) -> marmot.getOutputRecordSchema(p,s));
 				ds = marmot.createDataSet(dsId, outSchema, opts);
 			}
 			else {
 				ds = marmot.getDataSet(m_params.getDataSetId());
 			}
-
-			if ( importPlan.isPresent() ) {
-				return ds.append(rset, importPlan.get());
-			}
-			else {
-				return ds.append(rset);
-			}
+			
+			return importPlan.map(p -> ds.append(rset, p))
+							.getOrElse(() -> ds.append(rset));
 		}
 		catch ( Throwable e ) {
 			throw Throwables.toRuntimeException(e);

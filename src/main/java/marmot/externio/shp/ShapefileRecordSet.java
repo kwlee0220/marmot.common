@@ -103,15 +103,10 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 	}
 	
 	public static RecordSchema loadRecordSchema(File start, Charset charset) throws IOException {
-		ShapefileDataStore store = FileUtils.walk(start, "**/*.shp")
-											.map(file -> Try.of(() -> loadDataStore(file, charset)))
-											.filter(Try::isSuccess)
-											.map(Try::get)
-											.next()
-											.getOrNull();
-		if ( store == null ) {
-			throw new IllegalArgumentException("no valid Shapefile: path=" + start);
-		}
+		ShapefileDataStore store = GeoToolsUtils.streamShapeFiles(start)
+												.flatMapTry(file -> Try.of(() -> loadDataStore(file, charset)))
+												.next()
+												.getOrElseThrow(()->new IllegalArgumentException("no valid Shapefile: path=" + start));
 		try {
 			store.setCharset(charset);
 			return GeoToolsUtils.toRecordSchema(store.getSchema());

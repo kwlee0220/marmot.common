@@ -4,14 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.geotools.data.FeatureSource;
 import org.geotools.data.FileDataStoreFinder;
@@ -47,6 +42,8 @@ import marmot.geo.GeoClientUtils;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
 import utils.Unchecked;
+import utils.io.FileUtils;
+import utils.stream.FStream;
 
 /**
  * 
@@ -198,22 +195,16 @@ public class GeoToolsUtils {
 		return toRecordSchema(type);
 	}
 	
-	public static Stream<File> streamShapeFiles(File file) throws IOException {
-		return Files.walk(file.toPath())
-					.filter(p -> p.toString().endsWith(".shp"))
-					.map(Path::toFile);
+	public static ShapefileDataStore loadShapefileDataStore(File shpFile,
+															Charset charset) throws IOException {
+		ShapefileDataStore store = (ShapefileDataStore)FileDataStoreFinder.getDataStore(shpFile);
+		store.setCharset(charset);
+		
+		return store;
 	}
 	
-	/**
-	 * 주어진 파일 또는 디렉토리인 경우는 모든 하위 파일들 중에서 확장자가 '.shp'인 파일을
-	 * 모든 검색한다.
-	 * 
-	 *  @param	file	검색 대상 파일 (또는 디렉토리)
-	 *  @return	검색된 파일 리스트.
-	 *  @throws	IOException	검색 과정 중 IO 오류가 발생된 경우.
-	 */
-	public static List<File> collectShapeFiles(File file) throws IOException {
-		return streamShapeFiles(file).collect(Collectors.toList());
+	public static FStream<File> streamShapeFiles(File start) throws IOException {
+		return FileUtils.walk(start, "**/*.shp");
 	}
 	
 	public static Option<Geometry> validateGeometry(Geometry geom) {
@@ -232,7 +223,7 @@ public class GeoToolsUtils {
 		return Option.some(geom);
 	}
 	
-	public static int countShpRecords(File file, Charset cs) throws IOException {
+	public static long countShpRecords(File file, Charset cs) throws IOException {
 		return streamShapeFiles(file)
 				.map(shpFile -> readDbfHeader(shpFile, cs))
 				.mapToInt(DbaseFileHeader::getNumRecords)
