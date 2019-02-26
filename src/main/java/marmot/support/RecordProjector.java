@@ -1,8 +1,11 @@
 package marmot.support;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import marmot.Column;
+import marmot.ColumnNotFoundException;
 import marmot.Record;
 import marmot.RecordSchema;
 import utils.stream.FStream;
@@ -20,11 +23,25 @@ public class RecordProjector {
 	
 	public static RecordProjector of(RecordSchema schema, List<String> key) {
 		int[] colIdxes = FStream.from(key)
-								.flatMapOption(schema::findColumn)
-								.mapToInt(Column::ordinal)
+								.mapToInt(colName -> schema.findColumn(colName)
+												.map(Column::ordinal)
+												.getOrElse(-1))
 								.toArray();
+		List<String> badKeyCols = new ArrayList<>();
+		for ( int i =0; i < colIdxes.length; ++i ) {
+			if ( colIdxes[i] < 0 ) {
+				badKeyCols.add(key.get(i));
+			}
+		}
+		if ( badKeyCols.size() > 0 ) {
+			throw new ColumnNotFoundException("invalid columns to project: " + badKeyCols);
+		}
 		
 		return new RecordProjector(schema, colIdxes);
+	}
+	
+	public static RecordProjector of(RecordSchema schema, String... colNames) {
+		return of(schema, Arrays.asList(colNames));
 	}
 
 	private RecordProjector(RecordSchema inputSchema, int[] colIdxes) {
@@ -47,7 +64,7 @@ public class RecordProjector {
 	
 	public void apply(Record input, Record output) {
 		for ( int i =0; i < m_colIdxes.length; ++i ) {
-			m_values[i] = input.get(i);
+			m_values[i] = input.get(m_colIdxes[i]);
 		}
 		
 		output.setAll(m_values);
