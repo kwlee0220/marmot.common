@@ -152,6 +152,17 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 					.build();
 	}
 	
+	public List<Column> findUnmatcheds(List<String> key) {
+		Utilities.checkNotNullArgument(key, "key column list is null");
+		
+		Set<CIString> names = FStream.from(key)
+									.map(CIString::of)
+									.toHashSet();
+		return FStream.of(m_columns)
+						.filter(c -> !names.contains(c.columnName()))
+						.toList();
+	}
+	
 	/**
 	 * 주어진 키에 포함되지 않은 컬럼 이름에 해당하는 레코드 스키마를 생성한다.
 	 * 
