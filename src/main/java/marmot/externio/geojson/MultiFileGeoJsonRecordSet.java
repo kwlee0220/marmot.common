@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
-import marmot.geo.geotools.GeoToolsUtils;
+import marmot.geo.geotools.SimpleFeatures;
 import marmot.geo.geotools.SimpleFeatureRecordSet;
 import marmot.rset.ConcatedRecordSet;
 import utils.Unchecked;
@@ -93,7 +93,7 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
         FeatureJSON fjson = new FeatureJSON(new GeometryJSON());
 
 		FeatureIterator<SimpleFeature> iter = fjson.streamFeatureCollection(reader);
-		return GeoToolsUtils.toRecordSet(iter);
+		return SimpleFeatures.toRecordSet(iter);
 	}
 	
 	public static SimpleFeatureRecordSet parseGeoJson(File file, Charset charset)

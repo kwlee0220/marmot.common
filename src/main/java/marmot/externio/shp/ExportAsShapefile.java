@@ -16,7 +16,7 @@ import com.google.common.base.Preconditions;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import marmot.RecordSet;
-import marmot.geo.geotools.GeoToolsUtils;
+import marmot.geo.geotools.SimpleFeatures;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.rset.RecordSets;
 import utils.async.AbstractThreadedExecution;
@@ -96,7 +96,7 @@ class ExportAsShapefile {
 					dumper.setMaxShpSize(size);
 				});
 				
-				SimpleFeatureType sfType = GeoToolsUtils.toSimpleFeatureType(m_sfTypeName, m_srid,
+				SimpleFeatureType sfType = SimpleFeatures.toSimpleFeatureType(m_sfTypeName, m_srid,
 																			rset.getRecordSchema());
 				SimpleFeatureCollection coll = new MarmotFeatureCollection(sfType, ()->rset);
 				dumper.dump(coll);

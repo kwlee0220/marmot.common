@@ -2,14 +2,20 @@ package marmot.geo.geotools;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Map;
 
 import org.geotools.data.FileDataStoreFinder;
 import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
 import org.geotools.data.shapefile.dbf.DbaseFileHeader;
 import org.geotools.data.shapefile.dbf.DbaseFileReader;
 import org.geotools.data.shapefile.files.ShpFiles;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.opengis.feature.simple.SimpleFeatureType;
+
+import com.google.common.collect.Maps;
 
 import io.vavr.control.Try;
 import marmot.Record;
@@ -29,39 +35,74 @@ public class Shapefile {
 	private final File m_file;
 	private final Charset m_charset;
 	
-	private Shapefile(File file, Charset charset) throws IOException {
+	public static Shapefile of(File file, Charset charset) {
+		return new Shapefile(file, charset);
+	}
+	
+	private Shapefile(File file, Charset charset) {
 		m_file = file;
 		m_charset = charset;
 	}
 	
-	public RecordSchema getRecordSchema() throws IOException {
-		return toRecordSchema(loadDataStore());
+	public File getFile() {
+		return m_file;
 	}
 	
-	public RecordSet loadRecordSet() {
-		return new RecordSetImpl();
+	public Charset getCharset() {
+		return m_charset;
+	}
+	
+	public RecordSchema getRecordSchema() throws IOException {
+		ShapefileDataStore store = loadDataStore(m_file, m_charset);
+		try {
+			return SimpleFeatures.toRecordSchema(store.getSchema());
+		}
+		finally {
+			store.dispose();
+		}
+	}
+	
+	public RecordSet read() throws IOException {
+		return new RecordSetImpl(loadDataStore(m_file, m_charset));
+	}
+	
+	public static Shapefile create(File shpFile, SimpleFeatureType type,
+											Charset charset, boolean createIndex)
+		throws IOException {
+		Map<String,Serializable> params = Maps.newHashMap();
+		params.put(ShapefileDataStoreFactory.URLP.key, shpFile.toURI().toURL());
+		params.put(ShapefileDataStoreFactory.DBFCHARSET.key, charset.name());
+		params.put(ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, createIndex);
+
+		ShapefileDataStoreFactory fact = new ShapefileDataStoreFactory();
+		ShapefileDataStore store = (ShapefileDataStore)fact.createNewDataStore(params);
+		store.createSchema(type);
+
+		return new Shapefile(shpFile, charset);
 	}
 	
 	public int getRecordCount() throws IOException {
-		return readDbfHeader().getNumRecords();
+		return readDbfHeader(m_file, m_charset).getNumRecords();
 	}
 	
-	public ShapefileDataStore loadDataStore() throws IOException {
-		ShapefileDataStore store = (ShapefileDataStore)FileDataStoreFinder.getDataStore(m_file);
-		store.setCharset(m_charset);
+	@Override
+	public String toString() {
+		return m_file.toString();
+	}
+	
+	private static ShapefileDataStore loadDataStore(File file, Charset charset)
+		throws IOException {
+		ShapefileDataStore store = (ShapefileDataStore)FileDataStoreFinder.getDataStore(file);
+		store.setCharset(charset);
 		
 		return store;
 	}
 	
-	private static RecordSchema toRecordSchema(ShapefileDataStore store) throws IOException {
-		return GeoToolsUtils.toRecordSchema(store.getSchema());
-	}
-	
-	private DbaseFileHeader readDbfHeader() throws IOException {
+	private static DbaseFileHeader readDbfHeader(File file, Charset charset) throws IOException {
 		DbaseFileReader reader = null;
 		try {
-			ShpFiles shpFile = new ShpFiles(m_file);
-			reader = new DbaseFileReader(shpFile, false, m_charset);
+			ShpFiles shpFile = new ShpFiles(file);
+			reader = new DbaseFileReader(shpFile, false, charset);
 			return reader.getHeader();
 		}
 		finally {
@@ -71,28 +112,26 @@ public class Shapefile {
 		}
 	}
 	
-	public static FStream<File> streamShapeFiles(File start) throws IOException {
+	public static FStream<File> traverseFiles(File start, Charset charset) throws IOException {
 		return FileUtils.walk(start, "**/*.shp");
 	}
 	
-	class RecordSetImpl extends AbstractRecordSet {
+	public static FStream<Shapefile> traverse(File start, Charset charset) throws IOException {
+		return traverseFiles(start, charset)
+						.flatMapTry(file -> Try.of(() -> of(file, charset)));
+	}
+	
+	private static class RecordSetImpl extends AbstractRecordSet {
 		private final ShapefileDataStore m_store;
 		private final SimpleFeatureRecordSet m_sfRSet;
 		
-		private RecordSetImpl() {
-			ShapefileDataStore store = null;
+		private RecordSetImpl(ShapefileDataStore store) {
+			m_store = store;
 			try {
-				store = loadDataStore();
-				
-				SimpleFeatureCollection sfColl = store.getFeatureSource().getFeatures();
-				m_store = store;
+				SimpleFeatureCollection sfColl = m_store.getFeatureSource().getFeatures();
 				m_sfRSet = new SimpleFeatureRecordSet(sfColl);
 			}
 			catch ( Exception e ) {
-				if ( store != null ) {
-					store.dispose();
-				}
-				
 				throw new RecordSetException("fails to read shapefile, cause=" + e);
 			}
 		}

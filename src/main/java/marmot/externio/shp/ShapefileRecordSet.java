@@ -5,22 +5,15 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import org.geotools.data.FileDataStoreFinder;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.simple.SimpleFeatureCollection;
-import org.opengis.feature.simple.SimpleFeatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.vavr.control.Try;
-import marmot.Record;
 import marmot.RecordSchema;
+import marmot.RecordSet;
 import marmot.RecordSetException;
-import marmot.geo.geotools.GeoToolsUtils;
-import marmot.geo.geotools.SimpleFeatureRecordSet;
-import marmot.rset.AbstractRecordSet;
+import marmot.geo.geotools.Shapefile;
 import marmot.rset.ConcatedRecordSet;
-import utils.io.FileUtils;
 import utils.stream.FStream;
 
 /**
@@ -33,7 +26,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 	private final File m_start;
 	private final Charset m_charset;
 	
-	private final FStream<File> m_files;
+	private final FStream<RecordSet> m_rsets;
 	private final RecordSchema m_schema;
 	
 	public ShapefileRecordSet(File start, Charset charset) {
@@ -42,32 +35,28 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 		setLogger(s_logger);
 		
 		try {
-			List<File> files = FileUtils.walk(start, "**/*.shp").toList();
+			List<Shapefile> files = Shapefile.traverse(start, charset).toList();
 			if ( files.isEmpty() ) {
 				throw new IllegalArgumentException("no Shapefiles to read: path=" + start);
 			}
-			m_files = FStream.from(files);
 			
-			ShapefileDataStore store = loadDataStore(files.get(0), m_charset);
-			try {
-				SimpleFeatureType sfType = store.getSchema();
-				m_schema = GeoToolsUtils.toRecordSchema(sfType);
-			}
-			finally {
-				store.dispose();
-			}
+			m_schema = loadRecordSchema(start, charset);
+			m_rsets = Shapefile.traverse(start, charset)
+								.flatMapTry(shp -> {
+									getLogger().info("loading shapefile: " + shp);
+									return Try.of(() -> shp.read());
+								});
 			
 			getLogger().info("loading {}: nfiles={}", this, files.size());
 		}
 		catch ( Exception e ) {
 			throw new RecordSetException("fails to parse Shapefile", e);
 		}
-		
 	}
 
 	@Override
 	protected void closeInGuard() {
-		m_files.closeQuietly();
+		m_rsets.closeQuietly();
 		
 		super.close();
 	}
@@ -76,14 +65,9 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 	public RecordSchema getRecordSchema() {
 		return m_schema;
 	}
-
-	public static FStream<File> collectShapefile(File start) throws IOException {
-		if ( start.isDirectory() ) {
-			return FileUtils.walk(start, "**/*.shp");
-		}
-		else {
-			return FStream.of(start);
-		}
+	
+	public Charset getCharset() {
+		return m_charset;
 	}
 	
 	@Override
@@ -92,76 +76,56 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 	}
 
 	@Override
-	protected InnerRecordSet loadNext() {
-		return m_files.next()
-						.map(this::loadRecordSet)
-						.getOrNull();
-	}
-	private InnerRecordSet loadRecordSet(File file) {
-		getLogger().info("loading path={}", file);
-		return new InnerRecordSet(file);
+	protected RecordSet loadNext() {
+		return m_rsets.next().getOrNull();
 	}
 	
 	public static RecordSchema loadRecordSchema(File start, Charset charset) throws IOException {
-		ShapefileDataStore store = GeoToolsUtils.streamShapeFiles(start)
-												.flatMapTry(file -> Try.of(() -> loadDataStore(file, charset)))
-												.next()
-												.getOrElseThrow(()->new IllegalArgumentException("no valid Shapefile: path=" + start));
-		try {
-			store.setCharset(charset);
-			return GeoToolsUtils.toRecordSchema(store.getSchema());
-		}
-		finally {
-			store.dispose();
-		}
+		return Shapefile.traverse(start, charset)
+						.flatMapTry(shp -> Try.of(() -> shp.getRecordSchema()))
+						.next()
+						.getOrElseThrow(() -> new IllegalArgumentException("no valid shapefile to read: path=" + start));
 	}
 	
-	public static ShapefileDataStore loadDataStore(File shpFile, Charset charset) throws IOException {
-		ShapefileDataStore store = (ShapefileDataStore)FileDataStoreFinder.getDataStore(shpFile);
-		store.setCharset(charset);
-		
-		return store;
-	}
-	
-	class InnerRecordSet extends AbstractRecordSet {
-		private final File m_shpFile;
-		private ShapefileDataStore m_store = null;
-		private final SimpleFeatureRecordSet m_sfRSet;
-		
-		private InnerRecordSet(File shpFile) {
-			m_shpFile = shpFile;
-			
-			try {
-				m_store = loadDataStore(m_shpFile, m_charset);
-				
-				SimpleFeatureCollection sfColl = m_store.getFeatureSource().getFeatures();
-				m_sfRSet = new SimpleFeatureRecordSet(sfColl);
-			}
-			catch ( Exception e ) {
-				if ( m_store != null ) {
-					m_store.dispose();
-				}
-				
-				throw new RecordSetException("fails to read shapefile, cause=" + e);
-			}
-		}
-
-		@Override
-		protected void closeInGuard() {
-			Try.run(m_sfRSet::close);
-			Try.run(m_store::dispose);
-			
-			super.close();
-		}
-
-		@Override
-		public RecordSchema getRecordSchema() {
-			return m_schema;
-		}
-
-		@Override
-		public boolean next(Record record) {
-			return m_sfRSet.next(record);
-		}
-	}
+//	class InnerRecordSet extends AbstractRecordSet {
+//		private final File m_shpFile;
+//		private ShapefileDataStore m_store = null;
+//		private final SimpleFeatureRecordSet m_sfRSet;
+//		
+//		private InnerRecordSet(File shpFile) {
+//			m_shpFile = shpFile;
+//			
+//			try {
+//				m_store = loadDataStore(m_shpFile, m_charset);
+//				
+//				SimpleFeatureCollection sfColl = m_store.getFeatureSource().getFeatures();
+//				m_sfRSet = new SimpleFeatureRecordSet(sfColl);
+//			}
+//			catch ( Exception e ) {
+//				if ( m_store != null ) {
+//					m_store.dispose();
+//				}
+//				
+//				throw new RecordSetException("fails to read shapefile, cause=" + e);
+//			}
+//		}
+//
+//		@Override
+//		protected void closeInGuard() {
+//			Try.run(m_sfRSet::close);
+//			Try.run(m_store::dispose);
+//			
+//			super.close();
+//		}
+//
+//		@Override
+//		public RecordSchema getRecordSchema() {
+//			return m_schema;
+//		}
+//
+//		@Override
+//		public boolean next(Record record) {
+//			return m_sfRSet.next(record);
+//		}
+//	}
 }

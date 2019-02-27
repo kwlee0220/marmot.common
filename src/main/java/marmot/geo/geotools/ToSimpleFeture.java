@@ -22,7 +22,7 @@ class ToSimpleFeture implements Function<Record,SimpleFeature> {
 	ToSimpleFeture(String typeName, String srs, RecordSchema schema) {
 		m_idPrefix = typeName + ".";
 		
-		SimpleFeatureType type = GeoToolsUtils.toSimpleFeatureType(typeName, srs, schema);
+		SimpleFeatureType type = SimpleFeatures.toSimpleFeatureType(typeName, srs, schema);
 		m_featBuilder = new SimpleFeatureBuilder(type);
 		
 		m_count = 0;

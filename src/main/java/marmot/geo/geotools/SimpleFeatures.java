@@ -2,24 +2,15 @@ package marmot.geo.geotools;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Map;
 import java.util.function.Function;
 
 import org.geotools.data.FeatureSource;
-import org.geotools.data.FileDataStoreFinder;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.data.shapefile.dbf.DbaseFileHeader;
-import org.geotools.data.shapefile.dbf.DbaseFileReader;
-import org.geotools.data.shapefile.files.ShpFiles;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
-import org.geotools.geometry.jts.Geometries;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.feature.type.AttributeDescriptor;
@@ -28,9 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
-import com.vividsolutions.jts.geom.Geometry;
 
-import io.vavr.control.Option;
 import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -38,10 +27,9 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
-import marmot.geo.GeoClientUtils;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
-import utils.Unchecked;
+import utils.Utilities;
 import utils.io.FileUtils;
 import utils.stream.FStream;
 
@@ -49,10 +37,10 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class GeoToolsUtils {
-	static final Logger s_logger = LoggerFactory.getLogger(GeoToolsUtils.class);
+public class SimpleFeatures {
+	static final Logger s_logger = LoggerFactory.getLogger(SimpleFeatures.class);
 	
-	private GeoToolsUtils() {
+	private SimpleFeatures() {
 		throw new AssertionError("Should not be called: " + getClass().getName());
 	}
 	
@@ -100,7 +88,8 @@ public class GeoToolsUtils {
 				abbrs.put(colName, (seqno+1));
 				colName += (""+seqno);
 				
-				s_logger.warn(String.format("truncate too long field name: %s->%s", col.name(), colName));
+				s_logger.warn(String.format("truncate too long field name: %s->%s",
+											col.name(), colName));
 			}
 			
 			switch ( col.type().getTypeCode() ) {
@@ -134,6 +123,8 @@ public class GeoToolsUtils {
 	 * @return	RecordSchema
 	 */
 	public static RecordSchema toRecordSchema(SimpleFeatureType sfType) {
+		Utilities.checkNotNullArgument(sfType, "feature type is null");
+		
 		RecordSchema.Builder builder = RecordSchema.builder();
 		for ( AttributeDescriptor desc: sfType.getAttributeDescriptors() ) {
 			Class<?> instCls = desc.getType().getBinding();
@@ -147,22 +138,6 @@ public class GeoToolsUtils {
 	public static Function<Record,SimpleFeature> createToSimpleFeature(String typeName,
 													String srs, RecordSchema schema) {
 		return new ToSimpleFeture(typeName, srs, schema);
-	}
-	
-	public static ShapefileDataStore createShapefileDataStore(File shpFile,
-													SimpleFeatureType type,
-													Charset charset, boolean createIndex)
-		throws IOException {
-		Map<String,Serializable> params = Maps.newHashMap();
-		params.put(ShapefileDataStoreFactory.URLP.key, shpFile.toURI().toURL());
-		params.put(ShapefileDataStoreFactory.DBFCHARSET.key, charset.name());
-		params.put(ShapefileDataStoreFactory.CREATE_SPATIAL_INDEX.key, createIndex);
-
-		ShapefileDataStoreFactory fact = new ShapefileDataStoreFactory();
-		ShapefileDataStore store = (ShapefileDataStore)fact.createNewDataStore(params);
-		store.createSchema(type);
-
-		return store;
 	}
 	
 	public static SimpleFeatureCollection toFeatureCollection(String sfTypeName, DataSet ds) {
@@ -184,67 +159,8 @@ public class GeoToolsUtils {
 		return new MarmotFeatureCollection(sfType, () -> RecordSet.from(records));
 	}
 	
-	public static ShapefileDataStore openShapefileDataStore(File shpFile) throws IOException {
-		return (ShapefileDataStore)FileDataStoreFinder.getDataStore(shpFile);
-	}
-	
-	public static RecordSchema getRecordSchema(File shpFile) throws IOException {
-		ShapefileDataStore store = openShapefileDataStore(shpFile);
-		store.setCharset(Charset.forName("utf-8"));
-		SimpleFeatureType type = store.getSchema();
-		return toRecordSchema(type);
-	}
-	
-	public static ShapefileDataStore loadShapefileDataStore(File shpFile,
-															Charset charset) throws IOException {
-		ShapefileDataStore store = (ShapefileDataStore)FileDataStoreFinder.getDataStore(shpFile);
-		store.setCharset(charset);
-		
-		return store;
-	}
-	
 	public static FStream<File> streamShapeFiles(File start) throws IOException {
 		return FileUtils.walk(start, "**/*.shp");
-	}
-	
-	public static Option<Geometry> validateGeometry(Geometry geom) {
-		if ( !geom.isValid() ) {
-			Geometries type = Geometries.get(geom);
-			
-			geom = GeoClientUtils.makeValid(geom);
-			if ( !geom.isEmpty() && geom.isValid() ) {
-				geom = GeoClientUtils.cast(geom, type);
-			}
-			else {
-				return Option.none();
-			}
-		}
-		
-		return Option.some(geom);
-	}
-	
-	public static long countShpRecords(File file, Charset cs) throws IOException {
-		return streamShapeFiles(file)
-				.map(shpFile -> readDbfHeader(shpFile, cs))
-				.mapToInt(DbaseFileHeader::getNumRecords)
-				.sum();
-	}
-	
-	private static DbaseFileHeader readDbfHeader(File file, Charset cs) {
-		DbaseFileReader reader = null;
-		try {
-			ShpFiles shpFile = new ShpFiles(file);
-			reader = new DbaseFileReader(shpFile, false, cs);
-			return reader.getHeader();
-		}
-		catch ( IOException e ) {
-			throw new RecordSetException(e);
-		}
-		finally {
-			if ( reader != null ) {
-				Unchecked.runRTE(reader::close);
-			}
-		}
 	}
 	
 //	ShpFiles shapeFiles = new ShpFiles(shpFile);
