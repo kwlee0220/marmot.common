@@ -102,4 +102,11 @@ public class RecordMap implements Map<String,Object> {
 	public Collection<Object> values() {
 		return Arrays.asList(m_record.getAll());
 	}
+	
+	@Override
+	public String toString() {
+		return m_record.fstream()
+						.map(kv -> "" + kv.key() + "=" + kv.value())
+						.join(", ", "{", "}");
+	}
 }
