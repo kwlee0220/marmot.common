@@ -8,12 +8,12 @@ import org.mvel2.integration.impl.MapVariableResolverFactory;
 
 import com.google.common.collect.Maps;
 
-import io.vavr.control.Option;
 import marmot.proto.optor.RecordScriptProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.MVELScript;
 import marmot.support.MVELScript.ImportedClass;
 import marmot.support.PBSerializable;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 /**
@@ -22,7 +22,7 @@ import utils.stream.FStream;
  */
 public class RecordScript implements PBSerializable<RecordScriptProto> {
 	private final MVELScript m_script;
-	private Option<MVELScript> m_initializer;
+	private FOption<MVELScript> m_initializer;
 	private final Map<String,Object> m_arguments = Maps.newHashMap();
 	
 	public static RecordScript of(String expr) {
@@ -35,25 +35,25 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 
 	private RecordScript(String expr) {
 		m_script = MVELScript.of(expr);
-		m_initializer = Option.none();
+		m_initializer = FOption.empty();
 	}
 
 	private RecordScript(String init, String expr) {
 		m_script = MVELScript.of(expr);
-		m_initializer = Option.some(MVELScript.of(init));
+		m_initializer = FOption.of(MVELScript.of(init));
 	}
 	
 	public String getExpression() {
 		return m_script.getScript();
 	}
 	
-	public Option<String> getInitializer() {
+	public FOption<String> getInitializer() {
 		return m_initializer.map(MVELScript::getScript);
 	}
 	
 	public RecordScript setInitializer(String expr) {
-		m_initializer = Option.of(expr).map(MVELScript::of);
-		m_initializer.forEach(init -> m_script.getImportedClasses()
+		m_initializer = FOption.ofNullable(expr).map(MVELScript::of);
+		m_initializer.ifPresent(init -> m_script.getImportedClasses()
 												.stream()
 												.forEach(init::importClass));
 		return this;
@@ -80,32 +80,32 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 	public RecordScript importClass(String clsName) {
 		ImportedClass ic = ImportedClass.parse(clsName);
 		m_script.importClass(ic);
-		m_initializer.forEach(script -> script.importClass(ic));
+		m_initializer.ifPresent(script -> script.importClass(ic));
 		
 		return this;
 	}
 	
 	public RecordScript importClass(Class<?> cls) {
 		m_script.importClass(cls);
-		m_initializer.forEach(script -> script.importClass(cls));
+		m_initializer.ifPresent(script -> script.importClass(cls));
 		
 		return this;
 	}
 	
 	public RecordScript importFunctionAll(Class<?> funcCls) {
 		m_script.importFunctionAll(funcCls);
-		m_initializer.forEach(script -> script.importClass(funcCls));
+		m_initializer.ifPresent(script -> script.importClass(funcCls));
 		
 		return this;
 	}
 	
 	public void initialize(VariableResolverFactory resolverFact) {
-		m_initializer.forEach(init -> init.execute(resolverFact));
+		m_initializer.ifPresent(init -> init.execute(resolverFact));
 	}
 	
 	public void initialize(Map<String,Object> variables) {
 		VariableResolverFactory fact = new MapVariableResolverFactory(variables);
-		m_initializer.forEach(init -> init.execute(fact));
+		m_initializer.ifPresent(init -> init.execute(fact));
 	}
 	
 	public Object execute(VariableResolverFactory resolverFact) {
@@ -146,7 +146,7 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		RecordScriptProto.Builder builder = RecordScriptProto.newBuilder()
 														.setExpr(getExpression())
 														.addAllImportedClass(importeds);
-		m_initializer.map(MVELScript::getScript).forEach(builder::setInitializer);
+		m_initializer.map(MVELScript::getScript).ifPresent(builder::setInitializer);
 		if ( !m_arguments.isEmpty() ) {
 			builder.setArguments(PBUtils.toKeyValueMapProto(m_arguments));
 		}

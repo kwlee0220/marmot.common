@@ -6,8 +6,8 @@ import java.util.Objects;
 
 import com.google.common.collect.Lists;
 
-import io.vavr.control.Option;
 import marmot.proto.optor.PredicateOptionsProto;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 
@@ -20,12 +20,12 @@ public abstract class PredicateOption {
 	
 	public abstract void set(PredicateOptionsProto.Builder builder);
 	
-	public static Option<PredicateOptionsProto>
+	public static FOption<PredicateOptionsProto>
 	toPredicateOptionsProto(PredicateOption[] opts) {
 		return toPredicateOptionsProto(Arrays.asList(opts));
 	}
 	
-	public static Option<PredicateOptionsProto> toPredicateOptionsProto(
+	public static FOption<PredicateOptionsProto> toPredicateOptionsProto(
 												List<? extends PredicateOption> opts) {
 		Objects.requireNonNull(opts, "SpatialRelationOption list is null");
 		
@@ -38,10 +38,10 @@ public abstract class PredicateOption {
 								.collectLeft(PredicateOptionsProto.newBuilder(),
 											(b,o) -> o.set(b))
 								.build();
-			return Option.some(proto);
+			return FOption.of(proto);
 		}
 		else {
-			return Option.none();
+			return FOption.empty();
 		}
 	}
 

@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Maps;
 
-import io.vavr.control.Option;
 import marmot.ColumnNotFoundException;
 import marmot.DataSetExistsException;
 import marmot.DataSetNotFoundException;
@@ -21,6 +20,7 @@ import marmot.RecordSetException;
 import marmot.optor.RecordSetOperatorException;
 import marmot.support.PBException;
 import utils.Throwables;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 /**
@@ -83,9 +83,9 @@ public enum PBMarmotError {
 		return error;
 	}
 	
-	public Exception toException(Option<String> details) {
+	public Exception toException(FOption<String> details) {
 		try {
-			if ( details.isDefined() ) {
+			if ( details.isPresent() ) {
 				Constructor<? extends Exception> ctor = m_class.getConstructor(String.class);
 				return ctor.newInstance(details.get());
 			}
@@ -98,7 +98,7 @@ public enum PBMarmotError {
 		}
 	}
 	
-	public RuntimeException toRuntimeException(Option<String> details) {
+	public RuntimeException toRuntimeException(FOption<String> details) {
 		Exception ex = toException(details);
 		if ( ex instanceof RuntimeException ) {
 			return (RuntimeException)ex;

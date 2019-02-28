@@ -6,8 +6,8 @@ import java.util.Objects;
 
 import com.google.common.collect.Lists;
 
-import io.vavr.control.Option;
 import marmot.proto.optor.GeomOpOptionsProto;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 
@@ -24,11 +24,11 @@ public abstract class GeomOpOption {
 		return new OutGeomColOption(geomCol);
 	}
 	
-	public static Option<GeomOpOptionsProto> toGeomOpOptionsProto(GeomOpOption[] opts) {
+	public static FOption<GeomOpOptionsProto> toGeomOpOptionsProto(GeomOpOption[] opts) {
 		return toGeomOpOptionsProto(Arrays.asList(opts));
 	}
 	
-	public static Option<GeomOpOptionsProto> toGeomOpOptionsProto(
+	public static FOption<GeomOpOptionsProto> toGeomOpOptionsProto(
 												List<? extends GeomOpOption> opts) {
 		Objects.requireNonNull(opts, "GeomOpOption list is null");
 		
@@ -40,10 +40,10 @@ public abstract class GeomOpOption {
 												.collectLeft(GeomOpOptionsProto.newBuilder(),
 															(b,o) -> o.set(b))
 												.build();
-			return Option.some(proto);
+			return FOption.of(proto);
 		}
 		else {
-			return Option.none();
+			return FOption.empty();
 		}
 	}
 

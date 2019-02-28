@@ -12,12 +12,12 @@ import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 
 import io.vavr.Lazy;
-import io.vavr.control.Option;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.TrajectoryProto;
 import marmot.proto.TrajectoryProto.SampleProto;
 import marmot.support.PBSerializable;
 import utils.Utilities;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 /**
@@ -93,13 +93,13 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 		return m_samples.get(idx);
 	}
 	
-	public Option<Sample> getFirstSample() {
-		return m_samples.isEmpty() ? Option.none() : Option.some(m_samples.get(0));
+	public FOption<Sample> getFirstSample() {
+		return m_samples.isEmpty() ? FOption.empty() : FOption.of(m_samples.get(0));
 	}
 	
-	public Option<Sample> getLastSample() {
+	public FOption<Sample> getLastSample() {
 		int nsamples = m_samples.size(); 
-		return nsamples > 0 ? Option.some(m_samples.get(nsamples-1)) : Option.none();
+		return nsamples > 0 ? FOption.of(m_samples.get(nsamples-1)) : FOption.empty();
 	}
 	
 	public ImmutableList<Sample> getSampleAll() {
@@ -211,15 +211,15 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 			return new Trajectory(m_samples);
 		}
 		
-		public Option<Duration> getDuration() {
+		public FOption<Duration> getDuration() {
 			if ( m_samples.size() < 2 ) {
-				return Option.none();
+				return FOption.empty();
 			}
 			else {
 				Sample first = m_samples.get(0);
 				Sample last = m_samples.get(m_samples.size()-1);
 				
-				return Option.some(Duration.ofMillis(last.getMillis() - first.getMillis()));
+				return FOption.of(Duration.ofMillis(last.getMillis() - first.getMillis()));
 			}
 		}
 		

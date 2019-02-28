@@ -3,7 +3,7 @@ package marmot.externio.text;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import io.vavr.control.Option;
+import utils.func.FOption;
 
 /**
  * 
@@ -13,8 +13,8 @@ public class TextLineParameters {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	
 	private String m_glob;
-	private Option<Charset> m_charset = Option.none();
-	private Option<String> m_commentMarker = Option.none();
+	private FOption<Charset> m_charset = FOption.empty();
+	private FOption<String> m_commentMarker = FOption.empty();
 	
 	public static TextLineParameters parameters() {
 		return new TextLineParameters();
@@ -34,16 +34,16 @@ public class TextLineParameters {
 	}
 	
 	public TextLineParameters charset(Charset charset) {
-		m_charset = Option.of(charset);
+		m_charset = FOption.ofNullable(charset);
 		return this;
 	}
 	
 	public TextLineParameters commentMarker(String marker) {
-		m_commentMarker = Option.of(marker);
+		m_commentMarker = FOption.ofNullable(marker);
 		return this;
 	}
 	
-	public Option<String> commentMarker() {
+	public FOption<String> commentMarker() {
 		return m_commentMarker;
 	}
 	

@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-import io.vavr.control.Option;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 /**
@@ -57,7 +57,7 @@ public class MVELScript {
 	}
 	
 	public void importClass(ImportedClass ic) {
-		if ( ic.m_name.isDefined() ) {
+		if ( ic.m_name.isPresent() ) {
 			m_pc.addImport(ic.m_name.get(), ic.m_class);
 		}
 		else {
@@ -162,23 +162,23 @@ public class MVELScript {
 	
 	public static class ImportedClass {
 		private final Class<?> m_class;
-		private final Option<String> m_name;
+		private final FOption<String> m_name;
 		
 		ImportedClass(Class<?> cls, String name) {
 			m_class = cls;
-			m_name = Option.some(name);
+			m_name = FOption.of(name);
 		}
 		
 		ImportedClass(Class<?> cls) {
 			m_class = cls;
-			m_name = Option.none();
+			m_name = FOption.empty();
 		}
 		
 		public Class<?> getImportClass() {
 			return m_class;
 		}
 		
-		public Option<String> getImportName() {
+		public FOption<String> getImportName() {
 			return m_name;
 		}
 		

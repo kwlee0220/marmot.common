@@ -7,9 +7,9 @@ import java.util.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-import io.vavr.control.Option;
 import marmot.proto.optor.BufferTransformProto.OptionsProto;
 import marmot.proto.optor.GeomOpOptionsProto;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 
@@ -24,11 +24,11 @@ public abstract class BufferOption extends GeomOpOption {
 		return new SegmentCoundOption(count);
 	}
 	
-	public static Option<OptionsProto> toBufferOptionsProto(GeomOpOption[] opts) {
+	public static FOption<OptionsProto> toBufferOptionsProto(GeomOpOption[] opts) {
 		return toBufferOptionsProto(Arrays.asList(opts));
 	}
 	
-	public static Option<OptionsProto> toBufferOptionsProto(
+	public static FOption<OptionsProto> toBufferOptionsProto(
 												List<? extends GeomOpOption> opts) {
 		Objects.requireNonNull(opts, "GeomOpOption list is null");
 		
@@ -40,10 +40,10 @@ public abstract class BufferOption extends GeomOpOption {
 											.collectLeft(OptionsProto.newBuilder(),
 														(b,o) -> o.set(b))
 											.build();
-			return Option.some(proto);
+			return FOption.of(proto);
 		}
 		else {
-			return Option.none();
+			return FOption.empty();
 		}
 	}
 

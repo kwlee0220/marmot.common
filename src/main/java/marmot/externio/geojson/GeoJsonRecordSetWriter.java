@@ -24,7 +24,6 @@ import com.vividsolutions.jts.geom.MultiPolygon;
 import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
-import io.vavr.control.Option;
 import marmot.Column;
 import marmot.DataSet;
 import marmot.Record;
@@ -33,6 +32,7 @@ import marmot.RecordSet;
 import marmot.externio.RecordSetWriter;
 import marmot.support.DefaultRecord;
 import utils.UnitUtils;
+import utils.func.FOption;
 
 /**
  * 
@@ -63,7 +63,7 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 	}
 
 	public static GeoJsonRecordSetWriter get(OutputStream os,
-											Option<Charset> charset) throws IOException {
+											FOption<Charset> charset) throws IOException {
 		Charset cs = charset.getOrElse(StandardCharsets.UTF_8);
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(os, cs), DEFAULT_BUFFER_SIZE);
 		return new GeoJsonRecordSetWriter(writer);

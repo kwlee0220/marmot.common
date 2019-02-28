@@ -4,8 +4,8 @@ import java.util.Map;
 
 import com.google.common.collect.Maps;
 
-import io.vavr.control.Option;
 import utils.UnitUtils;
+import utils.func.FOption;
 
 /**
  * 
@@ -56,32 +56,32 @@ public class EstimateClusterQuadKeysParameters {
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
 	
-	public Option<Double> sampleRatio() {
-		return Option.of(m_params.get(SAMPLE_RATIO))
+	public FOption<Double> sampleRatio() {
+		return FOption.ofNullable(m_params.get(SAMPLE_RATIO))
 					.map(Double::parseDouble);
 	}
 	public void sampleRatio(double ratio) {
 		m_params.put(SAMPLE_RATIO, ""+ratio);
 	}
-	public void sampleRatio(Option<Double> ratio) {
-		ratio.onEmpty(() -> m_params.remove(SAMPLE_RATIO))
-			.forEach(this::sampleRatio);
+	public void sampleRatio(FOption<Double> ratio) {
+		ratio.ifAbsent(() -> m_params.remove(SAMPLE_RATIO))
+			.ifPresent(this::sampleRatio);
 	}
 	
-	public Option<Double> blockFillRatio() {
-		return Option.of(m_params.get(BLOCK_FILL_RATIO))
+	public FOption<Double> blockFillRatio() {
+		return FOption.ofNullable(m_params.get(BLOCK_FILL_RATIO))
 					.map(Double::parseDouble);
 	}
 	public void blockFillRatio(double ratio) {
 		m_params.put(BLOCK_FILL_RATIO, ""+ratio);
 	}
-	public void blockFillRatio(Option<Double> ratio) {
-		ratio.onEmpty(() -> m_params.remove(BLOCK_FILL_RATIO))
-			.forEach(this::blockFillRatio);
+	public void blockFillRatio(FOption<Double> ratio) {
+		ratio.ifAbsent(() -> m_params.remove(BLOCK_FILL_RATIO))
+			.ifPresent(this::blockFillRatio);
 	}
 	
-	public Option<Long> blockSize() {
-		return Option.of(m_params.get(BLOCK_SIZE))
+	public FOption<Long> blockSize() {
+		return FOption.ofNullable(m_params.get(BLOCK_SIZE))
 					.map(Long::parseLong);
 	}
 	public void blockSize(long nbytes) {
@@ -91,8 +91,8 @@ public class EstimateClusterQuadKeysParameters {
 		long nbytes = UnitUtils.parseByteSize(nbytesStr);
 		m_params.put(BLOCK_SIZE, ""+nbytes);
 	}
-	public void blockSize(Option<Long> nbytes) {
-		nbytes.onEmpty(() -> m_params.remove(BLOCK_SIZE))
-			.forEach(this::blockSize);
+	public void blockSize(FOption<Long> nbytes) {
+		nbytes.ifAbsent(() -> m_params.remove(BLOCK_SIZE))
+			.ifPresent(this::blockSize);
 	}
 }

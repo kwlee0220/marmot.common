@@ -32,7 +32,6 @@ import io.grpc.stub.StreamObserver;
 import io.vavr.CheckedRunnable;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.control.Option;
 import marmot.PlanExecutionException;
 import marmot.Record;
 import marmot.geo.GeoClientUtils;
@@ -345,9 +344,9 @@ public class PBUtils {
 		PBMarmotError error = PBMarmotError.fromCode(proto.getCode().getNumber());
 		switch ( proto.getOptionalDetailsCase() ) {
 			case DETAILS:
-				return error.toException(Option.some(proto.getDetails()));
+				return error.toException(FOption.of(proto.getDetails()));
 			case OPTIONALDETAILS_NOT_SET:
-				return error.toException(Option.none());
+				return error.toException(FOption.empty());
 			default:
 				throw new AssertionError();
 		}

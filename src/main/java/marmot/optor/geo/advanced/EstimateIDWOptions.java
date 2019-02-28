@@ -1,6 +1,6 @@
 package marmot.optor.geo.advanced;
 
-import io.vavr.control.Option;
+import utils.func.FOption;
 
 /**
  * 
@@ -10,8 +10,8 @@ public class EstimateIDWOptions {
 	private int m_count = -1;
 	private float m_power = -1;
 	
-	public Option<Integer> measurementCount() {
-		return m_count > 0 ? Option.some(m_count) : Option.none();
+	public FOption<Integer> measurementCount() {
+		return m_count > 0 ? FOption.of(m_count) : FOption.empty();
 	}
 	
 	public EstimateIDWOptions measurementCount(int count) {
@@ -19,8 +19,8 @@ public class EstimateIDWOptions {
 		return this;
 	}
 	
-	public Option<Float> power() {
-		return m_power > 0 ? Option.some(m_power) : Option.none();
+	public FOption<Float> power() {
+		return m_power > 0 ? FOption.of(m_power) : FOption.empty();
 	}
 	
 	public EstimateIDWOptions power(float power) {

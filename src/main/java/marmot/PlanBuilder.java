@@ -12,7 +12,6 @@ import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
-import io.vavr.control.Option;
 import marmot.PlanBuilder.ScriptRecordSetReducerBuilder.ToIntermediateBuilder;
 import marmot.geo.GeoClientUtils;
 import marmot.optor.AggregateFunction;
@@ -127,6 +126,7 @@ import marmot.workbench.Operator;
 import marmot.workbench.OperatorType;
 import marmot.workbench.Parameter;
 import utils.CSV;
+import utils.func.FOption;
 import utils.stream.FStream;
 
 /**
@@ -678,9 +678,9 @@ public class PlanBuilder {
 	public static class GroupByPlanBuilder {
 		private final PlanBuilder m_planBuilder;
 		private final String m_cmpCols;
-		private Option<String> m_tagCols = Option.none();
-		private Option<String> m_orderKeyCols = Option.none();
-		private Option<Integer> m_workerCount = Option.none();
+		private FOption<String> m_tagCols = FOption.empty();
+		private FOption<String> m_orderKeyCols = FOption.empty();
+		private FOption<Integer> m_workerCount = FOption.empty();
 		
 		GroupByPlanBuilder(PlanBuilder planBuilder, String cmpKeyCols) {
 			m_planBuilder = planBuilder;
@@ -688,7 +688,7 @@ public class PlanBuilder {
 		}
 		
 		public GroupByPlanBuilder withTags(String tagCols) {
-			m_tagCols = Option.of(tagCols);
+			m_tagCols = FOption.ofNullable(tagCols);
 			return this;
 		}
 		
@@ -701,7 +701,7 @@ public class PlanBuilder {
 				throw new IllegalArgumentException("order-by key should not be "
 													+ "a group-by key: cols=" + commonCols);
 			}
-			m_orderKeyCols = Option.some(orderCols);
+			m_orderKeyCols = FOption.of(orderCols);
 			
 			return this;
 		}
@@ -714,7 +714,7 @@ public class PlanBuilder {
 		 * @return 작업이 추가된 {@link GroupByPlanBuilder} 객체.
 		 */
 		public GroupByPlanBuilder workerCount(int count) {
-			m_workerCount = Option.some(count);
+			m_workerCount = FOption.of(count);
 			return this;
 		}
 		
@@ -840,9 +840,9 @@ public class PlanBuilder {
 		private GroupByKeyProto groupByKey() {
 			GroupByKeyProto.Builder builder = GroupByKeyProto.newBuilder()
 														.setCompareColumns(m_cmpCols);
-			m_tagCols.forEach(builder::setTagColumns);
-			m_orderKeyCols.forEach(builder::setOrderColumns);
-			m_workerCount.forEach(cnt -> builder.setGroupWorkerCount(cnt));
+			m_tagCols.ifPresent(builder::setTagColumns);
+			m_orderKeyCols.ifPresent(builder::setOrderColumns);
+			m_workerCount.ifPresent(cnt -> builder.setGroupWorkerCount(cnt));
 			return builder.build();
 		}
 	}
@@ -1349,7 +1349,7 @@ public class PlanBuilder {
 														.setGeometryColumn(geomCol);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		DropEmptyGeometryProto op = builder.build();
 		
 		return add(OperatorProto.newBuilder()
@@ -1371,7 +1371,7 @@ public class PlanBuilder {
 																.setKey(keyProto);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		MatchSpatiallyProto op = builder.build();
 
 		return add(OperatorProto.newBuilder()
@@ -1392,7 +1392,7 @@ public class PlanBuilder {
 															.setKeyValueDataset(keyDsId);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		MatchSpatiallyProto op = builder.build();
 
 		return add(OperatorProto.newBuilder()
@@ -1433,7 +1433,7 @@ public class PlanBuilder {
 													.setDistance(distance);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		WithinDistanceProto op = builder.build();
 		
 		return add(OperatorProto.newBuilder()
@@ -1455,7 +1455,7 @@ public class PlanBuilder {
 													.setDistance(distance);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		WithinDistanceProto op = builder.build();
 		
 		return add(OperatorProto.newBuilder()
@@ -1486,7 +1486,7 @@ public class PlanBuilder {
 												.setRightGeometryColumn(rightGeomCol);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-							.forEach(builder::setOptions);
+							.ifPresent(builder::setOptions);
 		BinarySpatialIntersectsProto op = builder.build();
 		
 		return add(OperatorProto.newBuilder()
@@ -1608,7 +1608,7 @@ public class PlanBuilder {
 								= CentroidTransformProto.newBuilder()
 														.setGeometryColumn(inGeomCol);
 		GeomOpOption.toGeomOpOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		CentroidTransformProto centroid = builder.build();
 		
 		return add(OperatorProto.newBuilder()
@@ -1629,8 +1629,8 @@ public class PlanBuilder {
 		BufferTransformProto.Builder builder = BufferTransformProto.newBuilder()
 																.setGeometryColumn(geomCol)
 																.setDistance(distance);
-		GeomOpOption.toGeomOpOptionsProto(opts).forEach(builder::setOptions);
-		BufferOption.toBufferOptionsProto(opts).forEach(builder::setBufferOptions);
+		GeomOpOption.toGeomOpOptionsProto(opts).ifPresent(builder::setOptions);
+		BufferOption.toBufferOptionsProto(opts).ifPresent(builder::setBufferOptions);
 		BufferTransformProto buffer = builder.build();
 
 		return add(OperatorProto.newBuilder()
@@ -1657,7 +1657,7 @@ public class PlanBuilder {
 													.setGeometryColumn(geomCol)
 													.setKey(ByteString.copyFrom(wkb));
 		GeomOpOption.toGeomOpOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		UnarySpatialIntersectionProto op = builder.build();
 		
 		return add(OperatorProto.newBuilder()
@@ -1769,7 +1769,7 @@ public class PlanBuilder {
 													.setSourceSrid(srcSrid)
 													.setTargetSrid(tarSrid);
 		GeomOpOption.toGeomOpOptionsProto(opts)
-					.forEach(builder::setOptions);
+					.ifPresent(builder::setOptions);
 		TransformCrsProto op = builder.build();
 		
 		return add(OperatorProto.newBuilder()
@@ -2433,7 +2433,7 @@ public class PlanBuilder {
 		private final GroupByPlanBuilder m_grpByBuilder;
 		private RecordSchema m_intermediateSchema;
 		private String m_produceExpr;
-		private Option<String> m_combinerInitializeExpr;
+		private FOption<String> m_combinerInitializeExpr;
 		private String m_combineExpr;
 		
 		ScriptRecordSetReducerBuilder(PlanBuilder planBuilder,
@@ -2453,12 +2453,12 @@ public class PlanBuilder {
 		
 		public class CombinerBuilder {
 			public ToReducedBuilder combine(String expr) {
-				m_combinerInitializeExpr = Option.none();
+				m_combinerInitializeExpr = FOption.empty();
 				m_combineExpr = expr;
 				return new ToReducedBuilder();
 			}
 			public ToReducedBuilder combine(String initExpr, String expr) {
-				m_combinerInitializeExpr = Option.some(initExpr);
+				m_combinerInitializeExpr = FOption.of(initExpr);
 				m_combineExpr = expr;
 				return new ToReducedBuilder();
 			}
@@ -2475,14 +2475,14 @@ public class PlanBuilder {
 											.setProducerExpr(m_produceExpr)
 											.setCombinerExpr(m_combineExpr)
 											.setFinalizerExpr(expr);
-				m_combinerInitializeExpr.forEach(reducerBuilder::setCombinerInitializeExpr);
+				m_combinerInitializeExpr.ifPresent(reducerBuilder::setCombinerInitializeExpr);
 				ScriptRecordSetReducerProto proto = reducerBuilder.build();
 
 				GroupByKeyProto.Builder grpBuilder
 							= GroupByKeyProto.newBuilder()
 											.setCompareColumns(m_grpByBuilder.m_cmpCols);
-				m_grpByBuilder.m_tagCols.forEach(grpBuilder::setTagColumns);
-				m_grpByBuilder.m_workerCount.forEach(cnt -> grpBuilder.setGroupWorkerCount(cnt));
+				m_grpByBuilder.m_tagCols.ifPresent(grpBuilder::setTagColumns);
+				m_grpByBuilder.m_workerCount.ifPresent(cnt -> grpBuilder.setGroupWorkerCount(cnt));
 				GroupByKeyProto grpBy = grpBuilder.build();
 				TransformByGroupProto reduceByGrp
 							= TransformByGroupProto.newBuilder()

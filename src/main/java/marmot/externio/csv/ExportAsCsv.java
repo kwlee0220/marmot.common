@@ -7,7 +7,6 @@ import java.util.Objects;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import io.vavr.Tuple2;
-import io.vavr.control.Option;
 import marmot.DataSet;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
@@ -16,6 +15,7 @@ import marmot.RecordSet;
 import marmot.rset.RecordSets;
 import marmot.type.DataType;
 import utils.async.ProgressReporter;
+import utils.func.FOption;
 
 
 /**
@@ -24,7 +24,7 @@ import utils.async.ProgressReporter;
  */
 public class ExportAsCsv implements ProgressReporter<Long> {
 	private final String m_dsId;
-	private Option<Long> m_reportInterval = Option.none();
+	private FOption<Long> m_reportInterval = FOption.empty();
 	private final CsvParameters m_csvParams;
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	
@@ -37,7 +37,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	}
 	
 	public ExportAsCsv reportInterval(long interval) {
-		m_reportInterval = (interval > 0) ? Option.some(interval) : Option.none();
+		m_reportInterval = (interval > 0) ? FOption.of(interval) : FOption.empty();
 		return this;
 	}
 	
@@ -88,7 +88,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 		}
 		
 		RecordSet rset = marmot.executeLocally(builder.build());
-		if ( m_reportInterval.isDefined() ) {
+		if ( m_reportInterval.isPresent() ) {
 			rset = RecordSets.reportProgress(rset, m_subject, m_reportInterval.get());
 		}
 		

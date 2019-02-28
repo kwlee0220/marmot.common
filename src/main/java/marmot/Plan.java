@@ -10,10 +10,10 @@ import java.util.List;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 
-import io.vavr.control.Option;
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.PlanProto;
 import marmot.support.PBSerializable;
+import utils.func.FOption;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 
@@ -38,12 +38,12 @@ public class Plan implements PBSerializable<PlanProto> {
 		return m_proto.getOperatorsList();
 	}
 	
-	public Option<OperatorProto> getLastOperator() {
+	public FOption<OperatorProto> getLastOperator() {
 		if ( length() == 0 ) {
-			return Option.none();
+			return FOption.empty();
 		}
 		else {
-			return Option.some(m_proto.getOperators(m_proto.getOperatorsCount()-1));
+			return FOption.of(m_proto.getOperators(m_proto.getOperatorsCount()-1));
 		}
 	}
 	
