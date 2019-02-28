@@ -34,10 +34,20 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 		this(dataset, new GeometryColumnInfo(geomCol, srid));
 	}
 	
+	/**
+	 * 공간 인덱스가 생성된 대상 데이터 세트 식별자를 반환한다.
+	 * 
+	 * @return	데이터 세트 식별자
+	 */
 	public String getDataSetId() {
 		return m_dataset;
 	}
 	
+	/**
+	 * 공간 인덱스 대상 공간 컬럼 정보를 반환한다.
+	 * 
+	 * @return	공간 컬럼 정보
+	 */
 	public GeometryColumnInfo getGeometryColumnInfo() {
 		return m_geomCol;
 	}
@@ -50,6 +60,11 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 		m_hdfsPath = path;
 	}
 	
+	/**
+	 * 공간 인덱스의 타일 단위 MBR(miminal bounding rectangle)을 반환한다.
+	 * 
+	 * @return	공간 인덱스 MBR
+	 */
 	public Envelope getTileBounds() {
 		return m_tileBounds;
 	}
@@ -57,7 +72,12 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	public void setTileBounds(Envelope envl) {
 		m_tileBounds = envl;
 	}
-	
+
+	/**
+	 * 공간 인덱스의 MBR(miminal bounding rectangle)을 반환한다.
+	 * 
+	 * @return	공간 인덱스 MBR
+	 */
 	public Envelope getDataBounds() {
 		return m_dataBounds;
 	}
@@ -65,7 +85,12 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	public void setDataBounds(Envelope envl) {
 		m_dataBounds = envl;
 	}
-	
+
+	/**
+	 * 공간 인덱스에 기록된 레코드의 수를 반환한다.
+	 * 
+	 * @return	레코드 수
+	 */
 	public long getRecordCount() {
 		return m_count;
 	}
