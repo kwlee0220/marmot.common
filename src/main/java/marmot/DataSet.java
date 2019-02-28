@@ -196,6 +196,7 @@ public interface DataSet {
 	}
 	
 	public SpatialIndexInfo cluster(ClusterDataSetOptions opts);
+	public void deleteSpatialCluster();
 	
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
 //	public RecordSet readSpatialCluster(String quadKey, FOption<String> filterExpr);

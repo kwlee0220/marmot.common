@@ -22,6 +22,7 @@ service DataSetService {
 	rpc deleteDataSet(marmot.proto.StringProto) returns (BoolResponse);
 	rpc moveDataSet(MoveDataSetRequest) returns (VoidResponse);
 	rpc clusterDataSet(ClusterDataSetRequest) returns (SpatialIndexInfoResponse);
+	rpc deleteSpatialCluster(marmot.proto.StringProto) returns (VoidResponse);
 	
 	rpc getDataSetInfoAll(marmot.proto.VoidProto) returns (stream DataSetInfoResponse);
 	rpc getDataSetInfo(marmot.proto.StringProto) returns (DataSetInfoResponse);
