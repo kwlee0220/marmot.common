@@ -26,7 +26,7 @@ public class TrajectoryType extends DataType {
 	}
 	
 	@Override
-	public Trajectory fromString(String str) {
+	public Trajectory parseInstance(String str) {
 		Trajectory.Builder builder = Trajectory.builder();
 		Stream.of(str.split(","))
 				.map(Sample::parse)

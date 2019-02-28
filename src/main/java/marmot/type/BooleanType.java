@@ -21,7 +21,7 @@ public class BooleanType extends DataType {
 	}
 	
 	@Override
-	public Boolean fromString(String str) {
+	public Boolean parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Boolean.parseBoolean(str) : null;
 	}

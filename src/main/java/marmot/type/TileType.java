@@ -21,7 +21,7 @@ public class TileType extends DataType {
 	}
 	
 	@Override
-	public MapTile fromString(String str) {
+	public MapTile parseInstance(String str) {
 		return MapTile.fromString(str);
 	}
 }

@@ -1,5 +1,7 @@
 package marmot.type;
 
+import utils.Throwables;
+
 /**
  * 'Serializable'을 상속하는 이유는 spark 때문임.
  * 
@@ -39,6 +41,20 @@ public abstract class DataType {
 	public static final GeometryType GEOMETRY = GeometryType.get();
 	public static final TrajectoryType TRAJECTORY = TrajectoryType.get();
 	
+	/**
+	 * 본 데이터 타입의 empty 데이터를 생성한다.
+	 * 
+	 * @return 데이터 객체.
+	 */
+	public abstract Object newInstance();
+	
+	/**
+	 * 주어진 스트링 representation을 파싱하여 데이터 객체를 생성한다.
+	 * 
+	 * @return	데이터 객체
+	 */
+	public abstract Object parseInstance(String str);
+	
 	protected DataType(String name, TypeCode tc, Class<?> instClass) {
 		m_name = name;
 		m_tc = tc;
@@ -53,7 +69,6 @@ public abstract class DataType {
 		return m_tc;
 	}
 	
-	public abstract Object newInstance();
 	public final Class<?> getInstanceClass() {
 		return m_instCls;
 	}
@@ -62,31 +77,35 @@ public abstract class DataType {
 		return this instanceof GeometryDataType;
 	}
 	
-	public abstract Object fromString(String str);
-	public String toString(Object instance) {
+	public String toInstanceString(Object instance) {
 		try {
 			return instance.toString();
 		}
 		catch ( Exception e ) {
-			e.printStackTrace();
-			return null;
+			throw Throwables.toRuntimeException(e);
 		}
 	}
-	
-//	public Object fromBytes(byte[] bytes) {
-//		try ( DataInputStream dis = new DataInputStream(new ByteArrayInputStream(bytes)) ) {
-//			return readObject(dis);
-//		}
-//		catch ( IOException e ) {
-//			throw new RuntimeException(e);
-//		}
-//	}
-
-//	public abstract Object readObject(DataInput in) throws IOException;
-//	public abstract void writeObject(Object obj, DataOutput out) throws IOException;
 	
 	@Override
 	public String toString() {
 		return m_name;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if ( this == obj ) {
+			return true;
+		}
+		else if ( obj == null || obj.getClass() != getClass() ) {
+			return false;
+		}
+		
+		DataType other = (DataType)obj;
+		return m_tc.equals(other.m_tc);
+	}
+	
+	@Override
+	public int hashCode() {
+		return m_tc.hashCode();
 	}
 }

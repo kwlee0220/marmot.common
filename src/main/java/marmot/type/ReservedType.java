@@ -21,7 +21,7 @@ public class ReservedType extends DataType {
 	}
 	
 	@Override
-	public Byte fromString(String str) {
+	public Byte parseInstance(String str) {
 		throw new AssertionError("should not be called");
 	}
 }

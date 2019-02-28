@@ -110,7 +110,7 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 		Object[] parts = new Object[cols.length];
 		for ( int i = 0; i < parts.length; ++i ) {
 			Object value = record.get(i);
-			parts[i] = (value != null) ? cols[i].type().toString(value) : "";
+			parts[i] = (value != null) ? cols[i].type().toInstanceString(value) : "";
 		}
 		
 		return parts;

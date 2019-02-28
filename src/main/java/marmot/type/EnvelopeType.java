@@ -3,7 +3,6 @@ package marmot.type;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.io.ParseException;
 
-import marmot.RecordSetException;
 import marmot.geo.GeoClientUtils;
 
 /**
@@ -29,17 +28,17 @@ public class EnvelopeType extends DataType {
 	}
 	
 	@Override
-	public Envelope fromString(String str) {
+	public Envelope parseInstance(String str) {
 		try {
 			return GeoClientUtils.fromWKT(str).getEnvelopeInternal();
 		}
 		catch ( ParseException e ) {
-			throw new RecordSetException(e);
+			throw new IllegalArgumentException(e);
 		}
 	}
 	
 	@Override
-	public String toString(Object instance) {
+	public String toInstanceString(Object instance) {
 		return GeoClientUtils.toWKT(GeoClientUtils.toPolygon((Envelope)instance));
 	}
 }

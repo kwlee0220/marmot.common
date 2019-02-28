@@ -21,7 +21,7 @@ public class ShortType extends DataType {
 	}
 	
 	@Override
-	public Short fromString(String str) {
+	public Short parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Short.parseShort(str) : null;
 	}

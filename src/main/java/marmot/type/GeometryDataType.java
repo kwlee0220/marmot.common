@@ -50,7 +50,7 @@ public abstract class GeometryDataType extends DataType {
 	}
 	
 	@Override
-	public Geometry fromString(String str) {
+	public Geometry parseInstance(String str) {
 		Preconditions.checkArgument(str != null, "input WKT is null");
 		
 		try {
@@ -62,7 +62,7 @@ public abstract class GeometryDataType extends DataType {
 	}
 	
 	@Override
-	public String toString(Object geom) {
+	public String toInstanceString(Object geom) {
 		Preconditions.checkArgument(geom != null, "input Geometry is null");
 		Preconditions.checkArgument(geom instanceof Geometry, "input is not Geometry");
 		

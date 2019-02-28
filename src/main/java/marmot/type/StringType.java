@@ -21,7 +21,7 @@ public class StringType extends DataType {
 	}
 	
 	@Override
-	public String fromString(String str) {
+	public String parseInstance(String str) {
 		return str;
 	}
 }

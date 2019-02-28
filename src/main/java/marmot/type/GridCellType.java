@@ -21,7 +21,7 @@ public class GridCellType extends DataType {
 	}
 	
 	@Override
-	public GridCell fromString(String str) {
+	public GridCell parseInstance(String str) {
 		return GridCell.fromString(str);
 	}
 }

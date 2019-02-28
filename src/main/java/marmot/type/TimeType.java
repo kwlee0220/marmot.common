@@ -24,7 +24,7 @@ public class TimeType extends DataType {
 	}
 	
 	@Override
-	public LocalTime fromString(String str) {
+	public LocalTime parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? LocalTime.parse(str) : null;
 	}

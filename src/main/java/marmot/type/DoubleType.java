@@ -21,7 +21,7 @@ public class DoubleType extends DataType {
 	}
 	
 	@Override
-	public Double fromString(String str) {
+	public Double parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Double.parseDouble(str) : null;
 	}

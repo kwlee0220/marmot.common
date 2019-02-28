@@ -24,7 +24,7 @@ public class DateType extends DataType {
 	}
 	
 	@Override
-	public LocalDate fromString(String str) {
+	public LocalDate parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? LocalDate.parse(str) : null;
 	}

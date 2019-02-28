@@ -24,7 +24,7 @@ public class TypedObjectType extends DataType {
 	}
 	
 	@Override
-	public Object fromString(String str) {
+	public Object parseInstance(String str) {
 		throw new UnsupportedOperationException();
 	}
 }

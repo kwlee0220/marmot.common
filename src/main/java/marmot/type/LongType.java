@@ -21,7 +21,7 @@ public class LongType extends DataType {
 	}
 	
 	@Override
-	public Long fromString(String str) {
+	public Long parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Long.parseLong(str) : null;
 	}

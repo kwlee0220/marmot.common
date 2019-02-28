@@ -24,7 +24,7 @@ public class DurationType extends DataType {
 	}
 	
 	@Override
-	public Duration fromString(String str) {
+	public Duration parseInstance(String str) {
 		throw new UnsupportedOperationException();
 	}
 }

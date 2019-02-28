@@ -21,7 +21,7 @@ public class IntType extends DataType {
 	}
 	
 	@Override
-	public Integer fromString(String str) {
+	public Integer parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Integer.parseInt(str) : null;
 	}

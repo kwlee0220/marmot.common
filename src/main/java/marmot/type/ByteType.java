@@ -21,7 +21,7 @@ public class ByteType extends DataType {
 	}
 	
 	@Override
-	public Byte fromString(String str) {
+	public Byte parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Byte.parseByte(str) : null;
 	}

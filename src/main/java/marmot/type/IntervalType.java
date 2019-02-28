@@ -21,7 +21,7 @@ public class IntervalType extends DataType {
 	}
 	
 	@Override
-	public Interval fromString(String str) {
+	public Interval parseInstance(String str) {
 		throw new UnsupportedOperationException();
 	}
 }

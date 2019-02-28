@@ -21,7 +21,7 @@ public class FloatType extends DataType {
 	}
 	
 	@Override
-	public Float fromString(String str) {
+	public Float parseInstance(String str) {
 		str = str.trim();
 		return (str.length() > 0) ? Float.parseFloat(str) : null;
 	}
