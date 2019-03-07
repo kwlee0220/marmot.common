@@ -408,7 +408,7 @@ public class GeoClientUtils {
 
 	private static final String DEFAULT_GEOM_COLUMN = "the_geom";
 	public static Column findDefaultGeometryColumn(RecordSchema schema) {
-		List<Column> geomColList = schema.getColumnStream()
+		List<Column> geomColList = schema.streamColumns()
 										.filter(col -> col.type().isGeometryType())
 										.toList();
 		if ( geomColList.size() == 1 ) {

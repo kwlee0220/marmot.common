@@ -6,7 +6,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
@@ -133,8 +132,17 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * 
 	 * @return	컬럼 스트림
 	 */
-	public FStream<Column> getColumnStream() {
+	public FStream<Column> streamColumns() {
 		return FStream.of(m_columns);
+	}
+	
+	public static RecordSchema concat(RecordSchema... schemas) {
+		Utilities.checkNotNullArgument(schemas, "RecordSchemas are null");
+		
+		return FStream.of(schemas)
+					.flatMap(s -> FStream.of(s.m_columns))
+					.foldLeft(builder(), (b,c) -> b.addColumn(c))
+					.build();
 	}
 
 	/**
@@ -181,10 +189,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
 	}
-	
-	public void forEach(Consumer<Column> consumer) {
-		FStream.of(m_columns).forEach(consumer);
-	}
 
 	public static RecordSchema fromProto(RecordSchemaProto proto) {
 		Utilities.checkNotNullArgument(proto, "RecordSchemaProto is null");
@@ -198,7 +202,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	
 	@Override
 	public RecordSchemaProto toProto() {
-		List<ColumnProto> cols = getColumnStream()
+		List<ColumnProto> cols = streamColumns()
 									.map(Column::toProto)
 									.toList();
 		return RecordSchemaProto.newBuilder()
@@ -245,7 +249,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		// 문제가 발생할 수 있음.
 		return FStream.of(m_columns).foldLeft(builder(), (b,c) -> b.addColumn(c));
 	}
-	
+
 	public static Builder builder() {
 		return new Builder();
 	}

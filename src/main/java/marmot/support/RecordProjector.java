@@ -72,6 +72,6 @@ public class RecordProjector {
 	
 	@Override
 	public String toString() {
-		return m_outputSchema.getColumnStream().map(Column::name).join(",", "[", "]");
+		return m_outputSchema.streamColumns().map(Column::name).join(",", "[", "]");
 	}
 }

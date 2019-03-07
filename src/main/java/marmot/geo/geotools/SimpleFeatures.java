@@ -80,34 +80,35 @@ public class SimpleFeatures {
 		builder.setSRS(srid);
 		
 		Map<String,Integer> abbrs = Maps.newHashMap();
-		schema.forEach(col -> {
-			String colName = col.name();
-			if ( colName.length() > 10 ) {
-				colName = colName.substring(0, 9);
-				int seqno = abbrs.getOrDefault(colName, 0);
-				abbrs.put(colName, (seqno+1));
-				colName += (""+seqno);
-				
-				s_logger.warn(String.format("truncate too long field name: %s->%s",
-											col.name(), colName));
-			}
-			
-			switch ( col.type().getTypeCode() ) {
-				case DATE:
-				case DATETIME:
-					builder.add(colName, Date.class);
-					break;
-				case INTERVAL:
-					builder.add(colName, String.class);
-					break;
-				case GRID_CELL:
-					builder.add(colName, String.class);
-					break;
-				default:
-					builder.add(colName, col.type().getInstanceClass());
-					break;
-			}
-		});
+		schema.streamColumns()
+				.forEach(col -> {
+					String colName = col.name();
+					if ( colName.length() > 10 ) {
+						colName = colName.substring(0, 9);
+						int seqno = abbrs.getOrDefault(colName, 0);
+						abbrs.put(colName, (seqno+1));
+						colName += (""+seqno);
+						
+						s_logger.warn(String.format("truncate too long field name: %s->%s",
+													col.name(), colName));
+					}
+					
+					switch ( col.type().getTypeCode() ) {
+						case DATE:
+						case DATETIME:
+							builder.add(colName, Date.class);
+							break;
+						case INTERVAL:
+							builder.add(colName, String.class);
+							break;
+						case GRID_CELL:
+							builder.add(colName, String.class);
+							break;
+						default:
+							builder.add(colName, col.type().getInstanceClass());
+							break;
+					}
+				});
 		return builder.buildFeatureType();
 	}
 	

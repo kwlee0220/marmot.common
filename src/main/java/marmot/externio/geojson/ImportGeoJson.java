@@ -108,12 +108,12 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 			RecordSet rset = new MultiFileGeoJsonRecordSet(m_start, m_gjsonParams.charset());
 			String tarGeomCol = m_params.getGeometryColumnInfo().get().name();
 			if ( !"geometry".equals(tarGeomCol) ) {
-				RecordSchema schema =rset.getRecordSchema().getColumnStream()
+				RecordSchema schema =rset.getRecordSchema().streamColumns()
 										.map(col -> col.matches("geometry")
 													? new Column(tarGeomCol, col.type()) : col)
 										.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 										.build();
-				rset = RecordSet.from(schema, rset.fstream());
+				rset = RecordSet.from(schema, rset.stream());
 			}
 			
 			return rset;
@@ -148,12 +148,12 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 				RecordSet rset = MultiFileGeoJsonRecordSet.parseGeoJson(m_reader);
 				String tarGeomCol = m_params.getGeometryColumnInfo().get().name();
 				if ( !"geometry".equals(tarGeomCol) ) {
-					RecordSchema schema =rset.getRecordSchema().getColumnStream()
+					RecordSchema schema =rset.getRecordSchema().streamColumns()
 											.map(col -> col.matches("geometry")
 														? new Column(tarGeomCol, col.type()) : col)
 											.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 											.build();
-					rset = RecordSet.from(schema, rset.fstream());
+					rset = RecordSet.from(schema, rset.stream());
 				}
 				
 				return rset;

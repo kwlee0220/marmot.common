@@ -135,11 +135,12 @@ public class DefaultRecord implements Record {
 		else {
 			RecordSchema srcSchema = src.getRecordSchema();
 			
-			m_schema.forEach(col -> {
-				srcSchema.findColumn(col.name())
-						.map(srcCol -> src.get(srcCol.ordinal()))
-						.ifPresent(srcV -> m_values[col.ordinal()] = srcV);
-			});
+			m_schema.streamColumns()
+					.forEach(col -> {
+						srcSchema.findColumn(col.name())
+								.map(srcCol -> src.get(srcCol.ordinal()))
+								.ifPresent(srcV -> m_values[col.ordinal()] = srcV);
+					});
 		}
 		
 		return this;
