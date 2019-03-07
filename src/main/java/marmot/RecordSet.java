@@ -8,7 +8,6 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import com.google.common.collect.Lists;
 
@@ -385,15 +384,11 @@ public interface RecordSet extends Closeable {
 	}
 	
 	/**
-	 * 본 레코드 세트에 포함된 레코드를 접근하는 스트림 ({@link Stream})을 반환한다.
+	 * 본 레코드 세트에 포함된 레코드를 접근하는 스트림 ({@link FStream})을 반환한다.
 	 * 
 	 * @return	레코드 세트 스트림 객체.
 	 */
-	public default Stream<Record> stream() {
-		return Utilities.stream(iterator());
-	}
-	
-	public default FStream<Record> fstream() {
+	public default FStream<Record> stream() {
 		return new FStream<Record>() {
 			@Override
 			public void close() throws Exception {
