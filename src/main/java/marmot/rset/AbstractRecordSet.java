@@ -22,7 +22,7 @@ public abstract class AbstractRecordSet implements RecordSet, LoggerSettable {
 	
 	private AtomicBoolean m_closed = new AtomicBoolean(false);
 	
-	protected abstract void closeInGuard();
+	protected abstract void closeInGuard() throws Exception;
 	
 	public final boolean isClosed() {
 		return m_closed.get();

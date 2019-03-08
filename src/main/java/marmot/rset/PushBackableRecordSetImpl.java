@@ -1,6 +1,5 @@
 package marmot.rset;
 
-import java.util.Objects;
 import java.util.Stack;
 
 import com.google.common.base.Preconditions;
@@ -9,6 +8,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import utils.Utilities;
 
 /**
  * 
@@ -18,10 +18,10 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 	private final RecordSet m_input;
 	private final Stack<Record> m_pushBackeds;
 	
-	PushBackableRecordSetImpl(RecordSet input) {
-		Objects.requireNonNull(input, "input RecordSet is null");
+	PushBackableRecordSetImpl(RecordSet rset) {
+		Utilities.checkNotNullArgument(rset, "rset is null");
 		
-		m_input = input;
+		m_input = rset;
 		m_pushBackeds = new Stack<>();
 	}
 	
@@ -67,5 +67,10 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 									"Push-backed record is incompatible");
 		
 		m_pushBackeds.push(record.duplicate());
+	}
+	
+	@Override
+	public String toString() {
+		return m_input.toString();
 	}
 }
