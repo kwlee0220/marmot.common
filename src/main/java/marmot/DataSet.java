@@ -2,11 +2,9 @@ package marmot;
 
 import java.io.InputStream;
 import java.util.List;
-import java.util.function.Consumer;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
 import utils.func.FOption;
@@ -118,28 +116,25 @@ public interface DataSet {
 	
 	public long getBlockSize();
 	
-	public boolean getCompression();
+	public boolean isCompressed();
+	
+	/**
+	 * 본 데이터 세트가 공간 클러스터가 존재하는지 유무를 반환한다.
+	 * 
+	 * @return 공간 클러스터 존재 유무
+	 */
+	public default boolean isSpatiallyClustered() {
+		return getDefaultSpatialIndexInfo().isPresent();
+	}
 	
 	/**
 	 * 기본 공간 컬럼에 부여된 인덱스 등록정보를 반환한다.
 	 * <p>
-	 * 공간 인덱스가 생성되어 있지 않은 경우는 {@code IndexNotFoundException}이 반환된다.
-	 * 
-	 * @return	공간 인덱스 등록정보.
-	 * @throws GeometryColumnNotExistsException	기본 공간 컬럼이 없는 경우.
-	 * @throws IndexNotFoundException	인덱스가 존재하지 않는 경우.
-	 */
-	public SpatialIndexInfo getDefaultSpatialIndexInfo()
-		throws GeometryColumnNotExistsException, IndexNotFoundException;
-	
-	/**
-	 * 기본 공간 컬럼에 부여된 인덱스 등록정보를 반환한다.
-	 * <p>
-	 * 공간 인덱스가 생성되어 있지 않은 경우는 {@code null}이 반환된다.
+	 * 공간 인덱스가 생성되어 있지 않은 경우는 {@link FOption#empty()}가 반환된다.
 	 * 
 	 * @return	공간 인덱스 등록정보.
 	 */
-	public SpatialIndexInfo getDefaultSpatialIndexInfoOrNull();
+	public FOption<SpatialIndexInfo> getDefaultSpatialIndexInfo();
 
 	/**
 	 * 데이터세트의 크기를 바이트 단위로 반환한다. 
@@ -156,12 +151,6 @@ public interface DataSet {
 	public RecordSet read();
 	
 	public RecordSet queryRange(Envelope range, FOption<String> filterExpr);
-	
-	public default void apply(Consumer<RecordSet> consumer) {
-		try ( RecordSet rset = read() ) {
-			consumer.accept(rset);
-		}
-	}
 	
 	/**
 	 * 주어진 레코드 세트를 데이터세트에 추가한다.
@@ -199,6 +188,5 @@ public interface DataSet {
 	public void deleteSpatialCluster();
 	
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
-//	public RecordSet readSpatialCluster(String quadKey, FOption<String> filterExpr);
 	public InputStream readRawSpatialCluster(String quadKey);
 }
