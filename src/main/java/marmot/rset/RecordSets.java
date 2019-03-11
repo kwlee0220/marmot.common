@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
@@ -146,6 +147,10 @@ public class RecordSets {
 	
 	public static TransformedRecordSet map(RecordSet rset, Function<Record,Record> transform) {
 		return new TransformedRecordSet(rset, transform);
+	}
+	
+	public static FilteredRecordSet filter(RecordSet rset, Predicate<Record> pred) {
+		return new FilteredRecordSet(rset, pred);
 	}
 	
 	public static FlatTransformedRecordSet flatMap(RecordSet rset, RecordSchema outSchema,
