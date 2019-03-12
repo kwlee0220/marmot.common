@@ -1,7 +1,5 @@
 package marmot.support;
 
-import static marmot.support.DateTimeFunctions.ST_DTToMillis;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -16,102 +14,112 @@ import utils.Utilities;
  * @author Kang-Woo Lee (ETRI)
  */
 public class DateFunctions {
-	@MVELFunction(name="ST_DateNow")
+	@MVELFunction(name="DateNow")
 	public static LocalDate now() {
 		return LocalDate.now();
 	}
 
-	@MVELFunction(name="ST_DateFromObject")
-	public static LocalDate ST_DateFromObject(Object obj) {
+	@MVELFunction(name="DateFromObject")
+	public static LocalDate DateFromObject(Object obj) {
 		return asLocalDate(obj);
 	}
 
-	@MVELFunction(name="ST_DateYear")
-	public static int ST_DateYear(Object obj) {
+	@MVELFunction(name="DateYear")
+	public static int DateYear(Object obj) {
 		return asLocalDate(obj).getYear();
 	}
 
-	@MVELFunction(name="ST_DateMonthValue")
-	public static int ST_DateMonthValue(Object obj) {
+	@MVELFunction(name="DateMonthValue")
+	public static int DateMonthValue(Object obj) {
 		return asLocalDate(obj).getMonthValue();
 	}
 
-	@MVELFunction(name="ST_DateDayOfMonth")
-	public static int ST_DateDayOfMonth(Object obj) {
+	@MVELFunction(name="DateDayOfMonth")
+	public static int DateDayOfMonth(Object obj) {
 		return asLocalDate(obj).getDayOfMonth();
 	}
 
-	@MVELFunction(name="ST_DateWeekDay")
-	public static int ST_DateWeekDay(Object obj) {
+	@MVELFunction(name="DateWeekDay")
+	public static int DateWeekDay(Object obj) {
 		return asLocalDate(obj).getDayOfWeek().getValue();
 	}
 
-	@MVELFunction(name="ST_DateIsEqual")
-	public static boolean ST_DateIsEqual(Object left, Object right) {
+	@MVELFunction(name="DateIsEqual")
+	public static boolean DateIsEqual(Object left, Object right) {
 		return asLocalDate(left).isEqual(asLocalDate(right));
 	}
 
-	@MVELFunction(name="ST_DateIsAfter")
-	public static boolean ST_DateIsAfter(Object left, Object right) {
+	@MVELFunction(name="DateIsAfter")
+	public static boolean DateIsAfter(Object left, Object right) {
 		return  asLocalDate(left).isAfter(asLocalDate(right));
 	}
 
-	@MVELFunction(name="ST_DateIsBefore")
-	public static boolean ST_DateIsBefore(Object left, Object right) {
+	@MVELFunction(name="DateIsBefore")
+	public static boolean DateIsBefore(Object left, Object right) {
 		return  asLocalDate(left).isBefore(asLocalDate(right));
 	}
 
-	@MVELFunction(name="ST_DateFromMillis")
-	public static LocalDate ST_DateFromMillis(long millis) {
+	@MVELFunction(name="DateFromMillis")
+	public static LocalDate DateFromMillis(long millis) {
 		return Utilities.fromUTCEpocMillis(millis, ZoneId.systemDefault()).toLocalDate();
 	}
 	
-	@MVELFunction(name="ST_DateToMillis")
-	public static long ST_DateToMillis(Object obj) {
+	@MVELFunction(name="DateToMillis")
+	public static long DateToMillis(Object obj) {
 		LocalDate date = asLocalDate(obj);
 		
-		return ST_DTToMillis(date.atStartOfDay());
+		return DateToMillis(date.atStartOfDay());
 	}
 	
-	@MVELFunction(name="ST_DateFromString")
-	public static LocalDate ST_DateFromString(String str) {
+	@MVELFunction(name="DateFromString")
+	public static LocalDate DateFromString(String str) {
 		return LocalDate.parse(str);
 	}
 	
-	@MVELFunction(name="ST_DateToString")
-	public static String ST_DateToString(Object obj) {
+	@MVELFunction(name="DateToString")
+	public static String DateToString(Object obj) {
 		return asLocalDate(obj).toString();
 	}
 
-	@MVELFunction(name="ST_DateParse")
+	@MVELFunction(name="DateParse")
 	public static LocalDate parse(String dtStr, String pattern) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-		return LocalDate.parse(dtStr, formatter);
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+			return LocalDate.parse(dtStr, formatter);
+		}
+		catch ( Exception e ) {
+			return null;
+		}
 	}
 
-	@MVELFunction(name="ST_DateParseLE")
-	public static LocalDate ST_DateParseLE(String dtStr, DateTimeFormatter formatter) {
-		return LocalDate.parse(dtStr, formatter);
+	@MVELFunction(name="DateParseLE")
+	public static LocalDate DateParseLE(String dtStr, DateTimeFormatter formatter) {
+		try {
+			return LocalDate.parse(dtStr, formatter);
+		}
+		catch ( Exception e ) {
+			return null;
+		}
 	}
 
-	@MVELFunction(name="ST_DatePattern")
-	public static DateTimeFormatter ST_DatePattern(String patternStr) {
+	@MVELFunction(name="DatePattern")
+	public static DateTimeFormatter DatePattern(String patternStr) {
 		return DateTimeFormatter.ofPattern(patternStr);
 	}
 
-	@MVELFunction(name="ST_DateFormat")
-	public static String ST_DateFormat(Object obj, String pattern) {
+	@MVELFunction(name="DateFormat")
+	public static String DateFormat(Object obj, String pattern) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
 		return asLocalDate(obj).format(formatter);
 	}
 
-	@MVELFunction(name="ST_DateToDateTime")
-	public static LocalDateTime ST_DateToDateTime(Object obj) {
+	@MVELFunction(name="DateToDateTime")
+	public static LocalDateTime DateToDateTime(Object obj) {
 		return asLocalDate(obj).atStartOfDay();
 	}
 
-	@MVELFunction(name="ST_DateDaysBetween")
-	public static long ST_DateDaysBetween(Object date1, Object date2) {
+	@MVELFunction(name="DateDaysBetween")
+	public static long DateDaysBetween(Object date1, Object date2) {
 		long gap = ChronoUnit.DAYS.between(asLocalDate(date1), asLocalDate(date2));
 		return gap;
 	}

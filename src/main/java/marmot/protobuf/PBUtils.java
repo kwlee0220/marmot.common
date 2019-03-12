@@ -789,13 +789,13 @@ public class PBUtils {
 				}
 				break;
 			case DATETIME:
-				builder.setDatetimeValue(DateTimeFunctions.ST_DTToMillis(obj));
+				builder.setDatetimeValue(DateTimeFunctions.DateTimeToMillis(obj));
 				break;
 			case DATE:
-				builder.setDateValue(DateFunctions.ST_DateToMillis(obj));
+				builder.setDateValue(DateFunctions.DateToMillis(obj));
 				break;
 			case TIME:
-				builder.setTimeValue(TimeFunctions.ST_TimeToString(obj));
+				builder.setTimeValue(TimeFunctions.TimeToString(obj));
 				break;
 			case INTERVAL:
 				builder.setIntervalValue(toProto((Interval)obj));
@@ -878,11 +878,11 @@ public class PBUtils {
 					throw new PBException(e);
 				}
 			case DATETIME_VALUE:
-				return Tuple.of(DataType.DATETIME, DateTimeFunctions.ST_DTFromMillis(proto.getDatetimeValue()));
+				return Tuple.of(DataType.DATETIME, DateTimeFunctions.DateTimeFromMillis(proto.getDatetimeValue()));
 			case DATE_VALUE:
-				return Tuple.of(DataType.DATE, DateFunctions.ST_DateFromMillis(proto.getDateValue()));
+				return Tuple.of(DataType.DATE, DateFunctions.DateFromMillis(proto.getDateValue()));
 			case TIME_VALUE:
-				return Tuple.of(DataType.TIME, TimeFunctions.ST_TimeFromString(proto.getTimeValue()));
+				return Tuple.of(DataType.TIME, TimeFunctions.TimeFromString(proto.getTimeValue()));
 			case DURATION_VALUE:
 				throw new UnsupportedOperationException("duration type");
 			case INTERVAL_VALUE:
@@ -959,13 +959,13 @@ public class PBUtils {
 			builder.setFloatValue((float)obj);
 		}
 		else if ( obj instanceof LocalDateTime ) {
-			builder.setDatetimeValue(DateTimeFunctions.ST_DTToMillis(obj));
+			builder.setDatetimeValue(DateTimeFunctions.DateTimeToMillis(obj));
 		}
 		else if ( obj instanceof LocalDate ) {
-			builder.setDateValue(DateFunctions.ST_DateToMillis(obj));
+			builder.setDateValue(DateFunctions.DateToMillis(obj));
 		}
 		else if ( obj instanceof LocalTime ) {
-			builder.setTimeValue(TimeFunctions.ST_TimeToString(obj));
+			builder.setTimeValue(TimeFunctions.TimeToString(obj));
 		}
 		else if ( obj instanceof MapTile ) {
 			MapTile tile = (MapTile)obj;

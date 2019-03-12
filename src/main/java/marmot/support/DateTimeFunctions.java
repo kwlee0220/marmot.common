@@ -12,118 +12,128 @@ import utils.Utilities;
  * @author Kang-Woo Lee (ETRI)
  */
 public class DateTimeFunctions {
-	@MVELFunction(name="ST_DTNow")
+	@MVELFunction(name="DateTimeNow")
 	public static LocalDateTime now() {
 		return LocalDateTime.now();
 	}
 
-	@MVELFunction(name="ST_DTFromMillis")
-	public static LocalDateTime ST_DTFromMillis(long millis) {
+	@MVELFunction(name="DateTimeFromMillis")
+	public static LocalDateTime DateTimeFromMillis(long millis) {
 		return Utilities.fromUTCEpocMillis(millis, ZoneId.systemDefault());
 	}
 	
-	@MVELFunction(name="ST_DTToMillis")
-	public static long ST_DTToMillis(Object obj) {
-		return Utilities.toUTCEpocMillis(asDatetime(obj));
+	@MVELFunction(name="DateTimeToMillis")
+	public static long DateTimeToMillis(Object obj) {
+		return Utilities.toUTCEpocMillis(asDateTime(obj));
 	}
 	
-	@MVELFunction(name="ST_DTFromString")
-	public static LocalDateTime ST_DTFromString(String str) {
+	@MVELFunction(name="DateTimeFromString")
+	public static LocalDateTime DateTimeFromString(String str) {
 		return LocalDateTime.parse(str);
 	}
 	
-	@MVELFunction(name="ST_DTToString")
-	public static String ST_DTToString(Object obj) {
-		return asDatetime(obj).toString();
+	@MVELFunction(name="DateTimeToString")
+	public static String DateTimeToString(Object obj) {
+		return asDateTime(obj).toString();
 	}
 
-	@MVELFunction(name="ST_DTGetYear")
-	public static int ST_DTGetYear(Object obj) {
-		return asDatetime(obj).getYear();
+	@MVELFunction(name="DateTimeGetYear")
+	public static int DateTimeGetYear(Object obj) {
+		return asDateTime(obj).getYear();
 	}
 
-	@MVELFunction(name="ST_DTGetMonth")
-	public static int ST_DTGetMonth(Object obj) {
-		return asDatetime(obj).getMonthValue();
+	@MVELFunction(name="DateTimeGetMonth")
+	public static int DateTimeGetMonth(Object obj) {
+		return asDateTime(obj).getMonthValue();
 	}
 
-	@MVELFunction(name="ST_DTGetDayOfMonth")
-	public static int ST_DTGetDayOfMonth(Object obj) {
-		return asDatetime(obj).getDayOfMonth();
+	@MVELFunction(name="DateTimeGetDayOfMonth")
+	public static int DateTimeGetDayOfMonth(Object obj) {
+		return asDateTime(obj).getDayOfMonth();
 	}
 
-	@MVELFunction(name="ST_DTWeekDay")
-	public static int ST_DTWeekDay(Object obj) {
-		return asDatetime(obj).getDayOfWeek().getValue();
+	@MVELFunction(name="DateTimeWeekDay")
+	public static int DateTimeWeekDay(Object obj) {
+		return asDateTime(obj).getDayOfWeek().getValue();
 	}
 
-	@MVELFunction(name="ST_DTGetHour")
-	public static int ST_DTGetHour(Object obj) {
-		return asDatetime(obj).getHour();
+	@MVELFunction(name="DateTimeGetHour")
+	public static int DateTimeGetHour(Object obj) {
+		return asDateTime(obj).getHour();
 	}
 
-	@MVELFunction(name="ST_DTGetMinute")
-	public static int ST_DTGetMinute(Object obj) {
-		return asDatetime(obj).getMinute();
+	@MVELFunction(name="DateTimeGetMinute")
+	public static int DateTimeGetMinute(Object obj) {
+		return asDateTime(obj).getMinute();
 	}
 
-	@MVELFunction(name="ST_DTGetSecond")
-	public static int ST_DTGetSecond(Object obj) {
-		return asDatetime(obj).getSecond();
+	@MVELFunction(name="DateTimeGetSecond")
+	public static int DateTimeGetSecond(Object obj) {
+		return asDateTime(obj).getSecond();
 	}
 
-	@MVELFunction(name="ST_DTParse")
-	public static LocalDateTime ST_DTParse(String dtStr, String pattern) {
-		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-		return LocalDateTime.parse(dtStr, formatter);
+	@MVELFunction(name="DateTimeParse")
+	public static LocalDateTime DateTimeParse(String dtStr, String pattern) {
+		try {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+			return LocalDateTime.parse(dtStr, formatter);
+		}
+		catch ( Exception e ) {
+			return null;
+		}
 	}
 
-	@MVELFunction(name="ST_DTParseLE")
-	public static LocalDateTime ST_DTParseLE(String dtStr, DateTimeFormatter formatter) {
-		return LocalDateTime.parse(dtStr, formatter);
+	@MVELFunction(name="DateTimeParseLE")
+	public static LocalDateTime DateTimeParseLE(String dtStr, DateTimeFormatter formatter) {
+		try {
+			return LocalDateTime.parse(dtStr, formatter);
+		}
+		catch ( Exception e ) {
+			return null;
+		}
 	}
 
-	@MVELFunction(name="ST_DTPattern")
-	public static DateTimeFormatter ST_DTPattern(String patternStr) {
+	@MVELFunction(name="DateTimePattern")
+	public static DateTimeFormatter DateTimePattern(String patternStr) {
 		return DateTimeFormatter.ofPattern(patternStr);
 	}
 
-	@MVELFunction(name="ST_DTFormat")
-	public static String ST_DTFormat(Object obj, String pattern) {
+	@MVELFunction(name="DateTimeFormat")
+	public static String DateTimeFormat(Object obj, String pattern) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-		return asDatetime(obj).format(formatter);
+		return asDateTime(obj).format(formatter);
 	}
 
-	@MVELFunction(name="ST_DTFormatLE")
-	public static String ST_DTFormatLE(Object obj, DateTimeFormatter formatter) {
-		return asDatetime(obj).format(formatter);
+	@MVELFunction(name="DateTimeFormatLE")
+	public static String DateTimeFormatLE(Object obj, DateTimeFormatter formatter) {
+		return asDateTime(obj).format(formatter);
 	}
 
-	@MVELFunction(name="ST_DTIsEqual")
-	public static boolean isEqual(LocalDateTime left, LocalDateTime right) {
+	@MVELFunction(name="DateTimeIsEqual")
+	public static boolean DateTimeIsEqual(LocalDateTime left, LocalDateTime right) {
 		return left.isEqual(right);
 	}
 
-	@MVELFunction(name="ST_DTIsAfter")
-	public static boolean ST_DTIsAfter(Object left, Object right) {
-		return asDatetime(left).isAfter(asDatetime(right));
+	@MVELFunction(name="DateTimeIsAfter")
+	public static boolean DateTimeIsAfter(Object left, Object right) {
+		return asDateTime(left).isAfter(asDateTime(right));
 	}
 
-	@MVELFunction(name="ST_DTIsBefore")
-	public static boolean isBefore(LocalDateTime left, LocalDateTime right) {
+	@MVELFunction(name="DateTimeIsBefore")
+	public static boolean DateTimeIsBefore(LocalDateTime left, LocalDateTime right) {
 		return left.isBefore(right);
 	}
 
-	@MVELFunction(name="ST_DTIsBetween")
-	public static boolean ST_DTIsBetween(Object obj, Object begin, Object end) {
-		long ldtMillis = ST_DTToMillis(obj);
-		long beginMillis = ST_DTToMillis(begin);
-		long endMillis = ST_DTToMillis(end);
+	@MVELFunction(name="DateTimeIsBetween")
+	public static boolean DateTimeIsBetween(Object obj, Object begin, Object end) {
+		long ldtMillis = DateTimeToMillis(obj);
+		long beginMillis = DateTimeToMillis(begin);
+		long endMillis = DateTimeToMillis(end);
 		
 		return ldtMillis >= beginMillis && ldtMillis < endMillis;
 	}
 	
-	public static LocalDateTime asDatetime(Object obj) {
+	public static LocalDateTime asDateTime(Object obj) {
 		if ( obj == null ) {
 			return null;
 		}

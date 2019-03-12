@@ -1,6 +1,6 @@
 package marmot.support;
 
-import static marmot.support.DateTimeFunctions.ST_DTToMillis;
+import static marmot.support.DateTimeFunctions.DateTimeToMillis;
 
 import marmot.type.Interval;
 
@@ -12,8 +12,8 @@ public class IntervalFunctions {
 	@MVELFunction(name="ST_ITFromDateTime")
 //	public static Interval fromDateTime(LocalDateTime start, LocalDateTime end) {
 	public static Interval ST_ITFromDateTime(Object startObj, Object endObj) {
-		long startMillis = ST_DTToMillis(startObj); 
-		long endMillis = ST_DTToMillis(endObj);
+		long startMillis = DateTimeToMillis(startObj); 
+		long endMillis = DateTimeToMillis(endObj);
 		
 		return Interval.between(startMillis, endMillis);
 	}

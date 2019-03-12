@@ -22,8 +22,8 @@ public class Interval implements Serializable {
 	private transient final org.joda.time.Interval m_jodaInterval;
 	
 	public static Interval between(LocalDateTime start, LocalDateTime end) {
-		return between(DateTimeFunctions.ST_DTToMillis(start),
-						DateTimeFunctions.ST_DTToMillis(end));
+		return between(DateTimeFunctions.DateTimeToMillis(start),
+						DateTimeFunctions.DateTimeToMillis(end));
 	}
 	
 	public static Interval between(long start, long end) {
