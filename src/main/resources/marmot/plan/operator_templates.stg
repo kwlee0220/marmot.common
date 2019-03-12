@@ -26,10 +26,14 @@ update(expr, init=[]) ::= <<
 }
 >>
 
-expand(col_decls, init=[]) ::= <<
+expand(col_decls, col_init=[], init=[]) ::= <<
 { "expand": {
-    "column_decls": "<col_decls>" <if(init)>,
-    "initializer": { "expr": "<init>" }
+    "column_decls": "<col_decls>" <if(col_init)>,
+    "columnInitializer": {<if(init)>
+       "initializer": "<init>",
+       <endif>
+       "expr": "<col_init>"
+    }
     <endif>
   }
 }

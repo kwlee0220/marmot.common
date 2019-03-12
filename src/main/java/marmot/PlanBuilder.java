@@ -514,14 +514,14 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder expand(String colDecls, String initializer) {
-		return expand(colDecls, RecordScript.of(initializer));
+	public PlanBuilder expand(String colDecls, String colInit) {
+		return expand(colDecls, RecordScript.of(colInit));
 	}
 
-	public PlanBuilder expand(String colDecls, RecordScript initializer) {
+	public PlanBuilder expand(String colDecls, RecordScript colInit) {
 		ExpandProto expand = ExpandProto.newBuilder()
 										.setColumnDecls(colDecls)
-										.setInitializer(initializer.toProto())
+										.setColumnInitializer(colInit.toProto())
 										.build();
 		return add(OperatorProto.newBuilder()
 								.setExpand(expand)
