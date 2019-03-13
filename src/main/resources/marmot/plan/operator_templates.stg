@@ -174,6 +174,50 @@ load_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworker
   }
 }
 >>
+load_semi_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+{ "loadHashJoin": {
+    "leftDataset": "<left_dsid>",
+    "leftJoinColumns": "<left_jcols>",
+    "rightDataset": "<right_dsid>",
+    "rightJoinColumns": "<right_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": { "joinType": "SEMI_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
+  }
+}
+>>
+load_left_outer_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+{ "loadHashJoin": {
+    "leftDataset": "<left_dsid>",
+    "leftJoinColumns": "<left_jcols>",
+    "rightDataset": "<right_dsid>",
+    "rightJoinColumns": "<right_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": { "joinType": "LEFT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
+  }
+}
+>>
+load_right_outer_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+{ "loadHashJoin": {
+    "leftDataset": "<left_dsid>",
+    "leftJoinColumns": "<left_jcols>",
+    "rightDataset": "<right_dsid>",
+    "rightJoinColumns": "<right_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": { "joinType": "RIGHT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
+  }
+}
+>>
+load_full_outer_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+{ "loadHashJoin": {
+    "leftDataset": "<left_dsid>",
+    "leftJoinColumns": "<left_jcols>",
+    "rightDataset": "<right_dsid>",
+    "rightJoinColumns": "<right_jcols>",
+    "outputColumnsExpr": "<out_cols>",
+    "joinOptions": { "joinType": "FULL_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
+  }
+}
+>>
 
 query(dsid, key_dsid, rel="intersects") ::= <<
 { "queryDataset": {
@@ -408,54 +452,6 @@ intersection_join(param_dsid, output_cols=[], geom_col="the_geom") ::= <<
     "paramDataset": "<param_dsid>"<if(output_cols)>,
     "outputColumns": "<output_cols>"
     <endif>
-  }
-}
->>
-
-load_semijoin(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
-{ "loadEquiJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
-    "joinOptions": { "joinType": "SEMI_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
-  }
-}
->>
-
-load_left_outerjoin(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
-{ "loadEquiJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
-    "joinOptions": { "joinType": "LEFT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
-  }
-}
->>
-
-load_right_outerjoin(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
-{ "loadEquiJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
-    "joinOptions": { "joinType": "RIGHT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
-  }
-}
->>
-
-load_full_outerjoin(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
-{ "loadEquiJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
-    "joinOptions": { "joinType": "FULL_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
