@@ -61,4 +61,19 @@ public class Functions {
 					? Lists.newArrayList(str.split(delim))
 					: Lists.newArrayList();
 	}
+	
+	@MVELFunction(name="Round")
+	public static Object Round(Object obj, int digits) {
+		if ( obj instanceof Double ) {
+			double scale = Math.pow(10, digits);
+			return Math.round(((Double)obj) * scale) / scale;
+		}
+		else if ( obj instanceof Float ) {
+			float scale = (float)Math.pow(10, digits);
+			return Math.round(((Float)obj) * scale) / scale;
+		}
+		else {
+			throw new IllegalArgumentException("invalid for round-up value=" + obj);
+		}
+	}
 }

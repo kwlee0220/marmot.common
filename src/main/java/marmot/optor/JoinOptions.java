@@ -20,12 +20,23 @@ public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 		return new JoinOptions().joinType(JoinType.INNER_JOIN).workerCount(nworkers);
 	}
 	
+	public static final JoinOptions INNER_JOIN(FOption<Integer> nworkers) {
+		JoinOptions opts = new JoinOptions()
+								.joinType(JoinType.INNER_JOIN);
+		return nworkers.transform(opts, (o,n) -> o.workerCount(n));
+	}
+	
 	public static final JoinOptions LEFT_OUTER_JOIN() {
 		return new JoinOptions().joinType(JoinType.LEFT_OUTER_JOIN);
 	}
 	
 	public static final JoinOptions LEFT_OUTER_JOIN(int nworkers) {
 		return new JoinOptions().joinType(JoinType.LEFT_OUTER_JOIN).workerCount(nworkers);
+	}
+	
+	public static final JoinOptions LEFT_OUTER_JOIN(FOption<Integer> nworkers) {
+		JoinOptions opts = new JoinOptions().joinType(JoinType.LEFT_OUTER_JOIN);
+		return nworkers.transform(opts, (o,n) -> o.workerCount(n));
 	}
 	
 	public static final JoinOptions RIGHT_OUTER_JOIN() {
@@ -36,6 +47,11 @@ public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 		return new JoinOptions().joinType(JoinType.RIGHT_OUTER_JOIN).workerCount(nworkers);
 	}
 	
+	public static final JoinOptions RIGHT_OUTER_JOIN(FOption<Integer> nworkers) {
+		JoinOptions opts = new JoinOptions().joinType(JoinType.RIGHT_OUTER_JOIN);
+		return nworkers.transform(opts, (o,n) -> o.workerCount(n));
+	}
+	
 	public static final JoinOptions FULL_OUTER_JOIN() {
 		return new JoinOptions().joinType(JoinType.FULL_OUTER_JOIN);
 	}
@@ -44,12 +60,22 @@ public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 		return new JoinOptions().joinType(JoinType.FULL_OUTER_JOIN).workerCount(nworkers);
 	}
 	
+	public static final JoinOptions FULL_OUTER_JOIN(FOption<Integer> nworkers) {
+		JoinOptions opts = new JoinOptions().joinType(JoinType.FULL_OUTER_JOIN);
+		return nworkers.transform(opts, (o,n) -> o.workerCount(n));
+	}
+	
 	public static final JoinOptions SEMI_JOIN() {
 		return new JoinOptions().joinType(JoinType.SEMI_JOIN);
 	}
 	
 	public static final JoinOptions SEMI_JOIN(int nworkers) {
 		return new JoinOptions().joinType(JoinType.SEMI_JOIN).workerCount(nworkers);
+	}
+	
+	public static final JoinOptions SEMI_JOIN(FOption<Integer> nworkers) {
+		JoinOptions opts = new JoinOptions().joinType(JoinType.SEMI_JOIN);
+		return nworkers.transform(opts, (o,n) -> o.workerCount(n));
 	}
 	
 	public JoinType joinType() {
