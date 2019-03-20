@@ -7,6 +7,7 @@ import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
+import marmot.rset.PBInputStreamRecordSet;
 import utils.func.FOption;
 
 /**
@@ -189,4 +190,13 @@ public interface DataSet {
 	
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
 	public InputStream readRawSpatialCluster(String quadKey);
+	public default RecordSet readSpatialCluster(String quadKey) {
+		return PBInputStreamRecordSet.from(readRawSpatialCluster(quadKey));
+	}
+	
+	public boolean hasThumbnail();
+	public RecordSet readThumbnail(Envelope bounds, int count)
+		throws ThumbnailNotFoundException, InsufficientThumbnailException;
+	public void createThumbnail(int sampleCount) throws ClusterNotFoundException;
+	public boolean deleteThumbnail();
 }

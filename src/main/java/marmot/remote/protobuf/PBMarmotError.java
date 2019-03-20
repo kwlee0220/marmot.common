@@ -13,10 +13,12 @@ import com.google.common.collect.Maps;
 import marmot.ColumnNotFoundException;
 import marmot.DataSetExistsException;
 import marmot.DataSetNotFoundException;
+import marmot.InsufficientThumbnailException;
 import marmot.MarmotInternalException;
 import marmot.PlanExecutionException;
 import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
+import marmot.ThumbnailNotFoundException;
 import marmot.optor.RecordSetOperatorException;
 import marmot.support.PBException;
 import utils.Throwables;
@@ -30,6 +32,8 @@ import utils.stream.FStream;
 public enum PBMarmotError {
 	DATASET_NOT_FOUND(0, DataSetNotFoundException.class),
 	DATASET_EXISTS(1, DataSetExistsException.class),
+	THUMBNAIL(2, InsufficientThumbnailException.class),
+	THUMBNAIL_NOT_FOUND(3, ThumbnailNotFoundException.class),
 
 	STREAM_CLOSED(10, PBStreamClosedException.class),
 	RECORD_SET_CLOSED(15, RecordSetClosedException.class),

@@ -47,11 +47,27 @@ service DataSetService {
 	// 주어진 식별자에 해당하는 공간 클러스터에 포함된 레코드들을 반환 (ReadRawSpatialClusterRequest)
 	rpc readRawSpatialCluster(stream DownChunkResponse) returns (stream DownChunkRequest);
 	
+	rpc hasThumbnail(StringProto) returns (BoolResponse);
+	rpc createThumbnail(CreateThumbnailRequest) returns (VoidResponse);
+	rpc deleteThumbnail(StringProto) returns (BoolResponse);
+	rpc readThumbnail(stream DownChunkResponse) returns (stream DownChunkRequest);
+	
 	// Misc interface
 	rpc getBlockSize(StringProto) returns (LongResponse);
 	rpc getDataSetLength(marmot.proto.StringProto) returns (LongResponse);
 	
 	rpc createKafkaTopic(CreateKafkaTopicRequest) returns (VoidResponse);
+}
+
+message CreateThumbnailRequest {
+	string id = 1;				// 데이터세트 식별자
+	int32 count = 2;
+}
+
+message ReadThumbnailRequest {
+	string id = 1;				// 데이터세트 식별자
+	EnvelopeProto range = 2;
+	int32 count = 3;
 }
 
 enum DataSetTypeProto {
