@@ -16,6 +16,7 @@ import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.support.DefaultRecord;
+import utils.Throwables;
 import utils.async.AbstractThreadedExecution;
 import utils.io.IOUtils;
 import utils.stream.FStream;
@@ -29,6 +30,7 @@ public class PBRecordSetInputStream extends InputStream {
 	
 	private final PipedInputStream m_pipe;
 	private final RecordSetPump m_pump;
+	private Throwable m_error;
 	
 	public static PBRecordSetInputStream from(RecordSet rset) {
 		return new PBRecordSetInputStream(rset);
@@ -62,15 +64,25 @@ public class PBRecordSetInputStream extends InputStream {
 
 	@Override
 	public int read() throws IOException {
-		return m_pipe.read();
+		int ret = m_pipe.read();
+		if ( ret >= 0 || m_error == null ) {
+			return ret;
+		}
+		
+		throw Throwables.toRuntimeException(m_error);
 	}
 
 	@Override
     public int read(byte b[], int off, int len) throws IOException {
-		return m_pipe.read(b, off, len);
+		int ret = m_pipe.read(b, off, len);
+		if ( ret >= 0 || m_error == null ) {
+			return ret;
+		}
+
+		throw Throwables.toRuntimeException(m_error);
 	}
 	
-	private static class RecordSetPump extends AbstractThreadedExecution<Void> {
+	private class RecordSetPump extends AbstractThreadedExecution<Void> {
 		private final RecordSet m_rset;
 		private final OutputStream m_os;
 		
@@ -99,6 +111,9 @@ public class PBRecordSetInputStream extends InputStream {
 			}
 			catch ( InterruptedIOException e ) {
 				throw new CancellationException("" + e);
+			}
+			catch ( Exception e ) {
+				m_error = e;
 			}
 			finally {
 				IOUtils.closeQuietly(m_os);
