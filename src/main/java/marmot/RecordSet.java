@@ -23,14 +23,13 @@ import utils.Throwables;
 import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
-import utils.stream.FStreamable;
 
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public interface RecordSet extends FStreamable<Record>, Closeable {
+public interface RecordSet extends Closeable {
 	/**
 	 * 본 레코드 세트에 속한 레코드들의 스키마를 반환한다.
 	 * 
