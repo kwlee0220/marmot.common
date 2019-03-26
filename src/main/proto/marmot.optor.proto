@@ -23,6 +23,12 @@ message LoadMarmotFileProto {
 	int32 split_count_per_block = 1;
 	repeated string paths = 2;
 }
+message LoadSpatialClusteredFileProto {
+	string dataset = 1;
+	marmot.proto.EnvelopeProto range = 2;
+	string query = 3;
+	string cluster_cols_expr = 4;
+}
 
 message LoadCsvFileProto {
 	int32 split_count_per_block = 1;
@@ -290,14 +296,12 @@ message GroupByKeyProto {
 }
 message TransformByGroupProto {
 	GroupByKeyProto grouper = 1;
-	oneof oneof_transforms {
-		ValueAggregateReducerProto val_aggregate = 2;
-		marmot.proto.SerializedProto function = 3;	// RecordSetFunction
-	}
+	repeated marmot.proto.SerializedProto functions = 2;
 }
 message ConsumeByGroupProto {
 	GroupByKeyProto grouper = 1;
 	marmot.proto.SerializedProto consumer = 2;	// RecordSetConsumer
+	repeated marmot.proto.SerializedProto functions = 3;
 }
 message StoreKeyedDataSetProto {
 	string root_path = 1;
@@ -824,6 +828,7 @@ message OperatorProto {
 		LoadSquareGridFileProto load_square_gridfile = 7;
 		LoadHexagonGridFileProto load_hexagon_gridfile = 8;
 		QueryDataSetProto query_dataset = 9;
+		LoadSpatialClusteredFileProto load_spatial_cluster_file = 10;
 		
 		StoreAsHeapfileProto store_as_heapfile = 51;
 		StoreAsCsvProto store_as_csv = 52;

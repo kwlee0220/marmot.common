@@ -67,6 +67,18 @@ message LongResponse {
 		ErrorProto error = 2;
 	}
 }
+message FloatResponse {
+	oneof either {
+		float value = 1;
+		ErrorProto error = 2;
+	}
+}
+message DoubleResponse {
+	oneof either {
+		double value = 1;
+		ErrorProto error = 2;
+	}
+}
 message BoolResponse {
 	oneof either {
 		bool value = 1;

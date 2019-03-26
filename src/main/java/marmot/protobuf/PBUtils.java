@@ -57,7 +57,9 @@ import marmot.proto.TypeCodeProto;
 import marmot.proto.ValueProto;
 import marmot.proto.VoidProto;
 import marmot.proto.service.BoolResponse;
+import marmot.proto.service.DoubleResponse;
 import marmot.proto.service.ErrorProto;
+import marmot.proto.service.FloatResponse;
 import marmot.proto.service.LongResponse;
 import marmot.proto.service.MarmotErrorCode;
 import marmot.proto.service.RecordResponse;
@@ -307,6 +309,30 @@ public class PBUtils {
 							.build();
 	}
 	
+	public static FloatResponse toFloatResponse(float value) {
+		return FloatResponse.newBuilder()
+							.setValue(value)
+							.build();
+	}
+	
+	public static FloatResponse toFloatResponse(Throwable e) {
+		return FloatResponse.newBuilder()
+							.setError(toErrorProto(e))
+							.build();
+	}
+	
+	public static DoubleResponse toDoubleResponse(double value) {
+		return DoubleResponse.newBuilder()
+							.setValue(value)
+							.build();
+	}
+	
+	public static DoubleResponse toDoubleResponse(Throwable e) {
+		return DoubleResponse.newBuilder()
+							.setError(toErrorProto(e))
+							.build();
+	}
+	
 	public static RecordResponse toRecordResponse(Record value) {
 		return RecordResponse.newBuilder()
 							.setRecord(value.toProto())
@@ -403,6 +429,28 @@ public class PBUtils {
 	}
 	
 	public static long handle(LongResponse resp) {
+		switch ( resp.getEitherCase() ) {
+			case VALUE:
+				return resp.getValue();
+			case ERROR:
+				throw Throwables.toRuntimeException(toException(resp.getError()));
+			default:
+				throw new AssertionError();
+		}
+	}
+	
+	public static float handle(FloatResponse resp) {
+		switch ( resp.getEitherCase() ) {
+			case VALUE:
+				return resp.getValue();
+			case ERROR:
+				throw Throwables.toRuntimeException(toException(resp.getError()));
+			default:
+				throw new AssertionError();
+		}
+	}
+	
+	public static double handle(DoubleResponse resp) {
 		switch ( resp.getEitherCase() ) {
 			case VALUE:
 				return resp.getValue();

@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
@@ -69,6 +70,7 @@ import marmot.proto.optor.LoadJdbcTableProto;
 import marmot.proto.optor.LoadLocalMoransIProto;
 import marmot.proto.optor.LoadMarmotFileProto;
 import marmot.proto.optor.LoadSpatialClusterIndexFileProto;
+import marmot.proto.optor.LoadSpatialClusteredFileProto;
 import marmot.proto.optor.LoadSpatialIndexJoinProto;
 import marmot.proto.optor.LoadSquareGridFileProto;
 import marmot.proto.optor.LoadTextFileProto;
@@ -200,6 +202,18 @@ public class PlanBuilder {
 													.build();
 		return add(OperatorProto.newBuilder()
 								.setLoadMarmotfile(load)
+								.build());
+	}
+	
+	public PlanBuilder loadSpatialClusteredFile(String dsId, String clusterCols) {
+		LoadSpatialClusteredFileProto load = LoadSpatialClusteredFileProto.newBuilder()
+													.setDataset(dsId)
+													.setRange(PBUtils.toProto(new Envelope()))
+													.setQuery(SpatialRelation.ALL.toStringExpr())
+													.setClusterColsExpr(clusterCols)
+													.build();
+		return add(OperatorProto.newBuilder()
+								.setLoadSpatialClusterFile(load)
 								.build());
 	}
 
@@ -681,6 +695,7 @@ public class PlanBuilder {
 		private FOption<String> m_tagCols = FOption.empty();
 		private FOption<String> m_orderKeyCols = FOption.empty();
 		private FOption<Integer> m_workerCount = FOption.empty();
+		private List<SerializedProto> m_functions = Lists.newArrayList();
 		
 		GroupByPlanBuilder(PlanBuilder planBuilder, String cmpKeyCols) {
 			m_planBuilder = planBuilder;
@@ -736,33 +751,24 @@ public class PlanBuilder {
 										.foldLeft(ValueAggregateReducerProto.newBuilder(),
 													(builder,aggr) -> builder.addAggregate(aggr))
 										.build();
-
-			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-																.setGrouper(groupByKey())
-																.setValAggregate(varp)
-																.build();
+			m_functions.add(PBUtils.serialize(varp));
 			
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setTransformByGroup(transform)
-													.build());
+			return list();
 		}
 		
-		public PlanBuilder apply(SerializedProto func) {
-			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-																.setGrouper(groupByKey())
-																.setFunction(func)
-																.build();
-			
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setTransformByGroup(transform)
-													.build());
+		public GroupByPlanBuilder apply(SerializedProto func) {
+			m_functions.add(func);
+			return this;
 		}
 		
 		public PlanBuilder consume(SerializedProto consumer) {
-			ConsumeByGroupProto consume = ConsumeByGroupProto.newBuilder()
+			ConsumeByGroupProto.Builder builder = ConsumeByGroupProto.newBuilder()
 															.setGrouper(groupByKey())
-															.setConsumer(consumer)
-															.build();
+															.setConsumer(consumer);
+			if ( m_functions.size() > 0 ) {
+				builder.addAllFunctions(m_functions);
+			}
+			ConsumeByGroupProto consume = builder.build();
 			
 			return m_planBuilder.add(OperatorProto.newBuilder()
 													.setConsumeByGroup(consume)
@@ -774,12 +780,13 @@ public class PlanBuilder {
 																.newBuilder()
 																.setPlan(plan.toProto())
 																.build();
-			return apply(PBUtils.serialize(func));
+			return apply(PBUtils.serialize(func)).list();
 		}
 		
 		public PlanBuilder list() {
 			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
 																.setGrouper(groupByKey())
+																.addAllFunctions(m_functions)
 																.build();
 			return m_planBuilder.add(OperatorProto.newBuilder()
 													.setTransformByGroup(transform)
@@ -803,14 +810,14 @@ public class PlanBuilder {
 		
 		public PlanBuilder findFirst() {
 			FindFirstReducerProto findFirst = FindFirstReducerProto.newBuilder().build();
-			return apply(PBUtils.serialize(findFirst));
+			return apply(PBUtils.serialize(findFirst)).list();
 		}
 		
 		public PlanBuilder findMaxValue(String colSpec) {
 			FindMaxValueRecordProto findMax = FindMaxValueRecordProto.newBuilder()
 																.setCompareKeyColumns(colSpec)
 																.build();
-			return apply(PBUtils.serialize(findMax));
+			return apply(PBUtils.serialize(findMax)).list();
 		}
 		
 		public PlanBuilder putSideBySide(RecordSchema outSchema, String valueColumn,
@@ -820,7 +827,7 @@ public class PlanBuilder {
 														.setTagColumn(tagColumn)
 														.setOutputSchema(outSchema.toProto())
 														.build();
-			return apply(PBUtils.serialize(put));
+			return apply(PBUtils.serialize(put)).list();
 		}
 		
 		public PlanBuilder storeEachGroup(String rootPath, DataSetOption... opts) {
@@ -2484,10 +2491,11 @@ public class PlanBuilder {
 				m_grpByBuilder.m_tagCols.ifPresent(grpBuilder::setTagColumns);
 				m_grpByBuilder.m_workerCount.ifPresent(cnt -> grpBuilder.setGroupWorkerCount(cnt));
 				GroupByKeyProto grpBy = grpBuilder.build();
+				List<SerializedProto> funcs = Lists.newArrayList(PBUtils.serialize(proto));
 				TransformByGroupProto reduceByGrp
 							= TransformByGroupProto.newBuilder()
 												.setGrouper(grpBy)
-												.setFunction(PBUtils.serialize(proto))
+												.addAllFunctions(funcs)
 												.build();
 				
 				return m_planBuilder.add(OperatorProto.newBuilder()

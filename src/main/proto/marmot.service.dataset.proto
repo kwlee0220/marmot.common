@@ -51,6 +51,7 @@ service DataSetService {
 	rpc createThumbnail(CreateThumbnailRequest) returns (VoidResponse);
 	rpc deleteThumbnail(StringProto) returns (BoolResponse);
 	rpc readThumbnail(stream DownChunkResponse) returns (stream DownChunkRequest);
+	rpc getThumbnailRatio(StringProto) returns (FloatResponse);
 	
 	// Misc interface
 	rpc getBlockSize(StringProto) returns (LongResponse);
@@ -96,6 +97,7 @@ message DataSetInfoProto {
 	string hdfs_path = 7;		// HDFS 저장 경로
 	bool compression = 8;		// 압축 저장 여부
 	int64 block_size = 9;		// HDFS 파일 블록 크기 (기본 64mb)
+	float thumbnail_ratio = 10;	// Thumbnail sample ratio (없는 경우는 -1)
 }
 
 message DataSetInfoResponse {

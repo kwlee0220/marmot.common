@@ -199,4 +199,5 @@ public interface DataSet {
 		throws ThumbnailNotFoundException, InsufficientThumbnailException;
 	public void createThumbnail(int sampleCount) throws ClusterNotFoundException;
 	public boolean deleteThumbnail();
+	public float getThumbnailRatio() throws ThumbnailNotFoundException;
 }
