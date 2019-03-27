@@ -216,7 +216,8 @@ message SpatialClusterInfoProto {
 	EnvelopeProto tile_bounds = 2;	// 공간 클러스터 대상 영역
 	EnvelopeProto data_bounds = 3;	// 공간 클러스터에 저장된 데이터의 MBR
 	int32 record_count = 4;			// 공간 클러스터에 저장된 레코드 수
-	int64 byte_length = 5;			// 공간 클러스터 크기 (byte 단위)
+	int32 owned_record_count = 5;	// 공간 클러스터 소유의 레코드 수
+	int64 byte_length = 6;			// 공간 클러스터 크기 (byte 단위)
 }
 message ReadRawSpatialClusterRequest {
 	string dataset_id = 1;			// 접근하려는 데이터세트 식별자.

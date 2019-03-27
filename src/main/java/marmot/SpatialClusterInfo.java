@@ -19,21 +19,24 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 	private final String m_quadKey;
 	private final Envelope m_tileBounds;
 	private final Envelope m_dataBounds;
-	private final int m_count;
+	private final int m_recordCount;
+	private final int m_ownedRecordCount;
 	private final long m_length;
 	
 	public SpatialClusterInfo(String quadKey, Envelope tileBounds, Envelope dataBounds,
-							int count, long length) {
+							int count, int ownedCount, long length) {
 		Objects.requireNonNull(quadKey, "quadKey is null");
 		Objects.requireNonNull(tileBounds, "tile bounds is null");
 		Objects.requireNonNull(dataBounds, "data bounds is null");
 		Preconditions.checkArgument(count >= 0, "invalid count: " + count);
+		Preconditions.checkArgument(ownedCount >= 0, "invalid owned-count: " + ownedCount);
 		Preconditions.checkArgument(length >= 0, "invalid length: " + length);
 		
 		m_quadKey = quadKey;
 		m_tileBounds = tileBounds;
 		m_dataBounds = dataBounds;
-		m_count = count;
+		m_recordCount = count;
+		m_ownedRecordCount = ownedCount;
 		m_length = length;
 	}
 	
@@ -50,7 +53,11 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 	}
 	
 	public int getRecordCount() {
-		return m_count;
+		return m_recordCount;
+	}
+	
+	public int getOwnedRecordCount() {
+		return m_ownedRecordCount;
 	}
 	
 	public long getByteLength() {
@@ -62,7 +69,8 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 		Envelope dataBounds = PBUtils.fromProto(proto.getDataBounds());
 		
 		return new SpatialClusterInfo(proto.getQuadKey(), tileBounds, dataBounds,
-									proto.getRecordCount(), proto.getByteLength());
+									proto.getRecordCount(), proto.getOwnedRecordCount(),
+									proto.getByteLength());
 	}
 
 	@Override
@@ -71,14 +79,16 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 									.setQuadKey(m_quadKey)
 									.setTileBounds(PBUtils.toProto(m_tileBounds))
 									.setDataBounds(PBUtils.toProto(m_dataBounds))
-									.setRecordCount(m_count)
+									.setRecordCount(m_recordCount)
+									.setOwnedRecordCount(m_ownedRecordCount)
 									.setByteLength(m_length)
 									.build();
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("SpatialCluster[qkey=%s, count=%d, size=%s]", m_quadKey,
-							m_count, UnitUtils.toByteSizeString(m_length));
+		return String.format("SpatialCluster[qkey=%s, count=%d(%d), size=%s]", m_quadKey,
+							m_recordCount, m_ownedRecordCount,
+							UnitUtils.toByteSizeString(m_length));
 	}
 }

@@ -5,13 +5,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.DataSet;
 import marmot.SpatialClusterInfo;
+import utils.func.FOption;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
 
@@ -21,8 +19,6 @@ import utils.stream.KVFStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class RangedClusterEstimate {
-	private static final Logger s_logger = LoggerFactory.getLogger(RangedClusterEstimate.class);
-	
 	private final DataSet m_ds;
 	private final Map<String,Match> m_matches;
 	private final Envelope m_range;
@@ -59,57 +55,26 @@ public class RangedClusterEstimate {
 		return m_matches.keySet();
 	}
 	
-	public boolean isThumbnailEnough(String quadKey, double thumbnailRatio, double sampleRatio) {
-		Match match = m_matches.get(quadKey);
-		if ( match == null ) {
-			return true;
-		}
-		else {
-			double thumbnailCount = match.m_info.getRecordCount() * thumbnailRatio;
-			double sampleCount = match.m_matchCount * sampleRatio;
-			
-//System.out.printf("qkey=%s, thumbnail=%.0f, sample=%.0f, total=%d%n",
-//					quadKey, thumbnailCount, sampleCount, match.m_info.getRecordCount());
-			
-			return thumbnailCount >= sampleCount;
-		}
-	}
-	
 	public SpatialClusterInfo getClusterInfo(String quadKey) {
-		Match match = m_matches.get(quadKey);
-		if ( match == null ) {
-			return null;
-		}
-		else {
-			return match.m_info;
-		}
+		return getMatch(quadKey)
+				.map(m -> m.m_info)
+				.getOrNull();
 	}
 	
 	public int getMatchingRecordCount(String quadKey) {
-		Match match = m_matches.get(quadKey);
-		if ( match == null ) {
-			return 0;
-		}
-		else {
-			return match.m_matchCount;
-		}
+		return getMatch(quadKey)
+				.map(m -> m.m_matchCount)
+				.getOrElse(0);
 	}
 	
-	public int getMatchCount(String quadKey, int totalCount) {
-		Match match = m_matches.get(quadKey);
-		if ( match == null ) {
-			return 0;
-		}
-		
-		double ratio = (double)match.m_matchCount / m_totalGuess;
-		
-		return (int)Math.round(ratio * totalCount);
+	private FOption<Match> getMatch(String quadKey) {
+		return FOption.ofNullable(m_matches.get(quadKey));
 	}
 	
 	private class Match {
 		private final SpatialClusterInfo m_info;
 		private final Envelope m_domain;
-		private final double m_portion;
+		private final double m_inClusterPortion;
 		private final int m_matchCount;
 		
 		private Match(SpatialClusterInfo info, Envelope range) {
@@ -118,14 +83,18 @@ public class RangedClusterEstimate {
 			m_domain = info.getTileBounds()
 							.intersection(info.getDataBounds());
 			Envelope matchingArea = m_range.intersection(m_domain);
-			m_portion = matchingArea.getArea() / m_domain.getArea();
-			m_matchCount = Math.max(1, (int)Math.round(info.getRecordCount() * m_portion));
+			m_inClusterPortion = matchingArea.getArea() / m_domain.getArea();
+			m_matchCount = (int)Math.round(m_info.getOwnedRecordCount() * m_inClusterPortion);
+		}
+		
+		private int getThumbnailRecordCount(double ratio) {
+			return (int)Math.round(m_matchCount * ratio);
 		}
 		
 		@Override
 		public String toString() {
-			return String.format("%s: %d/%d (%.3f)", m_info.getQuadKey(), m_matchCount,
-									m_info.getRecordCount(), m_portion);
+			return String.format("%s: %d(%.3f)", m_info.getQuadKey(),
+									m_info.getOwnedRecordCount(), m_inClusterPortion);
 		}
 	}
 	
