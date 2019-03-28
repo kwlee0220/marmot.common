@@ -62,7 +62,7 @@ public class ChunkInputStream extends InputStream {
 				// Consumer쪽에서 먼저 강제로 스트림을 close시킨 경우는
 				// producer가 이를 인지해서 적절한 작업을 취할 때까지 일정기간 대기한다.
 				// 제한시간 까지 특별한 장업이 없으면 그냥 close 시킴
-				s_logger.info("{} is closed abruptly, timed-wait until the peer closes this",
+				s_logger.info("{} is closed at consumer-side, timed-wait until the peer closes this",
 								getClass().getSimpleName());
 				
 				Date due = new Date(System.currentTimeMillis() + TIMEOUT);
