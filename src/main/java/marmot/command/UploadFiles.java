@@ -15,8 +15,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import marmot.MarmotRuntime;
 import utils.CommandLine;
+import utils.StopWatch;
 import utils.UnitUtils;
 import utils.func.FOption;
 import utils.io.IOUtils;
@@ -27,6 +31,8 @@ import utils.io.IOUtils;
  * @author Kang-Woo Lee (ETRI)
  */
 public class UploadFiles {
+	private static final Logger s_logger = LoggerFactory.getLogger(UploadFiles.class);
+	
 	private final MarmotRuntime m_marmot;
 	private final File m_start;
 	private PathMatcher m_pathMatcher;
@@ -94,6 +100,8 @@ public class UploadFiles {
 	}
 	
 	public void run() throws Exception {
+		StopWatch watch = StopWatch.start();
+		
 		String prefix = m_start.toPath().toAbsolutePath().toString();
 		int prefixLen = prefix.length();
 		
@@ -111,6 +119,8 @@ public class UploadFiles {
 				m_marmot.copyToHdfsFile(destPath, blocks, m_blockSize);
 			}
 		}
+		
+		s_logger.info("uploaded: elapsed={}", watch.stopAndGetElpasedTimeString());
 	}
 
 	private static final int BLOCK_SIZE = (int)UnitUtils.parseByteSize("512kb");

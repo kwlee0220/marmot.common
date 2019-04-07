@@ -68,7 +68,7 @@ public class DateFunctions {
 	public static long DateToMillis(Object obj) {
 		LocalDate date = asLocalDate(obj);
 		
-		return DateToMillis(date.atStartOfDay());
+		return DateTimeFunctions.DateTimeToMillis(date.atStartOfDay());
 	}
 	
 	@MVELFunction(name="DateFromString")

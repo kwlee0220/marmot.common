@@ -89,6 +89,10 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 							.getOrElse(() -> ds.append(rset));
 		}
 		catch ( Throwable e ) {
+			if ( !append ) {
+				marmot.deleteDataSet(m_params.getDataSetId());
+			}
+			
 			throw Throwables.toRuntimeException(e);
 		}
 	}

@@ -509,10 +509,10 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder defineColumn(String colDecl, RecordScript initValue) {
+	public PlanBuilder defineColumn(String colDecl, RecordScript colInit) {
 		DefineColumnProto op = DefineColumnProto.newBuilder()
 											.setColumnDecl(colDecl)
-											.setInitialValue(initValue.toProto())
+											.setColumnInitializer(colInit.toProto())
 											.build();
 		return add(OperatorProto.newBuilder()
 								.setDefineColumn(op)

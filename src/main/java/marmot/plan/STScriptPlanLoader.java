@@ -32,16 +32,12 @@ public class STScriptPlanLoader {
 	public static Plan load(URL url, Charset charset) throws IOException {
 		try ( InputStream is = url.openStream() ) {
 			String script = IOUtils.toString(is, charset);
-			return parseScript(script);
+			return load(script);
 		}
 	}
 	
 	public static Plan load(File file) throws IOException {
-		return parseScript(IOUtils.toString(file));
-	}
-	
-	public static Plan load(File file, Charset charset) throws IOException {
-		return parseScript(IOUtils.toString(file, charset));
+		return load(IOUtils.toString(file));
 	}
 	
 	public static Plan loadFromResource(String name) throws IOException {
@@ -56,7 +52,7 @@ public class STScriptPlanLoader {
 				throw new IllegalArgumentException("invalid STScript: resource name=" + name);
 			}
 			String script = IOUtils.toString(is, charset);
-			return parseScript(script);
+			return load(script);
 		}
 	}
 	
@@ -66,19 +62,25 @@ public class STScriptPlanLoader {
 	
 	public static Plan load(InputStream is, Charset charset) throws IOException {
 		String script = IOUtils.toString(is, charset);
-		script = toJson(script);
-		return parseScript(script);
+		return load(script);
 	}
 	
-	public static String toJson(String script) {
+	public static String parseToPlanJson(String script) {
 		// MVEL template 엔진을 써서 1차 변환함. 
 		script = (String)TemplateRuntime.eval(script, VARS);
 		
+		// StringTemplate을 통해 연산 정의를 JSON 정의 포맷으로 변환시킴
 		return new ST(s_tmpltGroup.get(), script).render();
 	}
 	
-	private static Plan parseScript(String script) throws InvalidProtocolBufferException {
+	public static Plan load(String script) throws InvalidProtocolBufferException {
+		// MVEL template 엔진을 써서 1차 변환함. 
+		script = (String)TemplateRuntime.eval(script, VARS);
+		
+		// StringTemplate을 통해 연산 정의를 JSON 정의 포맷으로 변환시킴
 		String json = new ST(s_tmpltGroup.get(), script).render();
+		
+		// JSON으로 기술된 plan 정의를 읽어 Plan 객체를 생성함.
 		return Plan.parseJson(json);
 	}
 	

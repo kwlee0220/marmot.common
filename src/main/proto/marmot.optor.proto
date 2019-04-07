@@ -166,8 +166,8 @@ message ExpandProto {
 }
 message DefineColumnProto {
 	string column_decl = 1;
-	oneof optional_initial_value {
-		RecordScriptProto initial_value = 2;
+	oneof optional_column_initializer {
+		RecordScriptProto column_initializer = 2;
 	}
 }
 message ParseCsvProto {

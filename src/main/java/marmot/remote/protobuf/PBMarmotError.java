@@ -49,6 +49,7 @@ public enum PBMarmotError {
 
 	NULL_POINTER(900, NullPointerException.class),
 	INVALID_ARGUMENT(901, IllegalArgumentException.class),
+	REMOTE(902, PBRemoteException.class),
 	CANCELLED(999, CancellationException.class),
 	INTERAL_ERROR(1000, MarmotInternalException.class),
 	;

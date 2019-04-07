@@ -39,10 +39,15 @@ expand(col_decls, col_init=[], init=[]) ::= <<
 }
 >>
 
-define_column(col_decl, init=[]) ::= <<
+define_column(col_decl, col_init=[], global_init=[]) ::= <<
 { "defineColumn": {
-    "columnDecl": "<col_decl>"<if(init)>,
-    "initialValue": { "expr": "<init>" }<endif> 
+    "columnDecl": "<col_decl>"<if(col_init)>,
+    "columnInitializer": {<if(global_init)>
+       "initializer": "<global_init>",
+       <endif>
+       "expr": "<col_init>"
+    }
+    <endif>
   }
 }
 >>

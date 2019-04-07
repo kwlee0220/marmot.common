@@ -46,9 +46,7 @@ public class RunPlanCommand implements CheckedConsumer<MarmotRuntime> {
 				script = IOUtils.toString(is, Charset.defaultCharset());
 			}
 		}
-		String planJson = STScriptPlanLoader.toJson(script);
-		
-		Plan plan = Plan.parseJson(planJson);
+		Plan plan  = STScriptPlanLoader.load(script);
 	
 		if ( !m_storeParams.getAppend() ) {
 			List<DataSetOption> optList = Lists.newArrayList();
