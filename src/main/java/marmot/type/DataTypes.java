@@ -1,5 +1,34 @@
 package marmot.type;
 
+import static marmot.type.DataType.BINARY;
+import static marmot.type.DataType.BOOLEAN;
+import static marmot.type.DataType.BYTE;
+import static marmot.type.DataType.DATE;
+import static marmot.type.DataType.DATETIME;
+import static marmot.type.DataType.DOUBLE;
+import static marmot.type.DataType.DURATION;
+import static marmot.type.DataType.ENVELOPE;
+import static marmot.type.DataType.FLOAT;
+import static marmot.type.DataType.GEOMETRY;
+import static marmot.type.DataType.GEOM_COLLECTION;
+import static marmot.type.DataType.GRID_CELL;
+import static marmot.type.DataType.INT;
+import static marmot.type.DataType.INTERVAL;
+import static marmot.type.DataType.LINESTRING;
+import static marmot.type.DataType.LONG;
+import static marmot.type.DataType.MULTI_LINESTRING;
+import static marmot.type.DataType.MULTI_POINT;
+import static marmot.type.DataType.MULTI_POLYGON;
+import static marmot.type.DataType.POINT;
+import static marmot.type.DataType.POLYGON;
+import static marmot.type.DataType.RESERVED;
+import static marmot.type.DataType.SHORT;
+import static marmot.type.DataType.STRING;
+import static marmot.type.DataType.TILE;
+import static marmot.type.DataType.TIME;
+import static marmot.type.DataType.TRAJECTORY;
+import static marmot.type.DataType.TYPED;
+
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -12,25 +41,20 @@ import com.google.common.collect.Maps;
  */
 public class DataTypes {
 	static DataType[] TYPES = {
-		DataType.BYTE, DataType.SHORT, DataType.INT, DataType.LONG,
-		DataType.FLOAT, DataType.DOUBLE, DataType.BOOLEAN, DataType.STRING,
-		DataType.BINARY, DataType.TYPED,
-		DataType.RESERVED, DataType.RESERVED, DataType.RESERVED, DataType.RESERVED,
-		DataType.DATETIME, DataType.DATE, DataType.TIME,
-		DataType.DURATION, DataType.INTERVAL,
-		DataType.RESERVED, DataType.RESERVED, DataType.RESERVED, DataType.RESERVED,
-		DataType.RESERVED,
-		DataType.ENVELOPE, DataType.TILE, DataType.GRID_CELL,
-		DataType.RESERVED, DataType.RESERVED, DataType.RESERVED,
-		DataType.RESERVED,
-		DataType.POINT, DataType.MULTI_POINT, DataType.LINESTRING, DataType.MULTI_LINESTRING,
-		DataType.POLYGON, DataType.MULTI_POLYGON, DataType.GEOM_COLLECTION,
-		DataType.GEOMETRY,
-		DataType.RESERVED, DataType.RESERVED, DataType.RESERVED, DataType.RESERVED,
-		DataType.RESERVED,
-		DataType.TRAJECTORY,
+		RESERVED,
+		BYTE, SHORT, INT, LONG, FLOAT,
+		DOUBLE, BOOLEAN, STRING, BINARY, TYPED,
+		RESERVED, RESERVED, RESERVED, RESERVED, RESERVED,
+		DATETIME, DATE, TIME, DURATION, INTERVAL,
+		RESERVED, RESERVED, RESERVED, RESERVED, RESERVED,
+		ENVELOPE, TILE, GRID_CELL,
+		RESERVED, RESERVED,
+		POINT, MULTI_POINT, LINESTRING, MULTI_LINESTRING, POLYGON,
+		MULTI_POLYGON, GEOM_COLLECTION, GEOMETRY,
+		RESERVED, RESERVED,
+		TRAJECTORY,
 	};
-
+	
 	static final Map<Class<?>,DataType> CLASS_TO_TYPES = Maps.newHashMap();
 	static final Map<String, DataType> NAME_TO_TYPES = Maps.newHashMap();
 	static {
@@ -55,12 +79,12 @@ public class DataTypes {
 		return NAME_TO_TYPES.get(name);
 	}
 
-	public static DataType fromTypeCode(byte code) {
+	public static DataType fromTypeCode(int code) {
 		return TYPES[code];
 	}
 
 	public static DataType fromTypeCode(TypeCode code) {
-		return TYPES[code.ordinal()];
+		return TYPES[code.get()];
 	}
 
 }

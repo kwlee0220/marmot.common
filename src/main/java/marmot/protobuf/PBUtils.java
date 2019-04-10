@@ -666,7 +666,7 @@ public class PBUtils {
 			return NULL_GEOM;
 		}
 		else if ( geom.isEmpty() ) {
-			TypeCode tc = GeometryDataType.fromGeometries(geom).getTypeCode();
+			TypeCode tc = GeometryDataType.fromGeometry(geom).getTypeCode();
 			TypeCodeProto tcProto = TypeCodeProto.valueOf(tc.name());
 			return GeometryProto.newBuilder().setEmpty(tcProto).build();
 		}
@@ -949,7 +949,7 @@ public class PBUtils {
 				return Tuple.of(DataType.POINT, PBUtils.fromProto(proto.getPointValue()));
 			case GEOMETRY_VALUE:
 				Geometry geom = PBUtils.fromProto(proto.getGeometryValue());
-				DataType type = GeometryDataType.fromGeometries(geom);
+				DataType type = GeometryDataType.fromGeometry(geom);
 				return Tuple.of(type, geom);
 			case TRAJECTORY_VALUE:
 				Trajectory trj = Trajectory.fromProto(proto.getTrajectoryValue());

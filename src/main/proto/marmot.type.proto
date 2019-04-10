@@ -19,24 +19,25 @@ message StringProto {
 }
 
 enum TypeCodeProto {
-	BYTE = 0;
-	SHORT = 1;
-	INT = 2;
-	LONG = 3;
-	FLOAT = 4;
-	DOUBLE = 5;
-	BOOLEAN = 6;
-	STRING = 7;
-	BINARY = 8;
-	TYPED = 9;
-	DATETIME = 14;
-	DATE = 15;
-	TIME = 16;
-	DURATION = 17;
-	INTERVAL = 18;
-	ENVELOPE = 24;
-	TILE = 25;
-	GRID_CELL = 26;
+	UNUSED = 0;
+	BYTE = 1;
+	SHORT = 2;
+	INT = 3;
+	LONG = 4;
+	FLOAT = 5;
+	DOUBLE = 6;
+	BOOLEAN = 7;
+	STRING = 8;
+	BINARY = 9;
+	TYPED = 10;
+	DATETIME = 16;
+	DATE = 17;
+	TIME = 18;
+	DURATION = 19;
+	INTERVAL = 20;
+	ENVELOPE = 26;
+	TILE = 27;
+	GRID_CELL = 28;
 	POINT = 31;
 	MULTI_POINT = 32;
 	LINESTRING = 33;
@@ -45,7 +46,7 @@ enum TypeCodeProto {
 	MULTI_POLYGON = 36;
 	GEOM_COLLECTION = 37;
 	GEOMETRY = 38;
-	TRAJECTORY = 44;
+	TRAJECTORY = 41;
 }
 
 message Size2iProto {

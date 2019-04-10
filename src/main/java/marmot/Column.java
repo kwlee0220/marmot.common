@@ -117,7 +117,7 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	public ColumnProto toProto() {
 		return ColumnProto.newBuilder()
 							.setName(m_name.get())
-							.setTypeCodeValue(m_type.getTypeCode().ordinal())
+							.setTypeCodeValue(m_type.getTypeCode().get())
 							.build();
 	}
 	

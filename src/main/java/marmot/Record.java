@@ -138,7 +138,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 					컬럼 값의 순서는 레코드 스크마에 정의된 컬럼 순서와 같아야 한다.
 	 * @return	갱신된 레코드 객체.
 	 */
-	public Record setAll(List<?> values);
+	public Record setAll(Iterable<?> values);
 	
 	/**
 	 * 주어진 레코드의 모든 컬럼들을 복사해 온다.

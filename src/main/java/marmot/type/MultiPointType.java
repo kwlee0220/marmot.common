@@ -1,9 +1,5 @@
 package marmot.type;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.geotools.geometry.jts.Geometries;
 
 import com.vividsolutions.jts.geom.MultiPoint;
@@ -33,15 +29,5 @@ public class MultiPointType extends GeometryDataType {
 	@Override
 	public MultiPoint newInstance() {
 		return GeoClientUtils.EMPTY_MULTIPOINT;
-	}
-
-	@Override
-	protected MultiPoint readValidObject(DataInput in) throws IOException {
-		return GeoClientUtils.GEOM_FACT.createMultiPoint(readCoordinates(in));
-	}
-
-	@Override
-	protected void writeValidObject(Object obj, DataOutput out) throws IOException {
-		writeCoordinates(((MultiPoint)obj).getCoordinates(), out);
 	}
 }

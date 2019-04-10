@@ -1,6 +1,7 @@
 package marmot.support;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -174,9 +175,11 @@ public class DefaultRecord implements Record {
 	 * @return	갱신된 레코드 객체.
 	 */
 	@Override
-	public DefaultRecord setAll(List<?> values) {
-		System.arraycopy(values.toArray(), 0, m_values, 0,
-						Math.min(m_values.length, values.size()));
+	public DefaultRecord setAll(Iterable<?> values) {
+		Iterator<?> iter = values.iterator();
+		for ( int i =0; i < m_values.length && iter.hasNext(); ++i ) {
+			m_values[i] = iter.next();
+		}
 		return this;
 	}
 	

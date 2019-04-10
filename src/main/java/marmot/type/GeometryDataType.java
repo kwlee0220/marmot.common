@@ -1,13 +1,8 @@
 package marmot.type;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
-
 import org.geotools.geometry.jts.Geometries;
 
 import com.google.common.base.Preconditions;
-import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.io.ParseException;
 
@@ -20,8 +15,8 @@ import marmot.geo.GeoClientUtils;
  */
 public abstract class GeometryDataType extends DataType {
 	public abstract Geometries toGeometries();
-	protected abstract Geometry readValidObject(DataInput in) throws IOException;
-	protected abstract void writeValidObject(Object obj, DataOutput out) throws IOException;
+//	protected abstract Geometry readValidObject(DataInput in) throws IOException;
+//	protected abstract void writeValidObject(Object obj, DataOutput out) throws IOException;
 	
 	protected GeometryDataType(String name, TypeCode tc, Class<?> instClass) {
 		super(name, tc, instClass);
@@ -92,29 +87,7 @@ public abstract class GeometryDataType extends DataType {
 		}
 	}
 	
-	public static GeometryDataType fromGeometries(Geometry geom) {
+	public static GeometryDataType fromGeometry(Geometry geom) {
 		return fromGeometries(Geometries.get(geom));
-	}
-	
-	static Coordinate[] readCoordinates(DataInput in) throws IOException {
-		int ncoords = in.readInt();
-		
-		Coordinate[] coords = new Coordinate[ncoords];
-		for ( int i =0; i < ncoords; ++i ) {
-			double x = in.readDouble();
-			double y = in.readDouble();
-			
-			coords[i] = new Coordinate(x, y);
-		}
-		
-		return coords;
-	}
-	
-	static void writeCoordinates(Coordinate[] coords, DataOutput out) throws IOException {
-		out.writeInt(coords.length);
-		for ( Coordinate coord: coords ) {
-			out.writeDouble(coord.x);
-			out.writeDouble(coord.y);
-		}
 	}
 }
