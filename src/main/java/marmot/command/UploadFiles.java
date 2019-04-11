@@ -23,7 +23,9 @@ import utils.CommandLine;
 import utils.StopWatch;
 import utils.UnitUtils;
 import utils.func.FOption;
+import utils.io.FileUtils;
 import utils.io.IOUtils;
+import utils.stream.FStream;
 
 
 /**
@@ -105,10 +107,13 @@ public class UploadFiles {
 		String prefix = m_start.toPath().toAbsolutePath().toString();
 		int prefixLen = prefix.length();
 		
-		List<Path> pathes = Files.walk(m_start.toPath())
-								.filter(m_pathMatcher::matches)
-								.collect(Collectors.toList());
-		for ( Path path: pathes ) {
+		FStream<Path> pathes = FileUtils.walk(m_start.toPath())
+										.drop(1);	// root 자신을 제외시킴
+		if ( m_pathMatcher != null ) {
+			pathes = pathes.filter(m_pathMatcher::matches);
+		}
+		List<Path> pathList = pathes.toList();
+		for ( Path path: pathList ) {
 			String suffix = path.toAbsolutePath().toString().substring(prefixLen);
 			if ( suffix.charAt(0) == '/' ) {
 				suffix = suffix.substring(1);
