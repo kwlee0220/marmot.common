@@ -67,6 +67,7 @@ public class ProgressReportingRecordSet extends AbstractRecordSet {
 				return true;
 			}
 			else {
+				m_subject.onNext(m_count);
 				m_subject.onComplete();
 				return false;
 			}

@@ -8,14 +8,12 @@ import java.util.Objects;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.csv.QuoteMode;
 
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import marmot.MarmotInternalException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
-import utils.CSV;
 import utils.func.FOption;
 
 /**
@@ -26,23 +24,20 @@ import utils.func.FOption;
 public class CsvParameters {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	
-	private CSVFormat m_format = CSVFormat.DEFAULT.withQuote(null).withIgnoreSurroundingSpaces();
 	private FOption<Charset> m_charset = FOption.empty();
 	private boolean m_headerFirst = false;
+	private char m_delim = ',';
+	private FOption<Character> m_quote = FOption.empty();
+	private FOption<Character> m_escape = FOption.empty();
 	private FOption<String> m_pointCols = FOption.empty();
 	private FOption<String> m_csvSrid = FOption.empty();
+	private boolean m_trimField = false;
+	private FOption<String> m_header = FOption.empty();
+	private FOption<String> m_nullValue = FOption.empty();
 	private boolean m_tiger = false;
 	
 	public static CsvParameters create() {
 		return new CsvParameters();
-	}
-	
-	public CSVFormat formatForRead() {
-		return (m_headerFirst) ? m_format.withFirstRecordAsHeader() : m_format;
-	}
-	
-	public CSVFormat formatForWrite() {
-		return (m_headerFirst) ? m_format : m_format.withSkipHeaderRecord();
 	}
 	
 	public Charset charset() {
@@ -63,27 +58,31 @@ public class CsvParameters {
 	}
 	
 	public char delimiter() {
-		return m_format.getDelimiter();
+		return m_delim;
 	}
 
 	@Option(names={"-delim"}, paramLabel="char", description={"delimiter for CSV file"})
 	public CsvParameters delimiter(Character delim) {
-		m_format = m_format.withDelimiter(delim);
+		m_delim = delim;
 		return this;
 	}
 	
 	public FOption<Character> quote() {
-		return FOption.ofNullable(m_format.getQuoteCharacter());
+		return m_quote;
 	}
 
 	@Option(names={"-quote"}, paramLabel="char", description={"quote character for CSV file"})
 	public CsvParameters quote(char quote) {
-		m_format = m_format.withQuote(quote).withQuoteMode(QuoteMode.MINIMAL);
+		m_quote = FOption.of(quote);
 		return this;
 	}
 	
+	public FOption<Character> escape() {
+		return m_escape;
+	}
+	
 	public CsvParameters escape(char escape) {
-		m_format = m_format.withEscape(escape);
+		m_escape = FOption.of(escape);
 		return this;
 	}
 	
@@ -108,25 +107,36 @@ public class CsvParameters {
 	}
 
 	@Option(names={"-header"}, paramLabel="column_list", description={"header field list"})
-	public CsvParameters header(String header) {
+	public CsvParameters headerRecord(String header) {
 		Objects.requireNonNull(header, "CSV header");
 		
-		String[] cols = CSV.parseCsvAsArray(header);
-		m_format = m_format.withHeader(cols);
+		m_header = FOption.of(header);
 		return this;
 	}
+	
+	public FOption<String> headerRecord() {
+		return m_header;
+	}
 
-	@Option(names={"-null_string"}, paramLabel="string",
-			description="null string for column value")
-	public CsvParameters nullString(String str) {
-		m_format = m_format.withNullString(str);
+	@Option(names={"-null_value"}, paramLabel="string",
+			description="null value for column")
+	public CsvParameters nullValue(String str) {
+		m_nullValue = FOption.ofNullable(str);
 		return this;
+	}
+	
+	public FOption<String> nullValue() {
+		return m_nullValue;
 	}
 
 	@Option(names={"-trim_field"}, description="ignore surrouding spaces")
 	public CsvParameters trimField(boolean flag) {
-		m_format = m_format.withTrim(flag);
+		m_trimField = flag;
 		return this;
+	}
+	
+	public boolean trimField() {
+		return m_trimField;
 	}
 
 	@Option(names={"-point_col"}, paramLabel="xy-columns", description="X,Y columns for point")
@@ -171,9 +181,9 @@ public class CsvParameters {
 	
 	@Override
 	public String toString() {
-		String headerFirst = m_format.getSkipHeaderRecord() ? ", header" : "";
-		String nullString = (m_format.getNullString() != null)
-							? String.format(", null=\"%s\"", m_format.getNullString()) : "";
+		String headerFirst = m_headerFirst ? ", header" : "";
+		String nullString = m_nullValue.map(v -> String.format(", null=\"%s\"", v))
+										.getOrElse("");
 		String csStr = !charset().toString().equalsIgnoreCase("utf-8")
 						? String.format(", %s", charset().toString()) : "";
 		String ptStr = pointColumn().map(xy -> String.format(", POINT(%s,%s)", xy._1, xy._2))
@@ -181,7 +191,7 @@ public class CsvParameters {
 		String srcSrid = m_csvSrid.map(s -> String.format(", csv_srid=%s", s))
 									.getOrElse("");
 		return String.format("delim='%s'%s%s%s%s%s",
-								m_format.getDelimiter(), headerFirst, ptStr, srcSrid, csStr,
+								m_delim, headerFirst, ptStr, srcSrid, csStr,
 								nullString);
 	}
 }

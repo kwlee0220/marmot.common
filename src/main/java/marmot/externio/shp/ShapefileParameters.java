@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 
 import picocli.CommandLine.Option;
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -17,7 +18,7 @@ public class ShapefileParameters {
 	private FOption<String> m_typeName = FOption.empty();	// for write
 	private FOption<Charset> m_charset = FOption.empty();
 	private FOption<String> m_shpSrid = FOption.empty();
-	private FOption<Integer> m_splitSize = FOption.empty();	// for write
+	private FOption<Long> m_splitSize = FOption.empty();	// for write
 	
 	public static ShapefileParameters create() {
 		return new ShapefileParameters();
@@ -59,16 +60,19 @@ public class ShapefileParameters {
 		return m_shpSrid;
 	}
 
-	public FOption<Integer> splitSize() {
+	public FOption<Long> splitSize() {
 		return m_splitSize;
 	}
 
-	@Option(names= {"-split_size"}, paramLabel="bytes", description="Shapefile split size")
+	@Option(names= {"-split_size"}, paramLabel="bytes",
+			description="Shapefile split size string (eg. '128mb')")
 	public ShapefileParameters splitSize(String splitSize) {
-		return splitSize((int)UnitUtils.parseByteSize(splitSize));
+		return splitSize(UnitUtils.parseByteSize(splitSize));
 	}
 	
-	public ShapefileParameters splitSize(int splitSize) {
+	public ShapefileParameters splitSize(long splitSize) {
+		Utilities.checkArgument(splitSize > 0, "splitSize > 0");
+		
 		m_splitSize = (splitSize > 0) ? FOption.of(splitSize) : FOption.empty();
 		return this;
 	}

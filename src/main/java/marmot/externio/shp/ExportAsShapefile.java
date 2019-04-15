@@ -15,27 +15,28 @@ import com.google.common.base.Preconditions;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
+import io.vavr.control.Try;
 import marmot.RecordSet;
-import marmot.geo.geotools.SimpleFeatures;
 import marmot.geo.geotools.MarmotFeatureCollection;
+import marmot.geo.geotools.SimpleFeatures;
 import marmot.rset.RecordSets;
+import utils.StopWatch;
 import utils.async.AbstractThreadedExecution;
 import utils.async.CancellableWork;
 import utils.async.ProgressiveExecution;
+import utils.func.FOption;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
 class ExportAsShapefile {
-	private static final long REPORT_INTERVAL = 100_000;
-	
 	private final File m_outputDir;
 	private final String m_sfTypeName;
 	private final ShapefileParameters m_params;
 	private boolean m_force = false;
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
-	private long m_interval = REPORT_INTERVAL;
+	private FOption<Long> m_interval = FOption.empty();
 	
 	protected ExportAsShapefile(String outputDir, ShapefileParameters params) {
 		Objects.requireNonNull(outputDir, "output directory is null");
@@ -55,7 +56,7 @@ class ExportAsShapefile {
 	}
 	
 	public void setProgressInterval(long count) {
-		m_interval = count;
+		m_interval = FOption.of(count);
 	}
 	
 	protected ProgressiveExecution<Long,Long> start(RecordSet source, String srid)
@@ -83,9 +84,21 @@ class ExportAsShapefile {
 
 		@Override
 		public Long executeWork() throws Exception {
-			try ( RecordSet rset = RecordSets.reportProgress(m_source, m_subject, m_interval) ) {
+			StopWatch watch = StopWatch.start();
+			
+			RecordSet src;
+ 			if ( m_interval.isPresent() ) {
+				src = RecordSets.reportProgress(m_source, m_subject, m_interval.get());
+				m_subject.subscribe(count -> System.out.printf("count=%,d, elapsed=%s%n",
+															count, watch.getElapsedSecondString()));
+			}
+			else {
+				src = m_source;
+			}
+			
+			try ( RecordSet rset = src ) {
 				if ( m_force ) {
-					FileUtils.forceDelete(m_outputDir);
+					Try.run(() -> FileUtils.forceDelete(m_outputDir));
 				}
 				FileUtils.forceMkdir(m_outputDir);
 

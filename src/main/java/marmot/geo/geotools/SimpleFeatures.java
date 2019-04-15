@@ -94,6 +94,9 @@ public class SimpleFeatures {
 					}
 					
 					switch ( col.type().getTypeCode() ) {
+						case STRING:
+							builder.nillable(true).add(colName, String.class);
+							break;
 						case DATE:
 						case DATETIME:
 							builder.add(colName, Date.class);

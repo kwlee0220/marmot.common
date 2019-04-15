@@ -3,8 +3,6 @@ package marmot.externio.csv;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import io.vavr.Tuple2;
 import marmot.GeometryColumnInfo;
@@ -16,10 +14,7 @@ import marmot.RecordSetException;
 import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
 import marmot.support.MetaPlanLoader;
-import utils.CommandLine;
-import utils.StopWatch;
 import utils.Throwables;
-import utils.UnitUtils;
 import utils.func.FOption;
 
 /**
@@ -152,71 +147,5 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		protected FOption<Plan> loadMetaPlan() {
 			return m_plan;
 		}
-	}
-
-	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-	public static final void runCommand(MarmotRuntime marmot, CommandLine cl) throws IOException {
-		File file = new File(cl.getArgument("csv_file"));
-		Charset charset = cl.getOptionString("charset")
-							.map(Charset::forName)
-							.getOrElse(DEFAULT_CHARSET);
-		FOption<Character> delim = cl.getOptionString("delim").map(s -> s.charAt(0));
-		
-		FOption<Character> quote = cl.getOptionString("quote").map(s -> s.charAt(0));
-		FOption<String> header = cl.getOptionString("header");
-		boolean headerFirst = cl.hasOption("header_first");
-		boolean trimField = cl.hasOption("trim_field");
-		FOption<String> nullString = cl.getOptionString("null_string");
-		FOption<String> pointCols = cl.getOptionString("point_col");
-		FOption<String> csvSrid = cl.getOptionString("csv_srid");
-		String dsId = cl.getString("dataset");
-		String geomCol = cl.getOptionString("geom_col").getOrNull();
-		String srid = cl.getOptionString("srid").getOrNull();
-		long blkSize = cl.getOptionString("block_size")
-						.map(UnitUtils::parseByteSize)
-						.getOrElse(-1L);
-		boolean force = cl.hasOption("f");
-		boolean append = cl.hasOption("a");
-		int reportInterval = cl.getOptionInt("report_interval").getOrElse(-1);
-		
-		if ( cl.hasOption("wgs84") && csvSrid.isAbsent() ) {
-			csvSrid = FOption.of("EPSG:4326");
-		}
-		
-		StopWatch watch = StopWatch.start();
-		
-		ImportParameters importParams = new ImportParameters();
-		importParams.setDataSetId(dsId);
-		importParams.setBlockSize(blkSize);
-		importParams.setReportInterval(reportInterval);
-		importParams.setForce(force);
-		importParams.setAppend(append);
-		if ( geomCol != null && srid != null ) {
-			importParams.setGeometryColumnInfo(geomCol, srid);
-		}
-		
-		CsvParameters csvParams = CsvParameters.create()
-												.charset(charset)
-												.headerFirst(headerFirst)
-												.trimField(trimField);
-		delim.ifPresent(csvParams::delimiter);
-		quote.ifPresent(csvParams::quote);
-		header.ifPresent(csvParams::header);
-		nullString.ifPresent(csvParams::nullString);
-		pointCols.ifPresent(csvParams::pointColumn);
-		csvSrid.ifPresent(csvParams::csvSrid);
-		
-		ImportIntoDataSet importFile = ImportCsv.from(file, csvParams, importParams);
-		importFile.getProgressObservable()
-					.subscribe(report -> {
-						double velo = report / watch.getElapsedInFloatingSeconds();
-						System.out.printf("imported: count=%d, elapsed=%s, velo=%.0f/s%n",
-										report, watch.getElapsedMillisString(), velo);
-					});
-		long count = importFile.run(marmot);
-		
-		double velo = count / watch.getElapsedInFloatingSeconds();
-		System.out.printf("imported: dataset=%s count=%d elapsed=%s, velo=%.1f/s%n",
-							dsId, count, watch.getElapsedMillisString(), velo);
 	}
 }

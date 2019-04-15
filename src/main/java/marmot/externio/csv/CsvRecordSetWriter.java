@@ -76,8 +76,12 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 	@Override
 	public long write(RecordSet rset) throws IOException {
 		Objects.requireNonNull(rset, "RecordSet is null");
-
-		CSVFormat format = m_params.formatForWrite();
+		
+		CSVFormat format = CSVFormat.DEFAULT.withQuote(null).withIgnoreSurroundingSpaces();
+		format.withDelimiter(m_params.delimiter());
+		m_params.quote().ifPresent(format::withQuote);
+		m_params.escape().ifPresent(format::withEscape);
+		format.withSkipHeaderRecord(!m_params.headerFirst());
 
 		RecordSchema schema = rset.getRecordSchema();
 		String[] header = schema.streamColumns()
