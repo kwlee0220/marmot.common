@@ -285,6 +285,7 @@ public interface MarmotRuntime {
 	
 	public void createKafkaTopic(String topic, boolean force);
 	
+	public void deleteHdfsFile(String path) throws IOException;
 	public void copyToHdfsFile(String path, Iterator<byte[]> blocks, FOption<Long> blockSize)
 		throws IOException;
 }

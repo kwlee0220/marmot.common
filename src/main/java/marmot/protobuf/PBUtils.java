@@ -461,8 +461,8 @@ public class PBUtils {
 		}
 	}
 	
-	public static void reply(CheckedSupplier<Boolean> supplier,
-							StreamObserver<BoolResponse> response) {
+	public static void replyBoolean(CheckedSupplier<Boolean> supplier,
+									StreamObserver<BoolResponse> response) {
 		try {
 			boolean done = supplier.get();
 			response.onNext(BoolResponse.newBuilder()

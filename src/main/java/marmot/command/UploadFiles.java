@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,6 +102,10 @@ public class UploadFiles {
 	
 	public void run() throws Exception {
 		StopWatch watch = StopWatch.start();
+		
+		if ( m_force ) {
+			m_marmot.deleteHdfsFile(m_dest);
+		}
 		
 		String prefix = m_start.toPath().toAbsolutePath().toString();
 		int prefixLen = prefix.length();

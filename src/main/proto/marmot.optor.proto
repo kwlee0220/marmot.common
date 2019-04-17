@@ -181,8 +181,8 @@ message ParseCsvProto {
 		oneof optional_escape {
 			string escape = 3;
 		}
-		oneof optional_null_string {
-			string null_string = 4;
+		oneof optional_null_value {
+			string null_value = 4;
 		}
 		oneof optional_trim_field {
 			bool trim_field = 5;
@@ -195,12 +195,12 @@ message ParseCsvProto {
 		}
 	}
 	
-	string delimiter = 1;
+	string text_column = 1;
+	string delimiter = 2;
 	oneof optional_options {
-		OptionsProto options = 2;
+		OptionsProto options = 3;
 	}
 }
-
 
 message ProjectProto {
 	string column_expr = 1;

@@ -76,7 +76,12 @@ public class DataTypes {
 	}
 
 	public static DataType fromName(String name) {
-		return NAME_TO_TYPES.get(name);
+		DataType type = NAME_TO_TYPES.get(name);
+		if ( type == null ) {
+			throw new IllegalArgumentException("invalid type name: " + name);
+		}
+		
+		return type;
 	}
 
 	public static DataType fromTypeCode(int code) {

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +16,14 @@ import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
 import io.vavr.control.Try;
+import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
 import marmot.type.DataType;
+import marmot.type.DataTypes;
+import utils.CSV;
 import utils.Utilities;
 import utils.stream.FStream;
 
@@ -76,8 +80,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 			m_first = null;
 		}
 		else if ( params.headerRecord().isPresent() ) {
-			String[] colNames = m_parser.parseLine(params.headerRecord().getUnchecked());
-			m_schema = buildRecordSchema(FStream.of(colNames));
+			m_schema = parseHeader(m_parser, params.headerRecord().getUnchecked());
 		}
 		else {
 			int nCols = m_first.length;
@@ -130,12 +133,48 @@ public class CsvRecordSet extends AbstractRecordSet {
 	}
 	
 	private RecordSchema buildRecordSchema(FStream<String> colNames) {
-		return colNames.map(this::adjustColumnName)
+		return colNames.map(CsvRecordSet::adjustColumnName)
 						.foldLeft(RecordSchema.builder(), (b,n) -> b.addColumn(n, DataType.STRING))
 						.build();
 	}
 	
-	private String adjustColumnName(String colName) {
+	private String[] trimColumns(String[] values) {
+		for ( int i =0; i < values.length; ++i ) {
+			values[i] = values[i].trim();
+		}
+		
+		return values;
+	}
+	
+	private void set(Record output, String[] values) {
+		if ( m_params.trimField() ) {
+			values = trimColumns(values);
+		}
+		
+		for ( int i =0; i < Math.min(values.length, m_schema.getColumnCount()); ++i ) {
+			output.set(i, values[i]);
+		}
+	}
+	
+	public static RecordSchema parseHeader(CsvParser parser, String header) {
+		CSV csv = CSV.get().withDelimiter(':');
+		return FStream.of(parser.parseLine(header))
+						.map(CsvRecordSet::parseColumnSpec)
+						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.build();
+	}
+	
+	private static Column parseColumnSpec(String spec) {
+		List<String> parts = CSV.parseCsv(spec, ':').toList();
+		
+		String colName = adjustColumnName(parts.get(0));
+		DataType colType = (parts.size() == 2)
+							? DataTypes.fromName(parts.get(1))
+							: DataType.STRING;
+		return new Column(colName, colType);
+	}
+	
+	private static String adjustColumnName(String colName) {
 		// marmot에서는 컬럼이름에 '.'이 들어가는 것을 허용하지 않기 때문에
 		// '.' 문자를 '_' 문제로 치환시킨다.
 		if ( colName.indexOf('.') > 0 )  {
@@ -162,23 +201,5 @@ public class CsvRecordSet extends AbstractRecordSet {
 		}
 		
 		return colName;
-	}
-	
-	private String[] trimColumns(String[] values) {
-		for ( int i =0; i < values.length; ++i ) {
-			values[i] = values[i].trim();
-		}
-		
-		return values;
-	}
-	
-	private void set(Record output, String[] values) {
-		if ( m_params.trimField() ) {
-			values = trimColumns(values);
-		}
-		
-		for ( int i =0; i < Math.min(values.length, m_schema.getColumnCount()); ++i ) {
-			output.set(i, values[i]);
-		}
 	}
 }

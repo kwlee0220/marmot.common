@@ -37,10 +37,10 @@ public abstract class ParseCsvOption {
 		return new CommentMarkerOption(marker);
 	}
 	
-	public static NullStringOption NULL_STRING(String str) {
-		Objects.requireNonNull(str, "null_string is null");
+	public static NullValueOption NULL_VALUE(String str) {
+		Objects.requireNonNull(str, "null_value is null");
 	
-		return new NullStringOption(str);
+		return new NullValueOption(str);
 	}
 	
 	public static OptionsProto toProto(ParseCsvOption... opts) {
@@ -74,9 +74,9 @@ public abstract class ParseCsvOption {
 				break;
 			default:
 		}
-		switch ( proto.getOptionalNullStringCase() ) {
-			case NULL_STRING:
-				opts = ArrayUtils.add(opts, NULL_STRING(proto.getNullString()));
+		switch ( proto.getOptionalNullValueCase() ) {
+			case NULL_VALUE:
+				opts = ArrayUtils.add(opts, NULL_VALUE(proto.getNullValue()));
 				break;
 			default:
 		}
@@ -123,24 +123,24 @@ public abstract class ParseCsvOption {
 		}
 	}
 	
-	public static class NullStringOption extends ParseCsvOption {
-		private final String m_nullString;
+	public static class NullValueOption extends ParseCsvOption {
+		private final String m_nullValue;
 		
-		private NullStringOption(String nullString) {
-			m_nullString = nullString;
+		private NullValueOption(String nullString) {
+			m_nullValue = nullString;
 		}
 		
 		public String get() {
-			return m_nullString;
+			return m_nullValue;
 		}
 		
 		public void set(OptionsProto.Builder builder) {
-			builder.setNullString(m_nullString);
+			builder.setNullValue(m_nullValue);
 		}
 		
 		@Override
 		public String toString() {
-			return String.format("null_string=%s", m_nullString);
+			return String.format("null_string=%s", m_nullValue);
 		}
 	}
 	

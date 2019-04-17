@@ -26,19 +26,6 @@ update(expr, init=[]) ::= <<
 }
 >>
 
-expand(col_decls, col_init=[], init=[]) ::= <<
-{ "expand": {
-    "column_decls": "<col_decls>" <if(col_init)>,
-    "columnInitializer": {<if(init)>
-       "initializer": "<init>",
-       <endif>
-       "expr": "<col_init>"
-    }
-    <endif>
-  }
-}
->>
-
 define_column(col_decl, col_init=[], global_init=[]) ::= <<
 { "defineColumn": {
     "columnDecl": "<col_decl>"<if(col_init)>,
@@ -52,14 +39,27 @@ define_column(col_decl, col_init=[], global_init=[]) ::= <<
 }
 >>
 
-parse_csv(header, delim=",", quote=[], comment=[]) ::= <<
+expand(col_decls, col_init=[], init=[]) ::= <<
+{ "expand": {
+    "column_decls": "<col_decls>" <if(col_init)>,
+    "columnInitializer": {<if(init)>
+       "initializer": "<init>",
+       <endif>
+       "expr": "<col_init>"
+    }
+    <endif>
+  }
+}
+>>
+
+parse_csv(input_column, header, delim=",", quote=[], null_value=[], comment=[]) ::= <<
 { "parseCsv": {
+    "textColumn": "<input_column>",
     "delimiter": "<delim>",
     "options": {
       "headerColumns": "<header>"<if(quote)>,
-      "quote": "<quote>"
-      <endif> 
-      <if(comment)>,
+      "quote": "<quote>"<endif><if(null_value)>,
+      "nullValue": "<null_value>"<endif><if(comment)>,
       "commentMarker": "<comment>"
       <endif>
     }

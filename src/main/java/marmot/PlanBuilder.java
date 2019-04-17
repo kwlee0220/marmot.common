@@ -542,8 +542,9 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder parseCsv(char delim, ParseCsvOption... opts) {
+	public PlanBuilder parseCsv(String inputColName, char delim, ParseCsvOption... opts) {
 		ParseCsvProto.Builder builder = ParseCsvProto.newBuilder()
+															.setTextColumn(inputColName)
 															.setDelimiter("" + delim);
 		builder.setOptions(ParseCsvOption.toProto(opts));
 		ParseCsvProto parse = builder.build();
