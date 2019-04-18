@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,9 +20,8 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
+import marmot.support.DataUtils;
 import marmot.type.DataType;
-import marmot.type.DataTypes;
-import utils.CSV;
 import utils.Utilities;
 import utils.stream.FStream;
 
@@ -39,6 +37,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 	private final BufferedReader m_reader;
 	private final CsvParser m_parser;
 	private final RecordSchema m_schema;
+	private final Column[] m_columns;
 	private String[] m_first;
 	
 	public static CsvRecordSet from(InputStream is, CsvParameters params) throws IOException {
@@ -76,17 +75,20 @@ public class CsvRecordSet extends AbstractRecordSet {
 		m_first = m_parser.parseLine(line);
 		
 		if ( params.headerFirst() ) {
-			m_schema = buildRecordSchema(FStream.of(m_first));
+			m_schema = CsvUtils.buildRecordSchema(m_first);
 			m_first = null;
 		}
 		else if ( params.headerRecord().isPresent() ) {
-			m_schema = parseHeader(m_parser, params.headerRecord().getUnchecked());
+			String header = params.headerRecord().getUnchecked();
+			m_schema = CsvUtils.buildRecordSchema(m_parser.parseLine(header));
 		}
 		else {
-			int nCols = m_first.length;
-			m_schema = buildRecordSchema(FStream.range(0, nCols)
-												.map(idx -> String.format("field_%02d", idx)));
+			String[] header = FStream.range(0, m_first.length)
+									.map(idx -> String.format("field_%02d", idx))
+									.toArray(String.class);
+			m_schema = CsvUtils.buildRecordSchema(header);
 		}
+		m_columns = m_schema.getColumns().toArray(new Column[0]);
 	}
 	
 	@Override
@@ -132,74 +134,17 @@ public class CsvRecordSet extends AbstractRecordSet {
 		return String.format("%s[%s]", getClass().getSimpleName(), m_params);
 	}
 	
-	private RecordSchema buildRecordSchema(FStream<String> colNames) {
-		return colNames.map(CsvRecordSet::adjustColumnName)
-						.foldLeft(RecordSchema.builder(), (b,n) -> b.addColumn(n, DataType.STRING))
-						.build();
-	}
-	
-	private String[] trimColumns(String[] values) {
-		for ( int i =0; i < values.length; ++i ) {
-			values[i] = values[i].trim();
-		}
-		
-		return values;
-	}
-	
 	private void set(Record output, String[] values) {
-		if ( m_params.trimField() ) {
-			values = trimColumns(values);
+		for ( int i =0; i < values.length; ++i ) {
+			if ( m_params.trimField() ) {
+				values[i] = values[i].trim();
+			}
+			if ( m_columns[i].type() != DataType.STRING ) {
+				output.set(i, DataUtils.cast(values[i], m_columns[i].type()));
+			}
+			else {
+				output.set(i, values[i]);
+			}
 		}
-		
-		for ( int i =0; i < Math.min(values.length, m_schema.getColumnCount()); ++i ) {
-			output.set(i, values[i]);
-		}
-	}
-	
-	public static RecordSchema parseHeader(CsvParser parser, String header) {
-		CSV csv = CSV.get().withDelimiter(':');
-		return FStream.of(parser.parseLine(header))
-						.map(CsvRecordSet::parseColumnSpec)
-						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
-						.build();
-	}
-	
-	private static Column parseColumnSpec(String spec) {
-		List<String> parts = CSV.parseCsv(spec, ':').toList();
-		
-		String colName = adjustColumnName(parts.get(0));
-		DataType colType = (parts.size() == 2)
-							? DataTypes.fromName(parts.get(1))
-							: DataType.STRING;
-		return new Column(colName, colType);
-	}
-	
-	private static String adjustColumnName(String colName) {
-		// marmot에서는 컬럼이름에 '.'이 들어가는 것을 허용하지 않기 때문에
-		// '.' 문자를 '_' 문제로 치환시킨다.
-		if ( colName.indexOf('.') > 0 )  {
-			String replaced = colName.replaceAll("\\.", "_");
-			s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
-			colName = replaced;
-		}
-		// marmot에서는 컬럼이름에 공백문자가  들어가는 것을 허용하지 않기 때문에
-		// 공백문자를 '_' 문제로 치환시킨다.
-		if ( colName.indexOf(' ') > 0 )  {
-			String replaced = colName.replaceAll(" ", "_");
-			s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
-			colName = replaced;
-		}
-		if ( colName.indexOf('(') > 0 )  {
-			String replaced = colName.replaceAll("\\(", "_");
-			s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
-			colName = replaced;
-		}
-		if ( colName.indexOf(')') > 0 )  {
-			String replaced = colName.replaceAll("\\)", "_");
-			s_logger.warn("column name replaced: '{}' -> '{}'", colName, replaced);
-			colName = replaced;
-		}
-		
-		return colName;
 	}
 }
