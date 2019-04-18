@@ -1,12 +1,13 @@
 package marmot;
 
+import static marmot.optor.geo.SpatialRelation.ALL;
+import static marmot.optor.geo.SpatialRelation.INTERSECTS;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
@@ -128,6 +129,7 @@ import marmot.workbench.Operator;
 import marmot.workbench.OperatorType;
 import marmot.workbench.Parameter;
 import utils.CSV;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -209,7 +211,7 @@ public class PlanBuilder {
 		LoadSpatialClusteredFileProto load = LoadSpatialClusteredFileProto.newBuilder()
 													.setDataset(dsId)
 													.setRange(PBUtils.toProto(new Envelope()))
-													.setQuery(SpatialRelation.ALL.toStringExpr())
+													.setQuery(ALL.toStringExpr())
 													.setClusterColsExpr(clusterCols)
 													.build();
 		return add(OperatorProto.newBuilder()
@@ -228,8 +230,8 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder loadTextFile(String... pathes) {
-		Preconditions.checkArgument(pathes != null, "pathes is null");
-		Preconditions.checkArgument(pathes.length > 0, "pathes is empty");
+		Utilities.checkNotNullArgument(pathes, "pathes is null");
+		Utilities.checkArgument(pathes.length > 0, "pathes is empty");
 		
 		LoadTextFileProto load = LoadTextFileProto.newBuilder()
 														.addAllPaths(Arrays.asList(pathes))
@@ -241,7 +243,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder loadCustomTextFile(String path) {
-		Preconditions.checkArgument(path != null, "path is null");
+		Utilities.checkNotNullArgument(path, "path is null");
 		
 		LoadCustomTextFileProto load = LoadCustomTextFileProto.newBuilder()
 															.setPath(path)
@@ -311,7 +313,7 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder storeMarmotFile(String path) {
-		Preconditions.checkArgument(path != null, "path is null");
+		Utilities.checkNotNullArgument(path, "path is null");
 		
 		StoreAsHeapfileProto store = StoreAsHeapfileProto.newBuilder()
 														.setPath(path)
@@ -322,7 +324,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder tee(String path) {
-		Preconditions.checkArgument(path != null, "path is null");
+		Utilities.checkNotNullArgument(path, "path is null");
 		
 		TeeProto tee = TeeProto.newBuilder()
 								.setPath(path)
@@ -342,7 +344,7 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder storeAsCsv(String path, char delim) {
-		Preconditions.checkArgument(path != null, "path is null");
+		Utilities.checkNotNullArgument(path, "path is null");
 		
 		StoreAsCsvProto store = StoreAsCsvProto.newBuilder()
 												.setPath(path)
@@ -366,12 +368,12 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder storeIntoJdbcTable(String jdbcUrl, String userId, String passwd,
 									String driverClassName, String tableName, String valuesExpr) {
-		Objects.requireNonNull(jdbcUrl, "jdbcUrl is null");
-		Objects.requireNonNull(userId, "user is null");
-		Objects.requireNonNull(passwd , "password is null");
-		Objects.requireNonNull(driverClassName, "driver class name is null");
-		Objects.requireNonNull(tableName, "tableName is null");
-		Objects.requireNonNull(valuesExpr);
+		Utilities.checkNotNullArgument(jdbcUrl, "jdbcUrl is null");
+		Utilities.checkNotNullArgument(userId, "user is null");
+		Utilities.checkNotNullArgument(passwd , "password is null");
+		Utilities.checkNotNullArgument(driverClassName, "driver class name is null");
+		Utilities.checkNotNullArgument(tableName, "tableName is null");
+		Utilities.checkNotNullArgument(valuesExpr, "valuesExpr is null");
 		
 		StoreIntoJdbcTableProto store = StoreIntoJdbcTableProto.newBuilder()
 												.setJdbcUrl(jdbcUrl)
@@ -451,7 +453,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder filter(RecordScript predicate) {
-		Objects.requireNonNull(predicate, "predicate is null");
+		Utilities.checkNotNullArgument(predicate, "predicate is null");
 		
 		ScriptFilterProto filter = ScriptFilterProto.newBuilder()
 													.setPredicate(predicate.toProto())
@@ -485,7 +487,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder update(RecordScript expr) {
-		Objects.requireNonNull(expr, "update expression is null");
+		Utilities.checkNotNullArgument(expr, "update expression is null");
 		
 		UpdateProto update = UpdateProto.newBuilder()
 										.setScript(expr.toProto())
@@ -556,7 +558,7 @@ public class PlanBuilder {
 
 	@Operator(protoId="assignUid", name="식별자 부여")
 	public PlanBuilder assignUid(@Parameter(protoId="uidColumn", name="식별자 컬럼") String uidColName) {
-		Objects.requireNonNull(uidColName, "uid column is null");
+		Utilities.checkNotNullArgument(uidColName, "uid column is null");
 		
 		AssignUidProto assign = AssignUidProto.newBuilder()
 										.setUidColumn(uidColName)
@@ -579,7 +581,7 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder take(long count) {
-		Preconditions.checkArgument(count >= 0, "invalid drop count: count=" + count);
+		Utilities.checkArgument(count >= 0, "invalid drop count: count=" + count);
 		
 		TakeProto drop = TakeProto.newBuilder()
 										.setCount(count)
@@ -600,7 +602,7 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder drop(long count) {
-		Preconditions.checkArgument(count >= 0, "invalid drop count: count=" + count);
+		Utilities.checkArgument(count >= 0, "invalid drop count: count=" + count);
 		
 		DropProto drop = DropProto.newBuilder()
 										.setCount(count)
@@ -619,7 +621,7 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder sample(double sampleRatio) {
-		Preconditions.checkArgument(Double.compare(sampleRatio, 0) > 0
+		Utilities.checkArgument(Double.compare(sampleRatio, 0) > 0
 									&& Double.compare(sampleRatio, 0) <= 1,
 									"invalid sample ratio: ratio=" + sampleRatio);
 		
@@ -934,8 +936,8 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder rank(String compareKeyCols, String rankColName) {
-		Preconditions.checkArgument(compareKeyCols != null, "compare key columns name is null");
-		Preconditions.checkArgument(rankColName != null, "output rank column name is null");
+		Utilities.checkNotNullArgument(compareKeyCols, "compare key columns name is null");
+		Utilities.checkNotNullArgument(rankColName, "output rank column name is null");
 		
 		RankProto pick = RankProto.newBuilder()
 								.setSortKeyColumns(compareKeyCols)
@@ -969,8 +971,8 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder pickTopK(String sortKeyColSpecs, int topK) {
-		Objects.requireNonNull(sortKeyColSpecs, "sort key columns");
-		Preconditions.checkArgument(topK >= 1);
+		Utilities.checkNotNullArgument(sortKeyColSpecs, "sort key columns");
+		Utilities.checkArgument(topK >= 1, "topK >= 1");
 		
 		PickTopKProto pick = PickTopKProto.newBuilder()
 										.setSortKeyColumns(sortKeyColSpecs)
@@ -1008,12 +1010,12 @@ public class PlanBuilder {
 	public PlanBuilder loadHashJoin(String leftDataSet, String leftJoinCols,
 									String rightDataSet, String rightJoinCols,
 									String outputColumnExpr, JoinOptions opts) {
-		Objects.requireNonNull(leftDataSet,  "left dataset id is null");
-		Objects.requireNonNull(rightDataSet,  "right dataset id is null");
-		Objects.requireNonNull(leftJoinCols,  "left join columns are null");
-		Objects.requireNonNull(rightJoinCols,  "right join columns are null");
-		Objects.requireNonNull(outputColumnExpr, "output columns is null");
-		Objects.requireNonNull(opts, "JoinOptions is null");
+		Utilities.checkNotNullArgument(leftDataSet,  "left dataset id is null");
+		Utilities.checkNotNullArgument(rightDataSet,  "right dataset id is null");
+		Utilities.checkNotNullArgument(leftJoinCols,  "left join columns are null");
+		Utilities.checkNotNullArgument(rightJoinCols,  "right join columns are null");
+		Utilities.checkNotNullArgument(outputColumnExpr, "output columns is null");
+		Utilities.checkNotNullArgument(opts, "JoinOptions is null");
 		
 		opts = (opts == null) ? new JoinOptions() : opts;
 		
@@ -1057,10 +1059,10 @@ public class PlanBuilder {
 	public PlanBuilder join(String inputJoinCols, String paramDataSet,
 							String paramJoinCols, String outputColumnExpr,
 							JoinOptions opts) {
-		Objects.requireNonNull(inputJoinCols, "input join columns are null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
-		Objects.requireNonNull(paramJoinCols, "parameter join columns are null");
-		Objects.requireNonNull(outputColumnExpr, "output column expression is null");
+		Utilities.checkNotNullArgument(inputJoinCols, "input join columns are null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(paramJoinCols, "parameter join columns are null");
+		Utilities.checkNotNullArgument(outputColumnExpr, "output column expression is null");
 		
 		opts = (opts == null) ? new JoinOptions() : opts;
 		
@@ -1077,7 +1079,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder shard(int partCount) {
-		Preconditions.checkArgument(partCount > 0, "invalid partition count: " + partCount);
+		Utilities.checkArgument(partCount > 0, "invalid partition count: " + partCount);
 		
 		ShardProto shard = ShardProto.newBuilder()
 									.setPartCount(partCount)
@@ -1088,7 +1090,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder reload(int splitCountPerBlock) {
-		Preconditions.checkArgument(splitCountPerBlock > 0,
+		Utilities.checkArgument(splitCountPerBlock > 0,
 									"invalid splitCountPerBlock: " + splitCountPerBlock);
 		
 		StoreAndReloadProto reload = StoreAndReloadProto.newBuilder()
@@ -1123,6 +1125,8 @@ public class PlanBuilder {
 	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder load(String dsId, LoadOption... opts) {
+		Utilities.checkNotNullArgument(dsId, "dsId is null");
+		
 		LoadDataSetProto.Builder builder = LoadDataSetProto.newBuilder()
 															.setName(dsId);
 		if ( opts.length > 0 ) {
@@ -1145,9 +1149,9 @@ public class PlanBuilder {
 	 * @return		작업이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder query(String dsId, SpatialRelation relation, Geometry key) {
-		Objects.requireNonNull(dsId, "input dataset id");
-		Objects.requireNonNull(relation, "relation is null");
-		Objects.requireNonNull(key, "key is null");
+		Utilities.checkNotNullArgument(dsId, "input dataset id");
+		Utilities.checkNotNullArgument(relation, "relation is null");
+		Utilities.checkNotNullArgument(key, "key is null");
 				
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
 													.setName(dsId)
@@ -1159,15 +1163,15 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder query(String dsId, SpatialRelation relation, Envelope bounds) {
-		Objects.requireNonNull(bounds, "key bounds");
+		Utilities.checkNotNullArgument(bounds, "key bounds");
 		
 		return query(dsId, relation, GeoClientUtils.toPolygon(bounds));
 	}
 	
 	public PlanBuilder query(String dsId, SpatialRelation relation, String keyDsId) {
-		Objects.requireNonNull(dsId, "input dataset id");
-		Objects.requireNonNull(relation, "relation is null");
-		Objects.requireNonNull(keyDsId, "key dataset id");
+		Utilities.checkNotNullArgument(dsId, "input dataset id");
+		Utilities.checkNotNullArgument(relation, "relation is null");
+		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
 				
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
 													.setName(dsId)
@@ -1180,7 +1184,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder loadSpatialClusterIndexFile(String dataset) {
-		Objects.requireNonNull(dataset, "dataset is null");
+		Utilities.checkNotNullArgument(dataset, "dataset is null");
 		
 		LoadSpatialClusterIndexFileProto load = LoadSpatialClusterIndexFileProto.newBuilder()
 																			.setDataset(dataset)
@@ -1201,7 +1205,7 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder store(String dsId) {
-		Objects.requireNonNull(dsId, "dataset id");
+		Utilities.checkNotNullArgument(dsId, "dataset id");
 
 		StoreIntoDataSetProto store = StoreIntoDataSetProto.newBuilder()
 															.setId(dsId)
@@ -1220,7 +1224,7 @@ public class PlanBuilder {
 	 * @return	명령이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder loadSquareGridFile(SquareGrid grid, int nparts) {
-		Objects.requireNonNull(grid != null, "SquareGrid is null");
+		Utilities.checkNotNullArgument(grid, "SquareGrid is null");
 
 		LoadSquareGridFileProto load = LoadSquareGridFileProto.newBuilder()
 																.setGrid(grid.toProto())
@@ -1242,11 +1246,11 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder loadHexagonGridFile(Envelope bounds, String srid, double sideLen,
 											int nparts) {
-		Preconditions.checkArgument(bounds != null && !bounds.isNull(), "grid bounds is null");
-		Preconditions.checkArgument(srid != null , "srid is null");
-		Preconditions.checkArgument(Double.compare(sideLen, 0) > 0,
-									"invalid side-length: len=" + sideLen);
-		Preconditions.checkArgument(nparts > 0, "invalid partition count: count=" + nparts);
+		Utilities.checkNotNullArgument(bounds != null && !bounds.isNull(), "grid bounds is null");
+		Utilities.checkNotNullArgument(srid != null , "srid is null");
+		Utilities.checkArgument(Double.compare(sideLen, 0) > 0,
+								"invalid side-length: len=" + sideLen);
+		Utilities.checkArgument(nparts > 0, "invalid partition count: count=" + nparts);
 
 		GridBoundsProto boundsProto = GridBoundsProto.newBuilder()
 												.setBounds(PBUtils.toProto(bounds))
@@ -1264,10 +1268,10 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder loadHexagonGridFile(String dataset, double sideLen, int nparts) {
-		Preconditions.checkArgument(dataset != null, "dataset is null");
-		Preconditions.checkArgument(Double.compare(sideLen, sideLen) > 0,
-									"invalid side-length: len=" + sideLen);
-		Preconditions.checkArgument(nparts > 0, "invalid partition count: count=" + nparts);
+		Utilities.checkNotNullArgument(dataset, "dataset is null");
+		Utilities.checkArgument(Double.compare(sideLen, sideLen) > 0,
+								"invalid side-length: len=" + sideLen);
+		Utilities.checkArgument(nparts > 0, "invalid partition count: count=" + nparts);
 
 		LoadHexagonGridFileProto load
 					= LoadHexagonGridFileProto.newBuilder()
@@ -1331,8 +1335,8 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder assignSquareGridCell(String geomCol, SquareGrid grid,
 											boolean ignoreOutside) {
-		Preconditions.checkArgument(geomCol != null, "geometry column is null");
-		Preconditions.checkArgument(grid != null, "SquareGrid is null");
+		Utilities.checkNotNullArgument(geomCol, "geometry column is null");
+		Utilities.checkNotNullArgument(grid, "SquareGrid is null");
 
 		AssignSquareGridCellProto assign
 							= AssignSquareGridCellProto.newBuilder()
@@ -1367,10 +1371,10 @@ public class PlanBuilder {
 	
 	public PlanBuilder matchSpatially(String geomCol, SpatialRelation rel, Geometry key,
 										PredicateOption... opts) {
-		Objects.requireNonNull(geomCol, "geometry column name");
-		Objects.requireNonNull(rel, "SpatialRelation");
-		Objects.requireNonNull(key, "key geometry");
-		Objects.requireNonNull(opts, "PredicateOption");
+		Utilities.checkNotNullArgument(geomCol, "geometry column name");
+		Utilities.checkNotNullArgument(rel, "SpatialRelation");
+		Utilities.checkNotNullArgument(key, "key geometry");
+		Utilities.checkNotNullArgument(opts, "PredicateOption");
 		
 		GeometryProto keyProto = PBUtils.toProto(key);
 		MatchSpatiallyProto.Builder builder = MatchSpatiallyProto.newBuilder()
@@ -1388,10 +1392,10 @@ public class PlanBuilder {
 	}
 	public PlanBuilder matchSpatially(String geomCol, SpatialRelation rel, String keyDsId,
 										PredicateOption... opts) {
-		Objects.requireNonNull(geomCol, "geometry column name");
-		Objects.requireNonNull(rel, "SpatialRelation");
-		Objects.requireNonNull(keyDsId, "key dataset id");
-		Objects.requireNonNull(opts, "PredicateOption");
+		Utilities.checkNotNullArgument(geomCol, "geometry column name");
+		Utilities.checkNotNullArgument(rel, "SpatialRelation");
+		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
+		Utilities.checkNotNullArgument(opts, "PredicateOption");
 		
 		MatchSpatiallyProto.Builder builder
 								= MatchSpatiallyProto.newBuilder()
@@ -1421,17 +1425,17 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder intersects(String geomCol, Geometry key, PredicateOption... opts) {
-		return matchSpatially(geomCol, SpatialRelation.INTERSECTS, key, opts);
+		return matchSpatially(geomCol, INTERSECTS, key, opts);
 	}
 	public PlanBuilder intersects(String geomCol, String keyDsId, PredicateOption... opts) {
-		return matchSpatially(geomCol, SpatialRelation.INTERSECTS, keyDsId, opts);
+		return matchSpatially(geomCol, INTERSECTS, keyDsId, opts);
 	}
 	
 	public PlanBuilder withinDistance(String geomCol, Geometry key, double distance,
 										PredicateOption... opts) {
-		Preconditions.checkArgument(geomCol != null, "geomCol is null");
-		Preconditions.checkArgument(key != null, "key is null");
-		Preconditions.checkArgument(Double.compare(distance, 0d) > 0,
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
+		Utilities.checkNotNullArgument(key, "key is null");
+		Utilities.checkArgument(Double.compare(distance, 0d) > 0,
 									"invalid distance: dist=" + distance);
 
 		GeometryProto keyProto = PBUtils.toProto(key);
@@ -1451,10 +1455,10 @@ public class PlanBuilder {
 	
 	public PlanBuilder withinDistance(String geomCol, String keyDsId, double distance,
 										PredicateOption... opts) {
-		Objects.requireNonNull(geomCol, "geometry column name");
-		Objects.requireNonNull(keyDsId, "key dataset id");
-		Objects.requireNonNull(opts, "PredicateOption");
-		Preconditions.checkArgument(Double.compare(distance, 0d) > 0,
+		Utilities.checkNotNullArgument(geomCol, "geometry column name");
+		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
+		Utilities.checkNotNullArgument(opts, "PredicateOption");
+		Utilities.checkArgument(Double.compare(distance, 0d) > 0,
 									"invalid distance: dist=" + distance);
 
 		WithinDistanceProto.Builder builder = WithinDistanceProto.newBuilder()
@@ -1485,8 +1489,8 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder intersectsBinary(String leftGeomCol, String rightGeomCol,
 										PredicateOption... opts) {
-		Preconditions.checkArgument(leftGeomCol != null, "leftGeomCol is null");
-		Preconditions.checkArgument(rightGeomCol != null, "rightGeomCol is null");
+		Utilities.checkNotNullArgument(leftGeomCol, "leftGeomCol is null");
+		Utilities.checkNotNullArgument(rightGeomCol, "rightGeomCol is null");
 
 		BinarySpatialIntersectsProto.Builder builder
 					= BinarySpatialIntersectsProto.newBuilder()
@@ -1509,8 +1513,8 @@ public class PlanBuilder {
 	//***********************************************************************
 	
 	public PlanBuilder attachGeoHash(String geomCol, String hashCol, boolean asLong) {
-		Objects.requireNonNull(geomCol, "geomCol is null");
-		Objects.requireNonNull(hashCol, "hash column is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
+		Utilities.checkNotNullArgument(hashCol, "hash column is null");
 		
 		AttachGeoHashProto attach = AttachGeoHashProto.newBuilder()
 														.setGeometryColumn(geomCol)
@@ -1522,8 +1526,8 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder attachGeoHash(String geomCol, String hashCol) {
-		Objects.requireNonNull(geomCol, "geomCol is null");
-		Objects.requireNonNull(hashCol, "hash column is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
+		Utilities.checkNotNullArgument(hashCol, "hash column is null");
 		
 		AttachGeoHashProto attach = AttachGeoHashProto.newBuilder()
 														.setGeometryColumn(geomCol)
@@ -1536,9 +1540,9 @@ public class PlanBuilder {
 	}
 	public PlanBuilder attachQuadKey(String geomCol, String srid, List<String> quadKeys,
 									boolean bindOutlier, boolean bindOnce) {
-		Objects.requireNonNull(geomCol, "geometry column is null");
-		Objects.requireNonNull(srid, "geometry column's SRID is null");
-		Objects.requireNonNull(quadKeys, "quadKeys");
+		Utilities.checkNotNullArgument(geomCol, "geometry column is null");
+		Utilities.checkNotNullArgument(srid, "geometry column's SRID is null");
+		Utilities.checkNotNullArgument(quadKeys, "quadKeys");
 		
 		GeometryColumnInfoProto geomInfo = GeometryColumnInfoProto.newBuilder()
 																.setName(geomCol)
@@ -1572,9 +1576,9 @@ public class PlanBuilder {
 	public PlanBuilder toPoint(@Parameter(protoId="xColumn", name="X-컬럼") String xCol,
 								@Parameter(protoId="yColumn", name="Y-컬럼") String yCol,
 								@Parameter(protoId="outColumn", name="생성 공간객체 컬럼") String outCol) {
-		Objects.requireNonNull(xCol);
-		Objects.requireNonNull(yCol);
-		Objects.requireNonNull(outCol);
+		Utilities.checkNotNullArgument(xCol, "xCol != null");
+		Utilities.checkNotNullArgument(yCol, "yCol != null");
+		Utilities.checkNotNullArgument(outCol, "outCol != null");
 		
 		ToGeometryPointProto toPoint = ToGeometryPointProto.newBuilder()
 															.setXColumn(xCol)
@@ -1587,9 +1591,9 @@ public class PlanBuilder {
 	}
 
 	public PlanBuilder toXYCoordinates(String geomCol, String xCol, String yCol) {
-		Objects.requireNonNull(geomCol, "geometry column");
-		Objects.requireNonNull(xCol, "x-coordinate column");
-		Objects.requireNonNull(yCol, "y_coordinate column");
+		Utilities.checkNotNullArgument(geomCol, "geometry column");
+		Utilities.checkNotNullArgument(xCol, "x-coordinate column");
+		Utilities.checkNotNullArgument(yCol, "y_coordinate column");
 		
 		ToXYCoordinatesProto op = ToXYCoordinatesProto.newBuilder()
 														.setGeomColumn(geomCol)
@@ -1610,7 +1614,7 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder centroid(String inGeomCol, GeomOpOption... opts) {
-		Preconditions.checkArgument(inGeomCol != null, "inGeomCol is null");
+		Utilities.checkNotNullArgument(inGeomCol, "inGeomCol is null");
 		
 		CentroidTransformProto.Builder builder
 								= CentroidTransformProto.newBuilder()
@@ -1656,8 +1660,8 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder intersection(String geomCol, Geometry key, GeomOpOption... opts) {
-		Preconditions.checkArgument(geomCol != null, "geomCol is null");
-		Preconditions.checkArgument(key != null, "param is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
+		Utilities.checkNotNullArgument(key, "param is null");
 
 		byte[] wkb = GeoClientUtils.toWKB(key);
 		UnarySpatialIntersectionProto.Builder builder
@@ -1691,10 +1695,10 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder intersection(String leftGeomCol, String rightGeomCol,
 									String outputGeomCol, DataType outputGeomType) {
-		Objects.requireNonNull(leftGeomCol, "left Geometry column name");
-		Objects.requireNonNull(rightGeomCol, "right Geometry column name");
-		Objects.requireNonNull(outputGeomCol, "output Geometry column name");
-		Objects.requireNonNull(outputGeomType, "output Geometry column type");
+		Utilities.checkNotNullArgument(leftGeomCol, "left Geometry column name");
+		Utilities.checkNotNullArgument(rightGeomCol, "right Geometry column name");
+		Utilities.checkNotNullArgument(outputGeomCol, "output Geometry column name");
+		Utilities.checkNotNullArgument(outputGeomType, "output Geometry column type");
 
 		TypeCodeProto outType = TypeCodeProto.valueOf(outputGeomType.getName());
 		BinarySpatialIntersectionProto intersects = BinarySpatialIntersectionProto.newBuilder()
@@ -1711,9 +1715,9 @@ public class PlanBuilder {
 
 	public PlanBuilder intersection(String leftGeomCol, String rightGeomCol,
 									String outputGeomCol) {
-		Objects.requireNonNull(leftGeomCol, "left Geometry column name");
-		Objects.requireNonNull(rightGeomCol, "right Geometry column name");
-		Objects.requireNonNull(outputGeomCol, "output Geometry column name");
+		Utilities.checkNotNullArgument(leftGeomCol, "left Geometry column name");
+		Utilities.checkNotNullArgument(rightGeomCol, "right Geometry column name");
+		Utilities.checkNotNullArgument(outputGeomCol, "output Geometry column name");
 
 		BinarySpatialIntersectionProto intersects = BinarySpatialIntersectionProto.newBuilder()
 															.setLeftGeometryColumn(leftGeomCol)
@@ -1757,8 +1761,8 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder reduceGeometryPrecision(String geomCol, int reduceFactor,
 												GeomOpOption... opts) {
-		Objects.requireNonNull(geomCol, "Geometry column name");
-		Preconditions.checkArgument(reduceFactor >= 0,
+		Utilities.checkNotNullArgument(geomCol, "Geometry column name");
+		Utilities.checkArgument(reduceFactor >= 0,
 									"invalid reduceFactor: factor=" + reduceFactor);
 
 		ReduceGeometryPrecisionProto reduce = ReduceGeometryPrecisionProto.newBuilder()
@@ -1839,10 +1843,10 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder loadSpatialIndexJoin(String leftDataSet, String rightDataSet,
 											String outColumns, SpatialJoinOption... opts) {
-		Preconditions.checkArgument(leftDataSet != null, "leftDataSet is null");
-		Preconditions.checkArgument(rightDataSet != null, "rightDataSet is null");
-		Preconditions.checkArgument(opts != null, "joinExpr is null");
-		Preconditions.checkArgument(outColumns != null, "outColumnsExpr is null");
+		Utilities.checkNotNullArgument(leftDataSet, "leftDataSet is null");
+		Utilities.checkNotNullArgument(rightDataSet, "rightDataSet is null");
+		Utilities.checkNotNullArgument(opts, "joinExpr is null");
+		Utilities.checkNotNullArgument(outColumns, "outColumnsExpr is null");
 		
 		LoadSpatialIndexJoinProto.Builder builder = LoadSpatialIndexJoinProto.newBuilder()
 											.setLeftDataset(leftDataSet)
@@ -1859,9 +1863,9 @@ public class PlanBuilder {
 	}
 	public PlanBuilder loadSpatialIndexJoin(String leftDataSet, String rightDataSet,
 											SpatialJoinOption... opts) {
-		Preconditions.checkArgument(leftDataSet != null, "leftDataSet is null");
-		Preconditions.checkArgument(rightDataSet != null, "rightDataSet is null");
-		Preconditions.checkArgument(opts != null, "joinExpr is null");
+		Utilities.checkNotNullArgument(leftDataSet, "leftDataSet is null");
+		Utilities.checkNotNullArgument(rightDataSet, "rightDataSet is null");
+		Utilities.checkNotNullArgument(opts, "joinExpr is null");
 		
 		LoadSpatialIndexJoinProto.Builder builder = LoadSpatialIndexJoinProto.newBuilder()
 											.setLeftDataset(leftDataSet)
@@ -1894,8 +1898,8 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder spatialJoin(String geomCol, String paramDataSet,
 									SpatialJoinOption... opts) {
-		Objects.requireNonNull(geomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 		
 		SpatialBlockJoinProto.Builder builder = SpatialBlockJoinProto.newBuilder()
 														.setGeomColumn(geomCol)
@@ -1929,9 +1933,9 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder spatialJoin(String geomCol, String paramDataSet,
 									String outputColumns, SpatialJoinOption... opts) {
-		Objects.requireNonNull(geomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
-		Objects.requireNonNull(outputColumns, "output column expression is null");
+		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(outputColumns, "output column expression is null");
 		
 		SpatialBlockJoinProto.Builder builder = SpatialBlockJoinProto.newBuilder()
 														.setGeomColumn(geomCol)
@@ -1949,8 +1953,8 @@ public class PlanBuilder {
 	
 	public PlanBuilder spatialOuterJoin(String inputGeomCol, String paramDataSet,
 										SpatialJoinOption... opts) {
-		Objects.requireNonNull(inputGeomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 
 		SpatialOuterJoinProto.Builder builder = SpatialOuterJoinProto.newBuilder()
 													.setGeomColumn(inputGeomCol)
@@ -1967,9 +1971,9 @@ public class PlanBuilder {
 	
 	public PlanBuilder spatialOuterJoin(String geomCol, String paramDataSet,
 										String outputColumnsExpr, SpatialJoinOption... opts) {
-		Objects.requireNonNull(geomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
-		Objects.requireNonNull(outputColumnsExpr, "output column expression is null");
+		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(outputColumnsExpr, "output column expression is null");
 
 		SpatialOuterJoinProto.Builder builder = SpatialOuterJoinProto.newBuilder()
 													.setGeomColumn(geomCol)
@@ -1987,8 +1991,8 @@ public class PlanBuilder {
 	
 	public PlanBuilder spatialSemiJoin(String geomCol, String paramDataSet,
 										SpatialJoinOption... opts) {
-		Objects.requireNonNull(geomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 
 		SpatialSemiJoinProto.Builder builder = SpatialSemiJoinProto.newBuilder()
 													.setGeomColumn(geomCol)
@@ -2018,11 +2022,11 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder knnJoin(String geomCol, String paramDataSet, int topK, double dist,
 								String outColsExpr, SpatialJoinOption... opts) {
-		Objects.requireNonNull(geomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
-		Preconditions.checkArgument(topK > 0, "invalid top-k: " + topK);
-		Preconditions.checkArgument(Double.compare(dist, 0) > 0, "invalid distance: " + dist);
-		Objects.requireNonNull(outColsExpr, "output column expression is null");
+		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkArgument(topK > 0, "invalid top-k: " + topK);
+		Utilities.checkArgument(Double.compare(dist, 0) > 0, "invalid distance: " + dist);
+		Utilities.checkNotNullArgument(outColsExpr, "output column expression is null");
 		
 		SpatialKnnInnerJoinProto.Builder builder = SpatialKnnInnerJoinProto.newBuilder()
 																	.setGeomColumn(geomCol)
@@ -2043,11 +2047,11 @@ public class PlanBuilder {
 	public PlanBuilder knnOuterJoin(String inputGeomCol, String paramDataSet, int topK,
 									double dist, String outColsExpr,
 									SpatialJoinOption... opts) {
-		Objects.requireNonNull(inputGeomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
-		Preconditions.checkArgument(topK > 0, "invalid top-k: " + topK);
-		Preconditions.checkArgument(Double.compare(dist, 0) > 0, "invalid distance: " + dist);
-		Objects.requireNonNull(outColsExpr, "output column expression is null");
+		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkArgument(topK > 0, "invalid top-k: " + topK);
+		Utilities.checkArgument(Double.compare(dist, 0) > 0, "invalid distance: " + dist);
+		Utilities.checkNotNullArgument(outColsExpr, "output column expression is null");
 		
 		SpatialKnnOuterJoinProto.Builder builder = SpatialKnnOuterJoinProto.newBuilder()
 																	.setGeomColumn(inputGeomCol)
@@ -2081,8 +2085,8 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
 	 */
 	public PlanBuilder clipJoin(String inputGeomCol, String clipperDataSet) {
-		Objects.requireNonNull(inputGeomCol, "input Geometry column is null");
-		Objects.requireNonNull(clipperDataSet, "clipper DataSet id is null");
+		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(clipperDataSet, "clipper DataSet id is null");
 		
 		SpatialClipJoinProto clip = SpatialClipJoinProto.newBuilder()
 													.setGeomColumn(inputGeomCol)
@@ -2095,8 +2099,8 @@ public class PlanBuilder {
 	
 	public PlanBuilder intersectionJoin(String geomCol, String paramDataSet,
 										SpatialJoinOption... opts) {
-		Objects.requireNonNull(geomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 
 		SpatialIntersectionJoinProto.Builder builder = SpatialIntersectionJoinProto.newBuilder()
 																	.setGeomColumn(geomCol)
@@ -2113,9 +2117,9 @@ public class PlanBuilder {
 	
 	public PlanBuilder intersectionJoin(String geomCol, String paramDataSet,
 										String outColsExpr, SpatialJoinOption... opts) {
-		Objects.requireNonNull(geomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
-		Objects.requireNonNull(outColsExpr, "output column expression is null");
+		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(outColsExpr, "output column expression is null");
 
 		SpatialIntersectionJoinProto.Builder builder = SpatialIntersectionJoinProto.newBuilder()
 																	.setGeomColumn(geomCol)
@@ -2146,8 +2150,8 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
 	 */
 	public PlanBuilder differenceJoin(String inputGeomCol, String paramDataSet) {
-		Objects.requireNonNull(inputGeomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "clipper DataSet id is null");
+		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "clipper DataSet id is null");
 		
 		SpatialDifferenceJoinProto clip = SpatialDifferenceJoinProto.newBuilder()
 													.setGeomColumn(inputGeomCol)
@@ -2166,9 +2170,9 @@ public class PlanBuilder {
 	public PlanBuilder spatialAggregateJoin(String inputGeomCol, String paramDataSet,
 											AggregateFunction[] aggrFuncs,
 											SpatialJoinOption... opts) {
-		Objects.requireNonNull(inputGeomCol, "input Geometry column");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id");
-		Preconditions.checkArgument(aggrFuncs != null && aggrFuncs.length > 0,
+		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id");
+		Utilities.checkArgument(aggrFuncs != null && aggrFuncs.length > 0,
 									"empty AggregateFunction list");
 		
 		ValueAggregateReducerProto reducer = FStream.of(aggrFuncs)
@@ -2192,8 +2196,8 @@ public class PlanBuilder {
 
 	public PlanBuilder arcGisSpatialJoin(String inputGeomCol, String paramDataSet,
 										boolean includeParamData, SpatialJoinOption... opts) {
-		Objects.requireNonNull(inputGeomCol, "input Geometry column is null");
-		Objects.requireNonNull(paramDataSet, "parameter DataSet id is null");
+		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 		
 		ArcGisSpatialJoinProto.Builder builder = ArcGisSpatialJoinProto.newBuilder()
 														.setGeomColumn(inputGeomCol)
@@ -2212,11 +2216,11 @@ public class PlanBuilder {
 	public PlanBuilder spatialInterpolation(String geomColumn, String paramDataSet,
 											String valueColumns, double radius,
 											String outputColumns, InterpolationMethod method) {
-		Objects.requireNonNull(geomColumn, "input Geometry column");
-		Objects.requireNonNull(paramDataSet, "paramDataSet");
-		Objects.requireNonNull(valueColumns, "value columns");
-		Objects.requireNonNull(outputColumns, "output columns");
-		Objects.requireNonNull(method, "interpolation method");
+		Utilities.checkNotNullArgument(geomColumn, "input Geometry column");
+		Utilities.checkNotNullArgument(paramDataSet, "paramDataSet");
+		Utilities.checkNotNullArgument(valueColumns, "value columns");
+		Utilities.checkNotNullArgument(outputColumns, "output columns");
+		Utilities.checkNotNullArgument(method, "interpolation method");
 		
 		SpatialInterpolationProto op = SpatialInterpolationProto.newBuilder()
 													.setGeomColumn(geomColumn)
@@ -2235,12 +2239,12 @@ public class PlanBuilder {
 	public PlanBuilder spatialInterpolation(String geomColumn, String paramDataSet,
 											String valueColumns, double radius, int topK,
 											String outputColumns, InterpolationMethod method) {
-		Objects.requireNonNull(geomColumn, "input Geometry column");
-		Objects.requireNonNull(paramDataSet, "paramDataSet");
-		Objects.requireNonNull(valueColumns, "value columns");
-		Objects.requireNonNull(outputColumns, "output columns");
-		Objects.requireNonNull(method, "interpolation method");
-		Preconditions.checkArgument(topK > 0, "invalid top-k");
+		Utilities.checkNotNullArgument(geomColumn, "input Geometry column");
+		Utilities.checkNotNullArgument(paramDataSet, "paramDataSet");
+		Utilities.checkNotNullArgument(valueColumns, "value columns");
+		Utilities.checkNotNullArgument(outputColumns, "output columns");
+		Utilities.checkNotNullArgument(method, "interpolation method");
+		Utilities.checkArgument(topK > 0, "invalid top-k");
 		
 		SpatialInterpolationProto op = SpatialInterpolationProto.newBuilder()
 													.setGeomColumn(geomColumn)
@@ -2260,10 +2264,10 @@ public class PlanBuilder {
 	public PlanBuilder estimateIDW(String geomColumn, String paramDataSet, String valueColumn,
 									double radius, int topK, String densityColumn,
 									EstimateIDWOption... opts) {
-		Preconditions.checkArgument(geomColumn != null, "input Geometry column is null");
-		Preconditions.checkArgument(paramDataSet != null, "paramDataSet is null");
-		Preconditions.checkArgument(densityColumn != null, "densityColumn is null");
-		Preconditions.checkArgument(Double.compare(radius, 0) > 0,
+		Utilities.checkNotNullArgument(geomColumn, "input Geometry column is null");
+		Utilities.checkNotNullArgument(paramDataSet, "paramDataSet is null");
+		Utilities.checkNotNullArgument(densityColumn, "densityColumn is null");
+		Utilities.checkArgument(Double.compare(radius, 0) > 0,
 									"invalid radius: radius=" + radius);
 		
 		EstimateIDWProto.Builder builder = EstimateIDWProto.newBuilder()
@@ -2285,10 +2289,10 @@ public class PlanBuilder {
 	
 	public PlanBuilder estimateKernelDensity(String geomColumn, String dataset, String valueColumn,
 											double radius, String densityColumn) {
-		Preconditions.checkArgument(geomColumn != null, "input Geometry column is null");
-		Preconditions.checkArgument(dataset != null, "dataset is null");
-		Preconditions.checkArgument(densityColumn != null, "densityColumn is null");
-		Preconditions.checkArgument(Double.compare(radius, 0) > 0,
+		Utilities.checkNotNullArgument(geomColumn, "input Geometry column is null");
+		Utilities.checkNotNullArgument(dataset, "dataset is null");
+		Utilities.checkNotNullArgument(densityColumn, "densityColumn is null");
+		Utilities.checkArgument(Double.compare(radius, 0) > 0,
 									"invalid radius: radius=" + radius);
 		
 		EstimateKernelDensityProto estimate = EstimateKernelDensityProto.newBuilder()
@@ -2306,11 +2310,11 @@ public class PlanBuilder {
 
 	public PlanBuilder loadLocalMoranI(String dataset, String idColumn,
 										String valueColumn, double radius, LISAWeight weight) {
-		Preconditions.checkArgument(dataset != null, "dataset is null");
-		Preconditions.checkArgument(idColumn != null, "idColumn is null");
-		Preconditions.checkArgument(valueColumn != null, "valueColumn is null");
-		Preconditions.checkArgument(Double.compare(radius, 0) > 0, "invalid radius: " + radius);
-		Preconditions.checkArgument(weight != null, "weight is null");
+		Utilities.checkNotNullArgument(dataset, "dataset is null");
+		Utilities.checkNotNullArgument(idColumn, "idColumn is null");
+		Utilities.checkNotNullArgument(valueColumn, "valueColumn is null");
+		Utilities.checkArgument(Double.compare(radius, 0) > 0, "invalid radius: " + radius);
+		Utilities.checkNotNullArgument(weight, "weight is null");
 		
 		LoadLocalMoransIProto load = LoadLocalMoransIProto.newBuilder()
 											.setDataset(dataset)
@@ -2326,10 +2330,10 @@ public class PlanBuilder {
 	}
 	public PlanBuilder loadGetisOrdGi(String dataset, String valueColumn,
 											double radius, LISAWeight weight) {
-		Preconditions.checkArgument(dataset != null, "dataset is null");
-		Preconditions.checkArgument(valueColumn != null, "valueColumn is null");
-		Preconditions.checkArgument(Double.compare(radius, 0) > 0, "invalid radius: " + radius);
-		Preconditions.checkArgument(weight != null, "weight is null");
+		Utilities.checkNotNullArgument(dataset, "dataset is null");
+		Utilities.checkNotNullArgument(valueColumn, "valueColumn is null");
+		Utilities.checkArgument(Double.compare(radius, 0) > 0, "invalid radius: " + radius);
+		Utilities.checkNotNullArgument(weight, "weight is null");
 		
 		LoadGetisOrdGiProto load = LoadGetisOrdGiProto.newBuilder()
 											.setDataset(dataset)
@@ -2357,8 +2361,8 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
 	 */
 	public PlanBuilder dissolve(String keyCols, String geomCol) {
-		Preconditions.checkArgument(keyCols != null, "keyCols is null");
-		Preconditions.checkArgument(geomCol != null, "geomCol is null");
+		Utilities.checkNotNullArgument(keyCols, "keyCols is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
 		
 		DissolveProto dissolve = DissolveProto.newBuilder()
 											.setKeyColumns(keyCols)
@@ -2371,7 +2375,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder flattenGeometry(String geomCol, DataType outGeomType) {
-		Objects.requireNonNull(geomCol, "geomCol");
+		Utilities.checkNotNullArgument(geomCol, "geomCol");
 
 		TypeCodeProto tc = TypeCodeProto.valueOf(outGeomType.getTypeCode().name());
 		FlattenGeometryProto flatten = FlattenGeometryProto.newBuilder()
@@ -2385,7 +2389,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder validateGeometry(String geomCol) {
-		Preconditions.checkArgument(geomCol != null, "geomCol is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
 
 		ValidateGeometryProto validate = ValidateGeometryProto.newBuilder()
 														.setGeometryColumn(geomCol)
@@ -2397,8 +2401,8 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder cascadeGeometry(String inGeomCol, String outGeomCol, int count, int skip) {
-		Objects.requireNonNull(inGeomCol != null);
-		Objects.requireNonNull(outGeomCol != null);
+		Utilities.checkNotNullArgument(inGeomCol, "inGeomCol is null");
+		Utilities.checkNotNullArgument(outGeomCol, "outGeomCol is null");
 
 		CascadeGeometryProto cascade = CascadeGeometryProto.newBuilder()
 														.setGeometryColumn(inGeomCol)
@@ -2413,7 +2417,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder breakLineString(String geomCol) {
-		Preconditions.checkArgument(geomCol != null, "geomCol is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
 
 		BreakLineStringProto breakLine = BreakLineStringProto.newBuilder()
 														.setGeometryColumn(geomCol)
@@ -2425,7 +2429,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder splitGeometry(String geomCol) {
-		Preconditions.checkArgument(geomCol != null, "geomCol is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
 		
 		SplitGeometryProto dissolve = SplitGeometryProto.newBuilder()
 														.setGeometryColumn(geomCol)
