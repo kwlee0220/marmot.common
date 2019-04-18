@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -117,19 +118,57 @@ public interface MarmotRuntime {
 		throws DataSetExistsException {
 		return createDataSet(dsId, plan, new ExecutePlanOption[0], opts);
 	}
-	
+
+	/**
+	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
+	 * 생성된 데이터세트의 정보는 Marmot 카타로그에 등록된다.
+	 * 
+	 * @param dsId		생성될 데이터세트의 식별자.
+	 * @param plan		실행시킬 {@link Plan} 객체.
+	 * @param execOpt	Plan 수행에 필요한 추가 옵션 리스트.
+	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
+	 * @return	 생성된 데이터세트 객체.
+	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
+	 */
 	public default DataSet createDataSet(String dsId, Plan plan, ExecutePlanOption execOpt,
 											DataSetOption... opts)
 		throws DataSetExistsException {
 		return createDataSet(dsId, plan, new ExecutePlanOption[]{execOpt}, opts);
 	}
-	
+
+	/**
+	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
+	 * 생성된 데이터세트의 정보는 Marmot 카타로그에 등록된다.
+	 * 
+	 * @param dsId		생성될 데이터세트의 식별자.
+	 * @param plan		실행시킬 {@link Plan} 객체.
+	 * @param execOpts	Plan 수행에 필요한 추가 옵션 리스트.
+	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
+	 * @return	 생성된 데이터세트 객체.
+	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
+	 */
 	public DataSet createDataSet(String dsId, Plan plan, ExecutePlanOption[] execOpts,
 								DataSetOption... opts)
 			throws DataSetExistsException;
-	
-	public default DataSet createDataSet(String dsId, Plan plan, RecordSet input, DataSetOption... opts)
+
+	/**
+	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
+	 * 생성된 데이터세트의 정보는 Marmot 카타로그에 등록된다.
+	 * 
+	 * @param dsId		생성될 데이터세트의 식별자.
+	 * @param plan		실행시킬 {@link Plan} 객체.
+	 * @param input		Plan 수행중 사용할 입력 레코드세트
+	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
+	 * @return	 생성된 데이터세트 객체.
+	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
+	 */
+	public default DataSet createDataSet(String dsId, Plan plan, RecordSet input,
+										DataSetOption... opts)
 		throws DataSetExistsException {
+		Utilities.checkNotNullArgument(dsId, "dsId is null");
+		Utilities.checkNotNullArgument(plan, "plan is null");
+		Utilities.checkNotNullArgument(input, "input is null");
+		
 		RecordSchema outSchema = getOutputRecordSchema(plan, input.getRecordSchema());
 		DataSet created = createDataSet(dsId, outSchema, opts);
 		created.append(input, plan);
@@ -253,20 +292,101 @@ public interface MarmotRuntime {
 	 * 			별도의 결과 레코드세트가 생성되지 않은 경우는 {@code null}이 반환된다.
 	 */
 	public RecordSet executeLocally(Plan plan, RecordSet input);
-	
+
+	/**
+	 * 주어진 Plan을 수행시키고, 그 결과를 반환한다.
+	 * <p>
+	 * Plan 수행 결과로 생성된 결과 레코드세트의 첫번째 레코드를 반환한다.
+	 * 일반적으로 본 메소드는 plan 수행 결과로 단일 레코드가 생성되는 경우 주로 사용된다.
+	 * 
+	 * @param plan	수행시킬 실행 계획.
+	 * @param opts	실행 계획 옵션
+	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드.
+	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
+	 */
 	public FOption<Record> executeToRecord(Plan plan, ExecutePlanOption... opts);
+
+	/**
+	 * 주어진 Plan을 수행시키고, 그 결과를 반환한다.
+	 * <p>
+	 * Plan 수행 결과로 생성된 결과 레코드세트의 첫번째 레코드의 첫번째 컬럼 값을
+	 * {@link Geometry} 형식으로 변환하여 반환한다.
+	 * 일반적으로 본 메소드는 plan 수행 결과로 단일 컬럼으로 구성된 단일 레코드가
+	 * 생성되는 경우 주로 사용된다.
+	 * 
+	 * @param plan	수행시킬 실행 계획.
+	 * @param opts	실행 계획 옵션
+	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
+	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
+	 */
 	public default FOption<Geometry> executeToGeometry(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getGeometry(0));
 	}
+
+	/**
+	 * 주어진 Plan을 수행시키고, 그 결과를 반환한다.
+	 * <p>
+	 * Plan 수행 결과로 생성된 결과 레코드세트의 첫번째 레코드의 첫번째 컬럼 값을
+	 * {@link Integer} 형식으로 변환하여 반환한다.
+	 * 일반적으로 본 메소드는 plan 수행 결과로 단일 컬럼으로 구성된 단일 레코드가
+	 * 생성되는 경우 주로 사용된다.
+	 * 
+	 * @param plan	수행시킬 실행 계획.
+	 * @param opts	실행 계획 옵션
+	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
+	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
+	 */
 	public default FOption<Integer> executeToInt(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getInt(0));
 	}
+
+	/**
+	 * 주어진 Plan을 수행시키고, 그 결과를 반환한다.
+	 * <p>
+	 * Plan 수행 결과로 생성된 결과 레코드세트의 첫번째 레코드의 첫번째 컬럼 값을
+	 * {@link Long} 형식으로 변환하여 반환한다.
+	 * 일반적으로 본 메소드는 plan 수행 결과로 단일 컬럼으로 구성된 단일 레코드가
+	 * 생성되는 경우 주로 사용된다.
+	 * 
+	 * @param plan	수행시킬 실행 계획.
+	 * @param opts	실행 계획 옵션
+	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
+	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
+	 */
 	public default FOption<Long> executeToLong(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getLong(0));
 	}
+
+	/**
+	 * 주어진 Plan을 수행시키고, 그 결과를 반환한다.
+	 * <p>
+	 * Plan 수행 결과로 생성된 결과 레코드세트의 첫번째 레코드의 첫번째 컬럼 값을
+	 * {@link Double} 형식으로 변환하여 반환한다.
+	 * 일반적으로 본 메소드는 plan 수행 결과로 단일 컬럼으로 구성된 단일 레코드가
+	 * 생성되는 경우 주로 사용된다.
+	 * 
+	 * @param plan	수행시킬 실행 계획.
+	 * @param opts	실행 계획 옵션
+	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
+	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
+	 */
 	public default FOption<Double> executeToDouble(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getDouble(0));
 	}
+
+	/**
+	 * 주어진 Plan을 수행시키고, 그 결과를 반환한다.
+	 * <p>
+	 * Plan 수행 결과로 생성된 결과 레코드세트의 첫번째 레코드의 첫번째 컬럼 값을
+	 * {@link String} 형식으로 변환하여 반환한다.
+	 * 일반적으로 본 메소드는 plan 수행 결과로 단일 컬럼으로 구성된 단일 레코드가
+	 * 생성되는 경우 주로 사용된다.
+	 * 
+	 * @param plan	수행시킬 실행 계획.
+	 * @param opts	실행 계획 옵션
+	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
+	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
+	 */
 	public default FOption<String> executeToString(Plan plan, ExecutePlanOption... opts) {
 		return executeToRecord(plan, opts).map(r -> r.getString(0));
 	}
@@ -285,7 +405,7 @@ public interface MarmotRuntime {
 	
 	public void createKafkaTopic(String topic, boolean force);
 	
-	public void deleteHdfsFile(String path) throws IOException;
 	public void copyToHdfsFile(String path, Iterator<byte[]> blocks, FOption<Long> blockSize)
 		throws IOException;
+	public void deleteHdfsFile(String path) throws IOException;
 }
