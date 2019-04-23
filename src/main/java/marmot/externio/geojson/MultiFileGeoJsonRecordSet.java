@@ -14,11 +14,12 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import marmot.Column;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
-import marmot.geo.geotools.SimpleFeatures;
 import marmot.geo.geotools.SimpleFeatureRecordSet;
+import marmot.geo.geotools.SimpleFeatures;
 import marmot.rset.ConcatedRecordSet;
 import utils.Unchecked;
 import utils.io.FileUtils;
@@ -51,7 +52,11 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			m_charset = charset;
 			
 			m_first = parseGeoJson(m_files.next().get(), m_charset);
-			m_schema = m_first.getRecordSchema();
+			m_schema = FStream.from(m_first.getRecordSchema().getColumns())
+								.map(c -> ("geometry".equals(c.name()))
+											? new Column("the_geom", c.type()) : c)
+								.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+								.build();
 		}
 		catch ( IOException e ) {
 			throw new RecordSetException("fails to parse GeoJSON, cause=" + e);
