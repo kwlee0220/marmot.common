@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.vividsolutions.jts.geom.Envelope;
 
+import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
 import marmot.rset.PBInputStreamRecordSet;
@@ -197,7 +198,7 @@ public interface DataSet {
 	public boolean hasThumbnail();
 	public RecordSet readThumbnail(Envelope bounds, int count)
 		throws ThumbnailNotFoundException, InsufficientThumbnailException;
-	public void createThumbnail(int sampleCount) throws ClusterNotFoundException;
+	public void createThumbnail(int sampleCount) throws IndexNotFoundException;
 	public boolean deleteThumbnail();
 	public float getThumbnailRatio() throws ThumbnailNotFoundException;
 }

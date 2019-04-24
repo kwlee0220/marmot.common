@@ -19,6 +19,7 @@ import marmot.PlanExecutionException;
 import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
 import marmot.ThumbnailNotFoundException;
+import marmot.geo.catalog.IndexNotFoundException;
 import marmot.optor.RecordSetOperatorException;
 import marmot.support.PBException;
 import utils.Throwables;
@@ -40,6 +41,8 @@ public enum PBMarmotError {
 	RECORD_SET_ERROR(16, RecordSetException.class),
 	
 	COLUMN_NOT_FOUND(20, ColumnNotFoundException.class),
+	
+	INDEX_NOT_FOUND(30, IndexNotFoundException.class),
 	
 	PLAN_EXECUTION_INTERRUPTED(101, InterruptedException.class),
 	PLAN_EXECUTION_CANCELLED(102, CancellationException.class),
