@@ -1183,6 +1183,24 @@ public class PlanBuilder {
 								.build());
 	}
 	
+	/**
+	 * 주어진 데이터세트 클러스터 정보를 반환한다.
+	 * <p>
+	 * 클러스터 정보는 레코드 세트 형태로 반환되며, 각 클러스터마다 하나의 레코드로
+	 * 구성된다.
+	 * 각 레코드는 다음과 같은 컬럼으로 구성된다.
+	 * <ol>
+	 * 	<li> pack_id: 클러스터를 저장한 클러스터 파일 식별.
+	 * 	<li> block_no: 클러스터 파일 내에 해당 클러스터의 순번.
+	 * 	<li> quad_key: 클러스터 영역에 해당하는 quad-key 식별자.
+	 * 	<li> tile_bounds: 클러스터의 타일 영역.
+	 * 	<li> data_bounds: 클러스터에 저장된 데이터의 MBR 영역.
+	 * 	<li> count: 클러스터에 저장된 데이터의 캣수.
+	 * 	<li> owned_count: 클러스터에 저장된 데이터 중에서 본 클러스터 소유의 레코드 갯수.
+	 * 	<li> start: 클러스터 파일 내 저장된 클러스터의 시작 오프셋 (바이트 단위)
+	 * 	<li> length: 클러스터 파일 내 저장된 클러스터의 크기 (바이트 단위)
+	 * </ol>
+	 */
 	public PlanBuilder loadSpatialClusterIndexFile(String dataset) {
 		Utilities.checkNotNullArgument(dataset, "dataset is null");
 		

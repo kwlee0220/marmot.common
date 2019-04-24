@@ -116,6 +116,7 @@ public class PBRecordSetInputStream extends InputStream {
 				m_error = e;
 			}
 			finally {
+				m_rset.closeQuietly();
 				IOUtils.closeQuietly(m_os);
 			}
 			

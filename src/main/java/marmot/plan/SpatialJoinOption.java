@@ -24,8 +24,19 @@ public abstract class SpatialJoinOption {
 		return new JoinExprOption(expr);
 	}
 	
+	public static ClusterOuterRecordsOption CLUSTER_OUT_RECORDS(boolean flag) {
+		return new ClusterOuterRecordsOption(flag);
+	}
+	
 	public static SpatialJoinOptionsProto toProto(SpatialJoinOption... opts) {
 		return FStream.of(opts)
+					.collectLeft(SpatialJoinOptionsProto.newBuilder(),
+								(b,o) -> o.set(b))
+					.build();
+	}
+	
+	public static SpatialJoinOptionsProto toProto(Iterable<SpatialJoinOption> opts) {
+		return FStream.from(opts)
 					.collectLeft(SpatialJoinOptionsProto.newBuilder(),
 								(b,o) -> o.set(b))
 					.build();
@@ -42,7 +53,8 @@ public abstract class SpatialJoinOption {
 		}
 		switch ( proto.getOptionalClusterOuterRecordsCase() ) {
 			case CLUSTER_OUTER_RECORDS:
-				opts = ArrayUtils.add(opts, CLUSTER_OUT_RECORDS);
+				ClusterOuterRecordsOption opt = new ClusterOuterRecordsOption(proto.getClusterOuterRecords());
+				opts = ArrayUtils.add(opts, opt);
 				break;
 			default:
 		}
@@ -78,8 +90,22 @@ public abstract class SpatialJoinOption {
 	}
 	
 	public static class ClusterOuterRecordsOption extends SpatialJoinOption {
+		private final boolean m_flag;
+		
+		private ClusterOuterRecordsOption(boolean flag) {
+			m_flag = flag;
+		}
+		
+		private ClusterOuterRecordsOption() {
+			this(true);
+		}
+		
+		public boolean get() {
+			return m_flag;
+		}
+		
 		public void set(SpatialJoinOptionsProto.Builder builder) {
-			builder.setClusterOuterRecords(true);
+			builder.setClusterOuterRecords(m_flag);
 		}
 	}
 	

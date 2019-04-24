@@ -14,6 +14,10 @@ public class Range<T extends Comparable<T>> {
 	private EndPointType m_upperType;
 	private T m_upper;
 	
+	public static <T extends Comparable<T>> Range<T> of(T lower, T upper) {
+		return new Range<>(lower, EndPointType.CLOSED, upper, EndPointType.OPEN);
+	}
+	
 	public static <T extends Comparable<T>> Range<T> closed(T lower, T upper) {
 		return new Range<>(lower, EndPointType.CLOSED, upper, EndPointType.CLOSED);
 	}

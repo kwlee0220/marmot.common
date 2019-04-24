@@ -116,6 +116,9 @@ public class CsvRecordSet extends AbstractRecordSet {
 			String line = m_reader.readLine();
 			if ( line != null ) {
 				String[] values = m_parser.parseLine(line);
+				if ( values.length != m_columns.length ) {
+					throw new IOException("invalid CSV line: '" + values + "'");
+				}
 				set(output, values);
 				
 				return true;
@@ -135,6 +138,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 	}
 	
 	private void set(Record output, String[] values) {
+		
 		for ( int i =0; i < values.length; ++i ) {
 			if ( m_params.trimField() ) {
 				values[i] = values[i].trim();
