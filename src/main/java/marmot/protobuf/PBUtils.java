@@ -34,6 +34,7 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import marmot.PlanExecutionException;
 import marmot.Record;
+import marmot.RecordSchema;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.BoolProto;
 import marmot.proto.CoordinateProto;
@@ -49,6 +50,7 @@ import marmot.proto.PointProto;
 import marmot.proto.PropertiesProto;
 import marmot.proto.PropertiesProto.PropertyProto;
 import marmot.proto.ProtoBufSerializedProto;
+import marmot.proto.RecordProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.Size2dProto;
 import marmot.proto.Size2iProto;
@@ -69,6 +71,7 @@ import marmot.proto.service.VoidResponse;
 import marmot.remote.protobuf.PBMarmotError;
 import marmot.support.DateFunctions;
 import marmot.support.DateTimeFunctions;
+import marmot.support.DefaultRecord;
 import marmot.support.PBException;
 import marmot.support.PBSerializable;
 import marmot.support.TimeFunctions;
@@ -744,6 +747,30 @@ public class PBUtils {
 		return PropertiesProto.newBuilder()
 							.addAllProperty(properties)
 							.build();
+	}
+	
+	public static RecordProto toProto(Record record) {
+		return FStream.of(record.getAll())
+						.map(PBUtils::toValueProto)
+						.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
+						.build();
+	}
+	
+	public static void fromProto(Record output, RecordProto proto) {
+		Object[] values = proto.getColumnList().stream()
+								.map(PBUtils::fromProto)
+								.toArray();
+		output.setAll(values);
+	}
+	
+	public static Record fromProto(RecordSchema schema, RecordProto proto) {
+		Object[] values = proto.getColumnList().stream()
+								.map(PBUtils::fromProto)
+								.toArray();
+		Record output = DefaultRecord.of(schema);
+		output.setAll(values);
+		
+		return output;
 	}
 	
 	public static Map<String,Object> fromProto(KeyValueMapProto kvmProto) {
