@@ -40,22 +40,48 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 		m_length = length;
 	}
 	
+	/**
+	 * 공간 파티션에게 부여된 식별자를 반환한다.
+	 * 
+	 * @return	공간 파티션 식별자.
+	 */
 	public String getQuadKey() {
 		return m_quadKey;
 	}
 	
+	/**
+	 * 본 공간 파티션 영역을 반환한다.
+	 * 
+	 * @return	공간 파티션 영역.
+	 */
 	public Envelope getTileBounds() {
 		return m_tileBounds;
 	}
 	
+	/**
+	 * 본 공간 파티션에 저장된 모든 공간 데이터의 MBR 영역을 반환한다.
+	 * 
+	 * @return	공간 데이터의 MBR 영역
+	 */
 	public Envelope getDataBounds() {
 		return m_dataBounds;
 	}
 	
+	/**
+	 * 본 공간 파티션에 저장된 모든 공간 데이터의 갯수를 반환한다.
+	 * 
+	 * @return	공간 데이터의 갯수
+	 */
 	public int getRecordCount() {
 		return m_recordCount;
 	}
 	
+	/**
+	 * 본 공간 파티션에 저장된 공간 데이터들 중에서 본 파티션에 소속된
+	 * 공간 데이터들의 수를 반환한다.
+	 * 
+	 * @return	공간 데이터의 갯수
+	 */
 	public int getOwnedRecordCount() {
 		return m_ownedRecordCount;
 	}

@@ -72,16 +72,12 @@ public abstract class ConcatedRecordSet extends AbstractRecordSet {
 		return true;
 	}
 	
-	public static ConcatedRecordSet concat(RecordSchema schema,
-											FStream<? extends RecordSet> components) {
-		return new FStreamConcatedRecordSet(schema, components);
-	}
-	private static class FStreamConcatedRecordSet extends ConcatedRecordSet {
+	static class FStreamConcatedRecordSet extends ConcatedRecordSet {
 		private final RecordSchema m_schema;
 		private final FStream<? extends RecordSet> m_components;
 		
-		private FStreamConcatedRecordSet(RecordSchema schema,
-										FStream<? extends RecordSet> components) {
+		FStreamConcatedRecordSet(RecordSchema schema,
+								FStream<? extends RecordSet> components) {
 			Utilities.checkNotNullArgument(schema, "schema is null");
 			Utilities.checkNotNullArgument(components, "components is null");
 			

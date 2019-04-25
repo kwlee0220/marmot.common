@@ -116,8 +116,18 @@ public interface DataSet {
 	 */
 	public String getHdfsPath();
 	
+	/**
+	 * 테이터 세트가 저장된 HDFS 파일의 블럭 크기를 반환한다.
+	 * 
+	 * @return	파일 블럭 크기 (바이트 단위)
+	 */
 	public long getBlockSize();
 	
+	/**
+	 * 데이터 세트의 압축여부를 반환한다.
+	 * 
+	 * @return	반환 여부
+	 */
 	public boolean isCompressed();
 	
 	/**
@@ -152,6 +162,7 @@ public interface DataSet {
 	 */
 	public RecordSet read();
 	
+	@Deprecated
 	public RecordSet queryRange(Envelope range, FOption<String> filterExpr);
 	
 	/**
@@ -186,11 +197,39 @@ public interface DataSet {
 		return cluster(new ClusterDataSetOptions());
 	}
 	
+	/**
+	 * 데이터세트의 기본 공간 컬럼을 기준으로 인덱스(클러스터)를 생성한다.
+	 * <p>
+	 * 공간 인덱스가 생성되어 있지 않은 경우는 오류가 발생된다.
+	 * 
+	 * @param opts	공간 인덱스 생성 관련 인자.
+	 * @return	생성된 인덱스의 등록정보.
+	 */
 	public SpatialIndexInfo cluster(ClusterDataSetOptions opts);
+	
+	/**
+	 * 본 데이터 세트에 생성된 공간 인덱스(클러스터)를 삭제한다.
+	 */
 	public void deleteSpatialCluster();
 	
+	/**
+	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 공간 파티션들의
+	 * 등록 정보를 반환한다.
+	 * 
+	 *  @param bounds	질의 영역
+	 *  @return	공간 파티션 등록 정보 리스트.
+	 */
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
+	
+	@Deprecated
 	public InputStream readRawSpatialCluster(String quadKey);
+	
+	/**
+	 * 주어진 공간 파티션 식별자에 해당하는 파티션에 저장된 모든 공간 데이터를 반환한다.
+	 * 
+	 *  @param quadKey	공간 파티션 식별자.
+	 *  @return	공간 데이터 집합
+	 */
 	public default RecordSet readSpatialCluster(String quadKey) {
 		return PBInputStreamRecordSet.from(readRawSpatialCluster(quadKey));
 	}

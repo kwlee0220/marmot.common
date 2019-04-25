@@ -1,7 +1,5 @@
 package marmot.rset;
 
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -15,6 +13,8 @@ import io.reactivex.Observer;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import marmot.rset.ConcatedRecordSet.FStreamConcatedRecordSet;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -41,7 +41,31 @@ public class RecordSets {
 		Objects.requireNonNull(rset, "Base RecordSet");
 		Objects.requireNonNull(closer, "Closer");
 		
-		return new CloserAttachedRecordSet(rset, closer);
+		return new AbstractRecordSet() {
+			@Override
+			protected void closeInGuard() {
+				rset.closeQuietly();
+				
+				synchronized ( this ) {
+					closer.run();
+				}
+			}
+
+			@Override
+			public RecordSchema getRecordSchema() {
+				return rset.getRecordSchema();
+			}
+			
+			@Override
+			public boolean next(Record record) {
+				return rset.next(record);
+			}
+			
+			@Override
+			public Record nextCopy() {
+				return rset.nextCopy();
+			}
+		};
 	}
 	
 	public static RecordSet lazy(RecordSchema schema, Supplier<RecordSet> supplier) {
@@ -113,27 +137,31 @@ public class RecordSets {
 		return concat(rset1.getRecordSchema(), rset1, RecordSet.of(tail));
 	}
 	
-	public static RecordSet concat(RecordSchema schema, Collection<? extends RecordSet> rsets) {
+	public static RecordSet concat(RecordSchema schema, Iterable<? extends RecordSet> rsets) {
+		Utilities.checkNotNullArgument(rsets, "rsets is null");
+		
 		return concat(schema, FStream.from(rsets));
 	}
 	
 	public static RecordSet concat(RecordSchema schema, FStream<? extends RecordSet> rsets) {
-		return ConcatedRecordSet.concat(schema, rsets);
+		Utilities.checkNotNullArgument(schema, "schema is null");
+		Utilities.checkNotNullArgument(rsets, "rsets is null");
+		
+		return new FStreamConcatedRecordSet(schema, rsets);
 	}
 	
 	public static RecordSet concat(RecordSet rset1, RecordSet rset2) {
-		Objects.requireNonNull(rset1);
+		Utilities.checkNotNullArgument(rset1, "rset1 is null");
+		Utilities.checkNotNullArgument(rset2, "rset2 is null");
 		
-		return concat(rset1.getRecordSchema(), Arrays.asList(rset1, rset2));
+		return concat(rset1.getRecordSchema(), FStream.of(rset1, rset2));
 	}
 	
 	public static RecordSet concat(RecordSchema schema, RecordSet... rsets) {
-		return concat(schema, Arrays.asList(rsets));
+		Utilities.checkNotNullArguments(rsets, "rsets is null");
+		
+		return concat(schema, FStream.of(rsets));
 	}
-	
-//	public static PipedRecordSet pipe(RecordSchema schema) {
-//		return new PipedRecordSet(schema);
-//	}
 	
 	public static PipedRecordSet pipe(RecordSchema schema, int queueLength) {
 		return new PipedRecordSet(schema, queueLength);
@@ -145,12 +173,43 @@ public class RecordSets {
 				: new PushBackableRecordSetImpl(rset);
 	}
 	
-	public static TransformedRecordSet map(RecordSet rset, Function<Record,Record> transform) {
-		return new TransformedRecordSet(rset, transform);
-	}
-	
-	public static FilteredRecordSet filter(RecordSet rset, Predicate<Record> pred) {
-		return new FilteredRecordSet(rset, pred);
+	public static RecordSet filter(RecordSet rset, Predicate<Record> pred) {
+		Utilities.checkNotNullArgument(pred, "pred is null");
+		
+		return new AbstractRecordSet() {
+			@Override
+			public RecordSchema getRecordSchema() {
+				return rset.getRecordSchema();
+			}
+
+			@Override
+			protected void closeInGuard() throws Exception {
+				rset.closeQuietly();
+			}
+			
+			@Override
+			public boolean next(Record output) {
+				while ( next(output) ) {
+					if ( pred.test(output) ) {
+						return true;
+					}
+				}
+				
+				return false;
+			}
+			
+			@Override
+			public Record nextCopy() {
+				Record rec;
+				while ( (rec = nextCopy()) != null ) {
+					if ( pred.test(rec) ) {
+						return rec;
+					}
+				}
+				
+				return null;
+			}
+		};
 	}
 	
 	public static FlatTransformedRecordSet flatMap(RecordSet rset, RecordSchema outSchema,
@@ -159,7 +218,39 @@ public class RecordSets {
 	}
 	
 	public static RecordSet autoClose(RecordSet input) {
-		return new AutoClosingRecordSet(input);
+		return new AbstractRecordSet() {
+			@Override
+			public void closeInGuard() {
+				input.close();
+			}
+
+			@Override
+			public RecordSchema getRecordSchema() {
+				return input.getRecordSchema();
+			}
+			
+			@Override
+			public boolean next(Record record) {
+				boolean done = input.next(record);
+				if ( !done ) {
+					close();
+				}
+				
+				return done;
+			}
+			
+			@Override
+			public Record nextCopy() {
+				Record next = input.nextCopy();
+				if ( next == null ) {
+					close();
+					return null;
+				}
+				else {
+					return next;
+				}
+			}
+		};
 	}
 	
 	public static ProgressReportingRecordSet reportProgress(RecordSet rset, Observer<Long> observer,

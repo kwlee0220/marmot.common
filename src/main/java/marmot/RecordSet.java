@@ -4,10 +4,14 @@ import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
 
 import com.google.common.collect.Lists;
 
@@ -15,13 +19,14 @@ import io.reactivex.Observer;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.control.Try;
-import marmot.rset.IteratorRecordSet;
-import marmot.rset.RecordSetIterator;
+import marmot.rset.AbstractRecordSet;
+import marmot.rset.RecordSets;
 import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
 import utils.Throwables;
 import utils.Utilities;
 import utils.func.FOption;
+import utils.io.IOUtils;
 import utils.stream.FStream;
 
 
@@ -113,7 +118,24 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, FStream<Record> fstream) {
-		return new FStreamRecordSet(schema, fstream);
+		return new AbstractRecordSet() {
+			@Override
+			public RecordSchema getRecordSchema() {
+				return schema;
+			}
+			
+			@Override
+			protected void closeInGuard() throws Exception {
+				Try.run(fstream::close);
+			}
+			
+			@Override
+			public Record nextCopy() {
+				checkNotClosed();
+				
+				return fstream.next().getOrNull();
+			}
+		};
 	}
 
 	/**
@@ -141,14 +163,14 @@ public interface RecordSet extends Closeable {
 	 * 올바른 동작을 위해서는 인자인 {@code schema}와 레코드들의 스키마는 동일하여야 한다.
 	 * 
 	 * @param schema	생성될 레코드 세트의 스키마.
-	 * @param records	레코드 세트에 포함될 레코드 집합.
+	 * @param iter	레코드 세트에 포함될 레코드 집합.
 	 * @return	레코드 세트
 	 */
-	public static RecordSet from(RecordSchema schema, Iterable<? extends Record> records) {
+	public static RecordSet from(RecordSchema schema, Iterable<? extends Record> iter) {
 		Utilities.checkNotNullArgument(schema, "schema is null");
-		Utilities.checkNotNullArgument(records, "records is null");
+		Utilities.checkNotNullArgument(iter, "records is null");
 		
-		return new IteratorRecordSet(schema, records.iterator());
+		return from(schema, iter.iterator());
 	}
 
 	/**
@@ -157,14 +179,35 @@ public interface RecordSet extends Closeable {
 	 * 올바른 동작을 위해서는 인자인 {@code schema}와 레코드들의 스키마는 동일하여야 한다.
 	 * 
 	 * @param schema	생성될 레코드 세트의 스키마.
-	 * @param records	레코드 세트에 포함될 레코드 집합.
+	 * @param iter	레코드 세트에 포함될 레코드 집합.
 	 * @return	레코드 세트
 	 */
-	public static RecordSet from(RecordSchema schema, Iterator<? extends Record> records) {
+	public static RecordSet from(RecordSchema schema, Iterator<? extends Record> iter) {
 		Utilities.checkNotNullArgument(schema, "schema is null");
-		Utilities.checkNotNullArgument(records, "records is null");
+		Utilities.checkNotNullArgument(iter, "records is null");
 		
-		return new IteratorRecordSet(schema, records);
+		return new AbstractRecordSet() {
+			@Override
+			protected void closeInGuard() {
+				IOUtils.closeQuietly(iter);
+			}
+
+			@Override
+			public RecordSchema getRecordSchema() {
+				return schema;
+			}
+			
+			@Override
+			public Record nextCopy() {
+				checkNotClosed();
+				
+				return (iter.hasNext()) ? iter.next() : null;
+			}
+		};
+	}
+	
+	public default RecordSet filter(Predicate<Record> pred) {
+		return RecordSets.filter(this, pred);
 	}
 	
 	public default <S> S foldLeft(S accum, S stopper,
@@ -380,7 +423,33 @@ public interface RecordSet extends Closeable {
 	 * @return	레코드 세트 순환자 객체.
 	 */
 	public default Iterator<Record> iterator() {
-		return new RecordSetIterator(this);
+		return new Iterator<Record>() {
+			@Nullable private Record m_next;
+			
+			{
+				m_next = RecordSet.this.nextCopy();
+			}
+
+			@Override
+			public boolean hasNext() {
+				return m_next != null;
+			}
+
+			@Override
+			public Record next() {
+				if ( m_next != null ) {
+					Record next = m_next;
+					if ( (m_next = RecordSet.this.nextCopy()) == null ) {
+						 RecordSet.this.closeQuietly();
+					}
+					
+					return next;
+				}
+				else {
+					throw new NoSuchElementException();
+				}
+			}
+		};
 	}
 	
 	/**
