@@ -1,6 +1,5 @@
 package marmot;
 
-import java.io.InputStream;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Envelope;
@@ -8,7 +7,6 @@ import com.vividsolutions.jts.geom.Envelope;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
-import marmot.rset.PBInputStreamRecordSet;
 import utils.func.FOption;
 
 /**
@@ -221,18 +219,13 @@ public interface DataSet {
 	 */
 	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
 	
-	@Deprecated
-	public InputStream readRawSpatialCluster(String quadKey);
-	
 	/**
 	 * 주어진 공간 파티션 식별자에 해당하는 파티션에 저장된 모든 공간 데이터를 반환한다.
 	 * 
 	 *  @param quadKey	공간 파티션 식별자.
 	 *  @return	공간 데이터 집합
 	 */
-	public default RecordSet readSpatialCluster(String quadKey) {
-		return PBInputStreamRecordSet.from(readRawSpatialCluster(quadKey));
-	}
+	public RecordSet readSpatialCluster(String quadKey);
 	
 	public boolean hasThumbnail();
 	public RecordSet readThumbnail(Envelope bounds, int count)
