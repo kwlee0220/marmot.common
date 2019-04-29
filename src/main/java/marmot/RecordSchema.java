@@ -271,6 +271,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		
 		public boolean existsColumn(String name) {
 			Utilities.checkNotNullArgument(name, "column name is null");
+			Utilities.checkArgument(name.indexOf(',') == -1,
+									() -> "column name should not have ',', name=" + name);
 			
 			return m_columns.containsKey(CIString.of(name));
 		}
@@ -278,6 +280,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		public Builder addColumn(String name, DataType type) {
 			Utilities.checkNotNullArgument(name, "column name is null");
 			Utilities.checkNotNullArgument(type, "column type is null");
+			Utilities.checkArgument(name.indexOf(',') == -1,
+									() -> "column name should not have ',', name=" + name);
 			
 			CIString ciName = CIString.of(name);
 			Column col = new Column(ciName, type, m_columns.size());
@@ -296,6 +300,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		public Builder addColumnIfAbsent(String name, DataType type) {
 			Utilities.checkNotNullArgument(name, "column name is null");
 			Utilities.checkNotNullArgument(type, "column type is null");
+			Utilities.checkArgument(name.indexOf(',') == -1,
+									() -> "column name should not have ',', name=" + name);
 
 			CIString cname = CIString.of(name);
 			Column col = new Column(cname, type, m_columns.size());
@@ -306,6 +312,8 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		public Builder addOrReplaceColumn(String name, DataType type) {
 			Utilities.checkNotNullArgument(name, "column name is null");
 			Utilities.checkNotNullArgument(type, "column type is null");
+			Utilities.checkArgument(name.indexOf(',') == -1,
+									() -> "column name should not have ',', but " + name);
 			
 			Column col = m_columns.get(CIString.of(name));
 			if ( col != null ) {
