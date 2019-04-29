@@ -6,12 +6,10 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import marmot.Column;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
-import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.command.ImportParameters;
@@ -39,13 +37,13 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	
 	public static ImportGeoJson from(BufferedReader reader, GeoJsonParameters csvParams,
 									ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvParams, importParams);
+		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.empty(), csvParams, importParams);
 	}
 	
 	public static ImportGeoJson from(BufferedReader reader, Plan plan,
 									GeoJsonParameters csvParams,
 									ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvParams,
+		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.of(plan), csvParams,
 												importParams);
 	}
 
@@ -105,18 +103,8 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
-			RecordSet rset = new MultiFileGeoJsonRecordSet(m_start, m_gjsonParams.charset());
 			String tarGeomCol = m_params.getGeometryColumnInfo().get().name();
-			if ( !"geometry".equals(tarGeomCol) ) {
-				RecordSchema schema =rset.getRecordSchema().streamColumns()
-										.map(col -> col.matches("geometry")
-													? new Column(tarGeomCol, col.type()) : col)
-										.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
-										.build();
-				rset = RecordSet.from(schema, rset.stream());
-			}
-			
-			return rset;
+			return new MultiFileGeoJsonRecordSet(m_start, tarGeomCol, m_gjsonParams.charset());
 		}
 
 		@Override
@@ -130,11 +118,11 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		}
 	}
 	
-	private static class ImportCsvStreamIntoDataSet extends ImportGeoJson {
+	private static class ImportGeoJsonStreamIntoDataSet extends ImportGeoJson {
 		private final BufferedReader m_reader;
 		private final FOption<Plan> m_plan;
 		
-		ImportCsvStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
+		ImportGeoJsonStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
 									GeoJsonParameters csvParams, ImportParameters importParams) {
 			super(csvParams, importParams);
 			
@@ -145,18 +133,8 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
 			try {
-				RecordSet rset = MultiFileGeoJsonRecordSet.parseGeoJson(m_reader);
 				String tarGeomCol = m_params.getGeometryColumnInfo().get().name();
-				if ( !"geometry".equals(tarGeomCol) ) {
-					RecordSchema schema =rset.getRecordSchema().streamColumns()
-											.map(col -> col.matches("geometry")
-														? new Column(tarGeomCol, col.type()) : col)
-											.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
-											.build();
-					rset = RecordSet.from(schema, rset.stream());
-				}
-				
-				return rset;
+				return MultiFileGeoJsonRecordSet.parseGeoJson(m_reader, tarGeomCol);
 			}
 			catch ( IOException e ) {
 				throw new RecordSetException("fails to load MultiFileGeoJsonRecordSet: cause=" + e);

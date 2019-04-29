@@ -1,5 +1,6 @@
 package marmot.rset;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -7,9 +8,11 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
+import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -314,5 +317,49 @@ public class RecordSets {
 		public String toString() {
 			return m_rset.toString() + "(" + m_count + ")";
 		}
+	}
+	
+	public static class RenamedRecordSet extends AbstractRecordSet {
+		private final RecordSet m_src;
+		private final RecordSchema m_schema;
+		
+		public RenamedRecordSet(RecordSet src, Map<String,String> map) {
+			m_src = src;
+			
+			Map<String,String> remains = Maps.newHashMap(map);
+			m_schema = src.getRecordSchema().streamColumns()
+							.map(c -> {
+								String newName = remains.remove(c.name());
+								if ( newName != null ) {
+									return new Column(newName, c.type());
+								}
+								else {
+									return c;
+								}
+							})
+							.collectLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+							.build();
+		}
+
+		@Override
+		protected void closeInGuard() throws Exception {
+			m_src.close();
+		}
+
+		@Override
+		public RecordSchema getRecordSchema() {
+			return m_schema;
+		}
+
+		@Override
+		public boolean next(Record output) {
+			return m_src.next(output);
+		}
+
+		@Override
+		public Record nextCopy() {
+			return m_src.nextCopy();
+		}
+		
 	}
 }

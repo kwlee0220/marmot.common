@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -14,6 +15,7 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 import io.reactivex.Observer;
 import io.vavr.Tuple;
@@ -485,5 +487,11 @@ public interface RecordSet extends Closeable {
 		finally {
 			closeQuietly();
 		}
+	}
+	
+	public default RecordSet renameColumn(String src, String tar) {
+		Map<String,String> map = Maps.newHashMap();
+		map.put(src, tar);
+		return new RecordSets.RenamedRecordSet(this, map);
 	}
 }

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.util.Arrays;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +118,9 @@ public class CsvRecordSet extends AbstractRecordSet {
 			if ( line != null ) {
 				String[] values = m_parser.parseLine(line);
 				if ( values.length != m_columns.length ) {
-					throw new IOException("invalid CSV line: '" + values + "'");
+					String msg = String.format("invalid CSV line: # of cols(%d), expected=%d, csv=%s",
+							values.length, m_columns.length, Arrays.toString(values));
+					throw new IOException(msg);
 				}
 				set(output, values);
 				

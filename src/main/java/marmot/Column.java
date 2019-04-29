@@ -74,6 +74,10 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	
 	public static Column parse(String colStr) {
 		String[] parts = colStr.split(":");
+		if ( parts.length < 2 ) {
+			throw new IllegalArgumentException("invalid column specification: '" + colStr + "'");
+		}
+		
 		String typeStr = parts[1].trim();
 		return new Column(parts[0].trim(),
 							typeStr.equals("?") ? null : DataTypes.fromName(typeStr));

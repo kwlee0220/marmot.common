@@ -14,11 +14,9 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import marmot.Column;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
-import marmot.geo.geotools.SimpleFeatureRecordSet;
 import marmot.geo.geotools.SimpleFeatures;
 import marmot.rset.ConcatedRecordSet;
 import utils.Unchecked;
@@ -31,13 +29,15 @@ import utils.stream.FStream;
  */
 public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 	private static final Logger s_logger = LoggerFactory.getLogger(MultiFileGeoJsonRecordSet.class);
+	private static final String GEOJSON_GEOM_COLNAME = "geometry";
 	
 	private final FStream<File> m_files;
+	private final String m_geomColName;
 	private final Charset m_charset;
-	private SimpleFeatureRecordSet m_first;
+	private RecordSet m_first;
 	private final RecordSchema m_schema;
 	
-	public MultiFileGeoJsonRecordSet(File start, Charset charset) {
+	public MultiFileGeoJsonRecordSet(File start, String geomColName, Charset charset) {
 		setLogger(s_logger);
 		
 		try {
@@ -49,14 +49,11 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			getLogger().info("loading GeoJsonFile: from={}, nfiles={}", start, files.size());
 
 			m_files = FStream.from(files);
+			m_geomColName = geomColName;
 			m_charset = charset;
 			
-			m_first = parseGeoJson(m_files.next().get(), m_charset);
-			m_schema = FStream.from(m_first.getRecordSchema().getColumns())
-								.map(c -> ("geometry".equals(c.name()))
-											? new Column("the_geom", c.type()) : c)
-								.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
-								.build();
+			m_first = parseGeoJson(m_files.next().get(), m_geomColName, m_charset);
+			m_schema = m_first.getRecordSchema();
 		}
 		catch ( IOException e ) {
 			throw new RecordSetException("fails to parse GeoJSON, cause=" + e);
@@ -89,21 +86,26 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 		}
 		else {
 			return m_files.next()
-							.map(file -> Unchecked.supplyRTE(() -> parseGeoJson(file, m_charset)))
+							.map(file -> Unchecked.supplyRTE(() -> parseGeoJson(file, m_geomColName, m_charset)))
 							.getOrNull();
 		}
 	}
 	
-	public static SimpleFeatureRecordSet parseGeoJson(BufferedReader reader) throws IOException {
+	public static RecordSet parseGeoJson(BufferedReader reader, String geomColName)
+		throws IOException {
         FeatureJSON fjson = new FeatureJSON(new GeometryJSON());
 
 		FeatureIterator<SimpleFeature> iter = fjson.streamFeatureCollection(reader);
-		return SimpleFeatures.toRecordSet(iter);
+		RecordSet rset = SimpleFeatures.toRecordSet(iter);
+		if ( !GEOJSON_GEOM_COLNAME.equals(geomColName) ) {
+			rset = rset.renameColumn(GEOJSON_GEOM_COLNAME, geomColName);
+		}
+		return rset;
 	}
 	
-	public static SimpleFeatureRecordSet parseGeoJson(File file, Charset charset)
+	private static RecordSet parseGeoJson(File file, String geomColName, Charset charset)
 		throws IOException {
 		BufferedReader reader = Files.newBufferedReader(file.toPath(), charset);
-		return parseGeoJson(reader);
+		return parseGeoJson(reader, geomColName);
 	}
 }

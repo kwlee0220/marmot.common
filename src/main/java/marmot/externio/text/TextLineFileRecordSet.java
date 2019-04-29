@@ -14,7 +14,6 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
-import marmot.externio.geojson.MultiFileGeoJsonRecordSet;
 import marmot.rset.AbstractRecordSet;
 import marmot.rset.ConcatedRecordSet;
 import marmot.type.DataType;
@@ -27,7 +26,7 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class TextLineFileRecordSet extends ConcatedRecordSet {
-	private static final Logger s_logger = LoggerFactory.getLogger(MultiFileGeoJsonRecordSet.class);
+	private static final Logger s_logger = LoggerFactory.getLogger(TextLineFileRecordSet.class);
 	public static RecordSchema SCHEMA = RecordSchema.builder()
 													.addColumn("text", DataType.STRING)
 													.build();
