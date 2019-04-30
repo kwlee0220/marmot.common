@@ -14,6 +14,7 @@ import io.vavr.Tuple2;
 import marmot.MarmotInternalException;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -35,6 +36,7 @@ public class CsvParameters {
 	private FOption<String> m_header = FOption.empty();
 	private FOption<String> m_nullValue = FOption.empty();
 	private boolean m_tiger = false;
+	private FOption<Integer> m_maxColLength = FOption.empty();
 	
 	public static CsvParameters create() {
 		return new CsvParameters();
@@ -111,6 +113,19 @@ public class CsvParameters {
 		Objects.requireNonNull(header, "CSV header");
 		
 		m_header = FOption.of(header);
+		return this;
+	}
+	
+	public FOption<Integer> maxColumnLength() {
+		return m_maxColLength;
+	}
+
+	@Option(names={"-max_column_length"}, paramLabel="column_length",
+			description={"set maximum column length"})
+	public CsvParameters maxColumnLength(int length) {
+		Utilities.checkArgument(length > 0, "length > 0");
+		
+		m_maxColLength = FOption.of(length);
 		return this;
 	}
 	

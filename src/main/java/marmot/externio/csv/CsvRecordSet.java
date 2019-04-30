@@ -67,6 +67,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 		params.quote().ifPresent(format::setQuote);
 		params.escape().ifPresent(format::setCharToEscapeQuoteEscaping);
 		params.nullValue().ifPresent(settings::setNullValue);
+		params.maxColumnLength().ifPresent(settings::setMaxCharsPerColumn);
 		m_parser = new CsvParser(settings);
 		
 		String line = reader.readLine();
