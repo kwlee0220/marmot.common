@@ -41,25 +41,33 @@ public class CsvRecordSet extends AbstractRecordSet {
 	private final Column[] m_columns;
 	private String[] m_first;
 	
-	public static CsvRecordSet from(InputStream is, CsvParameters params) throws IOException {
+	static CsvRecordSet from(InputStream is, CsvParameters params) throws IOException {
+		Utilities.checkNotNullArgument(is, "is is null");
+		Utilities.checkNotNullArgument(params, "params is null");
+		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is, params.charset()));
 		return new CsvRecordSet(reader, params);
 	}
 	
-	public static CsvRecordSet from(BufferedReader reader, CsvParameters params) throws IOException {
+	static CsvRecordSet from(BufferedReader reader, CsvParameters params)
+		throws IOException {
+		Utilities.checkNotNullArgument(reader, "reader is null");
+		Utilities.checkNotNullArgument(params, "params is null");
+		
 		return new CsvRecordSet(reader, params);
 	}
 	
-	public static CsvRecordSet from(File file, CsvParameters params) throws IOException {
+	static CsvRecordSet from(File file, CsvParameters params) throws IOException {
+		Utilities.checkNotNullArgument(file, "file is null");
+		Utilities.checkNotNullArgument(params, "params is null");
+		
 		return new CsvRecordSet(Files.newBufferedReader(file.toPath(), params.charset()), params);
 	}
 	
 	private CsvRecordSet(BufferedReader reader, CsvParameters params) throws IOException {
-		Utilities.checkNotNullArgument(reader, "reader is null");
-		Utilities.checkNotNullArgument(params, "params is null");
-
 		m_reader = reader;
 		m_params = params;
+		setLogger(s_logger);
 
 		CsvParserSettings settings = new CsvParserSettings();
 		CsvFormat format = settings.getFormat();
@@ -142,7 +150,6 @@ public class CsvRecordSet extends AbstractRecordSet {
 	}
 	
 	private void set(Record output, String[] values) {
-		
 		for ( int i =0; i < values.length; ++i ) {
 			if ( m_params.trimField() ) {
 				values[i] = values[i].trim();

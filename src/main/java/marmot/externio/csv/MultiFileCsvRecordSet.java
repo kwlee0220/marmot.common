@@ -3,7 +3,6 @@ package marmot.externio.csv;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.rset.ConcatedRecordSet;
+import utils.Utilities;
 import utils.io.FileUtils;
 import utils.stream.FStream;
 
@@ -19,7 +19,7 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class MultiFileCsvRecordSet extends ConcatedRecordSet {
+class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	private static final Logger s_logger = LoggerFactory.getLogger(MultiFileCsvRecordSet.class);
 	
 	private final File m_start;
@@ -28,8 +28,9 @@ public class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	private CsvRecordSet m_first;
 	private final RecordSchema m_schema;
 	
-	public MultiFileCsvRecordSet(File start, CsvParameters params) {
-		Objects.requireNonNull(params);
+	MultiFileCsvRecordSet(File start, CsvParameters params) {
+		Utilities.checkNotNullArgument(start, "start is null");
+		Utilities.checkNotNullArgument(params, "params is null");
 		
 		m_start = start;
 		setLogger(s_logger);
