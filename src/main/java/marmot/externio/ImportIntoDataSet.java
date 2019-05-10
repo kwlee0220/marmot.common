@@ -6,7 +6,6 @@ import static marmot.DataSetOption.FORCE;
 import static marmot.DataSetOption.GEOMETRY;
 
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -23,6 +22,7 @@ import marmot.command.ImportParameters;
 import marmot.proto.optor.OperatorProto;
 import marmot.rset.RecordSets;
 import utils.Throwables;
+import utils.Utilities;
 import utils.async.ProgressReporter;
 import utils.func.FOption;
 
@@ -38,7 +38,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 	protected abstract FOption<Plan> loadImportPlan(MarmotRuntime marmot);
 	
 	public ImportIntoDataSet(ImportParameters params) {
-		Objects.requireNonNull(params);
+		Utilities.checkNotNullArgument(params, "params is null");
 
 		m_params = params;
 	}

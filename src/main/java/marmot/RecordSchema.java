@@ -176,7 +176,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 * 
 	 * @param key	여집합 레코드 스키마 생성에 사용할 다중 컬럼 키 객체.
 	 * @return	본 키에 포함되지 않은 컬럼으로 구성된 레코드 스키마.
-	 * @see #project(MultiColumnKey)
+	 * @see #project(List)
 	 */
 	public RecordSchema complement(List<String> key) {
 		Utilities.checkNotNullArgument(key, "key column list is null");

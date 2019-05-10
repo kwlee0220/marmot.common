@@ -46,18 +46,32 @@ message LoadOptionsProto {
 }
 
 message LoadDataSetProto {
-	string name = 1;
+	string ds_id = 1;
 	oneof optional_options {
 		LoadOptionsProto options = 2;
 	}
 }
 
 message QueryDataSetProto {
-	string name = 1;
-	string spatial_relation = 2;
-	oneof either {
-		GeometryProto key = 3;
-		string key_value_dataset = 4;
+	string ds_id = 1;
+	oneof either_key {
+		GeometryProto key_geometry = 2;
+		string key_dataset = 3;
+	}
+	oneof optional_options {
+		PredicateOptionsProto options = 4;
+	}
+}
+
+message FilterSpatiallyProto {
+	string geometry_column = 1;
+	oneof either_key {
+		GeometryProto key_geometry = 2;
+		string key_dataset = 3;
+	}
+	string spatial_relation = 4;
+	oneof optional_options {
+		PredicateOptionsProto options = 5;
 	}
 }
 
@@ -251,37 +265,27 @@ message StoreAndReloadProto {
 }
 
 
-/*
-message ValueAggregateProto {
-	string aggr_name = 1;
-	oneof optional_aggr_col {
-		string aggr_col = 2;
+/************************************
+ ************************************
+ *	GroupBy 관련 연산자 정보
+ ************************************
+ ************************************/
+message TransformByGroupProto {
+	GroupByKeyProto grouper = 1;
+	ReducerProto transform = 2;
+}
+message ConsumeByGroupProto {
+	GroupByKeyProto grouper = 1;
+	oneof optional_transform {
+		ReducerProto transform = 2;
 	}
-	string out_col = 3;
-	repeated string parameter = 4;
-}
-*/
-message ValueAggregateReducerProto {
-	repeated string aggregate = 1;
-}
-message FindFirstReducerProto { }
-message PutSideBySideProto {
-	marmot.proto.RecordSchemaProto output_schema = 1;
-	string value_column = 2;
-	string tag_column = 3;
-}
-message FindMaxValueRecordProto {
-	string compare_key_columns = 1;
+	marmot.proto.SerializedProto consumer = 3;	// RecordSetConsumer
 }
 
-message ReduceProto {
-	oneof oneof_reducer {
-		ValueAggregateReducerProto val_aggregate = 2;
-		marmot.proto.SerializedProto reducer = 3;	// RecordSetFunction
-	}
-}
-
-
+/************************************
+ *	GroupBy 관련 grouping 정보
+ ************************************/
+ 
 message GroupByKeyProto {
 	string compare_columns = 1;
 	oneof optional_tag_columns {
@@ -294,21 +298,45 @@ message GroupByKeyProto {
 		int32 group_worker_count = 4;
 	}
 }
-message TransformByGroupProto {
-	GroupByKeyProto grouper = 1;
-	repeated marmot.proto.SerializedProto functions = 2;
+
+/************************************
+ *	GroupBy 관련 reducer 연산자 정보
+ ************************************/
+message ReducerProto {
+	oneof oneof_reducer {
+		ValueAggregateReducersProto val_aggregates = 1;
+		TakeReducerProto take = 2;
+		ListReducerProto list = 3;
+		RunPlanProto run_plan = 4;
+		PutSideBySideProto put_side_by_side = 5;
+		marmot.proto.SerializedProto reducer = 6;		// RecordSetFunction
+	}
 }
-message ConsumeByGroupProto {
-	GroupByKeyProto grouper = 1;
-	marmot.proto.SerializedProto consumer = 2;	// RecordSetConsumer
-	repeated marmot.proto.SerializedProto functions = 3;
+message ValueAggregateReducersProto {	// aggregation 관련
+	repeated string aggregate = 1;
 }
+message ListReducerProto { }			// list
+message TakeReducerProto {				// take(n)
+	int64 count = 1;
+}
+message RunPlanProto {
+	PlanProto plan = 1;
+}
+message PutSideBySideProto {
+	RecordSchemaProto output_schema = 1;
+	string value_column = 2;
+	string tag_column = 3;
+}
+
+
+
 message StoreKeyedDataSetProto {
 	string root_path = 1;
 	oneof optional_options {
 		marmot.proto.service.DataSetOptionsProto options = 2;
 	}
 }
+
 
 message ScriptRecordSetReducerProto {
 	marmot.proto.RecordSchemaProto output_schema = 1;
@@ -325,9 +353,6 @@ message ScriptRecordSetCombinerProto {
 		string initialize_expr = 1;
 	}
 	string combiner_expr = 2;
-}
-message PlanBasedRecordSetFunctionProto {
-	PlanProto plan = 1;
 }
 
 
@@ -471,7 +496,7 @@ message SpatialDifferenceJoinProto {
 message SpatialReduceJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	ValueAggregateReducerProto reducer = 3;
+	ValueAggregateReducersProto reducer = 3;
 	oneof optional_options {
 		SpatialJoinOptionsProto options = 4;
 	}
@@ -502,7 +527,7 @@ message EstimateIDWProto {
 		EstimateIDWOptionsProto options = 7;
 	}
 }
-message SpatialInterpolationProto {
+message InterpolateSpatiallyProto {
 	string geom_column = 1;
 	string param_dataset = 2;
 	string value_columns = 3;
@@ -570,19 +595,6 @@ message DropEmptyGeometryProto {
 	string geometry_column = 1;
 	oneof optional_options {
 		PredicateOptionsProto options = 2;
-	}
-}
-message MatchSpatiallyProto {
-	string geometry_column = 1;
-	oneof either_key {
-		GeometryProto key = 2;
-		string key_value_dataset = 3;
-	}
-	oneof optional_spatial_relation {
-		string relation = 4;
-	}
-	oneof optional_options {
-		PredicateOptionsProto options = 5;
 	}
 }
 message UnarySpatialIntersectsProto {
@@ -860,7 +872,7 @@ message OperatorProto {
 		ParseCsvProto parse_csv = 156;
 		
 		DistinctProto distinct = 201;
-		ReduceProto reduce = 202;
+		ReducerProto reduce = 202;
 		TransformByGroupProto transform_by_group = 203;
 		ConsumeByGroupProto consume_by_group = 204;
 		DissolveProto dissolve = 205;
@@ -873,7 +885,7 @@ message OperatorProto {
 		BinarySpatialIntersectsProto binary_spatial_intersects = 402;
 		DropEmptyGeometryProto drop_empty_geometry = 403;
 		WithinDistanceProto within_distance = 404;
-		MatchSpatiallyProto match_spatially = 405;
+		FilterSpatiallyProto filter_spatially = 405;
 		
 		// basic geometry transform operators
 		CentroidTransformProto centroid = 501;
@@ -898,7 +910,7 @@ message OperatorProto {
 		LoadGetisOrdGiProto load_getis_ord_gi = 603;
 		EstimateIDWProto estimate_idw = 605;
 		EstimateKernelDensityProto estimate_kernel_density = 606;
-		SpatialInterpolationProto spatial_interpolation = 607;
+		InterpolateSpatiallyProto spatial_interpolation = 607;
 		
 		// graph algorithm operators
 		ExpandNodeCoverageProto expand_node_coverage = 650;

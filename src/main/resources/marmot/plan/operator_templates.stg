@@ -1,5 +1,5 @@
-load(ds_id) ::= <<
-{ "loadDataset": { "name": "<ds_id>"} }
+load(dsId) ::= <<
+{ "loadDataset": { "dsId": "<dsId>"} }
 >>
 
 filter(pred, init=[]) ::= <<
@@ -12,8 +12,8 @@ filter(pred, init=[]) ::= <<
 }
 >>
 
-project(cols_expr) ::= <<
-{ "project": { "columnExpr": "<cols_expr>" } }
+project(colsExpr) ::= <<
+{ "project": { "columnExpr": "<colsExpr>" } }
 >>
 
 update(expr, init=[]) ::= <<
@@ -26,40 +26,40 @@ update(expr, init=[]) ::= <<
 }
 >>
 
-define_column(col_decl, col_init=[], global_init=[]) ::= <<
+defineColumn(colDecl, colInit=[], globalInit=[]) ::= <<
 { "defineColumn": {
-    "columnDecl": "<col_decl>"<if(col_init)>,
-    "columnInitializer": {<if(global_init)>
-       "initializer": "<global_init>",
+    "columnDecl": "<colDecl>"<if(colInit)>,
+    "columnInitializer": {<if(globalInit)>
+       "initializer": "<globalInit>",
        <endif>
-       "expr": "<col_init>"
+       "expr": "<colInit>"
     }
     <endif>
   }
 }
 >>
 
-expand(col_decls, col_init=[], init=[]) ::= <<
+expand(colDecls, colInit=[], init=[]) ::= <<
 { "expand": {
-    "column_decls": "<col_decls>" <if(col_init)>,
+    "columnDecls": "<colDecls>" <if(colInit)>,
     "columnInitializer": {<if(init)>
        "initializer": "<init>",
        <endif>
-       "expr": "<col_init>"
+       "expr": "<colInit>"
     }
     <endif>
   }
 }
 >>
 
-parse_csv(input_column, header, delim=",", quote=[], null_value=[], comment=[]) ::= <<
+parseCsv(inputColumn, header, delim=",", quote=[], nullValue=[], comment=[]) ::= <<
 { "parseCsv": {
-    "textColumn": "<input_column>",
+    "textColumn": "<inputColumn>",
     "delimiter": "<delim>",
     "options": {
       "headerColumns": "<header>"<if(quote)>,
-      "quote": "<quote>"<endif><if(null_value)>,
-      "nullValue": "<null_value>"<endif><if(comment)>,
+      "quote": "<quote>"<endif><if(nullValue)>,
+      "nullValue": "<nullValue>"<endif><if(comment)>,
       "commentMarker": "<comment>"
       <endif>
     }
@@ -71,20 +71,20 @@ sample(ratio) ::= <<
 { "sample": { "sampleRatio": <ratio> } }
 >>
 
-assign_uid(col) ::= <<
+assignUid(col) ::= <<
 { "assignUid": { "uidColumn": "<col>" } }
 >>
 
-pick_top_k(cols_expr, k) ::= <<
+pickTopK(colsExpr, k) ::= <<
 { "pickTopK": {
-    "sortKeyColumns": "<cols_expr>",
+    "sortKeyColumns": "<colsExpr>",
     "topK": <k>
   }
 }
 >>
 
-sort(sort_cols_expr) ::= <<
-{ "sort": { "sortColumns": "<sort_cols_expr>" } }
+sort(sortColsExpr) ::= <<
+{ "sort": { "sortColumns": "<sortColsExpr>" } }
 >>
 
 distinct(cols, nworkers=[]) ::= <<
@@ -97,19 +97,40 @@ distinct(cols, nworkers=[]) ::= <<
 >>
 
 aggregate(aggrs) ::= <<
-{ "reduce": { "valAggregate": { "aggregate": [<aggrs:{a | "<a>"}; separator=",">] } } }
+{ "reduce": { "valAggregates": { "aggregate": [<aggrs:{a | "<a>"}; separator=",">] } } }
 >>
 
-aggregate_by_key(cmp_cols,aggrs,tag_cols=[],nworkers=[]) ::= <<
+aggregateByGroup(groupKeyCols,aggrs,tagCols=[],nworkers=[]) ::= <<
 { "transformByGroup": {
   	"grouper": {
-      "compareColumns": "<cmp_cols>"<if(tag_cols)>,
-      "tagColumns" : "<tag_cols>"
+      "compareColumns": "<groupKeyCols>"<if(tagCols)>,
+      "tagColumns" : "<tagCols>"
+      <endif><if(nworkers)>,
+      "groupWorkerCount" : <nworkers>
+      <else>
+      <endif>
+  	},
+    "transform": {
+  	  "valAggregates": { "aggregate": [<aggrs:{aggr | "<aggr>"}; separator=",">] }
+    }
+  }
+}
+>>
+
+takeByGroup(groupKeyCols, orderCols=[], count=[], nworkers=[]) ::= <<
+{ "transformByGroup": {
+  	"grouper": {
+      "compareColumns": "<groupKeyCols>"<if(orderCols)>,
+      "orderColumns": "<orderCols>"<else>
       <endif><if(nworkers)>,
       "groupWorkerCount" : "<nworkers>"
       <endif>
   	},
-  	"valAggregate": { "aggregate": [<aggrs:{aggr | "<aggr>"}; separator=",">] }
+  	<if(count)>
+    "transform": { "take": { "count": <count>} }
+  	<else>
+    "transform": { "list": {} }
+  	<endif>
   }
 }
 >>
@@ -118,160 +139,142 @@ shard(count) ::= <<
 { "shard": { "partCount": <count> } }
 >>
 
-hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+hashJoin(jcols, paramDsId, paramJoinCols, outCols, nworkers=[]) ::= <<
 { "hashJoin": {
     "joinColumns": "<jcols>",
-    "paramDataset": "<param_dsid>",
-    "paramColumns": "<param_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "paramDataset": "<paramDsId>",
+    "paramColumns": "<paramJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "INNER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-semi_hash_join(jcols, param_dsid, param_jcols, nworkers=[]) ::= <<
+semiHashJoin(jcols, paramDsId, paramJoinCols, nworkers=[]) ::= <<
 { "hashJoin": {
     "joinColumns": "<jcols>",
-    "paramDataset": "<param_dsid>",
-    "paramColumns": "<param_jcols>",
+    "paramDataset": "<paramDsId>",
+    "paramColumns": "<paramJoinCols>",
     "joinOptions": { "joinType": "SEMI_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-left_outer_hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+leftOuterHashJoin(jcols, paramDsId, paramJoinCols, outCols, nworkers=[]) ::= <<
 { "hashJoin": {
     "joinColumns": "<jcols>",
-    "paramDataset": "<param_dsid>",
-    "paramColumns": "<param_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "paramDataset": "<paramDsId>",
+    "paramColumns": "<paramJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "LEFT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-right_outer_hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+rightOuterHashJoin(jcols, paramDsId, paramJoinCols, outCols, nworkers=[]) ::= <<
 { "hashJoin": {
     "joinColumns": "<jcols>",
-    "paramDataset": "<param_dsid>",
-    "paramColumns": "<param_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "paramDataset": "<paramDsId>",
+    "paramColumns": "<paramJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "RIGHT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-full_outer_hash_join(jcols, param_dsid, param_jcols, out_cols, nworkers=[]) ::= <<
+fullOuterHashJoin(jcols, paramDsId, paramJoinCols, outCols, nworkers=[]) ::= <<
 { "hashJoin": {
     "joinColumns": "<jcols>",
-    "paramDataset": "<param_dsid>",
-    "paramColumns": "<param_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "paramDataset": "<paramDsId>",
+    "paramColumns": "<paramJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "FULL_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
 
-load_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+loadHashJoin(leftDsId, leftJoinCols, rightDsId, rightJoinCols, outCols, nworkers=[]) ::= <<
 { "loadHashJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "leftDataset": "<leftDsId>",
+    "leftJoinColumns": "<leftJoinCols>",
+    "rightDataset": "<rightDsId>",
+    "rightJoinColumns": "<rightJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "INNER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-load_semi_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+loadSemiHashJoin(leftDsId, leftJoinCols, rightDsId, rightJoinCols, outCols, nworkers=[]) ::= <<
 { "loadHashJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "leftDataset": "<leftDsId>",
+    "leftJoinColumns": "<leftJoinCols>",
+    "rightDataset": "<rightDsId>",
+    "rightJoinColumns": "<rightJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "SEMI_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-load_left_outer_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+loadLeftOuterHashJoin(leftDsId, leftJoinCols, rightDsId, rightJoinCols, outCols, nworkers=[]) ::= <<
 { "loadHashJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "leftDataset": "<leftDsId>",
+    "leftJoinColumns": "<leftJoinCols>",
+    "rightDataset": "<rightDsId>",
+    "rightJoinColumns": "<rightJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "LEFT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-load_right_outer_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+loadRightOuterHashJoin(leftDsId, leftJoinCols, rightDsId, rightJoinCols, outCols, nworkers=[]) ::= <<
 { "loadHashJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "leftDataset": "<leftDsId>",
+    "leftJoinColumns": "<leftJoinCols>",
+    "rightDataset": "<rightDsId>",
+    "rightJoinColumns": "<rightJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "RIGHT_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
-load_full_outer_hash_join(left_dsid, left_jcols, right_dsid, right_jcols, out_cols, nworkers=[]) ::= <<
+loadFullOuterHashJoin(leftDsId, leftJoinCols, rightDsId, rightJoinCols, outCols, nworkers=[]) ::= <<
 { "loadHashJoin": {
-    "leftDataset": "<left_dsid>",
-    "leftJoinColumns": "<left_jcols>",
-    "rightDataset": "<right_dsid>",
-    "rightJoinColumns": "<right_jcols>",
-    "outputColumnsExpr": "<out_cols>",
+    "leftDataset": "<leftDsId>",
+    "leftJoinColumns": "<leftJoinCols>",
+    "rightDataset": "<rightDsId>",
+    "rightJoinColumns": "<rightJoinCols>",
+    "outputColumnsExpr": "<outCols>",
     "joinOptions": { "joinType": "FULL_OUTER_JOIN"<if(nworkers)>, "workerCount": <nworkers><endif> }
   }
 }
 >>
 
-query(dsid, key_dsid, rel="intersects") ::= <<
+query(dsId, keyDsId) ::= <<
 { "queryDataset": {
-    "name": "<dsid>",
-    "spatialRelation": "<rel>",
-    "keyValueDataset": "<key_dsid>"
+    "name": "<dsId>",
+    "spatialRelation": "intersects",
+    "keyValueDataset": "<keyDsId>"
   }
 }
 >>
-query_dist(dsId, dist, rel="intersects") ::= <<
+queryDist(dsId, keyDsId, dist) ::= <<
 { "queryDataset": {
-    "name": "<dsid>",
+    "name": "<dsId>",
     "spatialRelation": "within_distance(<dist>)",
-    "keyValueDataset": "<key_dsid>"
+    "keyValueDataset": "<keyDsId>"
   }
 }
 >>
 
-load_spatial_indexjoin(left_dsid, right_dsid, output_cols) ::= <<
-{ "loadSpatialIndexJoin": {
-    "leftDataset": "<left_dsid>",
-    "rightDataset": "<right_dsid>",
-    "joinExpr": "intersects",
-    "outputColumnsExpr": "<output_cols>"
-  }
-}
->>
-load_spatial_indexjoin_dist(left_dsid, right_dsid, output_cols, dist) ::= <<
-{ "loadSpatialIndexJoin": {
-    "leftDataset": "<left_dsid>",
-    "rightDataset": "<right_dsid>",
-    "joinExpr": "within_distance(<dist>)",
-    "outputColumnsExpr": "<output_cols>"
-  }
-}
->>
-
-load_grid(dsid, width, height, nparts=[]) ::= <<
+loadGrid(dsId, width, height, nparts=[]) ::= <<
 { "loadSquareGridfile": {
     "grid": {
-      "dataset": "<dsid>",
+      "dataset": "<dsId>",
       "cellSize": { "width": <width>, "height": <height> }
     }<if(nparts)>,
     "workerCount": <nparts>
+    <else>
     <endif>
   }
 }
 >>
-load_grid_bounds(tlx, tly, brx, bry, width, height, nparts=[]) ::= <<
+loadGridBounds(tlx, tly, brx, bry, width, height, nparts=[]) ::= <<
 { "loadSquareGridfile": {
     "grid": {
       "bounds": {
@@ -281,35 +284,71 @@ load_grid_bounds(tlx, tly, brx, bry, width, height, nparts=[]) ::= <<
       "cellSize": { "width": <width>, "height": <height> }
     }<if(nparts)>,
     "workerCount": <nparts>
+    <else>
     <endif>
   }
 }
 >>
 
-to_point(x, y, out="the_geom") ::= <<
+toPoint(x, y, out="the_geom") ::= <<
 { "toPoint": { "xColumn": "<x>", "yColumn": "<y>", "outColumn": "<out>" } }
 >>
-to_xy_coordinates(x, y, out="the_geom") ::= <<
+toXYCoordinates(x, y, out="the_geom") ::= <<
 { "toXYCoordinates": { "outColumn": "<out>", "xColumn": "<x>", "yColumn": "<y>"  } }
 >>
 
-buffer(dist, geom_col="the_geom") ::= <<
-{ "buffer": { "geometryColumn": "<geom_col>", "distance": <dist>  } }
+buffer(dist, geomCol="the_geom") ::= <<
+{ "buffer": { "geometryColumn": "<geomCol>", "distance": <dist>  } }
 >>
 
-centroid(geom_col="the_geom") ::= <<
-{ "centroid": { "geometryColumn": "<geom_col>" } }
+centroid(geomCol="the_geom") ::= <<
+{ "centroid": { "geometryColumn": "<geomCol>" } }
 >>
 
-transform_crs(srcSrid, tarSrid, geom_col="the_geom") ::= <<
-{ "transformCrs": { "geometryColumn": "<geom_col>", "sourceSrid": "<srcSrid>", "targetSrid": "<tarSrid>" } }
+transformCrs(srcSrid, tarSrid, geomCol="the_geom") ::= <<
+{ "transformCrs": { "geometryColumn": "<geomCol>", "sourceSrid": "<srcSrid>", "targetSrid": "<tarSrid>" } }
 >>
 
-match_spatially(param_dsid, rel="intersects", negated=[], geom_col="the_geom") ::= <<
-{ "matchSpatially": {
-  	"geometryColumn": "<geom_col>",
-  	"keyValueDataset": "<param_dsid>",
-  	"relation": "<rel>"<if(negated)>,
+intersection(leftGeomcol, rightGeomcol, outGeomcol="the_geom") ::= <<
+{ "binarySpatialIntersection": {
+  	"leftGeometryColumn": "<leftGeomcol>",
+  	"rightGeometryColumn": "<rightGeomcol>",
+  	"outGeometryColumn": "<outGeomcol>"
+  }
+}
+>>
+
+assignGridCell(dsId, cellWidth, cellHeight) ::= <<
+{ "assignSquareGridCell": {
+    "grid": {
+      "dataset": "<dsId>",
+      "cellSize": { "width": <cellWidth>, "height": <cellHeight> }
+    },
+    "geometryColumn": "the_geom",
+    "ignoreOutside": true
+  }
+}
+>>
+assignGridCell_bounds(tlx, tly, brx, bry, cellWidth, cellHeight) ::= <<
+{ "assignSquareGridCell": {
+    "grid": {
+      "bounds": {
+        "tl": { "x": <tlx>, "y": <tly> },
+        "br": { "x": <brx>, "y": <bry> }
+      }
+      "cellSize": { "width": <cellWidth>, "height": <cellHeight> }
+    },
+    "geometryColumn": "the_geom",
+    "ignoreOutside": true
+  }
+}
+>>
+
+filterSpatially(paramDsId, rel="intersects", negated=[], geomCol="the_geom") ::= <<
+{ "filterSpatially": {
+  	"geometryColumn": "<geomCol>",
+  	"keyDataset": "<paramDsId>",
+  	"spatialRelation": "<rel>"<if(negated)>,
     "options": {
       "negated": <negated>
     }
@@ -318,54 +357,21 @@ match_spatially(param_dsid, rel="intersects", negated=[], geom_col="the_geom") :
 }
 >>
 
-intersection(left_geomcol, right_geomcol, out_geomcol="the_geom") ::= <<
-{ "binarySpatialIntersection": {
-  	"leftGeometryColumn": "<left_geomcol>",
-  	"rightGeometryColumn": "<right_geomcol>",
-  	"outGeometryColumn": "<out_geomcol>"
-  }
-}
->>
 
-assign_gridcell(dsid, cell_width, cell_height) ::= <<
-{ "assignSquareGridCell": {
-    "grid": {
-      "dataset": "<dsid>",
-      "cellSize": { "width": <cell_width>, "height": <cell_height> }
-    },
-    "geometryColumn": "the_geom",
-    "ignoreOutside": true
-  }
-}
->>
-assign_gridcell_bounds(tlx, tly, brx, bry, cell_width, cell_height) ::= <<
-{ "assignSquareGridCell": {
-    "grid": {
-      "bounds": {
-        "tl": { "x": <tlx>, "y": <tly> },
-        "br": { "x": <brx>, "y": <bry> }
-      }
-      "cellSize": { "width": <cell_width>, "height": <cell_height> }
-    },
-    "geometryColumn": "the_geom",
-    "ignoreOutside": true
-  }
-}
->>
 
-spatial_join(param_dsid, output_cols, geom_col="the_geom") ::= <<
+spatialJoin(paramDsId, outputCols, geomCol="the_geom") ::= <<
 { "spatialBlockJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>",
-    "outputColumns": "<output_cols>"
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
+    "outputColumns": "<outputCols>"
   }
 }
 >>
-spatial_join_dist(param_dsid, output_cols, dist, geom_col="the_geom") ::= <<
+spatialJoinDist(paramDsId, outputCols, dist, geomCol="the_geom") ::= <<
 { "spatialBlockJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>",
-    "outputColumns": "<output_cols>",
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
+    "outputColumns": "<outputCols>",
     "options": {
       "joinExpr": "within_distance(<dist>)"
     }
@@ -373,10 +379,10 @@ spatial_join_dist(param_dsid, output_cols, dist, geom_col="the_geom") ::= <<
 }
 >>
 
-spatial_semijoin(param_dsid, negated=[], geom_col="the_geom") ::= <<
+spatialSemiJoin(paramDsId, negated=[], geomCol="the_geom") ::= <<
 { "spatialSemiJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>"<if(negated)>,
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>"<if(negated)>,
     "options": {
       "negated": <negated>
     }
@@ -384,10 +390,10 @@ spatial_semijoin(param_dsid, negated=[], geom_col="the_geom") ::= <<
   }
 }
 >>
-spatial_semijoin_dist(param_dsid, dist, negated=[], geom_col="the_geom") ::= <<
+spatialSemiJoinDist(paramDsId, dist, negated=[], geomCol="the_geom") ::= <<
 { "spatialSemiJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>",
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
     "options": {
       "joinExpr": "within_distance(<dist>)"<if(negated)>,
       "negated": <negated>
@@ -397,11 +403,11 @@ spatial_semijoin_dist(param_dsid, dist, negated=[], geom_col="the_geom") ::= <<
 }
 >>
 
-spatial_outerjoin(param_dsid, output_cols, negated=[], geom_col="the_geom") ::= <<
+spatialOuterJoin(paramDsId, outputCols, negated=[], geomCol="the_geom") ::= <<
 { "spatialOuterJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>",
-    "outputColumns": "<output_cols>"<if(negated)>,
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
+    "outputColumns": "<outputCols>"<if(negated)>,
     "options": {
       "negated": <negated>
     }
@@ -409,11 +415,11 @@ spatial_outerjoin(param_dsid, output_cols, negated=[], geom_col="the_geom") ::= 
   }
 }
 >>
-spatial_outerjoin_dist(param_dsid, output_cols, dist, negated=[], geom_col="the_geom") ::= <<
+spatialOuterJoinDist(paramDsId, outputCols, dist, negated=[], geomCol="the_geom") ::= <<
 { "spatialOuterJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>",
-    "outputColumns": "<output_cols>",
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
+    "outputColumns": "<outputCols>",
     "options": {
       "joinExpr": "within_distance(<dist>)"<if(negated)>,
       "negated": <negated>
@@ -423,40 +429,99 @@ spatial_outerjoin_dist(param_dsid, output_cols, dist, negated=[], geom_col="the_
 }
 >>
 
-spatial_aggregate_join(param_dsid, geom_col="the_geom") ::= <<
+loadSpatialIndexJoin(leftDsId, rightDsId, outputCols=[]) ::= <<
+{ "loadSpatialIndexJoin": {
+    "leftDataset": "<leftDsId>",
+    "rightDataset": "<rightDsId>"<if(outputCols)>,
+    "outputColumns": "<outputCols>"
+    <endif>
+  }
+}
+>>
+loadSpatialIndexjoinDist(leftDsId, rightDsId, dist, outputCols=[]) ::= <<
+{ "loadSpatialIndexJoin": {
+    "leftDataset": "<leftDsId>",
+    "rightDataset": "<rightDsId>",
+    "joinExpr": "within_distance(<dist>)",
+    "outputColumns": "<outputCols>"
+  }
+}
+>>
+
+spatialAggregateJoin(paramDsId, geomCol="the_geom") ::= <<
 { "spatialDifferenceJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>",
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
     "reducer": { "aggregate": [<aggrs:{a | "<a>"}; separator=",">] }
   }
 }
 >>
 
-knn_join(param_dsid, top_k, radius, output_cols, geom_col="the_geom") ::= <<
+knnJoin(paramDsId, topK, radius, outputCols, geomCol="the_geom") ::= <<
 { "spatialKnnJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>",
-    "topK": <top_k>,
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
+    "topK": <topK>,
     "radius": <radius>,
-    "outputColumns": "<output_cols>"
+    "outputColumns": "<outputCols>"
   }
 }
 >>
 
-clip_join(param_dsid, geom_col="the_geom") ::= <<
-{ "spatialClipJoin": {  "geomColumn": "<geom_col>",  "paramDataset": "<param_dsid>" } }
+clipJoin(paramDsId, geomCol="the_geom") ::= <<
+{ "spatialClipJoin": {  "geomColumn": "<geomCol>",  "paramDataset": "<paramDsId>" } }
 >>
 
-difference_join(param_dsid, geom_col="the_geom") ::= <<
-{ "spatialDifferenceJoin": {  "geomColumn": "<geom_col>",  "paramDataset": "<param_dsid>" } }
+differenceJoin(paramDsId, geomCol="the_geom") ::= <<
+{ "spatialDifferenceJoin": {  "geomColumn": "<geomCol>",  "paramDataset": "<paramDsId>" } }
 >>
 
-intersection_join(param_dsid, output_cols=[], geom_col="the_geom") ::= <<
+intersectionJoin(paramDsId, outputCols=[], geomCol="the_geom") ::= <<
 { "spatialIntersectionJoin": {
-    "geomColumn": "<geom_col>",
-    "paramDataset": "<param_dsid>"<if(output_cols)>,
-    "outputColumns": "<output_cols>"
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>"<if(outputCols)>,
+    "outputColumns": "<outputCols>"
     <endif>
+  }
+}
+>>
+
+interpolateSpatially(paramDsId, valueCols, radius, outputCols, method, topK=[], geomCol="the_geom") ::= <<
+{ "spatialInterpolation": {
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
+    "valueColumns": "<valueCols>",
+    "radius": <radius>,<if(topK)>
+    "topK": <topK>,
+    <endif>
+    "outputColumns": "<outputCols>",
+    "interpolationMethod": "method"
+  }
+}
+>>
+
+estimateIdw(paramDsId, valueCol, topK, radius, outputCol, power=[], geomCol="the_geom") ::= <<
+{ "estimateIdw": {
+    "geomColumn": "<geomCol>",
+    "paramDataset": "<paramDsId>",
+    "valueColumn": "<valueCol>",
+    "topK": <topK>,
+    "radius": <radius>,
+    "outputDensityColumn": "<outputCol>"<if(power)>,
+    "options": { "power": <power> }
+    <else>
+    <endif>
+  }
+}
+>>
+
+estimateKernelDensity(paramDsId, valueCol, radius, outputCol, geomCol="the_geom") ::= <<
+{ "estimateKernelDensity": {
+    "geomColumn": "<geomCol>",
+    "dataset": "<paramDsId>",
+    "valueColumn": "<valueCol>",
+    "radius": <radius>,
+    "densityColumn": "<outputCol>"
   }
 }
 >>

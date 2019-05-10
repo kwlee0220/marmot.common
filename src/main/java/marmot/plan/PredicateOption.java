@@ -2,11 +2,11 @@ package marmot.plan;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.collect.Lists;
 
 import marmot.proto.optor.PredicateOptionsProto;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -27,7 +27,7 @@ public abstract class PredicateOption {
 	
 	public static FOption<PredicateOptionsProto> toPredicateOptionsProto(
 												List<? extends PredicateOption> opts) {
-		Objects.requireNonNull(opts, "SpatialRelationOption list is null");
+		Utilities.checkNotNullArgument(opts, "SpatialRelationOption list is null");
 		
 		List<PredicateOption> matcheds = FStream.from(opts)
 													.castSafely(PredicateOption.class)

@@ -1,11 +1,11 @@
 package marmot.externio.shp;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import marmot.DataSet;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
+import utils.Utilities;
 import utils.async.ProgressiveExecution;
 
 
@@ -23,7 +23,7 @@ public class ExportDataSetAsShapefile extends ExportAsShapefile {
 	
 	public ExportDataSetAsShapefile(String dsId, String outputDir, ShapefileParameters params) {
 		super(outputDir, params);
-		Objects.requireNonNull(dsId, "dataset id");
+		Utilities.checkNotNullArgument(dsId, "dataset id");
 		
 		m_dsId = dsId;
 	}

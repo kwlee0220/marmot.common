@@ -7,6 +7,7 @@ import com.vividsolutions.jts.geom.Envelope;
 
 import utils.Point2i;
 import utils.Size2d;
+import utils.Utilities;
 
 /**
  * 
@@ -65,7 +66,7 @@ public class GridCell implements Comparable<GridCell> {
 
 	@Override
 	public int compareTo(GridCell o) {
-		Objects.requireNonNull(o);
+		Utilities.checkNotNullArgument(o, "cell is null");
 		
 		int cmp = Integer.compare(m_x, o.m_x);
 		if ( cmp != 0 ) {

@@ -9,7 +9,6 @@ import java.io.Writer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Objects;
 
 import org.geotools.geometry.jts.Geometries;
 
@@ -32,6 +31,7 @@ import marmot.RecordSet;
 import marmot.externio.RecordSetWriter;
 import marmot.support.DefaultRecord;
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -70,7 +70,7 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 	}
 	
 	private GeoJsonRecordSetWriter(BufferedWriter writer) {
-		Objects.requireNonNull(writer, "BufferedWriter is null");
+		Utilities.checkNotNullArgument(writer, "BufferedWriter is null");
 		
 		m_writer = writer;
 	}
@@ -102,7 +102,7 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 
 	@Override
 	public long write(RecordSet rset) throws IOException {
-		Objects.requireNonNull(m_geomCol, "Geometry column name is null");
+		Utilities.checkNotNullArgument(m_geomCol, "Geometry column name is null");
 		
 		JsonWriter writer = new JsonWriter(m_writer);
 		if ( m_pretty ) {

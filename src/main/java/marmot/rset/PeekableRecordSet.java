@@ -1,7 +1,5 @@
 package marmot.rset;
 
-import java.util.Objects;
-
 import org.slf4j.Logger;
 
 import marmot.Record;
@@ -10,6 +8,7 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.support.ProgressReportable;
 import utils.StopWatch;
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -21,7 +20,7 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 	private FOption<Record> m_peeked = null;
 	
 	PeekableRecordSet(RecordSet input) {
-		Objects.requireNonNull(input, "Peeking RecordSet is null");
+		Utilities.checkNotNullArgument(input, "Peeking RecordSet is null");
 		
 		m_input = input;
 	}

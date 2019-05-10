@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -110,7 +109,7 @@ public class CsvParameters {
 
 	@Option(names={"-header"}, paramLabel="column_list", description={"header field list"})
 	public CsvParameters headerRecord(String header) {
-		Objects.requireNonNull(header, "CSV header");
+		Utilities.checkNotNullArgument(header, "CSV header");
 		
 		m_header = FOption.of(header);
 		return this;
@@ -156,7 +155,7 @@ public class CsvParameters {
 
 	@Option(names={"-point_col"}, paramLabel="xy-columns", description="X,Y columns for point")
 	public CsvParameters pointColumn(String pointCols) {
-		Objects.requireNonNull(pointCols, "Point columns are null");
+		Utilities.checkNotNullArgument(pointCols, "Point columns are null");
 		
 		m_pointCols = FOption.ofNullable(pointCols);
 		return this;

@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -16,6 +15,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.proto.RecordProto;
 import marmot.protobuf.PBUtils;
+import utils.Utilities;
 import utils.stream.FStream;
 
 
@@ -74,7 +74,7 @@ public class DefaultRecord implements Record {
 	 */
 	@Override
 	public Object get(String name) {
-		Objects.requireNonNull(name, "column name");
+		Utilities.checkNotNullArgument(name, "column name");
 		
 		return m_values[m_schema.getColumn(name).ordinal()];
 	}
@@ -92,7 +92,7 @@ public class DefaultRecord implements Record {
 	
 	@Override
 	public DefaultRecord set(String name, Object value) {
-		Objects.requireNonNull(name, "column name");
+		Utilities.checkNotNullArgument(name, "column name");
 		
 		Column col = m_schema.getColumn(name);
 		m_values[col.ordinal()] = value;

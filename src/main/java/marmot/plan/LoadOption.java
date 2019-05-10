@@ -2,11 +2,11 @@ package marmot.plan;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.collect.Lists;
 
 import marmot.proto.optor.LoadOptionsProto;
+import utils.Utilities;
 import utils.stream.FStream;
 
 /**
@@ -25,7 +25,7 @@ public abstract class LoadOption {
 	}
 	
 	public static LoadOptionsProto toProto(List<LoadOption> opts) {
-		Objects.requireNonNull(opts, "LoadOption are null");
+		Utilities.checkNotNullArgument(opts, "LoadOption are null");
 		
 		return FStream.from(opts)
 					.collectLeft(LoadOptionsProto.newBuilder(),

@@ -2,13 +2,13 @@ package marmot.support;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.DataSet;
 import marmot.SpatialClusterInfo;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
@@ -29,8 +29,8 @@ public class RangedClusterEstimate {
 	}
 	
 	private RangedClusterEstimate(DataSet ds, Envelope range) {
-		Objects.requireNonNull(ds, "DataSet");
-		Objects.requireNonNull(range, "query ranage");
+		Utilities.checkNotNullArgument(ds, "DataSet");
+		Utilities.checkNotNullArgument(range, "query ranage");
 		
 		m_ds = ds;
 		m_range = range;

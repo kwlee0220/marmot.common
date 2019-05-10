@@ -13,6 +13,7 @@ import marmot.protobuf.PBUtils;
 import marmot.support.MVELScript;
 import marmot.support.MVELScript.ImportedClass;
 import marmot.support.PBSerializable;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -34,11 +35,16 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 	}
 
 	private RecordScript(String expr) {
+		Utilities.checkNotNullArgument(expr, "expr is null");
+		
 		m_script = MVELScript.of(expr);
 		m_initializer = FOption.empty();
 	}
 
 	private RecordScript(String init, String expr) {
+		Utilities.checkNotNullArgument(init, "init is null");
+		Utilities.checkNotNullArgument(expr, "expr is null");
+		
 		m_script = MVELScript.of(expr);
 		m_initializer = FOption.of(MVELScript.of(init));
 	}

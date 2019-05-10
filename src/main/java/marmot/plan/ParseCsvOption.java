@@ -1,12 +1,11 @@
 package marmot.plan;
 
-import java.util.Objects;
-
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.google.common.base.Preconditions;
 
 import marmot.proto.optor.ParseCsvProto.OptionsProto;
+import utils.Utilities;
 import utils.stream.FStream;
 
 /**
@@ -20,7 +19,7 @@ public abstract class ParseCsvOption {
 	public abstract void set(OptionsProto.Builder builder);
 	
 	public static HeaderOption HEADER(String header) {
-		Objects.requireNonNull(header, "header is null");
+		Utilities.checkNotNullArgument(header, "header is null");
 		
 		return new HeaderOption(header);
 	}
@@ -38,13 +37,13 @@ public abstract class ParseCsvOption {
 	}
 	
 	public static NullValueOption NULL_VALUE(String str) {
-		Objects.requireNonNull(str, "null_value is null");
+		Utilities.checkNotNullArgument(str, "null_value is null");
 	
 		return new NullValueOption(str);
 	}
 	
 	public static OptionsProto toProto(ParseCsvOption... opts) {
-		Objects.requireNonNull(opts, "ParseCsvOptions are null");
+		Utilities.checkNotNullArgument(opts, "ParseCsvOptions are null");
 		Preconditions.checkArgument(opts.length > 0, "ParseCsvOptions is empty"); 
 		
 		return FStream.of(opts)

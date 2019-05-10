@@ -76,7 +76,7 @@ public class DataTypes {
 	}
 
 	public static DataType fromName(String name) {
-		DataType type = NAME_TO_TYPES.get(name);
+		DataType type = NAME_TO_TYPES.get(name.toLowerCase());
 		if ( type == null ) {
 			throw new IllegalArgumentException("invalid type name: " + name);
 		}

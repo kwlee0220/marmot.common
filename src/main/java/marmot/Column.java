@@ -33,8 +33,8 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	}
 	
 	Column(CIString name, DataType type, int ordinal) {
-		Objects.requireNonNull(name, "column name");
-		Objects.requireNonNull(type, "column type");
+		Utilities.checkNotNullArgument(name, "column name");
+		Utilities.checkNotNullArgument(type, "column type");
 		
 		m_name = name;
 		m_type = type;

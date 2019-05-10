@@ -2,7 +2,6 @@ package marmot;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -11,6 +10,7 @@ import com.google.common.collect.Maps;
 import marmot.proto.service.DataSetOptionsProto;
 import marmot.protobuf.PBUtils;
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -30,19 +30,19 @@ public abstract class DataSetOption {
 		return new BlockSizeOption(size);
 	}
 	public static BlockSizeOption BLOCK_SIZE(String size) {
-		Objects.requireNonNull(size, "block-size is null");
+		Utilities.checkNotNullArgument(size, "block-size is null");
 		
 		return new BlockSizeOption(UnitUtils.parseByteSize(size));
 	}
 	
 	public static GeomColumnInfoOption GEOMETRY(GeometryColumnInfo info) {
-		Objects.requireNonNull(info, "GeometryColumnInfo is null");
+		Utilities.checkNotNullArgument(info, "GeometryColumnInfo is null");
 		
 		return new GeomColumnInfoOption(info);
 	}
 	public static GeomColumnInfoOption GEOMETRY(String geomCol, String srid) {
-		Objects.requireNonNull(geomCol, "Geometry column name is null");
-		Objects.requireNonNull(srid, "Geometry SRID is null");
+		Utilities.checkNotNullArgument(geomCol, "Geometry column name is null");
+		Utilities.checkNotNullArgument(srid, "Geometry SRID is null");
 		
 		return new GeomColumnInfoOption(geomCol, srid);
 	}
@@ -52,7 +52,7 @@ public abstract class DataSetOption {
 	}
 	
 	public static DataSetOptionsProto toProto(List<? extends DataSetOption> opts) {
-		Objects.requireNonNull(opts, "GeomOpOption list is null");
+		Utilities.checkNotNullArgument(opts, "GeomOpOption list is null");
 		
 		List<DataSetOption> matcheds = FStream.from(opts)
 											.castSafely(DataSetOption.class)
@@ -190,14 +190,14 @@ public abstract class DataSetOption {
 		private final GeometryColumnInfo m_geomInfo;
 		
 		private GeomColumnInfoOption(String geomCol, String srid) {
-			Objects.requireNonNull(geomCol, "Geometry column name is null");
-			Objects.requireNonNull(srid, "SRID is null");
+			Utilities.checkNotNullArgument(geomCol, "Geometry column name is null");
+			Utilities.checkNotNullArgument(srid, "SRID is null");
 			
 			m_geomInfo = new GeometryColumnInfo(geomCol, srid);
 		}
 		
 		private GeomColumnInfoOption(GeometryColumnInfo geomInfo) {
-			Objects.requireNonNull(geomInfo, "GeometryColumnInfo is null");
+			Utilities.checkNotNullArgument(geomInfo, "GeometryColumnInfo is null");
 			
 			m_geomInfo = geomInfo;
 		}
@@ -232,7 +232,7 @@ public abstract class DataSetOption {
 		private final Map<String,String> m_metadata;
 		
 		private MetadataOption(Map<String,String> metadata) {
-			Objects.requireNonNull(metadata, "metadata is null");
+			Utilities.checkNotNullArgument(metadata, "metadata is null");
 			Preconditions.checkArgument(metadata.size() > 0, "metadata is empty");
 			
 			m_metadata = Maps.newHashMap(metadata);

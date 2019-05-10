@@ -2,7 +2,6 @@ package marmot.rset;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
 
 import marmot.Record;
 import marmot.RecordSchema;
@@ -11,6 +10,7 @@ import marmot.proto.RecordProto;
 import marmot.proto.RecordSchemaProto;
 import marmot.support.DefaultRecord;
 import utils.Throwables;
+import utils.Utilities;
 import utils.io.IOUtils;
 
 /**
@@ -26,7 +26,7 @@ public class PBInputStreamRecordSet extends AbstractRecordSet {
 	}
 	
 	private PBInputStreamRecordSet(InputStream is) {
-		Objects.requireNonNull(is, "InputStream");
+		Utilities.checkNotNullArgument(is, "InputStream");
 		
 		try {
 			m_schema = RecordSchema.fromProto(RecordSchemaProto.parseDelimitedFrom(is));

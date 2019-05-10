@@ -1,7 +1,6 @@
 package marmot.rset;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -41,8 +40,8 @@ public class RecordSets {
 	}
 	
 	public static RecordSet attachCloser(RecordSet rset, Runnable closer) {
-		Objects.requireNonNull(rset, "Base RecordSet");
-		Objects.requireNonNull(closer, "Closer");
+		Utilities.checkNotNullArgument(rset, "Base RecordSet");
+		Utilities.checkNotNullArgument(closer, "Closer");
 		
 		return new AbstractRecordSet() {
 			@Override
@@ -125,19 +124,19 @@ public class RecordSets {
 	}
 	
 	public static RecordSet concat(Record head, RecordSet tail) {
-		Objects.requireNonNull(head);
-		Objects.requireNonNull(tail);
+		Utilities.checkNotNullArgument(head, "head is null");
+		Utilities.checkNotNullArgument(tail, "tails is null");
 //		Preconditions.checkArgument(head.getSchema().equals(tail.getRecordSchema()));
 		
 		return concat(tail.getRecordSchema(), RecordSet.of(head), tail);
 	}
 	
-	public static RecordSet concat(RecordSet rset1, Record tail) {
-		Objects.requireNonNull(rset1);
-		Objects.requireNonNull(tail);
-		Preconditions.checkArgument(rset1.getRecordSchema().equals(tail.getRecordSchema()));
+	public static RecordSet concat(RecordSet rset, Record tail) {
+		Utilities.checkNotNullArgument(rset, "rset is null");
+		Utilities.checkNotNullArgument(tail, "tail is null");
+		Preconditions.checkArgument(rset.getRecordSchema().equals(tail.getRecordSchema()));
 		
-		return concat(rset1.getRecordSchema(), rset1, RecordSet.of(tail));
+		return concat(rset.getRecordSchema(), rset, RecordSet.of(tail));
 	}
 	
 	public static RecordSet concat(RecordSchema schema, Iterable<? extends RecordSet> rsets) {
@@ -273,7 +272,7 @@ public class RecordSets {
 		private long m_count = 0;
 		
 		CountingRecordSet(RecordSet rset) {
-			Objects.requireNonNull(rset, "input RecordSet is null");
+			Utilities.checkNotNullArgument(rset, "input RecordSet is null");
 			
 			m_rset = rset;
 		}

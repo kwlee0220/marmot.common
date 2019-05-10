@@ -1,14 +1,12 @@
 package marmot;
 
 import static marmot.optor.geo.SpatialRelation.ALL;
-import static marmot.optor.geo.SpatialRelation.INTERSECTS;
 
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
@@ -55,12 +53,13 @@ import marmot.proto.optor.DropProto;
 import marmot.proto.optor.EstimateIDWProto;
 import marmot.proto.optor.EstimateKernelDensityProto;
 import marmot.proto.optor.ExpandProto;
-import marmot.proto.optor.FindFirstReducerProto;
-import marmot.proto.optor.FindMaxValueRecordProto;
+import marmot.proto.optor.FilterSpatiallyProto;
 import marmot.proto.optor.FlattenGeometryProto;
 import marmot.proto.optor.GroupByKeyProto;
 import marmot.proto.optor.HashJoinProto;
+import marmot.proto.optor.InterpolateSpatiallyProto;
 import marmot.proto.optor.LISAWeightProto;
+import marmot.proto.optor.ListReducerProto;
 import marmot.proto.optor.LoadCustomTextFileProto;
 import marmot.proto.optor.LoadDataSetProto;
 import marmot.proto.optor.LoadGetisOrdGiProto;
@@ -75,18 +74,17 @@ import marmot.proto.optor.LoadSpatialClusteredFileProto;
 import marmot.proto.optor.LoadSpatialIndexJoinProto;
 import marmot.proto.optor.LoadSquareGridFileProto;
 import marmot.proto.optor.LoadTextFileProto;
-import marmot.proto.optor.MatchSpatiallyProto;
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.ParseCsvProto;
 import marmot.proto.optor.PickTopKProto;
-import marmot.proto.optor.PlanBasedRecordSetFunctionProto;
 import marmot.proto.optor.PlanProto;
 import marmot.proto.optor.ProjectProto;
 import marmot.proto.optor.PutSideBySideProto;
 import marmot.proto.optor.QueryDataSetProto;
 import marmot.proto.optor.RankProto;
 import marmot.proto.optor.ReduceGeometryPrecisionProto;
-import marmot.proto.optor.ReduceProto;
+import marmot.proto.optor.ReducerProto;
+import marmot.proto.optor.RunPlanProto;
 import marmot.proto.optor.SampleProto;
 import marmot.proto.optor.ScriptFilterProto;
 import marmot.proto.optor.ScriptRecordSetReducerProto;
@@ -95,7 +93,6 @@ import marmot.proto.optor.SortProto;
 import marmot.proto.optor.SpatialBlockJoinProto;
 import marmot.proto.optor.SpatialClipJoinProto;
 import marmot.proto.optor.SpatialDifferenceJoinProto;
-import marmot.proto.optor.SpatialInterpolationProto;
 import marmot.proto.optor.SpatialIntersectionJoinProto;
 import marmot.proto.optor.SpatialKnnInnerJoinProto;
 import marmot.proto.optor.SpatialKnnOuterJoinProto;
@@ -111,6 +108,7 @@ import marmot.proto.optor.StoreIntoJdbcTableProto;
 import marmot.proto.optor.StoreIntoKafkaTopicProto;
 import marmot.proto.optor.StoreKeyedDataSetProto;
 import marmot.proto.optor.TakeProto;
+import marmot.proto.optor.TakeReducerProto;
 import marmot.proto.optor.TeeProto;
 import marmot.proto.optor.ToGeometryPointProto;
 import marmot.proto.optor.ToXYCoordinatesProto;
@@ -119,15 +117,11 @@ import marmot.proto.optor.TransformCrsProto;
 import marmot.proto.optor.UnarySpatialIntersectionProto;
 import marmot.proto.optor.UpdateProto;
 import marmot.proto.optor.ValidateGeometryProto;
-import marmot.proto.optor.ValueAggregateReducerProto;
-import marmot.proto.optor.WithinDistanceProto;
+import marmot.proto.optor.ValueAggregateReducersProto;
 import marmot.proto.service.DataSetOptionsProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import marmot.type.DataType;
-import marmot.workbench.Operator;
-import marmot.workbench.OperatorType;
-import marmot.workbench.Parameter;
 import utils.CSV;
 import utils.Utilities;
 import utils.func.FOption;
@@ -149,22 +143,9 @@ public class PlanBuilder {
 		return this;
 	}
 	
-	public PlanBuilder add(SerializedProto proto) {
-		return add(OperatorProto.newBuilder()
-								.setSerialized(proto)
-								.build());
-	}
-	
 	public PlanBuilder add(PBSerializable<?> serializable) {
 		return add(OperatorProto.newBuilder()
 								.setSerialized(serializable.serialize())
-								.build());
-	}
-	
-	public PlanBuilder addJavaSerialized(Serializable serializable) {
-		SerializedProto serialized = PBUtils.serializeJava(serializable);
-		return add(OperatorProto.newBuilder()
-								.setSerialized(serialized)
 								.build());
 	}
 	
@@ -174,6 +155,36 @@ public class PlanBuilder {
 	
 	public Plan build() {
 		return Plan.fromProto(m_builder.build());
+	}
+
+	/**
+	 * 주어진 식별자의 데이터세트를 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
+	 * <p>
+	 * 데이터세트 적재시 추가 정보를  {@link LoadOption}을 활용하여 전달하면
+	 * 현재 사용할 수 있는 정보는 다음과 같다.
+	 * <ul>
+	 * 	<li> {@link LoadOption.SplitCountOption}: 한 HDFS 디스크 블럭당 split 갯수를 지정.
+	 * 		별도로 지정하지 않은 경우 1로 간주된다.
+	 * </ul>
+	 * 
+	 * @param dsId	대상 데이터세트 이름.
+	 * @param opts	옵션 리스트.
+	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
+	 */
+	public PlanBuilder load(String dsId, LoadOption... opts) {
+		Utilities.checkNotNullArgument(dsId, "dsId is null");
+		Utilities.checkNotNullArguments(opts, "opts is null");
+		
+		LoadDataSetProto.Builder builder = LoadDataSetProto.newBuilder()
+															.setDsId(dsId);
+		if ( opts.length > 0 ) {
+			builder.setOptions(LoadOption.toProto(opts));
+		}
+		LoadDataSetProto proto = builder.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setLoadDataset(proto)
+								.build());
 	}
 	
 	/*
@@ -186,6 +197,8 @@ public class PlanBuilder {
 	 * @return		작업이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder loadMarmotFile(String... pathes) {
+		Utilities.checkNotNullArguments(pathes, "pathes is null");
+		
 		return loadMarmotFile(Arrays.asList(pathes), 1);
 	}
 	
@@ -198,6 +211,8 @@ public class PlanBuilder {
 	 * @return		작업이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder loadMarmotFile(Iterable<String> pathes, int splitCountPerBlock) {
+		Utilities.checkNotNullArgument(pathes, "pathes is null");
+		
 		LoadMarmotFileProto load = LoadMarmotFileProto.newBuilder()
 													.addAllPaths(pathes)
 													.setSplitCountPerBlock(splitCountPerBlock)
@@ -208,6 +223,9 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder loadSpatialClusteredFile(String dsId, String clusterCols) {
+		Utilities.checkNotNullArgument(dsId, "dsId is null");
+		Utilities.checkNotNullArgument(clusterCols, "clusterCols is null");
+		
 		LoadSpatialClusteredFileProto load = LoadSpatialClusteredFileProto.newBuilder()
 													.setDataset(dsId)
 													.setRange(PBUtils.toProto(new Envelope()))
@@ -427,8 +445,9 @@ public class PlanBuilder {
 	 * @param predicate	필터 연산의 조건절.
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
-	@Operator(protoId="filterScript", name="레코드 선택")
-	public PlanBuilder filter(@Parameter(protoId="predicate/expr", name="조건식") String predicate) {
+	public PlanBuilder filter(String predicate) {
+		Utilities.checkNotNullArgument(predicate, "predicate is null");
+		
 		return filter(RecordScript.of(predicate));
 	}
 	
@@ -442,13 +461,14 @@ public class PlanBuilder {
 	 * 인자 {@code initScript}는 또다른 MVEL 스크립트로서 입력 레코드 세트에 포함된
 	 * 레코드에 {@code predicate}를 적용하기 전에 초기화작업으로 한번 수행된다.
 	 * 
-	 * @param initScript	필터 연산 초기화 스크립트.
-	 * @param predicate		필터 연산의 조건절.
+	 * @param initScript	필터 조건절에 사용할 여러 임시 변수들을 초기화하는 스크립트.
+	 * @param predicate		필터 조건절.
 	 * @return 명령이 추가된 {@link PlanBuilder} 객체.
 	 */
-//	@Operator(protoId="filterScript", name="레코드 선택")
-	public PlanBuilder filter(@Parameter(protoId="predicate/initializer", name="조건식 초기화") String initScript,
-							@Parameter(protoId="predicate/expr", name="조건식") String predicate) {
+	public PlanBuilder filter(String initScript, String predicate) {
+		Utilities.checkNotNullArgument(initScript, "initScript is null");
+		Utilities.checkNotNullArgument(predicate, "predicate is null");
+		
 		return filter(RecordScript.of(initScript, predicate));
 	}
 	
@@ -470,20 +490,23 @@ public class PlanBuilder {
 	 * @param columnSelection	생성될 레코드에 포함될 컬럼 표현식.
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
-	@Operator(protoId="project", name="컬럼 선택")
-	public PlanBuilder project(@Parameter(protoId="columnExpr", name="컬럼리스트")
-								String columnSelection) {
-		ProjectProto opProto = ProjectProto.newBuilder()
-										.setColumnExpr(columnSelection)
-										.build();
+	public PlanBuilder project(String columnSelection) {
+		Utilities.checkNotNullArgument(columnSelection, "columnSelection is null");
+		
+		ProjectProto project = ProjectProto.newBuilder()
+											.setColumnExpr(columnSelection)
+											.build();
 		return add(OperatorProto.newBuilder()
-								.setProject(opProto)
+								.setProject(project)
 								.build());
 	}
 	
-	@Operator(protoId="update", name="컬럼값 변경")
-	public PlanBuilder update(@Parameter(protoId="script/expr", name="변경식") String updateExpr) {
+	public PlanBuilder update(String updateExpr) {
 		return update(RecordScript.of(updateExpr));
+	}
+	
+	public PlanBuilder update(String initExpr, String updateExpr) {
+		return update(RecordScript.of(initExpr, updateExpr));
 	}
 	
 	public PlanBuilder update(RecordScript expr) {
@@ -498,23 +521,31 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder defineColumn(String colDecl, String initializer) {
-		return defineColumn(colDecl, RecordScript.of(initializer));
+	public PlanBuilder defineColumn(String colDecl, String colInit) {
+		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
+		Utilities.checkNotNullArgument(colInit, "colInit is null");
+		
+		return defineColumn(colDecl, RecordScript.of(colInit));
 	}
 
 	public PlanBuilder defineColumn(String colDecl) {
+		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
+		
 		DefineColumnProto op = DefineColumnProto.newBuilder()
-											.setColumnDecl(colDecl)
-											.build();
+												.setColumnDecl(colDecl)
+												.build();
 		return add(OperatorProto.newBuilder()
 								.setDefineColumn(op)
 								.build());
 	}
 
-	public PlanBuilder defineColumn(String colDecl, RecordScript colInit) {
+	public PlanBuilder defineColumn(String colDecl, RecordScript colInitScript) {
+		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
+		Utilities.checkNotNullArgument(colInitScript, "colInitScript is null");
+		
 		DefineColumnProto op = DefineColumnProto.newBuilder()
 											.setColumnDecl(colDecl)
-											.setColumnInitializer(colInit.toProto())
+											.setColumnInitializer(colInitScript.toProto())
 											.build();
 		return add(OperatorProto.newBuilder()
 								.setDefineColumn(op)
@@ -522,6 +553,8 @@ public class PlanBuilder {
 	}
 
 	public PlanBuilder expand(String colDecls) {
+		Utilities.checkNotNullArgument(colDecls, "colDecls is null");
+		
 		ExpandProto expand = ExpandProto.newBuilder()
 										.setColumnDecls(colDecls)
 										.build();
@@ -531,13 +564,19 @@ public class PlanBuilder {
 	}
 
 	public PlanBuilder expand(String colDecls, String colInit) {
+		Utilities.checkNotNullArgument(colDecls, "colDecls is null");
+		Utilities.checkNotNullArgument(colInit, "colInit is null");
+		
 		return expand(colDecls, RecordScript.of(colInit));
 	}
 
-	public PlanBuilder expand(String colDecls, RecordScript colInit) {
+	public PlanBuilder expand(String colDecls, RecordScript colInitScript) {
+		Utilities.checkNotNullArgument(colDecls, "colDecls is null");
+		Utilities.checkNotNullArgument(colInitScript, "colInitScript is null");
+		
 		ExpandProto expand = ExpandProto.newBuilder()
 										.setColumnDecls(colDecls)
-										.setColumnInitializer(colInit.toProto())
+										.setColumnInitializer(colInitScript.toProto())
 										.build();
 		return add(OperatorProto.newBuilder()
 								.setExpand(expand)
@@ -545,9 +584,12 @@ public class PlanBuilder {
 	}
 
 	public PlanBuilder parseCsv(String inputColName, char delim, ParseCsvOption... opts) {
+		Utilities.checkNotNullArgument(inputColName, "inputColName is null");
+		Utilities.checkNotNullArguments(opts, "opts is null");
+		
 		ParseCsvProto.Builder builder = ParseCsvProto.newBuilder()
-															.setTextColumn(inputColName)
-															.setDelimiter("" + delim);
+													.setTextColumn(inputColName)
+													.setDelimiter("" + delim);
 		builder.setOptions(ParseCsvOption.toProto(opts));
 		ParseCsvProto parse = builder.build();
 		
@@ -556,13 +598,12 @@ public class PlanBuilder {
 								.build());
 	}
 
-	@Operator(protoId="assignUid", name="식별자 부여")
-	public PlanBuilder assignUid(@Parameter(protoId="uidColumn", name="식별자 컬럼") String uidColName) {
+	public PlanBuilder assignUid(String uidColName) {
 		Utilities.checkNotNullArgument(uidColName, "uid column is null");
 		
 		AssignUidProto assign = AssignUidProto.newBuilder()
-										.setUidColumn(uidColName)
-										.build();
+												.setUidColumn(uidColName)
+												.build();
 		return add(OperatorProto.newBuilder()
 								.setAssignUid(assign)
 								.build());
@@ -583,9 +624,7 @@ public class PlanBuilder {
 	public PlanBuilder take(long count) {
 		Utilities.checkArgument(count >= 0, "invalid drop count: count=" + count);
 		
-		TakeProto drop = TakeProto.newBuilder()
-										.setCount(count)
-										.build();
+		TakeProto drop = TakeProto.newBuilder().setCount(count).build();
 		return add(OperatorProto.newBuilder()
 								.setTake(drop)
 								.build());
@@ -605,8 +644,8 @@ public class PlanBuilder {
 		Utilities.checkArgument(count >= 0, "invalid drop count: count=" + count);
 		
 		DropProto drop = DropProto.newBuilder()
-										.setCount(count)
-										.build();
+									.setCount(count)
+									.build();
 		return add(OperatorProto.newBuilder()
 								.setDrop(drop)
 								.build());
@@ -633,7 +672,8 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder clusterChronicles(String inputColumn, String outputColumn, String threshold) {
+	public PlanBuilder clusterChronicles(String inputColumn, String outputColumn,
+										String threshold) {
 		ClusterChroniclesProto op = ClusterChroniclesProto.newBuilder()
 														.setInputColumn(inputColumn)
 														.setOutputColumn(outputColumn)
@@ -662,6 +702,8 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder sort(String sortColSpecs) {
+		Utilities.checkNotNullArgument(sortColSpecs, "sortColSpecs is null");
+		
 		SortProto sort = SortProto.newBuilder()
 									.setSortColumns(sortColSpecs)
 									.build();
@@ -689,6 +731,8 @@ public class PlanBuilder {
 	 * @return reduce 연산을 추가로 받기 위한 {@link GroupByPlanBuilder} 객체.
 	 */
 	public GroupByPlanBuilder groupBy(String keyCols) {
+		Utilities.checkNotNullArgument(keyCols, "keyCols is null");
+		
 		return new GroupByPlanBuilder(this, keyCols);
 	}
 	
@@ -698,7 +742,7 @@ public class PlanBuilder {
 		private FOption<String> m_tagCols = FOption.empty();
 		private FOption<String> m_orderKeyCols = FOption.empty();
 		private FOption<Integer> m_workerCount = FOption.empty();
-		private List<SerializedProto> m_functions = Lists.newArrayList();
+//		private ReducerProto m_reducer;
 		
 		GroupByPlanBuilder(PlanBuilder planBuilder, String cmpKeyCols) {
 			m_planBuilder = planBuilder;
@@ -748,57 +792,27 @@ public class PlanBuilder {
 		}
 		
 		public PlanBuilder aggregate(List<AggregateFunction> aggrFuncs) {
-			ValueAggregateReducerProto varp
+			ValueAggregateReducersProto varp
 								= FStream.from(aggrFuncs)
 										.map(AggregateFunction::toProto)
-										.foldLeft(ValueAggregateReducerProto.newBuilder(),
+										.foldLeft(ValueAggregateReducersProto.newBuilder(),
 													(builder,aggr) -> builder.addAggregate(aggr))
 										.build();
-			m_functions.add(PBUtils.serialize(varp));
+			ReducerProto reducer = ReducerProto.newBuilder()
+												.setValAggregates(varp)
+												.build();
 			
-			return list();
-		}
-		
-		public GroupByPlanBuilder apply(SerializedProto func) {
-			m_functions.add(func);
-			return this;
-		}
-		
-		public PlanBuilder consume(SerializedProto consumer) {
-			ConsumeByGroupProto.Builder builder = ConsumeByGroupProto.newBuilder()
-															.setGrouper(groupByKey())
-															.setConsumer(consumer);
-			if ( m_functions.size() > 0 ) {
-				builder.addAllFunctions(m_functions);
-			}
-			ConsumeByGroupProto consume = builder.build();
-			
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setConsumeByGroup(consume)
-													.build());
-		}
-		
-		public PlanBuilder run(Plan plan) {
-			PlanBasedRecordSetFunctionProto func = PlanBasedRecordSetFunctionProto
-																.newBuilder()
-																.setPlan(plan.toProto())
-																.build();
-			return apply(PBUtils.serialize(func)).list();
+			return transformByGroup(reducer);
 		}
 		
 		public PlanBuilder list() {
-			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-																.setGrouper(groupByKey())
-																.addAllFunctions(m_functions)
-																.build();
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setTransformByGroup(transform)
-													.build());
+			ListReducerProto list = ListReducerProto.newBuilder().build();
+			return transformByGroup(ReducerProto.newBuilder().setList(list).build());
 		}
 		
-		public ToIntermediateBuilder reduceScript() {
-			return new ScriptRecordSetReducerBuilder(m_planBuilder, this)
-						.new ToIntermediateBuilder();
+		public PlanBuilder take(long count) {
+			TakeReducerProto take = TakeReducerProto.newBuilder().setCount(count).build();
+			return transformByGroup(ReducerProto.newBuilder().setTake(take).build());
 		}
 		
 		/**
@@ -811,18 +825,6 @@ public class PlanBuilder {
 			return aggregate(AggregateFunction.COUNT());
 		}
 		
-		public PlanBuilder findFirst() {
-			FindFirstReducerProto findFirst = FindFirstReducerProto.newBuilder().build();
-			return apply(PBUtils.serialize(findFirst)).list();
-		}
-		
-		public PlanBuilder findMaxValue(String colSpec) {
-			FindMaxValueRecordProto findMax = FindMaxValueRecordProto.newBuilder()
-																.setCompareKeyColumns(colSpec)
-																.build();
-			return apply(PBUtils.serialize(findMax)).list();
-		}
-		
 		public PlanBuilder putSideBySide(RecordSchema outSchema, String valueColumn,
 										String tagColumn) {
 			PutSideBySideProto put = PutSideBySideProto.newBuilder()
@@ -830,7 +832,37 @@ public class PlanBuilder {
 														.setTagColumn(tagColumn)
 														.setOutputSchema(outSchema.toProto())
 														.build();
-			return apply(PBUtils.serialize(put)).list();
+			return transformByGroup(ReducerProto.newBuilder().setPutSideBySide(put).build());
+		}
+		
+		public PlanBuilder run(Plan plan) {
+			RunPlanProto run = RunPlanProto.newBuilder()
+											.setPlan(plan.toProto())
+											.build();
+			return transformByGroup(ReducerProto.newBuilder().setRunPlan(run).build());
+		}
+
+		public PlanBuilder apply(PBSerializable<?> serializable) {
+			return apply(serializable.serialize());
+		}
+		public PlanBuilder apply(Serializable serializable) {
+			return apply(PBUtils.serializeJava(serializable));
+		}
+		
+		public PlanBuilder consume(SerializedProto consumer) {
+			ConsumeByGroupProto.Builder builder = ConsumeByGroupProto.newBuilder()
+															.setGrouper(groupByKey())
+															.setConsumer(consumer);
+			ConsumeByGroupProto consume = builder.build();
+			
+			return m_planBuilder.add(OperatorProto.newBuilder()
+													.setConsumeByGroup(consume)
+													.build());
+		}
+		
+		public ToIntermediateBuilder reduceScript() {
+			return new ScriptRecordSetReducerBuilder(m_planBuilder, this)
+						.new ToIntermediateBuilder();
 		}
 		
 		public PlanBuilder storeEachGroup(String rootPath, DataSetOption... opts) {
@@ -846,7 +878,6 @@ public class PlanBuilder {
 			return consume(PBUtils.serialize(store));
 		}
 		
-		
 		private GroupByKeyProto groupByKey() {
 			GroupByKeyProto.Builder builder = GroupByKeyProto.newBuilder()
 														.setCompareColumns(m_cmpCols);
@@ -854,6 +885,21 @@ public class PlanBuilder {
 			m_orderKeyCols.ifPresent(builder::setOrderColumns);
 			m_workerCount.ifPresent(cnt -> builder.setGroupWorkerCount(cnt));
 			return builder.build();
+		}
+		
+		private PlanBuilder transformByGroup(ReducerProto reducer) {
+			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
+																.setGrouper(groupByKey())
+																.setTransform(reducer)
+																.build();
+			return m_planBuilder.add(OperatorProto.newBuilder()
+													.setTransformByGroup(transform)
+													.build());
+		}
+		
+		private PlanBuilder apply(SerializedProto func) {
+			ReducerProto reducer = ReducerProto.newBuilder().setReducer(func).build();
+			return transformByGroup(reducer);
 		}
 	}
 
@@ -901,17 +947,17 @@ public class PlanBuilder {
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
-		ValueAggregateReducerProto varp
+		ValueAggregateReducersProto varp
 							= FStream.of(aggrFuncs)
 									.map(AggregateFunction::toProto)
-									.foldLeft(ValueAggregateReducerProto.newBuilder(),
+									.foldLeft(ValueAggregateReducersProto.newBuilder(),
 												(builder,aggr) -> builder.addAggregate(aggr))
 									.build();
-		ReduceProto opProto = ReduceProto.newBuilder()
-										.setValAggregate(varp)
-										.build();
+		ReducerProto reducer = ReducerProto.newBuilder()
+											.setValAggregates(varp)
+											.build();
 		return add(OperatorProto.newBuilder()
-								.setReduce(opProto)
+								.setReduce(reducer)
 								.build());
 	}
 	
@@ -1056,9 +1102,9 @@ public class PlanBuilder {
 	 * @param opts			추가 조인 옵션. 추가의 옵션이 필요없는 경우는 null을 사용함.
 	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder join(String inputJoinCols, String paramDataSet,
-							String paramJoinCols, String outputColumnExpr,
-							JoinOptions opts) {
+	public PlanBuilder hashJoin(String inputJoinCols, String paramDataSet,
+								String paramJoinCols, String outputColumnExpr,
+								JoinOptions opts) {
 		Utilities.checkNotNullArgument(inputJoinCols, "input join columns are null");
 		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 		Utilities.checkNotNullArgument(paramJoinCols, "parameter join columns are null");
@@ -1109,35 +1155,6 @@ public class PlanBuilder {
 	//	공간 정보 관련 연산자들
 	//***********************************************************************
 	//***********************************************************************
-
-	/**
-	 * 주어진 식별자의 데이터세트를 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
-	 * <p>
-	 * 데이터세트 적재시 추가 정보를  {@link LoadOption}을 활용하여 전달하면
-	 * 현재 사용할 수 있는 정보는 다음과 같다.
-	 * <ul>
-	 * 	<li> {@link LoadOption.SplitCountOption}: 한 HDFS 디스크 블럭당 split 갯수를 지정.
-	 * 		별도로 지정하지 않은 경우 1로 간주된다.
-	 * </ul>
-	 * 
-	 * @param dsId	대상 데이터세트 이름.
-	 * @param opts	옵션 리스트.
-	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
-	 */
-	public PlanBuilder load(String dsId, LoadOption... opts) {
-		Utilities.checkNotNullArgument(dsId, "dsId is null");
-		
-		LoadDataSetProto.Builder builder = LoadDataSetProto.newBuilder()
-															.setName(dsId);
-		if ( opts.length > 0 ) {
-			builder.setOptions(LoadOption.toProto(opts));
-		}
-		LoadDataSetProto proto = builder.build();
-		
-		return add(OperatorProto.newBuilder()
-								.setLoadDataset(proto)
-								.build());
-	}
 	
 	/**
 	 * 주어진 이름의 데이터세트에 속한 레코드들 중에서 주어진 공간 객체와 조건을 만족시키는 레코드들로
@@ -1148,36 +1165,38 @@ public class PlanBuilder {
 	 * @param key		조건 대상 공간 객체.
 	 * @return		작업이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder query(String dsId, SpatialRelation relation, Geometry key) {
+	public PlanBuilder query(String dsId, Geometry key, PredicateOption... opts) {
 		Utilities.checkNotNullArgument(dsId, "input dataset id");
-		Utilities.checkNotNullArgument(relation, "relation is null");
 		Utilities.checkNotNullArgument(key, "key is null");
 				
-		QueryDataSetProto query = QueryDataSetProto.newBuilder()
-													.setName(dsId)
-													.setSpatialRelation(relation.toStringExpr())
-													.setKey(PBUtils.toProto(key))
-													.build();
+		QueryDataSetProto.Builder builder = QueryDataSetProto.newBuilder()
+															.setDsId(dsId)
+															.setKeyGeometry(PBUtils.toProto(key));
+		PredicateOption.toPredicateOptionsProto(opts)
+						.ifPresent(builder::setOptions);
+		QueryDataSetProto query = builder.build();
+		
 		return add(OperatorProto.newBuilder()
 								.setQueryDataset(query)
 								.build());
 	}
-	public PlanBuilder query(String dsId, SpatialRelation relation, Envelope bounds) {
+	public PlanBuilder query(String dsId, Envelope bounds, PredicateOption... opts) {
 		Utilities.checkNotNullArgument(bounds, "key bounds");
 		
-		return query(dsId, relation, GeoClientUtils.toPolygon(bounds));
+		return query(dsId, GeoClientUtils.toPolygon(bounds), opts);
 	}
 	
-	public PlanBuilder query(String dsId, SpatialRelation relation, String keyDsId) {
+	public PlanBuilder query(String dsId, String keyDsId, PredicateOption... opts) {
 		Utilities.checkNotNullArgument(dsId, "input dataset id");
-		Utilities.checkNotNullArgument(relation, "relation is null");
 		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
 				
-		QueryDataSetProto query = QueryDataSetProto.newBuilder()
-													.setName(dsId)
-													.setSpatialRelation(relation.toStringExpr())
-													.setKeyValueDataset(keyDsId)
-													.build();
+		QueryDataSetProto.Builder builder = QueryDataSetProto.newBuilder()
+															.setDsId(dsId)
+															.setKeyDataset(keyDsId);
+		PredicateOption.toPredicateOptionsProto(opts)
+						.ifPresent(builder::setOptions);
+		QueryDataSetProto query = builder.build();
+		
 		return add(OperatorProto.newBuilder()
 								.setQueryDataset(query)
 								.build());
@@ -1200,12 +1219,15 @@ public class PlanBuilder {
 	 * 	<li> start: 클러스터 파일 내 저장된 클러스터의 시작 오프셋 (바이트 단위)
 	 * 	<li> length: 클러스터 파일 내 저장된 클러스터의 크기 (바이트 단위)
 	 * </ol>
+	 * 
+	 * @param dsId	클러스터 정보를 확인할 데이터세트 식별자.
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder loadSpatialClusterIndexFile(String dataset) {
-		Utilities.checkNotNullArgument(dataset, "dataset is null");
+	public PlanBuilder loadSpatialClusterIndexFile(String dsId) {
+		Utilities.checkNotNullArgument(dsId, "dataset id is null");
 		
 		LoadSpatialClusterIndexFileProto load = LoadSpatialClusterIndexFileProto.newBuilder()
-																			.setDataset(dataset)
+																			.setDataset(dsId)
 																			.build();
 		return add(OperatorProto.newBuilder()
 				.setLoadSpatialClusterIndexFile(load)
@@ -1386,8 +1408,20 @@ public class PlanBuilder {
 								.setDropEmptyGeometry(op)
 								.build());
 	}
-	
-	public PlanBuilder matchSpatially(String geomCol, SpatialRelation rel, Geometry key,
+
+	/**
+	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
+	 * 주어진 공간 객체 컬럼와 교집합이 존재하는
+	 * 레코드들로 구성된 레코드 세트를 생성하는 연산을 추가한다.
+	 * <p>
+	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
+	 * 
+	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
+	 * @param key		교집합 여부를 검사할 공간 객체.
+	 * @param opts		옵션 리스트
+	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
+	 */
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Geometry key,
 										PredicateOption... opts) {
 		Utilities.checkNotNullArgument(geomCol, "geometry column name");
 		Utilities.checkNotNullArgument(rel, "SpatialRelation");
@@ -1395,38 +1429,18 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(opts, "PredicateOption");
 		
 		GeometryProto keyProto = PBUtils.toProto(key);
-		MatchSpatiallyProto.Builder builder = MatchSpatiallyProto.newBuilder()
-																.setGeometryColumn(geomCol)
-																.setRelation(rel.toStringExpr())
-																.setKey(keyProto);
+		FilterSpatiallyProto.Builder builder
+						= FilterSpatiallyProto.newBuilder()
+												.setGeometryColumn(geomCol)
+												.setSpatialRelation(rel.toStringExpr())
+												.setKeyGeometry(keyProto);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-					.ifPresent(builder::setOptions);
-		MatchSpatiallyProto op = builder.build();
+						.ifPresent(builder::setOptions);
+		FilterSpatiallyProto op = builder.build();
 
 		return add(OperatorProto.newBuilder()
-								.setMatchSpatially(op)
-								.build());
-	}
-	public PlanBuilder matchSpatially(String geomCol, SpatialRelation rel, String keyDsId,
-										PredicateOption... opts) {
-		Utilities.checkNotNullArgument(geomCol, "geometry column name");
-		Utilities.checkNotNullArgument(rel, "SpatialRelation");
-		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
-		Utilities.checkNotNullArgument(opts, "PredicateOption");
-		
-		MatchSpatiallyProto.Builder builder
-								= MatchSpatiallyProto.newBuilder()
-															.setGeometryColumn(geomCol)
-															.setRelation(rel.toStringExpr())
-															.setKeyValueDataset(keyDsId);
-
-		PredicateOption.toPredicateOptionsProto(opts)
-					.ifPresent(builder::setOptions);
-		MatchSpatiallyProto op = builder.build();
-
-		return add(OperatorProto.newBuilder()
-								.setMatchSpatially(op)
+								.setFilterSpatially(op)
 								.build());
 	}
 
@@ -1442,54 +1456,25 @@ public class PlanBuilder {
 	 * @param opts		옵션 리스트
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
-	public PlanBuilder intersects(String geomCol, Geometry key, PredicateOption... opts) {
-		return matchSpatially(geomCol, INTERSECTS, key, opts);
-	}
-	public PlanBuilder intersects(String geomCol, String keyDsId, PredicateOption... opts) {
-		return matchSpatially(geomCol, INTERSECTS, keyDsId, opts);
-	}
-	
-	public PlanBuilder withinDistance(String geomCol, Geometry key, double distance,
-										PredicateOption... opts) {
-		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
-		Utilities.checkNotNullArgument(key, "key is null");
-		Utilities.checkArgument(Double.compare(distance, 0d) > 0,
-									"invalid distance: dist=" + distance);
-
-		GeometryProto keyProto = PBUtils.toProto(key);
-		WithinDistanceProto.Builder builder = WithinDistanceProto.newBuilder()
-													.setGeometryColumn(geomCol)
-													.setKey(keyProto)
-													.setDistance(distance);
-
-		PredicateOption.toPredicateOptionsProto(opts)
-					.ifPresent(builder::setOptions);
-		WithinDistanceProto op = builder.build();
-		
-		return add(OperatorProto.newBuilder()
-								.setWithinDistance(op)
-								.build());
-	}
-	
-	public PlanBuilder withinDistance(String geomCol, String keyDsId, double distance,
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, String keyDsId,
 										PredicateOption... opts) {
 		Utilities.checkNotNullArgument(geomCol, "geometry column name");
+		Utilities.checkNotNullArgument(rel, "SpatialRelation");
 		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
 		Utilities.checkNotNullArgument(opts, "PredicateOption");
-		Utilities.checkArgument(Double.compare(distance, 0d) > 0,
-									"invalid distance: dist=" + distance);
-
-		WithinDistanceProto.Builder builder = WithinDistanceProto.newBuilder()
+		
+		FilterSpatiallyProto.Builder builder
+								= FilterSpatiallyProto.newBuilder()
 													.setGeometryColumn(geomCol)
-													.setKeyValueDataset(keyDsId)
-													.setDistance(distance);
+													.setSpatialRelation(rel.toStringExpr())
+													.setKeyDataset(keyDsId);
 
 		PredicateOption.toPredicateOptionsProto(opts)
-					.ifPresent(builder::setOptions);
-		WithinDistanceProto op = builder.build();
-		
+						.ifPresent(builder::setOptions);
+		FilterSpatiallyProto op = builder.build();
+
 		return add(OperatorProto.newBuilder()
-								.setWithinDistance(op)
+								.setFilterSpatially(op)
 								.build());
 	}
 	
@@ -1590,10 +1575,7 @@ public class PlanBuilder {
 	 * @param outCol	생성된 Point 객체가 저장될 컬럼 이름
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
-	@Operator(protoId="toPoint", name="Point 객체 생성", type=OperatorType.GEO_SPATIAL)
-	public PlanBuilder toPoint(@Parameter(protoId="xColumn", name="X-컬럼") String xCol,
-								@Parameter(protoId="yColumn", name="Y-컬럼") String yCol,
-								@Parameter(protoId="outColumn", name="생성 공간객체 컬럼") String outCol) {
+	public PlanBuilder toPoint(String xCol, String yCol, String outCol) {
 		Utilities.checkNotNullArgument(xCol, "xCol != null");
 		Utilities.checkNotNullArgument(yCol, "yCol != null");
 		Utilities.checkNotNullArgument(outCol, "outCol != null");
@@ -1807,10 +1789,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	@Operator(protoId="transformCrs", name="좌표계 변경", type=OperatorType.GEO_SPATIAL)
-	public PlanBuilder transformCrs(@Parameter(protoId="geometryColumn", name="대상 공간컬럼") String geomCol,
-									@Parameter(protoId="sourceSrid", name="입력 SRID") String srcSrid,
-									@Parameter(protoId="targetSrid", name="출력 SRID") String tarSrid) {
+	public PlanBuilder transformCrs(String geomCol, String srcSrid, String tarSrid) {
 		return transformCrs(geomCol, srcSrid, tarSrid, new GeomOpOption[0]);
 	}
 
@@ -2193,9 +2172,9 @@ public class PlanBuilder {
 		Utilities.checkArgument(aggrFuncs != null && aggrFuncs.length > 0,
 									"empty AggregateFunction list");
 		
-		ValueAggregateReducerProto reducer = FStream.of(aggrFuncs)
+		ValueAggregateReducersProto reducer = FStream.of(aggrFuncs)
 												.map(AggregateFunction::toProto)
-												.foldLeft(ValueAggregateReducerProto.newBuilder(),
+												.foldLeft(ValueAggregateReducersProto.newBuilder(),
 															(b,a) -> b.addAggregate(a))
 												.build();
 		SpatialReduceJoinProto.Builder builder = SpatialReduceJoinProto.newBuilder()
@@ -2231,7 +2210,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder spatialInterpolation(String geomColumn, String paramDataSet,
+	public PlanBuilder interpolateSpatially(String geomColumn, String paramDataSet,
 											String valueColumns, double radius,
 											String outputColumns, InterpolationMethod method) {
 		Utilities.checkNotNullArgument(geomColumn, "input Geometry column");
@@ -2240,7 +2219,7 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(outputColumns, "output columns");
 		Utilities.checkNotNullArgument(method, "interpolation method");
 		
-		SpatialInterpolationProto op = SpatialInterpolationProto.newBuilder()
+		InterpolateSpatiallyProto op = InterpolateSpatiallyProto.newBuilder()
 													.setGeomColumn(geomColumn)
 													.setParamDataset(paramDataSet)
 													.setValueColumns(valueColumns)
@@ -2254,7 +2233,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder spatialInterpolation(String geomColumn, String paramDataSet,
+	public PlanBuilder interpolateSpatially(String geomColumn, String paramDataSet,
 											String valueColumns, double radius, int topK,
 											String outputColumns, InterpolationMethod method) {
 		Utilities.checkNotNullArgument(geomColumn, "input Geometry column");
@@ -2264,7 +2243,7 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(method, "interpolation method");
 		Utilities.checkArgument(topK > 0, "invalid top-k");
 		
-		SpatialInterpolationProto op = SpatialInterpolationProto.newBuilder()
+		InterpolateSpatiallyProto op = InterpolateSpatiallyProto.newBuilder()
 													.setGeomColumn(geomColumn)
 													.setParamDataset(paramDataSet)
 													.setValueColumns(valueColumns)
@@ -2514,12 +2493,14 @@ public class PlanBuilder {
 				m_grpByBuilder.m_tagCols.ifPresent(grpBuilder::setTagColumns);
 				m_grpByBuilder.m_workerCount.ifPresent(cnt -> grpBuilder.setGroupWorkerCount(cnt));
 				GroupByKeyProto grpBy = grpBuilder.build();
-				List<SerializedProto> funcs = Lists.newArrayList(PBUtils.serialize(proto));
+				ReducerProto reducer = ReducerProto.newBuilder()
+													.setReducer(PBUtils.serialize(proto))
+													.build();
 				TransformByGroupProto reduceByGrp
-							= TransformByGroupProto.newBuilder()
-												.setGrouper(grpBy)
-												.addAllFunctions(funcs)
-												.build();
+											= TransformByGroupProto.newBuilder()
+																.setGrouper(grpBy)
+																.setTransform(reducer)
+																.build();
 				
 				return m_planBuilder.add(OperatorProto.newBuilder()
 														.setTransformByGroup(reduceByGrp)

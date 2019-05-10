@@ -1,7 +1,6 @@
 package marmot.geo.geotools;
 
 import java.util.Map;
-import java.util.Objects;
 
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
@@ -25,6 +24,7 @@ import marmot.geo.CRSUtils;
 import marmot.rset.AbstractRecordSet;
 import marmot.support.DataUtils;
 import marmot.type.DataType;
+import utils.Utilities;
 
 /**
  * 
@@ -122,7 +122,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 	}
 	
 	public void setSRID(String srid) {
-		Objects.requireNonNull(srid, "SRID");
+		Utilities.checkNotNullArgument(srid, "SRID");
 		
 		m_srid = srid;
 		m_crs = CRSUtils.toCRS(m_srid);
@@ -133,7 +133,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 	}
 	
 	public void setCRS(CoordinateReferenceSystem crs) {
-		Objects.requireNonNull(crs, "CoordinateReferenceSystem");
+		Utilities.checkNotNullArgument(crs, "CoordinateReferenceSystem");
 		
 		m_crs = crs;
 		m_srid = CRSUtils.toEPSG(CRS.toSRS(m_crs));

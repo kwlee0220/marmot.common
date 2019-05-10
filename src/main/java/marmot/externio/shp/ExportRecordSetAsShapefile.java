@@ -1,9 +1,9 @@
 package marmot.externio.shp;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import marmot.RecordSet;
+import utils.Utilities;
 import utils.async.ProgressiveExecution;
 
 /**
@@ -18,8 +18,8 @@ public class ExportRecordSetAsShapefile extends ExportAsShapefile {
 										String outputDir, ShapefileParameters params) {
 		super(outputDir, params);
 		
-		Objects.requireNonNull(source, "source RecordSet is null");
-		Objects.requireNonNull(srid, "SRID is null");
+		Utilities.checkNotNullArgument(source, "source RecordSet is null");
+		Utilities.checkNotNullArgument(srid, "SRID is null");
 		
 		m_source = source;
 		m_srid = srid;

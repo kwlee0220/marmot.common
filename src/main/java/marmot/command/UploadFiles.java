@@ -12,7 +12,6 @@ import java.nio.file.PathMatcher;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +20,7 @@ import marmot.MarmotRuntime;
 import utils.CommandLine;
 import utils.StopWatch;
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.io.FileUtils;
 import utils.io.IOUtils;
@@ -61,9 +61,9 @@ public class UploadFiles {
 	}
 	
 	public UploadFiles(MarmotRuntime marmot, File start, String dest) {
-		Objects.requireNonNull(marmot);
-		Objects.requireNonNull(start, "source file(or directory)");
-		Objects.requireNonNull(dest, "destination directory path");
+		Utilities.checkNotNullArgument(marmot, "marmot is null");
+		Utilities.checkNotNullArgument(start, "source file(or directory)");
+		Utilities.checkNotNullArgument(dest, "destination directory path");
 		
 		m_marmot = marmot;
 		m_start = start;

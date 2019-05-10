@@ -51,6 +51,7 @@ public abstract class DataType {
 	/**
 	 * 주어진 스트링 representation을 파싱하여 데이터 객체를 생성한다.
 	 * 
+	 * @param str	파싱할 대상 데이터 표현 스트림
 	 * @return	데이터 객체
 	 */
 	public abstract Object parseInstance(String str);

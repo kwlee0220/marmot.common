@@ -1,11 +1,10 @@
 package marmot.rset;
 
-import java.util.Objects;
-
 import io.reactivex.Observer;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import utils.Utilities;
 
 
 /**
@@ -19,8 +18,8 @@ public class ProgressReportingRecordSet extends AbstractRecordSet {
 	private long m_count = 0;
 	
 	public ProgressReportingRecordSet(RecordSet input, Observer<Long> observer) {
-		Objects.requireNonNull(input);
-		Objects.requireNonNull(observer);
+		Utilities.checkNotNullArgument(input, "input is null");
+		Utilities.checkNotNullArgument(observer, "observer is null");
 		
 		m_input = input;
 		m_subject = observer;

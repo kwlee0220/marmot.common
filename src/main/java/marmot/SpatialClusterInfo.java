@@ -1,7 +1,5 @@
 package marmot;
 
-import java.util.Objects;
-
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Envelope;
 
@@ -9,6 +7,7 @@ import marmot.proto.service.SpatialClusterInfoProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import utils.UnitUtils;
+import utils.Utilities;
 
 
 /**
@@ -25,9 +24,9 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 	
 	public SpatialClusterInfo(String quadKey, Envelope tileBounds, Envelope dataBounds,
 							int count, int ownedCount, long length) {
-		Objects.requireNonNull(quadKey, "quadKey is null");
-		Objects.requireNonNull(tileBounds, "tile bounds is null");
-		Objects.requireNonNull(dataBounds, "data bounds is null");
+		Utilities.checkNotNullArgument(quadKey, "quadKey is null");
+		Utilities.checkNotNullArgument(tileBounds, "tile bounds is null");
+		Utilities.checkNotNullArgument(dataBounds, "data bounds is null");
 		Preconditions.checkArgument(count >= 0, "invalid count: " + count);
 		Preconditions.checkArgument(ownedCount >= 0, "invalid owned-count: " + ownedCount);
 		Preconditions.checkArgument(length >= 0, "invalid length: " + length);

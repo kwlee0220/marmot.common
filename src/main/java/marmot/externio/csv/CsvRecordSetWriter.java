@@ -7,7 +7,6 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.file.Files;
-import java.util.Objects;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -21,6 +20,7 @@ import marmot.RecordSet;
 import marmot.externio.RecordSetWriter;
 import marmot.support.DefaultRecord;
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.async.ProgressReporter;
 
 
@@ -55,8 +55,8 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 	}
 	
 	public CsvRecordSetWriter(BufferedWriter writer, CsvParameters params) {
-		Objects.requireNonNull(writer, "writer is null");
-		Objects.requireNonNull(params, "CsvParameters is null");
+		Utilities.checkNotNullArgument(writer, "writer is null");
+		Utilities.checkNotNullArgument(params, "CsvParameters is null");
 		
 		m_writer = writer;
 		m_params = params;
@@ -75,7 +75,7 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 
 	@Override
 	public long write(RecordSet rset) throws IOException {
-		Objects.requireNonNull(rset, "RecordSet is null");
+		Utilities.checkNotNullArgument(rset, "RecordSet is null");
 		
 		CSVFormat format = CSVFormat.DEFAULT.withQuote(null).withIgnoreSurroundingSpaces();
 		format.withDelimiter(m_params.delimiter());

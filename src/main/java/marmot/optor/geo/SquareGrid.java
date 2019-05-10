@@ -1,7 +1,5 @@
 package marmot.optor.geo;
 
-import java.util.Objects;
-
 import com.vividsolutions.jts.geom.Envelope;
 
 import io.vavr.control.Either;
@@ -12,6 +10,7 @@ import marmot.proto.optor.SquareGridProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import utils.Size2d;
+import utils.Utilities;
 
 /**
  * 
@@ -22,16 +21,16 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 	private final Size2d m_cellSize;
 	
 	public SquareGrid(String dsId, Size2d cellSize) {
-		Objects.requireNonNull(dsId, "dataset id should not be null");
-		Objects.requireNonNull(cellSize, "Grid cell size should not be null");
+		Utilities.checkNotNullArgument(dsId, "dataset id should not be null");
+		Utilities.checkNotNullArgument(cellSize, "Grid cell size should not be null");
 
 		m_gridBounds = Either.left(dsId);
 		m_cellSize = cellSize;
 	}
 	
 	public SquareGrid(Envelope bounds, Size2d cellSize) {
-		Objects.requireNonNull(bounds, "Universe Envelope should not be null");
-		Objects.requireNonNull(cellSize, "Grid cell size should not be null");
+		Utilities.checkNotNullArgument(bounds, "Universe Envelope should not be null");
+		Utilities.checkNotNullArgument(cellSize, "Grid cell size should not be null");
 		
 		m_gridBounds = Either.right(bounds);
 		m_cellSize = cellSize;

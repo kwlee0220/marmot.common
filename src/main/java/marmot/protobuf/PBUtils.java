@@ -115,7 +115,7 @@ public class PBUtils {
 		return false;
 	}
 	
-	public static final SerializedProto serializeObject(Object obj) {
+	public static final SerializedProto serialize(Object obj) {
 		if ( obj instanceof PBSerializable ) {
 			return ((PBSerializable<?>)obj).serialize();
 		}

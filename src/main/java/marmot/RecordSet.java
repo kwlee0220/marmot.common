@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -75,7 +74,7 @@ public interface RecordSet extends Closeable {
 	 * @return		{@link RecordSet} 객체.
 	 */
 	public static RecordSet empty(RecordSchema schema) {
-		Objects.requireNonNull(schema, "RecordSchema");
+		Utilities.checkNotNullArgument(schema, "RecordSchema");
 		
 		return new RecordSet() {
 			@Override
@@ -101,7 +100,7 @@ public interface RecordSet extends Closeable {
 	/**
 	 * 단일 레코드로 구성된 레코드 세트를 생성한다.
 	 * 
-	 * @param record	레코드 세트에 포함될 레코드.
+	 * @param records	레코드 세트를 구성할 레코드 리스트.
 	 * @return	레코드 세트
 	 */
 	public static RecordSet of(Record... records) {

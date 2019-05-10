@@ -2,7 +2,6 @@ package marmot.externio.geojson;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 
@@ -10,6 +9,7 @@ import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
+import utils.Utilities;
 
 
 /**
@@ -22,7 +22,7 @@ public class ExportAsGeoJson {
 	@Nullable private String m_gjsonSrid;
 	
 	public ExportAsGeoJson(String dsId) {
-		Objects.requireNonNull(dsId, "dataset id is null");
+		Utilities.checkNotNullArgument(dsId, "dataset id is null");
 		
 		m_dsId = dsId;
 	}

@@ -1,13 +1,13 @@
 package marmot.plan;
 
 import java.util.List;
-import java.util.Objects;
 
 import org.apache.commons.lang3.ArrayUtils;
 
 import com.google.common.base.Preconditions;
 
 import marmot.proto.optor.LoadJdbcTableProto.OptionsProto;
+import utils.Utilities;
 import utils.stream.FStream;
 
 /**
@@ -22,13 +22,13 @@ public abstract class LoadJdbcTableOption {
 	}
 	
 	public static SelectOption SELECT(String expr) {
-		Objects.requireNonNull(expr, "column_expression is null");
+		Utilities.checkNotNullArgument(expr, "column_expression is null");
 	
 		return new SelectOption(expr);
 	}
 	
 	public static OptionsProto toProto(List<LoadJdbcTableOption> opts) {
-		Objects.requireNonNull(opts, "LoadJdbcTableOptions are null");
+		Utilities.checkNotNullArgument(opts, "LoadJdbcTableOptions are null");
 		Preconditions.checkArgument(opts.size() > 0, "LoadJdbcTableOption is empty"); 
 		
 		return FStream.from(opts)

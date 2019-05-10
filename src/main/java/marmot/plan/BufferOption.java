@@ -2,13 +2,13 @@ package marmot.plan;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
 import marmot.proto.optor.BufferTransformProto.OptionsProto;
 import marmot.proto.optor.GeomOpOptionsProto;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -30,7 +30,7 @@ public abstract class BufferOption extends GeomOpOption {
 	
 	public static FOption<OptionsProto> toBufferOptionsProto(
 												List<? extends GeomOpOption> opts) {
-		Objects.requireNonNull(opts, "GeomOpOption list is null");
+		Utilities.checkNotNullArgument(opts, "GeomOpOption list is null");
 		
 		List<BufferOption> matcheds = FStream.from(opts)
 											.castSafely(BufferOption.class)

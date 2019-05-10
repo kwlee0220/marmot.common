@@ -2,7 +2,6 @@ package marmot.externio.csv;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.util.Objects;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
@@ -14,6 +13,7 @@ import marmot.PlanBuilder;
 import marmot.RecordSet;
 import marmot.rset.RecordSets;
 import marmot.type.DataType;
+import utils.Utilities;
 import utils.async.ProgressReporter;
 import utils.func.FOption;
 
@@ -29,8 +29,8 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	
 	public ExportAsCsv(String dsId, CsvParameters csvParams) {
-		Objects.requireNonNull(dsId, "dataset id is null");
-		Objects.requireNonNull(csvParams, "CsvParameters is null");
+		Utilities.checkNotNullArgument(dsId, "dataset id is null");
+		Utilities.checkNotNullArgument(csvParams, "CsvParameters is null");
 		
 		m_dsId = dsId;
 		m_csvParams = csvParams;
@@ -47,8 +47,8 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	}
 	
 	public long run(MarmotRuntime marmot, BufferedWriter writer) throws IOException {
-		Objects.requireNonNull(marmot, "MarmotRuntime is null");
-		Objects.requireNonNull(writer, "writer is null");
+		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
+		Utilities.checkNotNullArgument(writer, "writer is null");
 		
 		try ( RecordSet rset = locateRecordSet(marmot);
 			CsvRecordSetWriter csvWriter = CsvRecordSetWriter.get(writer, m_csvParams) ) {

@@ -2,7 +2,6 @@ package marmot.externio.shp;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Objects;
 import java.util.concurrent.CancellationException;
 
 import org.apache.commons.io.FileUtils;
@@ -21,6 +20,7 @@ import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.geo.geotools.SimpleFeatures;
 import marmot.rset.RecordSets;
 import utils.StopWatch;
+import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
 import utils.async.CancellableWork;
 import utils.async.ProgressiveExecution;
@@ -39,8 +39,8 @@ class ExportAsShapefile {
 	private FOption<Long> m_interval = FOption.empty();
 	
 	protected ExportAsShapefile(String outputDir, ShapefileParameters params) {
-		Objects.requireNonNull(outputDir, "output directory is null");
-		Objects.requireNonNull(params, "ShapefileParameters is null");
+		Utilities.checkNotNullArgument(outputDir, "output directory is null");
+		Utilities.checkNotNullArgument(params, "ShapefileParameters is null");
 		
 		m_outputDir = new File(outputDir);
 		Preconditions.checkArgument(m_outputDir != null, "invalid output: " + outputDir);

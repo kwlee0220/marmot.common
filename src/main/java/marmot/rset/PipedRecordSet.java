@@ -1,7 +1,6 @@
 package marmot.rset;
 
 import java.util.Date;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +20,7 @@ import marmot.RecordSetTimeoutException;
 import net.jcip.annotations.GuardedBy;
 import utils.Guard;
 import utils.Throwables;
+import utils.Utilities;
 
 
 /**
@@ -57,7 +57,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 	@GuardedBy("m_lock") private long m_lastConsumeMillis;
 	
 	PipedRecordSet(RecordSchema schema, int queueLength) {
-		Objects.requireNonNull(schema);
+		Utilities.checkNotNullArgument(schema, "schema is null");
 		Preconditions.checkArgument(queueLength > 0, "queue length should be larger than zero");
 		
 		m_schema = schema;

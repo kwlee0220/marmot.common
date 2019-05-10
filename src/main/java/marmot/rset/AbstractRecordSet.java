@@ -1,6 +1,5 @@
 package marmot.rset;
 
-import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
@@ -12,6 +11,7 @@ import marmot.RecordSetClosedException;
 import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
 import utils.Throwables;
+import utils.Utilities;
 
 /**
  * 
@@ -45,7 +45,7 @@ public abstract class AbstractRecordSet implements RecordSet, LoggerSettable {
 	}
 	
 	public boolean next(Record output) {
-		Objects.requireNonNull(output, "output Record");
+		Utilities.checkNotNullArgument(output, "output Record");
 		
 		Record next = nextCopy();
 		if ( next != null ) {

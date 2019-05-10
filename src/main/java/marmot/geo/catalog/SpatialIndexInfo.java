@@ -8,6 +8,7 @@ import marmot.GeometryColumnInfo;
 import marmot.proto.SpatialIndexInfoProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
+import utils.Utilities;
 
 
 /**
@@ -23,8 +24,8 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	private String m_hdfsPath;
 	
 	public SpatialIndexInfo(String dataset, GeometryColumnInfo geomCol) {
-		Objects.requireNonNull(dataset);
-		Objects.requireNonNull(geomCol);
+		Utilities.checkNotNullArgument(dataset, "dataset is null");
+		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
 		
 		m_dataset = dataset;
 		m_geomCol = geomCol;

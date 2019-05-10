@@ -1,8 +1,8 @@
 package marmot.geo.catalog;
 
-import java.util.Objects;
-
 import com.google.common.base.Preconditions;
+
+import utils.Utilities;
 
 /**
  * 
@@ -12,7 +12,7 @@ public class Catalogs {
 	public static final char ID_DELIM = '/';
 	
 	public static String normalize(String dsId) {
-		Objects.requireNonNull(dsId, "dataset is is null");
+		Utilities.checkNotNullArgument(dsId, "dataset is is null");
 		
 		dsId = dsId.trim();
 		if ( dsId.charAt(0) != ID_DELIM ) {
@@ -26,8 +26,8 @@ public class Catalogs {
 	}
 	
 	public static String toDataSetId(String folder, String name) {
-		Objects.requireNonNull(folder, "dataset folder is is null");
-		Objects.requireNonNull(name, "id is is null");
+		Utilities.checkNotNullArgument(folder, "dataset folder is is null");
+		Utilities.checkNotNullArgument(name, "id is is null");
 		Preconditions.checkArgument(name.indexOf(ID_DELIM) >= 0, "invalid name: " + name);
 		
 		return normalize(folder) + ID_DELIM + name;

@@ -2,9 +2,10 @@ package marmot.protobuf;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Objects;
 
 import com.google.common.base.Preconditions;
+
+import utils.Utilities;
 
 
 /**
@@ -16,7 +17,7 @@ public class LimitedInputStream extends InputStream {
 	private int m_remains;
 	
 	public LimitedInputStream(InputStream src, int limit) {
-		Objects.requireNonNull(src, "Source InputStream");
+		Utilities.checkNotNullArgument(src, "Source InputStream");
 		Preconditions.checkArgument(limit >= 0, "limit >= 0");
 		
 		m_src = src;

@@ -2,11 +2,11 @@ package marmot.plan;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.collect.Lists;
 
 import marmot.proto.optor.EstimateIDWProto.EstimateIDWOptionsProto;
+import utils.Utilities;
 import utils.stream.FStream;
 
 /**
@@ -25,7 +25,7 @@ public abstract class EstimateIDWOption {
 	}
 	
 	public static EstimateIDWOptionsProto toProto(List<EstimateIDWOption> opts) {
-		Objects.requireNonNull(opts, "EstimateIDWOption are null");
+		Utilities.checkNotNullArgument(opts, "EstimateIDWOption are null");
 		
 		return FStream.from(opts)
 					.collectLeft(EstimateIDWOptionsProto.newBuilder(),

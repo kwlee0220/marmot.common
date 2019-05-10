@@ -6,7 +6,6 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.geotools.geometry.jts.Geometries;
@@ -257,15 +256,15 @@ public class GeoClientUtils {
 	}
 	
 	public static Geometry cast(Geometry geom, GeometryDataType dstType) {
-		Objects.requireNonNull(geom);
-		Objects.requireNonNull(dstType);
+		Utilities.checkNotNullArgument(geom, "geom is null");
+		Utilities.checkNotNullArgument(dstType, "dstType is null");
 		
 		return cast(geom, dstType.toGeometries());
 	}
 	
 	public static Geometry cast(Geometry geom, Geometries dstType) {
-		Objects.requireNonNull(geom);
-		Objects.requireNonNull(dstType);
+		Utilities.checkNotNullArgument(geom, "geom is null");
+		Utilities.checkNotNullArgument(dstType, "dstType is null");
 		
 		if ( Geometries.get(geom) == dstType || dstType == Geometries.GEOMETRY ) {
 			return geom;
@@ -297,8 +296,8 @@ public class GeoClientUtils {
 	
 	@SuppressWarnings("unchecked")
 	public static <T extends Geometry> T cast(Geometry geom, Class<T> dstType) {
-		Objects.requireNonNull(geom);
-		Objects.requireNonNull(dstType);
+		Utilities.checkNotNullArgument(geom, "geom is null");
+		Utilities.checkNotNullArgument(dstType, "dstType is null");
 		
 		if ( dstType.isInstance(geom) || dstType == Geometry.class ) {
 			return (T)geom;

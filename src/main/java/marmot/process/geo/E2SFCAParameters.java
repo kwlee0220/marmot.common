@@ -1,7 +1,6 @@
 package marmot.process.geo;
 
 import java.util.Map;
-import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
@@ -10,6 +9,7 @@ import marmot.optor.geo.advanced.WeightFunction;
 import marmot.proto.process.E2SFCAParametersProto;
 import marmot.support.DataUtils;
 import marmot.support.PBSerializable;
+import utils.Utilities;
 
 /**
  * 
@@ -88,7 +88,7 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setConsumerDataset(String dsId) {
-		Objects.requireNonNull(dsId, "consumer dataset id");
+		Utilities.checkNotNullArgument(dsId, "consumer dataset id");
 		
 		m_params.put(CONSUMER_DATASET, dsId);
 	}
@@ -108,7 +108,7 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setProviderDataset(String dsId) {
-		Objects.requireNonNull(dsId, "provider dataset id");
+		Utilities.checkNotNullArgument(dsId, "provider dataset id");
 		
 		m_params.put(PROVIDER_DATASET, dsId);
 	}
@@ -128,7 +128,7 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setOutputDataset(String dsId) {
-		Objects.requireNonNull(dsId, "output dataset");
+		Utilities.checkNotNullArgument(dsId, "output dataset");
 		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
@@ -150,7 +150,7 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	 * @param cols	컬럼 이름 리스트.
 	 */
 	public void setConsumerFeatureColumns(String cols) {
-		Objects.requireNonNull(cols, "consumer feature column list");
+		Utilities.checkNotNullArgument(cols, "consumer feature column list");
 		
 		m_params.put(CONSUMER_FEATURE_COLUMNS, cols);
 	}
@@ -172,7 +172,7 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	 * @param cols	컬럼 이름 리스트.
 	 */
 	public void setProviderFeatureColumns(String cols) {
-		Objects.requireNonNull(cols, "parameter feature column list");
+		Utilities.checkNotNullArgument(cols, "parameter feature column list");
 		
 		m_params.put(PROVIDER_FEATURE_COLUMNS, cols);
 	}
@@ -194,7 +194,7 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	 * @param cols	컬럼 이름 리스트.
 	 */
 	public void setOutputFeatureColumns(String cols) {
-		Objects.requireNonNull(cols, "parameter feature column list");
+		Utilities.checkNotNullArgument(cols, "parameter feature column list");
 		
 		m_params.put(OUTPUT_COLUMNS, cols);
 	}
@@ -234,7 +234,7 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	 * @param  wfunc	weight function
 	 */
 	public void setWeightFunction(WeightFunction wfunc) {
-		Objects.requireNonNull(wfunc, "weight function");
+		Utilities.checkNotNullArgument(wfunc, "weight function");
 		
 		m_params.put(WEIGHT_FUNC, wfunc.toStringExpr());
 	}

@@ -2,11 +2,11 @@ package marmot.plan;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import com.google.common.collect.Lists;
 
 import marmot.proto.optor.GeomOpOptionsProto;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -30,7 +30,7 @@ public abstract class GeomOpOption {
 	
 	public static FOption<GeomOpOptionsProto> toGeomOpOptionsProto(
 												List<? extends GeomOpOption> opts) {
-		Objects.requireNonNull(opts, "GeomOpOption list is null");
+		Utilities.checkNotNullArgument(opts, "GeomOpOption list is null");
 		
 		List<GeomOpOption> matcheds = FStream.from(opts)
 											.castSafely(GeomOpOption.class)
@@ -70,7 +70,7 @@ public abstract class GeomOpOption {
 		private final String m_geomCol;
 		
 		private OutGeomColOption(String geomCol) {
-			Objects.requireNonNull(geomCol, "output geometry column is null");
+			Utilities.checkNotNullArgument(geomCol, "output geometry column is null");
 			
 			m_geomCol = geomCol;
 		}

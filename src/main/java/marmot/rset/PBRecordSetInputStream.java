@@ -6,7 +6,6 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
-import java.util.Objects;
 import java.util.concurrent.CancellationException;
 
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,7 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.support.DefaultRecord;
 import utils.Throwables;
+import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
 import utils.io.IOUtils;
 import utils.stream.FStream;
@@ -42,7 +42,7 @@ public class PBRecordSetInputStream extends InputStream {
 	}
 	
 	private PBRecordSetInputStream(RecordSet rset) {
-		Objects.requireNonNull(rset, "RecordSet");
+		Utilities.checkNotNullArgument(rset, "RecordSet");
 		
 		try {
 			PipedOutputStream pipeOut = new PipedOutputStream();

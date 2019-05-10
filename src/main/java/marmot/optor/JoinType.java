@@ -1,9 +1,8 @@
 package marmot.optor;
 
-import java.util.Objects;
-
 import marmot.proto.optor.JoinTypeProto;
 import marmot.support.ProtoBufEnumSerializable;
+import utils.Utilities;
 
 /**
  * 
@@ -17,7 +16,7 @@ public enum JoinType implements ProtoBufEnumSerializable<JoinTypeProto> {
 	SEMI_JOIN,;
 	
 	public static JoinType fromString(String str) {
-		Objects.requireNonNull(str, "JoinType string is null");
+		Utilities.checkNotNullArgument(str, "JoinType string is null");
 		
 		return JoinType.valueOf(str.toUpperCase());
 	}
