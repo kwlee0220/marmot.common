@@ -39,26 +39,23 @@ public class UploadFiles {
 	private PathMatcher m_pathMatcher;
 	private final String m_dest;
 	private FOption<Long> m_blockSize = FOption.empty();
-	private boolean m_force = false;
 	
-	public static void run(MarmotRuntime marmot, CommandLine cl) throws Exception {
-		if ( cl.hasOption("h") ) {
-			cl.exitWithUsage(0);
-		}
-		
-		File start = new File(cl.getArgument(0));
-		String dest = cl.getArgument(1);
-		FOption<Long> blockSize = cl.getOptionString("block_size")
-									.map(UnitUtils::parseByteSize);
-		String glob = cl.getOptionString("glob").getOrNull();
-		boolean force = cl.hasOption("f");
-		
-		new UploadFiles(marmot, start, dest)
-			.glob(glob)
-			.blockSize(blockSize)
-			.force(force)
-			.run();
-	}
+//	public static void run(MarmotRuntime marmot, CommandLine cl) throws Exception {
+//		if ( cl.hasOption("h") ) {
+//			cl.exitWithUsage(0);
+//		}
+//		
+//		File start = new File(cl.getArgument(0));
+//		String dest = cl.getArgument(1);
+//		FOption<Long> blockSize = cl.getOptionString("block_size")
+//									.map(UnitUtils::parseByteSize);
+//		String glob = cl.getOptionString("glob").getOrNull();
+//		
+//		new UploadFiles(marmot, start, dest)
+//			.glob(glob)
+//			.blockSize(blockSize)
+//			.run();
+//	}
 	
 	public UploadFiles(MarmotRuntime marmot, File start, String dest) {
 		Utilities.checkNotNullArgument(marmot, "marmot is null");
@@ -91,21 +88,8 @@ public class UploadFiles {
 		return this;
 	}
 	
-	public boolean force() {
-		return m_force;
-	}
-	
-	public UploadFiles force(boolean force) {
-		m_force = force;
-		return this;
-	}
-	
 	public void run() throws Exception {
 		StopWatch watch = StopWatch.start();
-		
-		if ( m_force ) {
-			m_marmot.deleteHdfsFile(m_dest);
-		}
 		
 		String prefix = m_start.toPath().toAbsolutePath().toString();
 		int prefixLen = prefix.length();

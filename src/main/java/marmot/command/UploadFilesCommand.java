@@ -26,16 +26,12 @@ public class UploadFilesCommand implements CheckedConsumer<MarmotRuntime> {
 	@Option(names= {"-g", "-glob"}, paramLabel="glob", description="path matcher")
 	private String m_glob = null;
 
-	@Option(names={"-f", "-force"}, description="force to create a new dataset")
-	private boolean m_force;
-
 	private long m_blockSize = -1;
 	@Mixin private UsageHelp m_help;
 	
 	@Override
 	public void accept(MarmotRuntime marmot) throws Exception {
-		UploadFiles upload = new UploadFiles(marmot, new File(m_srcPath), m_destPath)
-									.force(m_force);
+		UploadFiles upload = new UploadFiles(marmot, new File(m_srcPath), m_destPath);
 		Funcs.when(m_glob != null, () -> upload.glob(m_glob));
 		Funcs.when(m_blockSize > 0, () -> upload.blockSize(m_blockSize));
 		upload.run();
