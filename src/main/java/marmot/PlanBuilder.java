@@ -1160,9 +1160,9 @@ public class PlanBuilder {
 	 * 주어진 이름의 데이터세트에 속한 레코드들 중에서 주어진 공간 객체와 조건을 만족시키는 레코드들로
 	 * 구성된 레코드 세트를 적재시키는 연산을 추가한다.
 	 * 
-	 * @param dsId	읽을 대상 데이터세트 이름. 
-	 * @param relation	공간 조건
-	 * @param key		조건 대상 공간 객체.
+	 * @param dsId	읽을 대상 데이터세트 이름.
+	 * @param key	조건 대상 공간 객체.
+	 * @param opts	옵션 리스트
 	 * @return		작업이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder query(String dsId, Geometry key, PredicateOption... opts) {
@@ -1417,6 +1417,7 @@ public class PlanBuilder {
 	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
 	 * 
 	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
+	 * @param rel		조건 공간 연산 관계
 	 * @param key		교집합 여부를 검사할 공간 객체.
 	 * @param opts		옵션 리스트
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
@@ -1452,7 +1453,8 @@ public class PlanBuilder {
 	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
 	 * 
 	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
-	 * @param key		교집합 여부를 검사할 공간 객체.
+	 * @param rel		조건 공간 연산 관계
+	 * @param keyDsId	교집합 여부를 검사할 공간 객체가 저장된 데이터세트 식별자.
 	 * @param opts		옵션 리스트
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
