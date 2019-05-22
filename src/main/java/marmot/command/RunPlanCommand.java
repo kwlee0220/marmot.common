@@ -60,7 +60,7 @@ public class RunPlanCommand implements CheckedConsumer<MarmotRuntime> {
 			
 			m_storeParams.getBlockSize()
 						.ifPresent(blkSz -> optList.add(DataSetOption.BLOCK_SIZE(blkSz)));
-			m_storeParams.getCompress()
+			m_storeParams.getCompression()
 						.filter(f -> f)
 						.ifPresent(f -> optList.add(DataSetOption.COMPRESS));
 			

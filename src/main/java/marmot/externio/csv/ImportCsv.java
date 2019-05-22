@@ -3,6 +3,8 @@ package marmot.externio.csv;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 import io.vavr.Tuple2;
 import marmot.GeometryColumnInfo;
@@ -22,29 +24,32 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public abstract class ImportCsv extends ImportIntoDataSet {
-	protected final CsvParameters m_csvParams;
+	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
+	
+	protected final CsvParameters m_csvOptions;
 	
 	protected abstract FOption<Plan> loadMetaPlan();
 	
-	public static ImportCsv from(File file, CsvParameters csvParams, ImportParameters importParams) {
-		return new ImportCsvFileIntoDataSet(file, csvParams, importParams);
+	public static ImportCsv from(File file, CsvParameters csvOpts, ImportParameters importParams) {
+		return new ImportCsvFileIntoDataSet(file, csvOpts, importParams);
 	}
 	
-	public static ImportCsv from(BufferedReader reader, CsvParameters csvParams,
+	public static ImportCsv from(BufferedReader reader, CsvParameters csvOpts,
 								ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvParams, importParams);
+		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvOpts, importParams);
 	}
 	
-	public static ImportCsv from(BufferedReader reader, Plan plan, CsvParameters csvParams,
+	public static ImportCsv from(BufferedReader reader, Plan plan, CsvParameters csvOpts,
 								ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvParams,
+		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvOpts,
 												importParams);
 	}
 
-	private ImportCsv(CsvParameters csvParams, ImportParameters importParams) {
+	private ImportCsv(CsvParameters csvOpts, ImportParameters importParams) {
 		super(importParams);
 		
-		m_csvParams = csvParams;
+		m_csvOptions = csvOpts.duplicate();
+		m_csvOptions.charset().ifAbsent(() -> m_csvOptions.charset(DEFAULT_CHARSET));
 	}
 
 	@Override
@@ -71,7 +76,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	}
 
 	private FOption<Plan> getToPointPlan() {
-		if ( !m_csvParams.pointColumn().isPresent()
+		if ( !m_csvOptions.pointColumns().isPresent()
 			|| !m_params.getGeometryColumnInfo().isPresent() ) {
 			return FOption.empty();
 		}
@@ -79,15 +84,15 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		PlanBuilder builder = new PlanBuilder("import_csv");
 		
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
-		Tuple2<String,String> ptCols = m_csvParams.pointColumn().get();
+		Tuple2<String,String> ptCols = m_csvOptions.pointColumns().get();
 		builder = builder.toPoint(ptCols._1, ptCols._2, info.name());
 		
 		String prjExpr = String.format("%s,*-{%s,%s,%s}", info.name(), info.name(),
 															ptCols._1, ptCols._2);
 		builder = builder.project(prjExpr);
 			
-		if ( m_csvParams.csvSrid().isPresent() ) {
-			String srcSrid = m_csvParams.csvSrid().get();
+		if ( m_csvOptions.srid().isPresent() ) {
+			String srcSrid = m_csvOptions.srid().get();
 			if ( !srcSrid.equals(info.srid()) ) {
 				builder = builder.transformCrs(info.name(), srcSrid, info.srid());
 			}
@@ -99,15 +104,15 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	private static class ImportCsvFileIntoDataSet extends ImportCsv {
 		private final File m_start;
 		
-		ImportCsvFileIntoDataSet(File file, CsvParameters csvParams, ImportParameters importParams) {
-			super(csvParams, importParams);
+		ImportCsvFileIntoDataSet(File file, CsvParameters csvOpts, ImportParameters importParams) {
+			super(csvOpts, importParams);
 			
 			m_start = file;
 		}
 
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
-			return new MultiFileCsvRecordSet(m_start, m_csvParams);
+			return new MultiFileCsvRecordSet(m_start, m_csvOptions);
 		}
 
 		@Override
@@ -126,8 +131,8 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		private final FOption<Plan> m_plan;
 		
 		ImportCsvStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
-									CsvParameters csvParams, ImportParameters importParams) {
-			super(csvParams, importParams);
+									CsvParameters csvOpts, ImportParameters importParams) {
+			super(csvOpts, importParams);
 			
 			m_reader = reader;
 			m_plan = plan;
@@ -136,7 +141,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
 			try {
-				return CsvRecordSet.from(m_reader, m_csvParams);
+				return CsvRecordSet.from(m_reader, m_csvOptions);
 			}
 			catch ( IOException e ) {
 				throw new RecordSetException("fails to load CsvRecordSet: cause=" + e);

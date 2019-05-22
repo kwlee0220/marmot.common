@@ -9,36 +9,6 @@ import public "marmot.proto";
 import public "marmot.service.proto";
 
 
-message LoadTextFileProto {
-	oneof optional_split_count_per_block {
-		int32 split_count_per_block = 1;
-	}
-	oneof optional_comment_prefix {
-		string comment_prefix = 2;
-	}
-	repeated string paths = 3;
-}
-
-message LoadMarmotFileProto {
-	int32 split_count_per_block = 1;
-	repeated string paths = 2;
-}
-message LoadSpatialClusteredFileProto {
-	string dataset = 1;
-	marmot.proto.EnvelopeProto range = 2;
-	string query = 3;
-	string cluster_cols_expr = 4;
-}
-
-message LoadCsvFileProto {
-	int32 split_count_per_block = 1;
-	string path = 2;
-}
-message LoadCustomTextFileProto {
-	int32 split_count_per_block = 1;
-	string path = 2;
-}
-
 message LoadOptionsProto {
 	oneof optional_split_count_per_block {
 		int32 split_count_per_block = 1;
@@ -47,9 +17,25 @@ message LoadOptionsProto {
 
 message LoadDataSetProto {
 	string ds_id = 1;
-	oneof optional_options {
-		LoadOptionsProto options = 2;
-	}
+	LoadOptionsProto options = 2;
+}
+message LoadTextFileProto {
+	LoadOptionsProto options = 1;
+	repeated string paths = 2;
+}
+message LoadMarmotFileProto {
+	LoadOptionsProto options = 1;
+	repeated string paths = 2;
+}
+message LoadCustomTextFileProto {
+	string path = 1;
+	LoadOptionsProto options = 2;
+}
+message LoadSpatialClusteredFileProto {
+	string dataset = 1;
+	marmot.proto.EnvelopeProto range = 2;
+	string query = 3;
+	string cluster_cols_expr = 4;
 }
 
 message QueryDataSetProto {
@@ -58,9 +44,7 @@ message QueryDataSetProto {
 		GeometryProto key_geometry = 2;
 		string key_dataset = 3;
 	}
-	oneof optional_options {
-		PredicateOptionsProto options = 4;
-	}
+	PredicateOptionsProto options = 4;
 }
 
 message FilterSpatiallyProto {
@@ -70,29 +54,27 @@ message FilterSpatiallyProto {
 		string key_dataset = 3;
 	}
 	string spatial_relation = 4;
-	oneof optional_options {
-		PredicateOptionsProto options = 5;
-	}
+	PredicateOptionsProto options = 5;
 }
 
-message LoadJdbcTableProto {
-	message OptionsProto {
-		oneof optional_columns_expr {
-			string columns_expr = 1;
-		}
-		oneof optional_mapper_count {
-			int32 mapper_count = 2;
-		}
-	}
-	
+message JdbcConnectOptionsProto {
 	string jdbc_url = 1;
 	string user = 2;
 	string passwd = 3;
 	string driver_class_name = 4;
-	string tableName = 5;
-	oneof optional_options {
-		OptionsProto options = 6;
+}
+message LoadJdbcTableOptionsProto {
+	oneof optional_select_expr {
+		string select_expr = 1;
 	}
+	oneof optional_mapper_count {
+		int32 mapper_count = 2;
+	}
+}
+message LoadJdbcTableProto {
+	string table_name = 1;
+	JdbcConnectOptionsProto jdbc_options = 2;
+	LoadJdbcTableOptionsProto options = 3;
 }
 
 message StoreAsHeapfileProto {
@@ -113,9 +95,17 @@ message TeeProto {
 
 message StoreAsCsvProto {
 	string path = 1;
-	string delimiter = 2;
-	oneof optional_block_size {
-		int64 block_size = 3;
+	StoreAsCsvOptionsProto options = 2;
+	
+	message StoreAsCsvOptionsProto {
+		CsvOptionsProto csv_options = 1;
+	
+		oneof optional_header_first {
+			bool header_first = 2;
+		}
+		oneof optional_block_size {
+			int64 block_size = 3;
+		}
 	}
 }
 
@@ -124,13 +114,10 @@ message StoreIntoDataSetProto {
 }
 
 message StoreIntoJdbcTableProto {
-	string jdbc_url = 1;
-	string user = 2;
-	string passwd = 3;
-	string driver_class_name = 4;
-	string tableName = 5;
+	string table_name = 1;
+	JdbcConnectOptionsProto jdbc_options = 2;
 	oneof optional_values_expr {
-		string values_expr = 6;
+		string values_expr = 3;
 	}
 }
 
@@ -184,35 +171,45 @@ message DefineColumnProto {
 		RecordScriptProto column_initializer = 2;
 	}
 }
+
+message CsvOptionsProto {
+	string delimiter = 1;
+	oneof optional_quote {
+		string quote = 2;
+	}
+	oneof optional_escape {
+		string escape = 3;
+	}
+	oneof optional_charset {
+		string charset = 8;
+	}
+}
+
 message ParseCsvProto {
-	message OptionsProto {
-		oneof optional_header_columns {
-			string header_columns = 1;
+	string csv_column = 1;
+	ParseCsvOptionsProto options = 2;
+
+	message ParseCsvOptionsProto {
+		CsvOptionsProto csv_options = 1;
+
+		oneof optional_header_first {
+			bool header_first = 2;
 		}
-		oneof optional_quote {
-			string quote = 2;
+		oneof optional_header {
+			string header = 3;
 		}
-		oneof optional_escape {
-			string escape = 3;
+		oneof optional_trim_column {
+			bool trim_column = 4;
 		}
 		oneof optional_null_value {
-			string null_value = 4;
+			string null_value = 5;
 		}
-		oneof optional_trim_field {
-			bool trim_field = 5;
+		oneof optional_max_column_length {
+			int32 max_column_length = 6;
 		}
 		oneof optional_throw_parse_error {
-			bool throw_parse_error = 6;
+			bool throw_parse_error = 7;
 		}
-		oneof optional_comment_marker {
-			string comment_marker = 7;
-		}
-	}
-	
-	string text_column = 1;
-	string delimiter = 2;
-	oneof optional_options {
-		OptionsProto options = 3;
 	}
 }
 
@@ -261,7 +258,7 @@ message ShardProto {
 	int32 part_count = 1;
 }
 message StoreAndReloadProto {
-	int32 split_count_per_block = 1;
+	LoadOptionsProto options = 1;
 }
 
 
@@ -414,117 +411,75 @@ message SpatialJoinOptionsProto {
 	oneof optional_negated {
 		bool negated = 3;
 	}
-	oneof optional_top_k {
-		int32 top_k = 4;
+	oneof optional_output_columns {
+		string output_columns = 4;
 	}
 }
 message SpatialBlockJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	oneof optional_output_columns {
-		string output_columns = 3;
-	}
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 4;
-	}
+	SpatialJoinOptionsProto options = 3;
 }
 message SpatialSemiJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 3;
-	}
+	SpatialJoinOptionsProto options = 3;
 }
 message SpatialOuterJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	oneof optional_output_columns {
-		string output_columns = 3;
-	}
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 4;
-	}
+	SpatialJoinOptionsProto options = 3;
 }
 message SpatialKnnInnerJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
 	int32 top_k = 3;
 	double radius = 4;
-	oneof optional_output_columns {
-		string output_columns = 5;
-	}
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 6;
-	}
+	SpatialJoinOptionsProto options = 5;
 }
 message SpatialKnnOuterJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
 	int32 top_k = 3;
 	double radius = 4;
-	oneof optional_output_columns {
-		string output_columns = 5;
-	}
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 6;
-	}
+	SpatialJoinOptionsProto options = 5;
 }
 message SpatialClipJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 3;
-	}
+	SpatialJoinOptionsProto options = 3;
 }
 message SpatialIntersectionJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	oneof optional_output_columns {
-		string output_columns = 3;
-	}
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 4;
-	}
+	SpatialJoinOptionsProto options = 3;
 }
 message SpatialDifferenceJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 4;
-	}
+	SpatialJoinOptionsProto options = 3;
 }
 message SpatialReduceJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
 	ValueAggregateReducersProto reducer = 3;
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 4;
-	}
+	SpatialJoinOptionsProto options = 4;
 }
 message ArcGisSpatialJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
 	bool include_param_data = 3;
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 4;
-	}
+	SpatialJoinOptionsProto options = 4;
 }
 message EstimateIDWProto {
-	message EstimateIDWOptionsProto {
-		oneof optional_power {
-			double power = 2;
-		}
-	}
-
 	string geom_column = 1;
 	string param_dataset = 2;
 	string value_column = 3;
 	int32 top_k = 4;
 	double radius = 5;
 	string output_density_column = 6;
-	
-	oneof optional_options {
-		EstimateIDWOptionsProto options = 7;
+	oneof optional_power {
+		double power = 7;
 	}
 }
 message InterpolateSpatiallyProto {
@@ -544,9 +499,7 @@ message EstimateKernelDensityProto {
 	string value_column = 3;
 	double radius = 4;
 	string density_column = 5;
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 6;
-	}
+	SpatialJoinOptionsProto options = 6;
 }
 
 
@@ -565,12 +518,7 @@ message IntersectionJoinProto {
 message LoadSpatialIndexJoinProto {
 	string left_dataset = 1;
 	string right_dataset = 2;
-	oneof optional_output_columns {
-		string output_columns = 3;
-	}
-	oneof optional_options {
-		SpatialJoinOptionsProto options = 4;
-	}
+	SpatialJoinOptionsProto options = 3;
 }
 
 message DissolveProto {
@@ -593,9 +541,7 @@ message PredicateOptionsProto {
 }
 message DropEmptyGeometryProto {
 	string geometry_column = 1;
-	oneof optional_options {
-		PredicateOptionsProto options = 2;
-	}
+	PredicateOptionsProto options = 2;
 }
 message UnarySpatialIntersectsProto {
 	string geometry_column = 1;
@@ -603,9 +549,7 @@ message UnarySpatialIntersectsProto {
 		GeometryProto key = 2;
 		string key_value_dataset = 3;
 	}
-	oneof optional_options {
-		PredicateOptionsProto options = 4;
-	}
+	PredicateOptionsProto options = 4;
 }
 message WithinDistanceProto {
 	string geometry_column = 1;
@@ -614,16 +558,12 @@ message WithinDistanceProto {
 		string key_value_dataset = 3;
 	}
 	double distance = 4;
-	oneof optional_options {
-		PredicateOptionsProto options = 5;
-	}
+	PredicateOptionsProto options = 5;
 }
 message BinarySpatialIntersectsProto {
 	string left_geometry_column = 1;
 	string right_geometry_column = 2;
-	oneof optional_options {
-		PredicateOptionsProto options = 3;
-	}
+	PredicateOptionsProto options = 3;
 }
 
 //
@@ -651,31 +591,20 @@ message CentroidTransformProto {
 		}
 	}
 	string geometry_column = 1;
-	oneof optional_options {
-		GeomOpOptionsProto options = 2;
-	}
+	GeomOpOptionsProto options = 2;
 }
 message BufferTransformProto {
-	message OptionsProto {
-		oneof optional_segment_count {
-			int32 segment_count = 1;
-		}
-	}
 	string geometry_column = 1;
 	double distance = 2;
-	oneof optional_options {
-		GeomOpOptionsProto options = 3;
+	oneof optional_segment_count {
+		int32 segment_count = 3;
 	}
-	oneof optional_buffer_options {
-		OptionsProto buffer_options = 4;
-	}
+	GeomOpOptionsProto options = 4;
 }
 message UnarySpatialIntersectionProto {
 	string geometry_column = 1;
 	bytes key = 2;
-	oneof optional_options {
-		GeomOpOptionsProto options = 3;
-	}
+	GeomOpOptionsProto options = 3;
 }
 message BinarySpatialIntersectionProto {
 	string left_geometry_column = 1;
@@ -697,9 +626,7 @@ message TransformCrsProto {
 	string geometry_column = 1;
 	string source_srid = 2;
 	string target_srid = 3;
-	oneof optional_options {
-		GeomOpOptionsProto options = 4;
-	}
+	GeomOpOptionsProto options = 4;
 }
 message AttachGeoHashProto {
 	string geometry_column = 1;
@@ -718,9 +645,7 @@ message AttachQuadKeyProto {
 message ReduceGeometryPrecisionProto {
 	string geometry_column = 1;
 	int32 precision_factor = 2;
-	oneof optional_options {
-		GeomOpOptionsProto options = 3;
-	}
+	GeomOpOptionsProto options = 3;
 }
 message SplitGeometryProto {
 	string geometry_column = 1;
@@ -748,10 +673,9 @@ message SquareGridProto {
 
 message LoadSquareGridFileProto {
 	SquareGridProto grid = 1;
-	oneof optional_options {
-		LoadOptionsProto options = 2;
+	oneof optional_split_count {
+		int32 split_count = 2;
 	}
-	int32 worker_count = 5;
 }
 
 message LoadHexagonGridFileProto {
@@ -834,7 +758,6 @@ message OperatorProto {
 		LoadTextFileProto load_textfile = 1;
 		LoadMarmotFileProto load_marmotfile = 2;
 		LoadDataSetProto load_dataset = 3;
-		LoadCsvFileProto load_csvfile = 4;
 		LoadCustomTextFileProto load_custom_textfile = 5;
 		LoadJdbcTableProto load_jdbc_table = 6;
 		LoadSquareGridFileProto load_square_gridfile = 7;

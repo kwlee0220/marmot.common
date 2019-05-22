@@ -70,7 +70,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				List<DataSetOption> optList = Lists.newArrayList();
 				m_params.getGeometryColumnInfo().ifPresent(info -> optList.add(GEOMETRY(info)));
 				m_params.getBlockSize().ifPresent(sz -> optList.add(BLOCK_SIZE(sz)));
-				m_params.getCompress().ifPresent(b -> optList.add(COMPRESS));
+				m_params.getCompression().ifPresent(b -> optList.add(COMPRESS));
 				
 				if ( force ) {
 					optList.add(FORCE);

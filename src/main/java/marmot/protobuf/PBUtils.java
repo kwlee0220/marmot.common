@@ -464,7 +464,7 @@ public class PBUtils {
 		}
 	}
 	
-	public static void replyBoolean(CheckedSupplier<Boolean> supplier,
+	public static <X extends Throwable> void replyBoolean(CheckedSupplier<Boolean> supplier,
 									StreamObserver<BoolResponse> response) {
 		try {
 			boolean done = supplier.get();
@@ -480,7 +480,7 @@ public class PBUtils {
 		response.onCompleted();
 	}
 	
-	public static void replyLong(CheckedSupplier<Long> supplier,
+	public static <X extends Throwable> void replyLong(CheckedSupplier<Long> supplier,
 							StreamObserver<LongResponse> response) {
 		try {
 			long ret = supplier.get();
@@ -496,7 +496,7 @@ public class PBUtils {
 		response.onCompleted();
 	}
 	
-	public static void replyString(CheckedSupplier<String> supplier,
+	public static <X extends Throwable> void replyString(CheckedSupplier<String> supplier,
 									StreamObserver<StringResponse> response) {
 		try {
 			String ret = supplier.get();
@@ -576,9 +576,9 @@ public class PBUtils {
 	
 	public static Size2dProto toProto(Size2d dim) {
 		return Size2dProto.newBuilder()
-									.setWidth(dim.getWidth())
-									.setHeight(dim.getHeight())
-									.build();
+						.setWidth(dim.getWidth())
+						.setHeight(dim.getHeight())
+						.build();
 	}
 	
 	public static Interval fromProto(IntervalProto proto) {

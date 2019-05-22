@@ -52,16 +52,17 @@ expand(colDecls, colInit=[], init=[]) ::= <<
 }
 >>
 
-parseCsv(inputColumn, header, delim=",", quote=[], nullValue=[], comment=[]) ::= <<
+parseCsv(inputColumn, header, delim=",", quote=[], nullValue=[]) ::= <<
 { "parseCsv": {
-    "textColumn": "<inputColumn>",
-    "delimiter": "<delim>",
+    "csvColumn": "<inputColumn>",
     "options": {
-      "headerColumns": "<header>"<if(quote)>,
-      "quote": "<quote>"<endif><if(nullValue)>,
-      "nullValue": "<nullValue>"<endif><if(comment)>,
-      "commentMarker": "<comment>"
-      <endif>
+      "csvOptions": {
+   	    "delimiter": "<delim>"<if(quote)>,
+        "quote": "<quote>"<endif>
+        
+      }<if(nullValue)>,
+      "nullValue": "<nullValue>"<endif>,
+      "header": "<header>"
     }
   }
 }

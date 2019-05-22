@@ -3,7 +3,6 @@ package marmot.externio.csv;
 import java.io.IOException;
 import java.io.StringReader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
@@ -11,6 +10,7 @@ import org.apache.commons.csv.CSVRecord;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import marmot.MarmotInternalException;
+import marmot.optor.StoreAsCsvOptions;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import utils.Utilities;
@@ -20,42 +20,24 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-@Command(description="CSV parsing parameters")
+@Command(description="CSV options")
 public class CsvParameters {
-	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-	
-	private FOption<Charset> m_charset = FOption.empty();
-	private boolean m_headerFirst = false;
 	private char m_delim = ',';
 	private FOption<Character> m_quote = FOption.empty();
 	private FOption<Character> m_escape = FOption.empty();
-	private FOption<String> m_pointCols = FOption.empty();
-	private FOption<String> m_csvSrid = FOption.empty();
-	private boolean m_trimField = false;
+	private FOption<String> m_comment = FOption.empty();
+	private FOption<Charset> m_charset = FOption.empty();
+	private FOption<Boolean> m_headerFirst = FOption.empty();
 	private FOption<String> m_header = FOption.empty();
+	private FOption<String> m_pointCols = FOption.empty();
+	private FOption<String> m_srid = FOption.empty();
+	private FOption<Boolean> m_trimColumns = FOption.empty();
 	private FOption<String> m_nullValue = FOption.empty();
 	private boolean m_tiger = false;
 	private FOption<Integer> m_maxColLength = FOption.empty();
 	
 	public static CsvParameters create() {
 		return new CsvParameters();
-	}
-	
-	public Charset charset() {
-		return m_charset.getOrElse(DEFAULT_CHARSET);
-	}
-
-	@Option(names={"-charset"}, paramLabel="charset-string",
-			description={"Character encoding of the target CSV file"})
-	public CsvParameters charset(String charset) {
-		m_charset = FOption.ofNullable(charset)
-							.map(Charset::forName);
-		return this;
-	}
-	
-	public CsvParameters charset(Charset charset) {
-		m_charset = FOption.ofNullable(charset);
-		return this;
 	}
 	
 	public char delimiter() {
@@ -87,49 +69,53 @@ public class CsvParameters {
 		return this;
 	}
 	
-	public boolean headerFirst() {
-		return m_headerFirst;
+	public FOption<Charset> charset() {
+		return m_charset;
 	}
 
-	@Option(names={"-header_first"}, description="consider the first line as header")
-	public CsvParameters headerFirst(boolean flag) {
-		m_headerFirst = flag;
+	@Option(names={"-charset"}, paramLabel="charset-string",
+			description={"Character encoding of the target CSV file"})
+	public CsvParameters charset(String charset) {
+		m_charset = FOption.ofNullable(charset)
+							.map(Charset::forName);
 		return this;
 	}
 	
-	public boolean tiger() {
-		return m_tiger;
+	public CsvParameters charset(Charset charset) {
+		m_charset = FOption.ofNullable(charset);
+		return this;
+	}
+	
+	public FOption<String> commentMarker() {
+		return m_comment;
 	}
 
-	@Option(names={"-tiger"}, description="use the tiger format")
-	public CsvParameters tiger(boolean flag) {
-		m_tiger = flag;
+	@Option(names={"-comment"}, paramLabel="comment_marker", description={"comment marker"})
+	public CsvParameters commentMarker(String comment) {
+		m_comment = FOption.ofNullable(comment);
 		return this;
+	}
+	
+	public FOption<String> header() {
+		return m_header;
 	}
 
 	@Option(names={"-header"}, paramLabel="column_list", description={"header field list"})
-	public CsvParameters headerRecord(String header) {
+	public CsvParameters header(String header) {
 		Utilities.checkNotNullArgument(header, "CSV header");
 		
 		m_header = FOption.of(header);
 		return this;
 	}
 	
-	public FOption<Integer> maxColumnLength() {
-		return m_maxColLength;
+	public FOption<Boolean> headerFirst() {
+		return m_headerFirst;
 	}
 
-	@Option(names={"-max_column_length"}, paramLabel="column_length",
-			description={"set maximum column length"})
-	public CsvParameters maxColumnLength(int length) {
-		Utilities.checkArgument(length > 0, "length > 0");
-		
-		m_maxColLength = FOption.of(length);
+	@Option(names={"-header_first"}, description="consider the first line as header")
+	public CsvParameters headerFirst(boolean flag) {
+		m_headerFirst = FOption.of(flag);
 		return this;
-	}
-	
-	public FOption<String> headerRecord() {
-		return m_header;
 	}
 
 	@Option(names={"-null_value"}, paramLabel="string",
@@ -143,25 +129,25 @@ public class CsvParameters {
 		return m_nullValue;
 	}
 
-	@Option(names={"-trim_field"}, description="ignore surrouding spaces")
-	public CsvParameters trimField(boolean flag) {
-		m_trimField = flag;
+	@Option(names={"-trim_columns"}, description="ignore surrouding spaces")
+	public CsvParameters trimColumns(boolean flag) {
+		m_trimColumns = FOption.of(flag);
 		return this;
 	}
 	
-	public boolean trimField() {
-		return m_trimField;
+	public FOption<Boolean> trimColumn() {
+		return m_trimColumns;
 	}
 
-	@Option(names={"-point_col"}, paramLabel="xy-columns", description="X,Y columns for point")
-	public CsvParameters pointColumn(String pointCols) {
+	@Option(names={"-point_cols"}, paramLabel="xy-columns", description="X,Y columns for point")
+	public CsvParameters pointColumns(String pointCols) {
 		Utilities.checkNotNullArgument(pointCols, "Point columns are null");
 		
 		m_pointCols = FOption.ofNullable(pointCols);
 		return this;
 	}
 	
-	public FOption<Tuple2<String,String>> pointColumn() {
+	public FOption<Tuple2<String,String>> pointColumns() {
 		return m_pointCols.map(cols -> {
 			try {
 				CSVFormat format = CSVFormat.DEFAULT.withDelimiter(delimiter());
@@ -184,25 +170,80 @@ public class CsvParameters {
 	}
 
 	@Option(names={"-csv_srid"}, paramLabel="EPSG-code", description="EPSG code for input CSV file")
-	public CsvParameters csvSrid(String srid) {
-		m_csvSrid = FOption.ofNullable(srid);
+	public CsvParameters srid(String srid) {
+		m_srid = FOption.ofNullable(srid);
 		return this;
 	}
 	
-	public FOption<String> csvSrid() {
-		return m_csvSrid;
+	public FOption<String> srid() {
+		return m_srid;
+	}
+	
+	public boolean tiger() {
+		return m_tiger;
+	}
+
+	@Option(names={"-tiger"}, description="use the tiger format")
+	public CsvParameters tiger(boolean flag) {
+		m_tiger = flag;
+		return this;
+	}
+	
+	public FOption<Integer> maxColumnLength() {
+		return m_maxColLength;
+	}
+
+	@Option(names={"-max_column_length"}, paramLabel="column_length",
+			description={"set maximum column length"})
+	public CsvParameters maxColumnLength(int length) {
+		Utilities.checkArgument(length > 0, "length > 0");
+		
+		m_maxColLength = FOption.of(length);
+		return this;
+	}
+	
+	public CsvParameters duplicate() {
+		CsvParameters dupl = create();
+		dupl.m_delim = m_delim;
+		dupl.m_charset = m_charset;
+		dupl.m_headerFirst = m_headerFirst;
+		dupl.m_quote = m_quote;
+		dupl.m_escape = m_escape;
+		dupl.m_comment = m_comment;
+		dupl.m_pointCols = m_pointCols;
+		dupl.m_srid = m_srid;
+		dupl.m_trimColumns = m_trimColumns;
+		dupl.m_header = m_header;
+		dupl.m_nullValue = m_nullValue;
+		dupl.m_tiger = m_tiger;
+		dupl.m_maxColLength = m_maxColLength;
+		
+		return dupl;
+	}
+	
+	public StoreAsCsvOptions toStoreOptions() {
+		StoreAsCsvOptions opts = StoreAsCsvOptions.create();
+		opts.delimiter(m_delim);
+		m_quote.ifPresent(opts::quote);
+		m_escape.ifPresent(opts::escape);
+		m_charset.ifPresent(opts::charset);
+		m_headerFirst.ifPresent(opts::headerFirst);
+		
+		return opts;
 	}
 	
 	@Override
 	public String toString() {
-		String headerFirst = m_headerFirst ? ", header" : "";
+		String headerFirst = m_headerFirst.filter(f -> f)
+											.map(f -> ", header")
+											.getOrElse("");
 		String nullString = m_nullValue.map(v -> String.format(", null=\"%s\"", v))
 										.getOrElse("");
 		String csStr = !charset().toString().equalsIgnoreCase("utf-8")
 						? String.format(", %s", charset().toString()) : "";
-		String ptStr = pointColumn().map(xy -> String.format(", POINT(%s,%s)", xy._1, xy._2))
+		String ptStr = pointColumns().map(xy -> String.format(", POINT(%s,%s)", xy._1, xy._2))
 									.getOrElse("");
-		String srcSrid = m_csvSrid.map(s -> String.format(", csv_srid=%s", s))
+		String srcSrid = m_srid.map(s -> String.format(", csv_srid=%s", s))
 									.getOrElse("");
 		return String.format("delim='%s'%s%s%s%s%s",
 								m_delim, headerFirst, ptStr, srcSrid, csStr,

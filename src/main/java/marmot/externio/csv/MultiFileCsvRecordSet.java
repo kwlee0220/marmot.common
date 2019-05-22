@@ -24,7 +24,7 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	
 	private final File m_start;
 	private final FStream<File> m_files;
-	private final CsvParameters m_params;
+	private final CsvParameters m_options;
 	private CsvRecordSet m_first;
 	private final RecordSchema m_schema;
 	
@@ -44,7 +44,7 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 			getLogger().info("loading CSVFile: from={}, nfiles={}", start, files.size());
 
 			m_files = FStream.from(files);
-			m_params = params;
+			m_options = params;
 			
 			m_first = loadNext();
 			m_schema = m_first.getRecordSchema();
@@ -72,7 +72,7 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	
 	@Override
 	public String toString() {
-		return String.format("%s[start=%s]params[%s]", getClass().getSimpleName(), m_start, m_params);
+		return String.format("%s[start=%s]params[%s]", getClass().getSimpleName(), m_start, m_options);
 	}
 
 	@Override
@@ -90,8 +90,8 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	
 	private CsvRecordSet loadFile(File file) {
 		try {
-			CsvRecordSet rset = CsvRecordSet.from(file, m_params);
-			getLogger().info("loading: CSV[{}], from={}", m_params, file);
+			CsvRecordSet rset = CsvRecordSet.from(file, m_options);
+			getLogger().info("loading: CSV[{}], from={}", m_options, file);
 			
 			return rset;
 		}

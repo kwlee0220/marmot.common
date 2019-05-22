@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import org.apache.commons.csv.CSVFormat;
@@ -18,6 +20,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.externio.RecordSetWriter;
+import marmot.optor.StoreAsCsvOptions;
 import marmot.support.DefaultRecord;
 import utils.UnitUtils;
 import utils.Utilities;
@@ -29,37 +32,40 @@ import utils.async.ProgressReporter;
  * @author Kang-Woo Lee (ETRI)
  */
 public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Long> {
+	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	private static final int DEFAULT_BUFFER_SIZE = (int)UnitUtils.parseByteSize("64kb");
 	
 	private final BufferedWriter m_writer;
-	private final CsvParameters m_params;
+	private final StoreAsCsvOptions m_options;
 	private long m_interval = -1L;
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	
-	public static CsvRecordSetWriter get(File file, CsvParameters params) throws IOException {
-		return new CsvRecordSetWriter(Files.newBufferedWriter(file.toPath(), params.charset()),
-										params);
+	public static CsvRecordSetWriter get(File file, StoreAsCsvOptions opts) throws IOException {
+		Charset cs = opts.charset().getOrElse(DEFAULT_CHARSET);
+		return new CsvRecordSetWriter(Files.newBufferedWriter(file.toPath(), cs), opts);
 	}
 	
-	public static CsvRecordSetWriter get(Writer writer, CsvParameters params)
+	public static CsvRecordSetWriter get(Writer writer, StoreAsCsvOptions opts)
 		throws IOException {
 		BufferedWriter bwriter = (writer instanceof BufferedWriter)
 								? (BufferedWriter)writer
 								: new BufferedWriter(writer, DEFAULT_BUFFER_SIZE);
-		return new CsvRecordSetWriter(bwriter, params);
+		return new CsvRecordSetWriter(bwriter, opts);
 	}
 	
-	public static CsvRecordSetWriter get(OutputStream os, CsvParameters params) throws IOException {
-		Writer writer = new OutputStreamWriter(os, params.charset());
-		return new CsvRecordSetWriter(new BufferedWriter(writer, DEFAULT_BUFFER_SIZE), params);
+	public static CsvRecordSetWriter get(OutputStream os, StoreAsCsvOptions opts) throws IOException {
+		Charset cs = opts.charset().getOrElse(DEFAULT_CHARSET);
+		
+		Writer writer = new OutputStreamWriter(os, cs);
+		return new CsvRecordSetWriter(new BufferedWriter(writer, DEFAULT_BUFFER_SIZE), opts);
 	}
 	
-	public CsvRecordSetWriter(BufferedWriter writer, CsvParameters params) {
+	public CsvRecordSetWriter(BufferedWriter writer, StoreAsCsvOptions opts) {
 		Utilities.checkNotNullArgument(writer, "writer is null");
-		Utilities.checkNotNullArgument(params, "CsvParameters is null");
+		Utilities.checkNotNullArgument(opts, "StoreAsCsvOptions is null");
 		
 		m_writer = writer;
-		m_params = params;
+		m_options = opts;
 	}
 
 	@Override
@@ -78,10 +84,14 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 		Utilities.checkNotNullArgument(rset, "RecordSet is null");
 		
 		CSVFormat format = CSVFormat.DEFAULT.withQuote(null).withIgnoreSurroundingSpaces();
-		format.withDelimiter(m_params.delimiter());
-		m_params.quote().ifPresent(format::withQuote);
-		m_params.escape().ifPresent(format::withEscape);
-		format.withSkipHeaderRecord(!m_params.headerFirst());
+		format = format.withDelimiter(m_options.delimiter());
+		if ( m_options.quote().isPresent() ) {
+			format = format.withQuote(m_options.quote().get());
+		}
+		if ( m_options.escape().isPresent() ) {
+			format = format.withEscape(m_options.escape().get());
+		}
+		format = format.withSkipHeaderRecord(!m_options.headerFirst().getOrElse(false));
 
 		RecordSchema schema = rset.getRecordSchema();
 		String[] header = schema.streamColumns()

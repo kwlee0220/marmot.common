@@ -15,7 +15,7 @@ public class StoreDataSetParameters {
 	private boolean m_force = false;
 	private boolean m_append = false;
 	private FOption<Long> m_blockSize = FOption.empty();
-	private FOption<Boolean> m_compress = FOption.empty();
+	private FOption<Boolean> m_compression = FOption.empty();
 	private FOption<Integer> m_reportInterval = FOption.empty();
 	
 	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {
@@ -77,17 +77,17 @@ public class StoreDataSetParameters {
 		m_blockSize = blockSize > 0 ? FOption.of(blockSize) : FOption.empty();
 	}
 	
-	public FOption<Boolean> getCompress() {
-		return m_compress;
+	public FOption<Boolean> getCompression() {
+		return m_compression;
 	}
 	
-	public void setCompress(FOption<Boolean> flag) {
-		m_compress = flag;
+	public void setCompression(FOption<Boolean> flag) {
+		m_compression = flag;
 	}
 
-	@Option(names={"-compress"}, description="compress while stored data")
-	public void setCompress(boolean flag) {
-		m_compress = FOption.of(flag);
+	@Option(names={"-compression"}, description="compress while stored data")
+	public void setCompression(boolean flag) {
+		m_compression = FOption.of(flag);
 	}
 	
 	public FOption<Integer> getReportInterval() {

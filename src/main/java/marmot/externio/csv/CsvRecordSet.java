@@ -34,48 +34,48 @@ import utils.stream.FStream;
 public class CsvRecordSet extends AbstractRecordSet {
 	private static final Logger s_logger = LoggerFactory.getLogger(CsvRecordSet.class);
 	
-	private final CsvParameters m_params;
+	private final CsvParameters m_options;
 	private final BufferedReader m_reader;
 	private final CsvParser m_parser;
 	private final RecordSchema m_schema;
 	private final Column[] m_columns;
 	private String[] m_first;
 	
-	static CsvRecordSet from(InputStream is, CsvParameters params) throws IOException {
+	static CsvRecordSet from(InputStream is, CsvParameters opts) throws IOException {
 		Utilities.checkNotNullArgument(is, "is is null");
-		Utilities.checkNotNullArgument(params, "params is null");
+		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
 		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(is, params.charset()));
-		return new CsvRecordSet(reader, params);
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is, opts.charset().get()));
+		return new CsvRecordSet(reader, opts);
 	}
 	
-	static CsvRecordSet from(BufferedReader reader, CsvParameters params)
+	static CsvRecordSet from(BufferedReader reader, CsvParameters opts)
 		throws IOException {
 		Utilities.checkNotNullArgument(reader, "reader is null");
-		Utilities.checkNotNullArgument(params, "params is null");
+		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
 		
-		return new CsvRecordSet(reader, params);
+		return new CsvRecordSet(reader, opts);
 	}
 	
-	static CsvRecordSet from(File file, CsvParameters params) throws IOException {
+	static CsvRecordSet from(File file, CsvParameters opts) throws IOException {
 		Utilities.checkNotNullArgument(file, "file is null");
-		Utilities.checkNotNullArgument(params, "params is null");
+		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
 		
-		return new CsvRecordSet(Files.newBufferedReader(file.toPath(), params.charset()), params);
+		return new CsvRecordSet(Files.newBufferedReader(file.toPath(), opts.charset().get()), opts);
 	}
 	
-	private CsvRecordSet(BufferedReader reader, CsvParameters params) throws IOException {
+	private CsvRecordSet(BufferedReader reader, CsvParameters opts) throws IOException {
 		m_reader = reader;
-		m_params = params;
+		m_options = opts;
 		setLogger(s_logger);
 
 		CsvParserSettings settings = new CsvParserSettings();
 		CsvFormat format = settings.getFormat();
-		format.setDelimiter(params.delimiter());
-		params.quote().ifPresent(format::setQuote);
-		params.escape().ifPresent(format::setCharToEscapeQuoteEscaping);
-		params.nullValue().ifPresent(settings::setNullValue);
-		params.maxColumnLength().ifPresent(settings::setMaxCharsPerColumn);
+		format.setDelimiter(opts.delimiter());
+		opts.quote().ifPresent(format::setQuote);
+		opts.escape().ifPresent(format::setCharToEscapeQuoteEscaping);
+		opts.nullValue().ifPresent(settings::setNullValue);
+		opts.maxColumnLength().ifPresent(settings::setMaxCharsPerColumn);
 		m_parser = new CsvParser(settings);
 		
 		String line = reader.readLine();
@@ -84,12 +84,12 @@ public class CsvRecordSet extends AbstractRecordSet {
 		}
 		m_first = m_parser.parseLine(line);
 		
-		if ( params.headerFirst() ) {
+		if ( opts.headerFirst().getOrElse(false) ) {
 			m_schema = CsvUtils.buildRecordSchema(m_first);
 			m_first = null;
 		}
-		else if ( params.headerRecord().isPresent() ) {
-			String header = params.headerRecord().getUnchecked();
+		else if ( opts.header().isPresent() ) {
+			String header = opts.header().getUnchecked();
 			m_schema = CsvUtils.buildRecordSchema(m_parser.parseLine(header));
 		}
 		else {
@@ -146,12 +146,12 @@ public class CsvRecordSet extends AbstractRecordSet {
 	
 	@Override
 	public String toString() {
-		return String.format("%s[%s]", getClass().getSimpleName(), m_params);
+		return String.format("%s[%s]", getClass().getSimpleName(), m_options);
 	}
 	
 	private void set(Record output, String[] values) {
 		for ( int i =0; i < values.length; ++i ) {
-			if ( m_params.trimField() ) {
+			if ( m_options.trimColumn().getOrElse(false) ) {
 				values[i] = values[i].trim();
 			}
 			if ( m_columns[i].type() != DataType.STRING ) {

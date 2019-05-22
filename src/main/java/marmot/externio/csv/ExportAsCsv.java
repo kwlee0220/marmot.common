@@ -11,6 +11,7 @@ import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
+import marmot.optor.StoreAsCsvOptions;
 import marmot.rset.RecordSets;
 import marmot.type.DataType;
 import utils.Utilities;
@@ -25,15 +26,15 @@ import utils.func.FOption;
 public class ExportAsCsv implements ProgressReporter<Long> {
 	private final String m_dsId;
 	private FOption<Long> m_reportInterval = FOption.empty();
-	private final CsvParameters m_csvParams;
+	private final CsvParameters m_options;
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	
-	public ExportAsCsv(String dsId, CsvParameters csvParams) {
+	public ExportAsCsv(String dsId, CsvParameters options) {
 		Utilities.checkNotNullArgument(dsId, "dataset id is null");
-		Utilities.checkNotNullArgument(csvParams, "CsvParameters is null");
+		Utilities.checkNotNullArgument(options, "CsvOptions is null");
 		
 		m_dsId = dsId;
-		m_csvParams = csvParams;
+		m_options = options;
 	}
 	
 	public ExportAsCsv reportInterval(long interval) {
@@ -50,8 +51,9 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
 		Utilities.checkNotNullArgument(writer, "writer is null");
 		
+		StoreAsCsvOptions storeOpts = m_options.toStoreOptions();
 		try ( RecordSet rset = locateRecordSet(marmot);
-			CsvRecordSetWriter csvWriter = CsvRecordSetWriter.get(writer, m_csvParams) ) {
+			CsvRecordSetWriter csvWriter = CsvRecordSetWriter.get(writer, storeOpts) ) {
 			return csvWriter.write(rset);
 		}
 	}
@@ -67,19 +69,22 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 			String geomCol = geomColInfo.name();
 			String srid = geomColInfo.srid();
 			
-			if ( m_csvParams.csvSrid().isPresent() ) {
-				String csvSrid = m_csvParams.csvSrid().get();
+			if ( m_options.srid().isPresent() ) {
+				String csvSrid = m_options.srid().get();
 				if ( !csvSrid.equals(srid) ) {
 					builder = builder.transformCrs(geomCol, srid, csvSrid);
 				}
 			}
 
 			DataType geomType = ds.getRecordSchema().getColumn(geomCol).type();
-			if ( m_csvParams.pointColumn().isPresent() && geomType == DataType.POINT ) {
-				Tuple2<String,String> pointCol = m_csvParams.pointColumn().get();
+			if ( m_options.pointColumns().isPresent() ) {
+				if ( geomType != DataType.POINT ) {
+					throw new IllegalArgumentException("geometry is not POINT type, but " + geomType);
+				}
+				Tuple2<String,String> pointCol = m_options.pointColumns().get();
 				builder = builder.toXYCoordinates(geomCol, pointCol._1, pointCol._2);
 			}
-			else if ( m_csvParams.tiger() ) {
+			else if ( m_options.tiger() ) {
 				String decl = String.format("%s:string", geomCol);
 				String initExpr = String.format("ST_AsHexString(%s)", geomCol);
 				builder = builder.defineColumn(decl, initExpr);

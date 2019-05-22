@@ -16,7 +16,7 @@ import utils.StopWatch;
  * @author Kang-Woo Lee (ETRI)
  */
 public class ImportCsvFileCommand implements CheckedConsumer<MarmotRuntime> {
-	@Mixin private CsvParameters m_csvParams;
+	@Mixin private CsvParameters m_csvOptions;
 	@Mixin private ImportParameters m_importParams;
 	@Mixin private UsageHelp m_help;
 	
@@ -29,7 +29,7 @@ public class ImportCsvFileCommand implements CheckedConsumer<MarmotRuntime> {
 		StopWatch watch = StopWatch.start();
 		
 		File csvFilePath = new File(m_start);
-		ImportIntoDataSet importFile = ImportCsv.from(csvFilePath, m_csvParams, m_importParams);
+		ImportIntoDataSet importFile = ImportCsv.from(csvFilePath, m_csvOptions, m_importParams);
 		importFile.getProgressObservable()
 					.subscribe(report -> {
 						double velo = report / watch.getElapsedInFloatingSeconds();

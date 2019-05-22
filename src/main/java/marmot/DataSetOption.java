@@ -51,17 +51,6 @@ public abstract class DataSetOption {
 		return new MetadataOption(metadata);
 	}
 	
-	public static DataSetOptionsProto toProto(List<? extends DataSetOption> opts) {
-		Utilities.checkNotNullArgument(opts, "GeomOpOption list is null");
-		
-		List<DataSetOption> matcheds = FStream.from(opts)
-											.castSafely(DataSetOption.class)
-											.toList();
-		return FStream.from(matcheds)
-					.collectLeft(DataSetOptionsProto.newBuilder(), (b,o) -> o.set(b))
-					.build();
-	}
-	
 	public static boolean hasForce(List<DataSetOption> opts) {
 		return FStream.from(opts)
 						.castSafely(ForceOption.class)
@@ -139,6 +128,17 @@ public abstract class DataSetOption {
 		}
 		
 		return opts;
+	}
+	
+	public static DataSetOptionsProto toProto(List<? extends DataSetOption> opts) {
+		Utilities.checkNotNullArgument(opts, "GeomOpOption list is null");
+		
+		List<DataSetOption> matcheds = FStream.from(opts)
+											.castSafely(DataSetOption.class)
+											.toList();
+		return FStream.from(matcheds)
+					.collectLeft(DataSetOptionsProto.newBuilder(), (b,o) -> o.set(b))
+					.build();
 	}
 	
 	public static class ForceOption extends DataSetOption {
