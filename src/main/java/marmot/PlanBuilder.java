@@ -161,12 +161,7 @@ public class PlanBuilder {
 	/**
 	 * 주어진 식별자의 데이터세트를 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
 	 * <p>
-	 * 데이터세트 적재시 추가 정보를  {@link LoadOption}을 활용하여 전달하면
-	 * 현재 사용할 수 있는 정보는 다음과 같다.
-	 * <ul>
-	 * 	<li> {@link LoadOption.SplitCountOption}: 한 HDFS 디스크 블럭당 split 갯수를 지정.
-	 * 		별도로 지정하지 않은 경우 1로 간주된다.
-	 * </ul>
+	 * 데이터세트 적재시 추가 정보를  {@link LoadOptions}을 활용하여 전달한다.
 	 * 
 	 * @param dsId	대상 데이터세트 이름.
 	 * @param opts	옵션 리스트.
@@ -207,7 +202,7 @@ public class PlanBuilder {
 	 * 주어진 경로에 해당하는 marmot 파일들을 읽는 {@link RecordSet}을 생성하는 연산을 추가한다.
 	 * 
 	 * @param pathes	읽을 Marmot 파일들의 경로명 리스트.
-	 * @param splitCountPerBlock	Map/Reduce 작업에 사용할 블럭당 분할 갯수.
+	 * @param opts		활용 option 정보.
 	 * 				최속한 1보다 크거나 같아야한다.
 	 * @return		작업이 추가된 {@code PlanBuilder} 객체.
 	 */
@@ -240,12 +235,9 @@ public class PlanBuilder {
 
 	/**
 	 * 주어진 경로의 텍스트 파일을 읽어 RecordSet을 로드하는 작업을 추가한다.
-	 * <p>
-	 * 텍스트 파일의 각 라인은 하나의 레코드로 매핑되고,
-	 * 적제되는 레코드 세트의 스키마는 {@link DataType#LONG} 형식의 'key'과
-	 * {@link DataType#STRING} 형식의 'text'로 구성된다.
 	 * 
 	 * @param pathes	읽을 텍스트 파일의 경로.
+	 * @param opts		활용 option 정보.
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
 	public PlanBuilder loadTextFile(List<String> pathes, LoadOptions opts) {
@@ -283,12 +275,9 @@ public class PlanBuilder {
 	 * JDBC 인터페이스를 이용하여 주어진 위치의 DBMS의 테이블 레코드를 읽어
 	 * {@link RecordSet}를 구성하는 연산을 추가한다.
 	 * 
-	 * @param jdbcUrl		JDBC 프로토콜을 통해 접근할 DBMS URL.
-	 * @param user			접속 사용자 식별자.
-	 * @param passwd		접속 사용자의 패스워드.
-	 * @param driverClsName 사용할 JDBC driver 클래스 이름.
 	 * @param tableName 	접속 대상 테이블 이름.
-	 * @param opts			옵션 리스트.
+	 * @param jdbcOpts		JDBC option 정보
+	 * @param opts			활용 옵션 리스트.
 	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder loadJdbcTable(String tableName, JdbcConnectOptions jdbcOpts,
@@ -358,7 +347,7 @@ public class PlanBuilder {
 	 * 레코드의 각 컬럼은 인자로 제공되는 (delim)으로 분리된다.
 	 * 
 	 * @param path	저장될 파일의 경로명.
-	 * @param delim	컬럼 분리 문자.
+	 * @param opts	활용 option들
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder storeAsCsv(String path, StoreAsCsvOptions opts) {
@@ -379,11 +368,8 @@ public class PlanBuilder {
 	/**
 	 * JDBC 인터페이스를 이용하여 주어진 위치의 DBMS의 테이블에 저장하는 연산을 추가한다.
 	 * 
-	 * @param jdbcUrl		JDBC 프로토콜을 통해 접근할 DBMS URL.
-	 * @param userId		접속 사용자 식별자.
-	 * @param passwd		접속 사용자의 패스워드.
-	 * @param driverClassName 사용할 JDBC driver 클래스 이름.
 	 * @param tableName 	접속 대상 테이블 이름.
+	 * @param jdbcOpts		JDBC option 정보
 	 * @param valuesExpr	삽입될 레코드 표현식
 	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
 	 */
@@ -1909,7 +1895,6 @@ public class PlanBuilder {
 	 * 
 	 * @param leftDataSet	조인에 가담할 기본 데이터세트 이름. 
 	 * @param rightDataSet	조인에 가담할 인자 데이터세트 이름.
-	 * @param outColumns	조인 결과에 참여 할 컴럼 이름 리스트.
 	 * @param opts			조인 옵션 리스트
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 * 
@@ -1942,7 +1927,7 @@ public class PlanBuilder {
 	 * <p>
 	 * 인자로 주어진 데이터세트는 사전에 공간 인덱스가 존재해야 한다.
 	 * 사용되는 조인 관계식은 기본적으로 {@link SpatialRelation#INTERSECTS}을 사용하며,
-	 * 변경할 경우에는 {@link SpatialJoinOption}을 사용한다.
+	 * 변경할 경우에는 {@link SpatialJoinOptions}을 사용한다.
 	 * 조인 결과는 입력 레코드 세트에 포함된 모든 컬럼과 인자 데이터세트의 모든 컬럼들로
 	 * 구성되며, 컬럼 이름 충돌 방지를 위해 인자 데이터세트의 모든 컬럼 이름에는 'param_' prefix가
 	 * 붙는다.
@@ -1972,7 +1957,7 @@ public class PlanBuilder {
 	 * <p>
 	 * 인자로 주어진 데이터세트는 사전에 공간 인덱스가 존재해야 한다.
 	 * 사용되는 조인 관계식은 기본적으로 {@link SpatialRelation#INTERSECTS}을 사용하며,
-	 * 변경할 경우에는 {@link SpatialJoinOption}을 사용한다.
+	 * 변경할 경우에는 {@link SpatialJoinOptions}을 사용한다.
 	 * 조인 결과는 입력 레코드 세트에 포함된 모든 컬럼과 인자 데이터세트의 모든 컬럼들로
 	 * 구성되며, 컬럼 이름 충돌 방지를 위해 인자 데이터세트의 모든 컬럼 이름에는 'param_' prefix가
 	 * 붙는다.
@@ -2044,7 +2029,6 @@ public class PlanBuilder {
 	 * 						두 레코드의 거리 값을 기준을 가까운 순서대로 topK 갯수만큼만 선택됨.
 	 * 						음수인 경우는 매칭되는 모든 레코드쌍을 선택하는 것의 의미.
 	 * @param dist			조인 매칭 최대 거리.
-	 * @param outColsExpr	조인 결과 레코드에 포함될 컬럼 리스트 표현식.
 	 * @param opts			옵션 리스트.
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
 	 */
