@@ -101,7 +101,7 @@ public interface MarmotRuntime {
 	 * @return	 생성된 데이터세트 객체.
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
-	public DataSet createDataSet(String dsId, RecordSchema schema, DataSetOption... opts)
+	public DataSet createDataSet(String dsId, RecordSchema schema, StoreDataSetOptions opts)
 		throws DataSetExistsException;
 
 	/**
@@ -114,7 +114,7 @@ public interface MarmotRuntime {
 	 * @return	 생성된 데이터세트 객체.
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
-	public default DataSet createDataSet(String dsId, Plan plan, DataSetOption... opts)
+	public default DataSet createDataSet(String dsId, Plan plan, StoreDataSetOptions opts)
 		throws DataSetExistsException {
 		return createDataSet(dsId, plan, new ExecutePlanOption[0], opts);
 	}
@@ -131,7 +131,7 @@ public interface MarmotRuntime {
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
 	public default DataSet createDataSet(String dsId, Plan plan, ExecutePlanOption execOpt,
-											DataSetOption... opts)
+											StoreDataSetOptions opts)
 		throws DataSetExistsException {
 		return createDataSet(dsId, plan, new ExecutePlanOption[]{execOpt}, opts);
 	}
@@ -148,7 +148,7 @@ public interface MarmotRuntime {
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
 	public DataSet createDataSet(String dsId, Plan plan, ExecutePlanOption[] execOpts,
-								DataSetOption... opts)
+									StoreDataSetOptions opts)
 			throws DataSetExistsException;
 
 	/**
@@ -163,7 +163,7 @@ public interface MarmotRuntime {
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
 	public default DataSet createDataSet(String dsId, Plan plan, RecordSet input,
-										DataSetOption... opts)
+										StoreDataSetOptions opts)
 		throws DataSetExistsException {
 		Utilities.checkNotNullArgument(dsId, "dsId is null");
 		Utilities.checkNotNullArgument(plan, "plan is null");

@@ -1,7 +1,5 @@
 package marmot.geo.command;
 
-import static marmot.DataSetOption.FORCE;
-import static marmot.DataSetOption.GEOMETRY;
 import static marmot.optor.JoinOptions.FULL_OUTER_JOIN;
 
 import java.util.UUID;
@@ -11,6 +9,7 @@ import marmot.DataSet;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
+import marmot.StoreDataSetOptions;
 import marmot.command.UsageHelp;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
@@ -86,7 +85,7 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 		
 		Plan plan;
 		plan = marmot.planBuilder("spatial diff")
-					.loadHashJoin(ds1.getId(), m_params.m_keyCols,
+					.loadHashJoinFile(ds1.getId(), m_params.m_keyCols,
 									ds2.getId(), m_params.m_keyCols,
 									outCols, FULL_OUTER_JOIN())
 					.update(adjustExpr)
@@ -94,7 +93,7 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 					.filter(cmpExpr)
 					.project(prjExpr)
 					.build();
-		marmot.createDataSet(m_params.m_outputDsId, plan, FORCE);
+		marmot.createDataSet(m_params.m_outputDsId, plan, StoreDataSetOptions.create().force(true));
 	}
 	
 	private DataSet summarize(MarmotRuntime marmot, String dsId) {
@@ -114,7 +113,7 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 					.build();
 		
 		String outId = generateTempDataSetId();
-		return marmot.createDataSet(outId, plan, GEOMETRY(gcInfo), FORCE);
+		return marmot.createDataSet(outId, plan, StoreDataSetOptions.create().geometryColumnInfo(gcInfo).force(true));
 	}
 	
 	private String generateTempDataSetId() {

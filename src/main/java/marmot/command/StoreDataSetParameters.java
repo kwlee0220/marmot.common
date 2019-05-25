@@ -1,6 +1,7 @@
 package marmot.command;
 
 import marmot.GeometryColumnInfo;
+import marmot.StoreDataSetOptions;
 import picocli.CommandLine.Option;
 import utils.UnitUtils;
 import utils.func.FOption;
@@ -11,15 +12,20 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class StoreDataSetParameters {
-	private FOption<GeometryColumnInfo> m_geomColInfo = FOption.empty();
-	private boolean m_force = false;
-	private boolean m_append = false;
-	private FOption<Long> m_blockSize = FOption.empty();
-	private FOption<Boolean> m_compression = FOption.empty();
+	private final StoreDataSetOptions m_options;
 	private FOption<Integer> m_reportInterval = FOption.empty();
 	
+	public StoreDataSetParameters() {
+		m_options = StoreDataSetOptions.create()
+										.force(false)
+										.append(false);
+	}
+	private StoreDataSetParameters(StoreDataSetOptions opts) {
+		m_options = opts;
+	}
+	
 	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {
-		return m_geomColInfo;
+		return m_options.geometryColumnInfo();
 	}
 
 	@Option(names={"-g", "-geom_col"}, paramLabel="col-name(EPSG code)",
@@ -29,20 +35,20 @@ public class StoreDataSetParameters {
 	}
 	
 	public void setGeometryColumnInfo(GeometryColumnInfo info) {
-		m_geomColInfo = FOption.ofNullable(info);
+		m_options.geometryColumnInfo(info);
 	}
 	
 	public void setGeometryColumnInfo(String geomCol, String srid) {
-		m_geomColInfo = FOption.of(new GeometryColumnInfo(geomCol, srid));
+		setGeometryColumnInfo(new GeometryColumnInfo(geomCol, srid));
 	}
 	
 	public boolean getForce() {
-		return m_force;
+		return m_options.force().getOrElse(false);
 	}
 
 	@Option(names={"-f", "-force"}, description="force to create a new dataset")
 	public void setForce(boolean flag) {
-		m_force = flag;
+		m_options.force(flag);
 	}
 	
 	/**
@@ -51,7 +57,7 @@ public class StoreDataSetParameters {
 	 * @return 기존 데이터세트에 추가 여부
 	 */
 	public boolean getAppend() {
-		return m_append;
+		return m_options.append().getOrElse(false);
 	}
 
 	/**
@@ -61,11 +67,11 @@ public class StoreDataSetParameters {
 	 */
 	@Option(names={"-a", "-append"}, description="append to the existing dataset")
 	public void setAppend(boolean flag) {
-		m_append = flag;
+		m_options.append(flag);
 	}
 	
 	public FOption<Long> getBlockSize() {
-		return m_blockSize;
+		return m_options.blockSize();
 	}
 
 	@Option(names={"-b", "-block_size"}, paramLabel="nbyte", description="block size (eg: '64mb')")
@@ -74,20 +80,16 @@ public class StoreDataSetParameters {
 	}
 	
 	public void setBlockSize(long blockSize) {
-		m_blockSize = blockSize > 0 ? FOption.of(blockSize) : FOption.empty();
+		m_options.blockSize(blockSize);
 	}
 	
 	public FOption<Boolean> getCompression() {
-		return m_compression;
-	}
-	
-	public void setCompression(FOption<Boolean> flag) {
-		m_compression = flag;
+		return m_options.compress();
 	}
 
 	@Option(names={"-compression"}, description="compress while stored data")
 	public void setCompression(boolean flag) {
-		m_compression = FOption.of(flag);
+		m_options.compress(flag);
 	}
 	
 	public FOption<Integer> getReportInterval() {
@@ -98,5 +100,17 @@ public class StoreDataSetParameters {
 			description="progress report interval")
 	public void setReportInterval(int interval) {
 		m_reportInterval = (interval > 0) ? FOption.of(interval) : FOption.empty();
+	}
+	
+	public StoreDataSetOptions toOptions() {
+		return m_options.duplicate();
+	}
+	
+	public static StoreDataSetParameters fromOptions(StoreDataSetOptions options) {
+		StoreDataSetOptions opts = options.duplicate();
+		opts.force().ifAbsent(() -> opts.force(false));
+		opts.append().ifAbsent(() -> opts.append(false));
+		
+		return new StoreDataSetParameters(opts);
 	}
 }

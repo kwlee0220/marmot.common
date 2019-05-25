@@ -1,19 +1,8 @@
 package marmot.externio;
 
-import static marmot.DataSetOption.BLOCK_SIZE;
-import static marmot.DataSetOption.COMPRESS;
-import static marmot.DataSetOption.FORCE;
-import static marmot.DataSetOption.GEOMETRY;
-
-import java.util.List;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import marmot.DataSet;
-import marmot.DataSetOption;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.RecordSchema;
@@ -67,19 +56,9 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 
 			DataSet ds;
 			if ( !append ) {
-				List<DataSetOption> optList = Lists.newArrayList();
-				m_params.getGeometryColumnInfo().ifPresent(info -> optList.add(GEOMETRY(info)));
-				m_params.getBlockSize().ifPresent(sz -> optList.add(BLOCK_SIZE(sz)));
-				m_params.getCompression().ifPresent(b -> optList.add(COMPRESS));
-				
-				if ( force ) {
-					optList.add(FORCE);
-				}
-				DataSetOption[] opts = Iterables.toArray(optList, DataSetOption.class);
-				
 				RecordSchema outSchema = importPlan.transform(rset.getRecordSchema(),
 														(s,p) -> marmot.getOutputRecordSchema(p,s));
-				ds = marmot.createDataSet(dsId, outSchema, opts);
+				ds = marmot.createDataSet(dsId, outSchema, m_params.toOptions());
 			}
 			else {
 				ds = marmot.getDataSet(m_params.getDataSetId());

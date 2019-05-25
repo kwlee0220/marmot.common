@@ -82,7 +82,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 					throw new IllegalArgumentException("geometry is not POINT type, but " + geomType);
 				}
 				Tuple2<String,String> pointCol = m_options.pointColumns().get();
-				builder = builder.toXYCoordinates(geomCol, pointCol._1, pointCol._2);
+				builder = builder.toXY(geomCol, pointCol._1, pointCol._2);
 			}
 			else if ( m_options.tiger() ) {
 				String decl = String.format("%s:string", geomCol);

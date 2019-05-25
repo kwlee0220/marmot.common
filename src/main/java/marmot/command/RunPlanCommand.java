@@ -3,13 +3,8 @@ package marmot.command;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.util.List;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 import io.vavr.CheckedConsumer;
-import marmot.DataSetOption;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.plan.STScriptPlanLoader;
@@ -49,21 +44,6 @@ public class RunPlanCommand implements CheckedConsumer<MarmotRuntime> {
 		Plan plan  = STScriptPlanLoader.load(script);
 	
 		if ( !m_storeParams.getAppend() ) {
-			List<DataSetOption> optList = Lists.newArrayList();
-			
-			m_storeParams.getGeometryColumnInfo()
-						.ifPresent(gcInfo -> optList.add(DataSetOption.GEOMETRY(gcInfo)));
-			
-			if ( m_storeParams.getForce() ) {
-				optList.add(DataSetOption.FORCE);
-			}
-			
-			m_storeParams.getBlockSize()
-						.ifPresent(blkSz -> optList.add(DataSetOption.BLOCK_SIZE(blkSz)));
-			m_storeParams.getCompression()
-						.filter(f -> f)
-						.ifPresent(f -> optList.add(DataSetOption.COMPRESS));
-			
 			String fromPlanDsId = getStoreTargetDataSetId(plan).getOrNull();
 			if ( m_outDsId == null && fromPlanDsId == null ) {
 				throw new IllegalArgumentException("result dataset id is messing");
@@ -72,7 +52,7 @@ public class RunPlanCommand implements CheckedConsumer<MarmotRuntime> {
 				m_outDsId = fromPlanDsId;
 			}
 
-			marmot.createDataSet(m_outDsId, plan, Iterables.toArray(optList, DataSetOption.class));
+			marmot.createDataSet(m_outDsId, plan, m_storeParams.toOptions());
 		}
 		else {
 			plan = adjustPlanForStore(m_outDsId, plan);

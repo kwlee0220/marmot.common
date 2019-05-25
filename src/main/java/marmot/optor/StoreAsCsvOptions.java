@@ -12,7 +12,6 @@ import utils.func.FOption;
  */
 public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto> {
 	private final CsvOptions m_csvOptions;
-	
 	private FOption<Boolean> m_headerFirst = FOption.empty();
 	private FOption<Long> m_blockSize = FOption.empty();
 	

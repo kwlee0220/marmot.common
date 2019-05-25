@@ -276,7 +276,7 @@ message ConsumeByGroupProto {
 	oneof optional_transform {
 		ReducerProto transform = 2;
 	}
-	marmot.proto.SerializedProto consumer = 3;	// RecordSetConsumer
+	GroupConsumerProto consumer = 3;
 }
 
 /************************************
@@ -326,12 +326,15 @@ message PutSideBySideProto {
 }
 
 
-
+message GroupConsumerProto {
+	oneof oneof_consumer {
+		StoreKeyedDataSetProto store = 1;
+		marmot.proto.SerializedProto serialized = 2;	// RecordSetConsumer
+	}
+}
 message StoreKeyedDataSetProto {
 	string root_path = 1;
-	oneof optional_options {
-		marmot.proto.service.DataSetOptionsProto options = 2;
-	}
+	marmot.proto.service.StoreDataSetOptionsProto options = 2;
 }
 
 
@@ -618,8 +621,8 @@ message GeomOpOptionsProto {
 	oneof optional_out_geom_col {
 		string out_geom_col = 1;
 	}
-	oneof optional_skip_error {
-		bool skip_error = 2;
+	oneof optional_throw_op_error {
+		bool throw_op_error = 2;
 	}
 }
 message TransformCrsProto {
@@ -699,7 +702,7 @@ message LoadHexagonGridFileProto {
 message AssignSquareGridCellProto {
 	SquareGridProto grid = 1;
 	string geometry_column = 2;
-	bool ignore_outside = 3;
+	bool assign_outside = 3;
 }
 
 message FlattenGeometryProto {

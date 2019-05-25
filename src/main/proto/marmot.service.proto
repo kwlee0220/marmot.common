@@ -135,7 +135,7 @@ message RecordSetProto {
 }
 
 
-message DataSetOptionsProto {
+message StoreDataSetOptionsProto {
 	oneof optional_geom_col_info {
 		marmot.proto.GeometryColumnInfoProto geom_col_info  = 1;
 	}
