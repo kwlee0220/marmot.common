@@ -769,7 +769,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder reduceColumnsByGroup(Group group, RecordSchema outSchema,
+	public PlanBuilder reduceToSingleRecordByGroup(Group group, RecordSchema outSchema,
 											String tagCol, String valueCol) {
 		PutSideBySideProto put = PutSideBySideProto.newBuilder()
 												.setOutputSchema(outSchema.toProto())

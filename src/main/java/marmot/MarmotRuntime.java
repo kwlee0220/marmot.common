@@ -116,24 +116,7 @@ public interface MarmotRuntime {
 	 */
 	public default DataSet createDataSet(String dsId, Plan plan, StoreDataSetOptions opts)
 		throws DataSetExistsException {
-		return createDataSet(dsId, plan, new ExecutePlanOption[0], opts);
-	}
-
-	/**
-	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
-	 * 생성된 데이터세트의 정보는 Marmot 카타로그에 등록된다.
-	 * 
-	 * @param dsId		생성될 데이터세트의 식별자.
-	 * @param plan		실행시킬 {@link Plan} 객체.
-	 * @param execOpt	Plan 수행에 필요한 추가 옵션 리스트.
-	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
-	 * @return	 생성된 데이터세트 객체.
-	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
-	 */
-	public default DataSet createDataSet(String dsId, Plan plan, ExecutePlanOption execOpt,
-											StoreDataSetOptions opts)
-		throws DataSetExistsException {
-		return createDataSet(dsId, plan, new ExecutePlanOption[]{execOpt}, opts);
+		return createDataSet(dsId, plan, ExecutePlanOptions.create(), opts);
 	}
 
 	/**
@@ -147,9 +130,11 @@ public interface MarmotRuntime {
 	 * @return	 생성된 데이터세트 객체.
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
-	public DataSet createDataSet(String dsId, Plan plan, ExecutePlanOption[] execOpts,
-									StoreDataSetOptions opts)
-			throws DataSetExistsException;
+	public default DataSet createDataSet(String dsId, Plan plan, ExecutePlanOptions execOpts,
+											StoreDataSetOptions opts)
+		throws DataSetExistsException {
+		return createDataSet(dsId, plan, execOpts, opts);
+	}
 
 	/**
 	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
@@ -272,7 +257,10 @@ public interface MarmotRuntime {
 	 * @param plan	수행시킬 실행 계획.
 	 * @param opts	실행 계획 옵션
 	 */
-	public void execute(Plan plan, ExecutePlanOption... opts) throws PlanExecutionException;
+	public void execute(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
+	public default void execute(Plan plan) throws PlanExecutionException {
+		execute(plan, ExecutePlanOptions.create().disableLocalExecution(true));
+	}
 	
 	/**
 	 * 주어진 Plan을 MapReduce를 사용하지 않고 수행시킨다.
@@ -304,7 +292,10 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public FOption<Record> executeToRecord(Plan plan, ExecutePlanOption... opts);
+	public FOption<Record> executeToRecord(Plan plan, ExecutePlanOptions opts);
+	public default FOption<Record> executeToRecord(Plan plan) {
+		return executeToRecord(plan, ExecutePlanOptions.create());
+	}
 
 	/**
 	 * 주어진 Plan을 수행시키고, 그 결과를 반환한다.
@@ -319,8 +310,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Geometry> executeToGeometry(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<Geometry> executeToGeometry(Plan plan, ExecutePlanOptions opts) {
 		return executeToRecord(plan, opts).map(r -> r.getGeometry(0));
+	}
+	public default FOption<Geometry> executeToGeometry(Plan plan) {
+		return executeToGeometry(plan, ExecutePlanOptions.create());
 	}
 
 	/**
@@ -336,8 +330,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Integer> executeToInt(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<Integer> executeToInt(Plan plan, ExecutePlanOptions opts) {
 		return executeToRecord(plan, opts).map(r -> r.getInt(0));
+	}
+	public default FOption<Integer> executeToInt(Plan plan) {
+		return executeToInt(plan, ExecutePlanOptions.create());
 	}
 
 	/**
@@ -353,8 +350,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Long> executeToLong(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<Long> executeToLong(Plan plan, ExecutePlanOptions opts) {
 		return executeToRecord(plan, opts).map(r -> r.getLong(0));
+	}
+	public default FOption<Long> executeToLong(Plan plan) {
+		return executeToLong(plan, ExecutePlanOptions.create());
 	}
 
 	/**
@@ -370,8 +370,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Double> executeToDouble(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<Double> executeToDouble(Plan plan, ExecutePlanOptions opts) {
 		return executeToRecord(plan, opts).map(r -> r.getDouble(0));
+	}
+	public default FOption<Double> executeToDouble(Plan plan) {
+		return executeToDouble(plan, ExecutePlanOptions.create());
 	}
 
 	/**
@@ -387,15 +390,25 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<String> executeToString(Plan plan, ExecutePlanOption... opts) {
+	public default FOption<String> executeToString(Plan plan, ExecutePlanOptions opts) {
 		return executeToRecord(plan, opts).map(r -> r.getString(0));
 	}
-	@SuppressWarnings("unchecked")
-	public default <T> FOption<T> executeToSingle(Plan plan, ExecutePlanOption... opts) {
-		return executeToRecord(plan, opts).map(r -> (T)r.get(0));
+	public default FOption<String> executeToString(Plan plan) {
+		return executeToString(plan, ExecutePlanOptions.create());
 	}
 	
-	public RecordSet executeToRecordSet(Plan plan, ExecutePlanOption... opts);
+	@SuppressWarnings("unchecked")
+	public default <T> FOption<T> executeToSingle(Plan plan, ExecutePlanOptions opts) {
+		return executeToRecord(plan, opts).map(r -> (T)r.get(0));
+	}
+	public default <T> FOption<T> executeToSingle(Plan plan) {
+		return executeToSingle(plan, ExecutePlanOptions.create());
+	}
+	
+	public RecordSet executeToRecordSet(Plan plan, ExecutePlanOptions opts);
+	public default RecordSet executeToRecordSet(Plan plan) {
+		return executeToRecordSet(plan, ExecutePlanOptions.create());
+	}
 	
 	public RecordSet executeToStream(String id, Plan plan);
 

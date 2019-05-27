@@ -119,17 +119,13 @@ message GetOutputRecordSchemaRequest {
 
 message ExecutePlanRequest {
 	marmot.proto.optor.PlanProto plan = 1;
-	oneof optional_options {
-		ExecutePlanOptionsProto options = 3;
-	}
+	ExecutePlanOptionsProto options = 2;
 }
 
 message ExecutePlanLocallyRequest {
 	marmot.proto.optor.PlanProto plan = 1;
 	bool has_input_rset = 2;
-	oneof optional_options {
-		ExecutePlanOptionsProto options = 3;
-	}
+	ExecutePlanOptionsProto options = 3;
 }
 
 message ExecuteProcessRequest {
