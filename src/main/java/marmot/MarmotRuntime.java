@@ -160,6 +160,9 @@ public interface MarmotRuntime {
 		
 		return getDataSet(dsId);
 	}
+	
+	public DataSet appendIntoDataSet(String dsId, Plan plan, ExecutePlanOptions execOpts)
+		throws DataSetNotFoundException;
 
 	/**
 	 * 기존 데이터세트와 바인딩시킨다.

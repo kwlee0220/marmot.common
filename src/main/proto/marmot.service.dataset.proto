@@ -12,6 +12,7 @@ import public "marmot.service.exec.proto";
 
 service DataSetService {
 	rpc createDataSet(CreateDataSetRequest) returns (DataSetInfoResponse);
+	rpc appendIntoDataSet(AppendIntoDataSetRequest) returns (DataSetInfoResponse);
 	rpc bindDataSet(BindDataSetRequest) returns (DataSetInfoResponse);
 	// StringProto
 	rpc readDataSet(stream DownChunkResponse) returns (stream DownChunkRequest);
@@ -116,6 +117,11 @@ message CreateDataSetRequest {
 		marmot.proto.service.ExecutePlanRequest plan_exec = 3;
 	}
 	StoreDataSetOptionsProto options = 4;
+}
+
+message AppendIntoDataSetRequest {
+	string id = 1;						// 추가하고자 하는 데이터세트의 식별자.
+	marmot.proto.service.ExecutePlanRequest plan_exec = 2;
 }
 
 message AppendRecordSetRequest {  
