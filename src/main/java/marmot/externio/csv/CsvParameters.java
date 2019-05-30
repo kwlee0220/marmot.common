@@ -63,7 +63,8 @@ public class CsvParameters {
 	public FOption<Character> escape() {
 		return m_escape;
 	}
-	
+
+	@Option(names={"-escape"}, paramLabel="char", description={"quote escape character for CSV file"})
 	public CsvParameters escape(char escape) {
 		m_escape = FOption.of(escape);
 		return this;

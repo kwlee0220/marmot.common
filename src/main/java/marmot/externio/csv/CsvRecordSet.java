@@ -2,18 +2,22 @@ package marmot.externio.csv;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.util.Arrays;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.univocity.parsers.csv.CsvFormat;
-import com.univocity.parsers.csv.CsvParser;
-import com.univocity.parsers.csv.CsvParserSettings;
+import com.google.common.collect.Lists;
 
 import io.vavr.control.Try;
 import marmot.Column;
@@ -35,11 +39,12 @@ public class CsvRecordSet extends AbstractRecordSet {
 	private static final Logger s_logger = LoggerFactory.getLogger(CsvRecordSet.class);
 	
 	private final CsvParameters m_options;
-	private final BufferedReader m_reader;
-	private final CsvParser m_parser;
+	private final CSVParser m_parser;
+	private final Iterator<CSVRecord> m_iter;
+	private final String m_nullValue;
 	private final RecordSchema m_schema;
 	private final Column[] m_columns;
-	private String[] m_first;
+	private List<String> m_first;
 	
 	static CsvRecordSet from(InputStream is, CsvParameters opts) throws IOException {
 		Utilities.checkNotNullArgument(is, "is is null");
@@ -61,41 +66,43 @@ public class CsvRecordSet extends AbstractRecordSet {
 		Utilities.checkNotNullArgument(file, "file is null");
 		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
 		
-		return new CsvRecordSet(Files.newBufferedReader(file.toPath(), opts.charset().get()), opts);
+		Reader reader = new InputStreamReader(new FileInputStream(file), opts.charset().get());
+		return new CsvRecordSet(new BufferedReader(reader), opts);
 	}
 	
 	private CsvRecordSet(BufferedReader reader, CsvParameters opts) throws IOException {
-		m_reader = reader;
 		m_options = opts;
 		setLogger(s_logger);
-
-		CsvParserSettings settings = new CsvParserSettings();
-		CsvFormat format = settings.getFormat();
-		format.setDelimiter(opts.delimiter());
-		opts.quote().ifPresent(format::setQuote);
-		opts.escape().ifPresent(format::setCharToEscapeQuoteEscaping);
-		opts.nullValue().ifPresent(settings::setNullValue);
-		opts.maxColumnLength().ifPresent(settings::setMaxCharsPerColumn);
-		m_parser = new CsvParser(settings);
 		
-		String line = reader.readLine();
-		if ( line == null ) {
+		m_nullValue = opts.nullValue().getOrNull();
+		
+		CSVFormat format = CSVFormat.DEFAULT.withDelimiter(opts.delimiter());
+		format = opts.quote().map(format::withQuote).getOrElse(format);
+		format = opts.escape().map(format::withEscape).getOrElse(format);
+		format = format.withTrim(opts.trimColumn().getOrElse(false));
+		m_parser = format.parse(reader);
+		
+		m_iter = m_parser.iterator();
+		if ( !m_iter.hasNext() ) {
 			throw new IllegalArgumentException("input CSV file is empty");
 		}
-		m_first = m_parser.parseLine(line);
+		m_first = Lists.newArrayList(m_iter.next().iterator());
 		
 		if ( opts.headerFirst().getOrElse(false) ) {
 			m_schema = CsvUtils.buildRecordSchema(m_first);
 			m_first = null;
 		}
 		else if ( opts.header().isPresent() ) {
-			String header = opts.header().getUnchecked();
-			m_schema = CsvUtils.buildRecordSchema(m_parser.parseLine(header));
+			try ( Reader hdrReader = new StringReader(opts.header().getUnchecked());
+					CSVParser hdrParser = format.parse(hdrReader); ) {
+				CSVRecord header = hdrParser.getRecords().get(0);
+				m_schema = CsvUtils.buildRecordSchema(Lists.newArrayList(header.iterator()));
+			}
 		}
 		else {
-			String[] header = FStream.range(0, m_first.length)
+			List<String> header = FStream.range(0, m_first.size())
 									.map(idx -> String.format("field_%02d", idx))
-									.toArray(String.class);
+									.toList();
 			m_schema = CsvUtils.buildRecordSchema(header);
 		}
 		m_columns = m_schema.getColumns().toArray(new Column[0]);
@@ -103,7 +110,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 	
 	@Override
 	protected void closeInGuard() {
-		Try.run(m_reader::close);
+		Try.run(m_parser::close);
 	}
 
 	@Override
@@ -123,23 +130,21 @@ public class CsvRecordSet extends AbstractRecordSet {
 		}
 		
 		try {
-			String line = m_reader.readLine();
-			if ( line != null ) {
-				String[] values = m_parser.parseLine(line);
-				if ( values.length != m_columns.length ) {
-					String msg = String.format("invalid CSV line: # of cols(%d), expected=%d, csv=%s",
-							values.length, m_columns.length, Arrays.toString(values));
-					throw new IOException(msg);
-				}
-				set(output, values);
-				
-				return true;
-			}
-			else {
+			if ( !m_iter.hasNext() ) {
 				return false;
 			}
+			
+			List<String> values = Lists.newArrayList(m_iter.next().iterator());
+			if ( values.size() != m_columns.length ) {
+				String msg = String.format("invalid CSV line: # of cols(%d), expected=%d, csv=%s",
+											values.size(), m_columns.length, values);
+				throw new IOException(msg);
+			}
+			set(output, values);
+			
+			return true;
 		}
-		catch ( IOException e ) {
+		catch ( Exception e ) {
 			throw new RecordSetException("" + e);
 		}
 	}
@@ -149,16 +154,19 @@ public class CsvRecordSet extends AbstractRecordSet {
 		return String.format("%s[%s]", getClass().getSimpleName(), m_options);
 	}
 	
-	private void set(Record output, String[] values) {
-		for ( int i =0; i < values.length; ++i ) {
-			if ( m_options.trimColumn().getOrElse(false) ) {
-				values[i] = values[i].trim();
+	private void set(Record output, List<String> values) {
+		
+		for ( int i =0; i < values.size(); ++i ) {
+			String value = values.get(i);
+			
+			if ( value == null && m_nullValue != null) {
+				value = m_nullValue;
 			}
 			if ( m_columns[i].type() != DataType.STRING ) {
-				output.set(i, DataUtils.cast(values[i], m_columns[i].type()));
+				output.set(i, DataUtils.cast(value, m_columns[i].type()));
 			}
 			else {
-				output.set(i, values[i]);
+				output.set(i, value);
 			}
 		}
 	}

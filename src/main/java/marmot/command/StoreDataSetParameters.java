@@ -84,12 +84,12 @@ public class StoreDataSetParameters {
 	}
 	
 	public FOption<Boolean> getCompression() {
-		return m_options.compress();
+		return m_options.compression();
 	}
 
 	@Option(names={"-compression"}, description="compress while stored data")
 	public void setCompression(boolean flag) {
-		m_options.compress(flag);
+		m_options.compression(flag);
 	}
 	
 	public FOption<Integer> getReportInterval() {

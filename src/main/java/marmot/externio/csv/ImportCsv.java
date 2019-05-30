@@ -26,7 +26,7 @@ import utils.func.FOption;
 public abstract class ImportCsv extends ImportIntoDataSet {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 	
-	protected final CsvParameters m_csvOptions;
+	protected final CsvParameters m_csvParams;
 	
 	protected abstract FOption<Plan> loadMetaPlan();
 	
@@ -48,8 +48,8 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	private ImportCsv(CsvParameters csvOpts, ImportParameters importParams) {
 		super(importParams);
 		
-		m_csvOptions = csvOpts.duplicate();
-		m_csvOptions.charset().ifAbsent(() -> m_csvOptions.charset(DEFAULT_CHARSET));
+		m_csvParams = csvOpts.duplicate();
+		m_csvParams.charset().ifAbsent(() -> m_csvParams.charset(DEFAULT_CHARSET));
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	}
 
 	private FOption<Plan> getToPointPlan() {
-		if ( !m_csvOptions.pointColumns().isPresent()
+		if ( !m_csvParams.pointColumns().isPresent()
 			|| !m_params.getGeometryColumnInfo().isPresent() ) {
 			return FOption.empty();
 		}
@@ -84,15 +84,15 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		PlanBuilder builder = new PlanBuilder("import_csv");
 		
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
-		Tuple2<String,String> ptCols = m_csvOptions.pointColumns().get();
+		Tuple2<String,String> ptCols = m_csvParams.pointColumns().get();
 		builder = builder.toPoint(ptCols._1, ptCols._2, info.name());
 		
 		String prjExpr = String.format("%s,*-{%s,%s,%s}", info.name(), info.name(),
 															ptCols._1, ptCols._2);
 		builder = builder.project(prjExpr);
 			
-		if ( m_csvOptions.srid().isPresent() ) {
-			String srcSrid = m_csvOptions.srid().get();
+		if ( m_csvParams.srid().isPresent() ) {
+			String srcSrid = m_csvParams.srid().get();
 			if ( !srcSrid.equals(info.srid()) ) {
 				builder = builder.transformCrs(info.name(), srcSrid, info.srid());
 			}
@@ -112,7 +112,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
-			return new MultiFileCsvRecordSet(m_start, m_csvOptions);
+			return new MultiFileCsvRecordSet(m_start, m_csvParams);
 		}
 
 		@Override
@@ -141,7 +141,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
 			try {
-				return CsvRecordSet.from(m_reader, m_csvOptions);
+				return CsvRecordSet.from(m_reader, m_csvParams);
 			}
 			catch ( IOException e ) {
 				throw new RecordSetException("fails to load CsvRecordSet: cause=" + e);

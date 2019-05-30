@@ -67,11 +67,11 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		return this;
 	}
 	
-	public FOption<Boolean> compress() {
+	public FOption<Boolean> compression() {
 		return m_compress;
 	}
 	
-	public StoreDataSetOptions compress(Boolean flag) {
+	public StoreDataSetOptions compression(Boolean flag) {
 		m_compress = FOption.ofNullable(flag);
 		return this;
 	}
@@ -126,7 +126,7 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		}
 		switch ( proto.getOptionalCompressCase() ) {
 			case COMPRESS:
-				options.compress(proto.getCompress());
+				options.compression(proto.getCompress());
 				break;
 			default:
 		}

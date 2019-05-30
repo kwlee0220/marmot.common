@@ -1,5 +1,6 @@
 package marmot.externio.csv;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -24,7 +25,11 @@ public class CsvUtils {
 	}
 	
 	public static RecordSchema buildRecordSchema(String[] colSpecs) {
-		return FStream.of(colSpecs)
+		return buildRecordSchema(Arrays.asList(colSpecs));
+	}
+	
+	public static RecordSchema buildRecordSchema(List<String> colSpecs) {
+		return FStream.from(colSpecs)
 						.map(CsvUtils::parseColumnSpec)
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
