@@ -19,6 +19,7 @@ import marmot.RecordSet;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.geo.geotools.SimpleFeatures;
 import marmot.rset.RecordSets;
+import marmot.rset.RecordSets.CountingRecordSet;
 import utils.StopWatch;
 import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
@@ -96,7 +97,7 @@ class ExportAsShapefile {
 				src = m_source;
 			}
 			
-			try ( RecordSet rset = src ) {
+			try ( CountingRecordSet rset = RecordSets.toCountingRecordSet(src) ) {
 				if ( m_force ) {
 					Try.run(() -> FileUtils.forceDelete(m_outputDir));
 				}
@@ -115,7 +116,7 @@ class ExportAsShapefile {
 				dumper.dump(coll);
 				
 				if ( isRunning() ) {
-					return rset.count();
+					return rset.getCount();
 				}
 				else if ( isCancelRequested() ) {
 					throw new CancellationException();

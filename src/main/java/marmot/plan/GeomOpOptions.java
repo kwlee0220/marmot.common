@@ -1,19 +1,22 @@
 package marmot.plan;
 
 import marmot.proto.optor.GeomOpOptionsProto;
-import marmot.support.PBSerializable;
 import utils.func.FOption;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class GeomOpOptions implements PBSerializable<GeomOpOptionsProto> {
+public class GeomOpOptions {
 	private FOption<String> m_outColumn = FOption.empty();
 	private FOption<Boolean> m_throwOpError = FOption.empty();
 	
 	public static GeomOpOptions create() {
 		return new GeomOpOptions();
+	}
+	
+	public static GeomOpOptions OUTPUT(String outCol) {
+		return new GeomOpOptions().outputColumn(outCol);
 	}
 	
 	public FOption<String> outputColumn() {
@@ -35,25 +38,26 @@ public class GeomOpOptions implements PBSerializable<GeomOpOptionsProto> {
 	}
 
 	public static GeomOpOptions fromProto(GeomOpOptionsProto proto) {
-		GeomOpOptions opts = GeomOpOptions.create();
-		
+		return GeomOpOptions.create().loadFromProto(proto);
+	}
+
+	public GeomOpOptions loadFromProto(GeomOpOptionsProto proto) {
 		switch ( proto.getOptionalOutGeomColCase() ) {
 			case OUT_GEOM_COL:
-				opts.outputColumn(proto.getOutGeomCol());
+				outputColumn(proto.getOutGeomCol());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalThrowOpErrorCase() ) {
 			case THROW_OP_ERROR:
-				opts.throwOpError(proto.getThrowOpError());
+				throwOpError(proto.getThrowOpError());
 				break;
 			default:
 		}
 		
-		return opts;
+		return this;
 	}
 
-	@Override
 	public GeomOpOptionsProto toProto() {
 		GeomOpOptionsProto.Builder builder = GeomOpOptionsProto.newBuilder();
 		

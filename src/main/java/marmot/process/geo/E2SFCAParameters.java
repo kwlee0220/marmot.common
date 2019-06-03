@@ -6,16 +6,14 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
 import marmot.optor.geo.advanced.WeightFunction;
-import marmot.proto.process.E2SFCAParametersProto;
 import marmot.support.DataUtils;
-import marmot.support.PBSerializable;
 import utils.Utilities;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
+public class E2SFCAParameters {
 	private static final String CONSUMER_DATASET = "consumer_dataset";
 	private static final String PROVIDER_DATASET = "provider_dataset";
 	private static final String OUTPUT_DATASET = "output_dataset";
@@ -24,34 +22,6 @@ public class E2SFCAParameters implements PBSerializable<E2SFCAParametersProto> {
 	private static final String OUTPUT_COLUMNS = "output_features";
 	private static final String SERIVCE_DISTANCE = "service_distance";
 	private static final String WEIGHT_FUNC = "weight_function";
-	
-	public static E2SFCAParameters fromProto(E2SFCAParametersProto proto) {
-		E2SFCAParameters params = new E2SFCAParameters();
-		params.setConsumerDataset(proto.getConsumerDataset());
-		params.setProviderDataset(proto.getProviderDataset());
-		params.setOutputDataset(proto.getOutputDataset());
-		params.setConsumerFeatureColumns(proto.getConsumerFeatures());
-		params.setProviderFeatureColumns(proto.getProviderFeatures());
-		params.setOutputFeatureColumns(proto.getOutputFeatures());
-		params.setServiceDistance(proto.getServiceDistance());
-		params.setWeightFunction(WeightFunction.fromString(proto.getWeightFunction()));
-		
-		return params;
-	}
-
-	@Override
-	public E2SFCAParametersProto toProto() {
-		return E2SFCAParametersProto.newBuilder()
-									.setConsumerDataset(getConsumerDataset())
-									.setProviderDataset(getProviderDataset())
-									.setOutputDataset(getOutputDataset())
-									.setConsumerFeatures(getConsumerFeatureColumns())
-									.setProviderFeatures(getProviderFeatureColumns())
-									.setOutputFeatures(getOutputFeatureColumns())
-									.setServiceDistance(getServiceDistance())
-									.setWeightFunction(getWeightFunction().toStringExpr())
-									.build();
-	}
 	
 	private final Map<String,String> m_params;
 	

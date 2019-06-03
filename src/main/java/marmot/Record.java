@@ -153,7 +153,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	
 	public default Record setAll(int start, List<?> values) {
 		for ( int i = start; i < getColumnCount(); ++i ) {
-			set(i, get(i));
+			set(i, values.get(i-start));
 		}
 		
 		return this;

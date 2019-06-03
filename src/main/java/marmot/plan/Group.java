@@ -14,7 +14,7 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 	private FOption<String> m_orderBy = FOption.empty();
 	private FOption<Integer> m_workerCount = FOption.empty();
 	
-	public static Group keyColumns(String keyCols) {
+	public static Group ofKeys(String keyCols) {
 		return new Group(keyCols);
 	}
 	
@@ -22,24 +22,28 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 		m_keys = keys;
 	}
 	
-	public String keyColumns() {
+	public String keys() {
 		return m_keys;
 	}
 	
-	public FOption<String> tagColumns() {
+	public FOption<String> tags() {
 		return m_tagCols;
 	}
 	
-	public Group tagColumns(String cols) {
+	public Group tags(String cols) {
 		m_tagCols = FOption.of(cols);
 		return this;
 	}
 	
-	public FOption<String> orderByColumns() {
+	public Group withTags(String cols) {
+		return tags(cols);
+	}
+	
+	public FOption<String> orderBy() {
 		return m_orderBy;
 	}
 	
-	public Group orderByColumns(String cols) {
+	public Group orderBy(String cols) {
 		m_orderBy = FOption.of(cols);
 		return this;
 	}
@@ -54,23 +58,23 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 	}
 
 	public static Group fromProto(GroupByKeyProto proto) {
-		Group opts = Group.keyColumns(proto.getCompareColumns());
+		Group opts = Group.ofKeys(proto.getCompareColumns());
 		
 		switch ( proto.getOptionalTagColumnsCase() ) {
 			case TAG_COLUMNS:
-				opts.tagColumns(proto.getTagColumns());
+				opts.tags(proto.getTagColumns());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalOrderColumnsCase() ) {
 			case ORDER_COLUMNS:
-				opts.orderByColumns(proto.getOrderColumns());
+				opts.orderBy(proto.getOrderColumns());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalGroupWorkerCountCase() ) {
 			case GROUP_WORKER_COUNT:
-				opts.orderByColumns(proto.getOrderColumns());
+				opts.orderBy(proto.getOrderColumns());
 				break;
 			default:
 		}

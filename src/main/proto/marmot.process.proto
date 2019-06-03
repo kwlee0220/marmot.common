@@ -7,16 +7,8 @@ package marmot.optor.proto;
 
 import public "marmot.proto";
 
-message E2SFCAParametersProto {
-	string consumer_dataset = 1;
-	string consumer_features = 2;
-	string provider_dataset = 3;
-	string provider_features = 4;
-	string output_dataset = 5;
-	string output_features = 6;
-	double service_distance = 7;
-	string weight_function = 8;
-}
+
+
 message E2SFCAStep1Proto {
 	string param_geomemtry_column = 1;
 	string input_dataset = 2;

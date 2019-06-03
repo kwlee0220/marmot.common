@@ -19,6 +19,10 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 		return new SpatialJoinOptions();
 	}
 	
+	public static SpatialJoinOptions OUTPUT(String outCols) {
+		return new SpatialJoinOptions().outputColumns(outCols);
+	}
+	
 	public FOption<String> joinExpr() {
 		return m_joinExpr;
 	}

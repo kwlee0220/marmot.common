@@ -16,8 +16,8 @@ message LoadOptionsProto {
 }
 
 message LoadDataSetProto {
-	string ds_id = 1;
-	LoadOptionsProto options = 2;
+	LoadOptionsProto options = 1;
+	repeated string ds_ids = 2;
 }
 message LoadTextFileProto {
 	LoadOptionsProto options = 1;
@@ -123,6 +123,14 @@ message StoreIntoJdbcTableProto {
 
 message StoreIntoKafkaTopicProto {
 	string topic = 1;
+}
+
+message ArcSplitProto {
+	string geom_column = 1;
+	string split_dataset = 2;
+	string split_key = 3;
+	string output_dataset_dir = 4;
+	marmot.proto.service.StoreDataSetOptionsProto options = 5;
 }
 
 //
@@ -447,7 +455,7 @@ message SpatialKnnOuterJoinProto {
 	double radius = 4;
 	SpatialJoinOptionsProto options = 5;
 }
-message SpatialClipJoinProto {
+message ArcClipProto {
 	string geom_column = 1;
 	string param_dataset = 2;
 	SpatialJoinOptionsProto options = 3;
@@ -468,11 +476,21 @@ message SpatialReduceJoinProto {
 	ValueAggregateReducersProto reducer = 3;
 	SpatialJoinOptionsProto options = 4;
 }
-message ArcGisSpatialJoinProto {
+message ArcSpatialJoinProto {
 	string geom_column = 1;
 	string param_dataset = 2;
-	bool include_param_data = 3;
-	SpatialJoinOptionsProto options = 4;
+	bool one_to_many = 3;
+	bool include_paramCols = 4;
+	oneof optional_join_expr {
+		string join_expr = 5;
+	}
+}
+message ArcUnionPhase1Proto {
+	string left_geom_column = 1;
+	string right_dataset = 2;
+	string left_key_columns = 3;
+	string right_key_columns = 4;
+	SpatialJoinOptionsProto options = 5;
 }
 message EstimateIDWProto {
 	string geom_column = 1;
@@ -585,24 +603,20 @@ message ToXYCoordinatesProto {
 	bool keep_geom_column = 4;
 }
 message CentroidTransformProto {
-	message OptionsProto {
-		oneof optional_out_geom_col {
-			string out_geom_col = 1;
-		}
-		oneof optional_ignore_failure {
-			bool ignore_failure = 2;
-		}
-	}
 	string geometry_column = 1;
-	GeomOpOptionsProto options = 2;
+	bool inside = 2;
+	GeomOpOptionsProto options = 3;
 }
 message BufferTransformProto {
 	string geometry_column = 1;
-	double distance = 2;
-	oneof optional_segment_count {
-		int32 segment_count = 3;
+	oneof oneof_distance_info {
+		double distance = 2;
+		string distance_column = 3;
 	}
-	GeomOpOptionsProto options = 4;
+	oneof optional_segment_count {
+		int32 segment_count = 4;
+	}
+	GeomOpOptionsProto options = 5;
 }
 message UnarySpatialIntersectionProto {
 	string geometry_column = 1;
@@ -774,6 +788,7 @@ message OperatorProto {
 		StoreIntoJdbcTableProto store_into_jdbc_table = 54;
 		StoreIntoKafkaTopicProto store_into_kafka_topic = 55;
 		TeeProto tee = 56;
+		ArcSplitProto arc_split = 57;
 		
 		ProjectProto project = 102;
 		TakeProto take = 104;
@@ -849,11 +864,12 @@ message OperatorProto {
 		SpatialOuterJoinProto spatial_outer_join = 703;
 		SpatialKnnInnerJoinProto spatial_knn_join = 704;
 		SpatialKnnOuterJoinProto spatial_knn_outer_join = 705;
-		SpatialClipJoinProto spatial_clip_join = 706;
+		ArcClipProto arc_clip = 706;
 		SpatialIntersectionJoinProto spatial_intersection_join = 707;
 		SpatialDifferenceJoinProto spatial_difference_join = 708;
 		SpatialReduceJoinProto spatial_reduce_join = 709;
-		ArcGisSpatialJoinProto arcgis_join = 710;
+		ArcSpatialJoinProto arc_spatial_join = 710;
+		ArcUnionPhase1Proto arc_union_phase1 = 711;
 		
 		LoadSpatialClusterIndexFileProto load_spatial_cluster_index_file = 771;
 		LoadSpatialIndexJoinProto load_spatial_index_join = 773;

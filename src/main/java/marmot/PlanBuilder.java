@@ -5,14 +5,11 @@ import static marmot.optor.geo.SpatialRelation.ALL;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
-import com.google.common.collect.Sets;
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
-import marmot.PlanBuilder.ScriptRecordSetReducerBuilder.ToIntermediateBuilder;
 import marmot.geo.GeoClientUtils;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
@@ -33,7 +30,9 @@ import marmot.proto.GeometryColumnInfoProto;
 import marmot.proto.GeometryProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.TypeCodeProto;
-import marmot.proto.optor.ArcGisSpatialJoinProto;
+import marmot.proto.optor.ArcClipProto;
+import marmot.proto.optor.ArcSpatialJoinProto;
+import marmot.proto.optor.ArcSplitProto;
 import marmot.proto.optor.AssignSquareGridCellProto;
 import marmot.proto.optor.AssignUidProto;
 import marmot.proto.optor.AttachGeoHashProto;
@@ -56,7 +55,6 @@ import marmot.proto.optor.EstimateKernelDensityProto;
 import marmot.proto.optor.ExpandProto;
 import marmot.proto.optor.FilterSpatiallyProto;
 import marmot.proto.optor.FlattenGeometryProto;
-import marmot.proto.optor.GroupByKeyProto;
 import marmot.proto.optor.GroupConsumerProto;
 import marmot.proto.optor.HashJoinProto;
 import marmot.proto.optor.InterpolateSpatiallyProto;
@@ -89,11 +87,9 @@ import marmot.proto.optor.ReducerProto;
 import marmot.proto.optor.RunPlanProto;
 import marmot.proto.optor.SampleProto;
 import marmot.proto.optor.ScriptFilterProto;
-import marmot.proto.optor.ScriptRecordSetReducerProto;
 import marmot.proto.optor.ShardProto;
 import marmot.proto.optor.SortProto;
 import marmot.proto.optor.SpatialBlockJoinProto;
-import marmot.proto.optor.SpatialClipJoinProto;
 import marmot.proto.optor.SpatialDifferenceJoinProto;
 import marmot.proto.optor.SpatialIntersectionJoinProto;
 import marmot.proto.optor.SpatialKnnInnerJoinProto;
@@ -123,7 +119,6 @@ import marmot.proto.optor.ValueAggregateReducersProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import marmot.type.DataType;
-import utils.CSV;
 import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
@@ -172,7 +167,19 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(opts, "opts is null");
 		
 		LoadDataSetProto proto = LoadDataSetProto.newBuilder()
-												.setDsId(dsId)
+												.addAllDsIds(Arrays.asList(dsId))
+												.setOptions(opts.toProto())
+												.build();
+		return add(OperatorProto.newBuilder()
+								.setLoadDataset(proto)
+								.build());
+	}
+	public PlanBuilder load(List<String> dsIdList, LoadOptions opts) {
+		Utilities.checkNotNullArgument(dsIdList, "dataset list is null");
+		Utilities.checkNotNullArgument(opts, "opts is null");
+		
+		LoadDataSetProto proto = LoadDataSetProto.newBuilder()
+												.addAllDsIds(dsIdList)
 												.setOptions(opts.toProto())
 												.build();
 		return add(OperatorProto.newBuilder()
@@ -702,7 +709,15 @@ public class PlanBuilder {
 								.setReduce(reducer)
 								.build());
 	}
-	
+
+	/**
+	 * {@link Group} 작업으로 그룹핑된 각 레코드 그룹에 대해
+	 * 집계 함수를 적용시켜 결과 레코드 세트를 출력하는 작업을 추가한다.
+	 * 
+	 * @param group		그룹 지정 정보
+	 * @param aggrs	각 레코드 그룹에 적용할 집계함수 리스트. 계함수 리스트. 
+	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder aggregateByGroup(Group group, AggregateFunction... aggrs) {
 		return aggregateByGroup(group, Arrays.asList(aggrs));
 	}
@@ -715,13 +730,7 @@ public class PlanBuilder {
 		ReducerProto reducer = ReducerProto.newBuilder()
 											.setValAggregates(varp)
 											.build();
-		TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-															.setGrouper(group.toProto())
-															.setTransform(reducer)
-															.build();
-		return add(OperatorProto.newBuilder()
-								.setTransformByGroup(transform)
-								.build());
+		return reduceByGroup(group, reducer);
 	}
 	
 	public PlanBuilder takeByGroup(Group group, int count) {
@@ -729,13 +738,7 @@ public class PlanBuilder {
 		ReducerProto reducer = ReducerProto.newBuilder()
 											.setTake(take)
 											.build();
-		TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-															.setGrouper(group.toProto())
-															.setTransform(reducer)
-															.build();
-		return add(OperatorProto.newBuilder()
-								.setTransformByGroup(transform)
-								.build());
+		return reduceByGroup(group, reducer);
 	}
 	
 	public PlanBuilder listByGroup(Group group) {
@@ -743,6 +746,42 @@ public class PlanBuilder {
 		ReducerProto reducer = ReducerProto.newBuilder()
 											.setList(list)
 											.build();
+		return reduceByGroup(group, reducer);
+	}
+	
+	public PlanBuilder runPlanByGroup(Group group, Plan plan) {
+		RunPlanProto run = RunPlanProto.newBuilder()
+										.setPlan(plan.toProto())
+										.build();
+		ReducerProto reducer = ReducerProto.newBuilder()
+											.setRunPlan(run)
+											.build();
+		return reduceByGroup(group, reducer);
+	}
+	
+	public PlanBuilder reduceToSingleRecordByGroup(Group group, RecordSchema outSchema,
+											String tagCol, String valueCol) {
+		PutSideBySideProto put = PutSideBySideProto.newBuilder()
+												.setOutputSchema(outSchema.toProto())
+												.setTagColumn(tagCol)
+												.setValueColumn(valueCol)
+												.build();
+		ReducerProto reducer = ReducerProto.newBuilder()
+											.setPutSideBySide(put)
+											.build();
+		return reduceByGroup(group, reducer);
+	}
+	
+	public PlanBuilder applyByGroup(Group group, PBSerializable<?> serializable) {
+		SerializedProto proto = serializable.serialize();
+		return reduceByGroup(group, ReducerProto.newBuilder().setReducer(proto).build());
+	}
+
+	public PlanBuilder applyByGroup(Group group, Serializable serializable) {
+		return applyByGroup(group, PBUtils.serializeJava(serializable));
+	}
+	
+	private PlanBuilder reduceByGroup(Group group, ReducerProto reducer) {
 		TransformByGroupProto transform = TransformByGroupProto.newBuilder()
 															.setGrouper(group.toProto())
 															.setTransform(reducer)
@@ -767,222 +806,6 @@ public class PlanBuilder {
 		return add(OperatorProto.newBuilder()
 								.setConsumeByGroup(proto)
 								.build());
-	}
-	
-	public PlanBuilder reduceToSingleRecordByGroup(Group group, RecordSchema outSchema,
-											String tagCol, String valueCol) {
-		PutSideBySideProto put = PutSideBySideProto.newBuilder()
-												.setOutputSchema(outSchema.toProto())
-												.setTagColumn(tagCol)
-												.setValueColumn(valueCol)
-												.build();
-		ReducerProto reducer = ReducerProto.newBuilder()
-											.setPutSideBySide(put)
-											.build();
-		TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-															.setGrouper(group.toProto())
-															.setTransform(reducer)
-															.build();
-		return add(OperatorProto.newBuilder()
-								.setTransformByGroup(transform)
-								.build());
-	}
-	
-	/**
-	 * 본 {@code PlanBuilder}에 GroupBy 연산을 추가한다.
-	 * <p>
-	 * 본 메소드는 입력 레코드 세트에 포함된 레코드들을 주어진 컬럼들을 기준으로 그룹핑하는
-	 * 작업을 수행한다.
-	 * 본 메소드는 단독으로 수행되지 않고, 본 메소드 호출 뒤에 {@link GroupByPlanBuilder} 클래스에
-	 * 정의된 메소드들 중 하나가 호출해서 실제 레코드 세트 연산을 추가한다.
-	 * <dl>
-	 * 	<dt>{@link GroupByPlanBuilder#run(Plan)}</dt>
-	 * 	<dd>입력 레코드들이 주어진 컬럼을 기준으로 그룹핑하고, 각 그룹별로 주어진 plan을 수행한다.</dd>
-	 * 	<dt>{@link GroupByPlanBuilder#aggregate(AggregateFunction...)}</dt>
-	 * 	<dd>입력 레코드들이 주어진 컬럼을 기준으로 그룹핑하고, 각 그룹별로 주어진 집계 연산을 적용하여 하나의 레코드를
-	 * 		생성하는 연산을 추가.</dd>
-	 * </dl>
-	 * 
-	 * @param keyCols	그룹핑 기준 컬럼 리스트.
-	 * @return reduce 연산을 추가로 받기 위한 {@link GroupByPlanBuilder} 객체.
-	 */
-	public GroupByPlanBuilder groupBy(String keyCols) {
-		Utilities.checkNotNullArgument(keyCols, "keyCols is null");
-		
-		return new GroupByPlanBuilder(this, keyCols);
-	}
-	
-	public static class GroupByPlanBuilder {
-		private final PlanBuilder m_planBuilder;
-		private final String m_cmpCols;
-		private FOption<String> m_tagCols = FOption.empty();
-		private FOption<String> m_orderKeyCols = FOption.empty();
-		private FOption<Integer> m_workerCount = FOption.empty();
-//		private ReducerProto m_reducer;
-		
-		GroupByPlanBuilder(PlanBuilder planBuilder, String cmpKeyCols) {
-			m_planBuilder = planBuilder;
-			m_cmpCols = cmpKeyCols;
-		}
-		
-		public GroupByPlanBuilder withTags(String tagCols) {
-			m_tagCols = FOption.ofNullable(tagCols);
-			return this;
-		}
-		
-		public GroupByPlanBuilder orderBy(String orderCols) {
-			Set<String> cols = Sets.newHashSet(CSV.parseCsv(m_cmpCols, ',', '\\').toList());
-			String commonCols = CSV.parseCsv(orderCols, ',', '\\')
-									.filter(cols::contains)
-									.join(",");
-			if ( commonCols.length() > 0 ) {
-				throw new IllegalArgumentException("order-by key should not be "
-													+ "a group-by key: cols=" + commonCols);
-			}
-			m_orderKeyCols = FOption.of(orderCols);
-			
-			return this;
-		}
-		
-		/**
-		 * {@link PlanBuilder#groupBy(String)} 작업을 수행시 필요한 reducer의 갯수를
-		 * 설정한다.
-		 * 
-		 * @param count		reducer 갯수
-		 * @return 작업이 추가된 {@link GroupByPlanBuilder} 객체.
-		 */
-		public GroupByPlanBuilder workerCount(int count) {
-			m_workerCount = FOption.of(count);
-			return this;
-		}
-		
-		/**
-		 * {@link PlanBuilder#groupBy(String)} 작업으로 그룹핑된 각 레코드 그룹에 대해
-		 * 집계 함수를 적용시켜 결과 레코드 세트를 출력하는 작업을 추가한다.
-		 * 
-		 * @param aggrFuncs		 각 레코드 그룹에 적용할 집계함수 리스트. 
-		 * @return 작업이 추가된 {@link PlanBuilder} 객체.
-		 */
-		public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
-			return aggregate(Arrays.asList(aggrFuncs));
-		}
-		
-		public PlanBuilder aggregate(List<AggregateFunction> aggrFuncs) {
-			ValueAggregateReducersProto varp
-								= FStream.from(aggrFuncs)
-										.map(AggregateFunction::toProto)
-										.foldLeft(ValueAggregateReducersProto.newBuilder(),
-													(builder,aggr) -> builder.addAggregate(aggr))
-										.build();
-			ReducerProto reducer = ReducerProto.newBuilder()
-												.setValAggregates(varp)
-												.build();
-			
-			return transformByGroup(reducer);
-		}
-		
-		public PlanBuilder aggregate(ValueAggregateReducersProto varp) {
-			ReducerProto reducer = ReducerProto.newBuilder()
-												.setValAggregates(varp)
-												.build();
-			
-			return transformByGroup(reducer);
-		}
-		
-		public PlanBuilder list() {
-			ListReducerProto list = ListReducerProto.newBuilder().build();
-			return transformByGroup(ReducerProto.newBuilder().setList(list).build());
-		}
-		
-		public PlanBuilder take(long count) {
-			TakeReducerProto take = TakeReducerProto.newBuilder().setCount(count).build();
-			return transformByGroup(ReducerProto.newBuilder().setTake(take).build());
-		}
-		
-		/**
-		 * {@link PlanBuilder#groupBy(String)} 작업으로 그룹핑된 각 레코드 그룹에 속한
-		 * 레코드의 갯수로 구성된 레코드 세트를 출력하는 작업을 추가한다.
-		 * 
-		 * @return 작업이 추가된 {@link PlanBuilder} 객체.
-		 */
-		public PlanBuilder count() {
-			return aggregate(AggregateFunction.COUNT());
-		}
-		
-		public PlanBuilder putSideBySide(RecordSchema outSchema, String valueColumn,
-										String tagColumn) {
-			PutSideBySideProto put = PutSideBySideProto.newBuilder()
-														.setValueColumn(valueColumn)
-														.setTagColumn(tagColumn)
-														.setOutputSchema(outSchema.toProto())
-														.build();
-			return transformByGroup(ReducerProto.newBuilder().setPutSideBySide(put).build());
-		}
-		
-		public PlanBuilder run(Plan plan) {
-			RunPlanProto run = RunPlanProto.newBuilder()
-											.setPlan(plan.toProto())
-											.build();
-			return transformByGroup(ReducerProto.newBuilder().setRunPlan(run).build());
-		}
-
-		public PlanBuilder apply(PBSerializable<?> serializable) {
-			return apply(serializable.serialize());
-		}
-		public PlanBuilder apply(Serializable serializable) {
-			return apply(PBUtils.serializeJava(serializable));
-		}
-		
-		public PlanBuilder consume(GroupConsumerProto consumer) {
-			ConsumeByGroupProto.Builder builder = ConsumeByGroupProto.newBuilder()
-															.setGrouper(groupByKey())
-															.setConsumer(consumer);
-			ConsumeByGroupProto consume = builder.build();
-			
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setConsumeByGroup(consume)
-													.build());
-		}
-		
-		public ToIntermediateBuilder reduceScript() {
-			return new ScriptRecordSetReducerBuilder(m_planBuilder, this)
-						.new ToIntermediateBuilder();
-		}
-		
-		public PlanBuilder storeEachGroup(String rootPath, StoreDataSetOptions opts) {
-			StoreKeyedDataSetProto proto = StoreKeyedDataSetProto.newBuilder()
-																.setRootPath(rootPath)
-																.setOptions(opts.toProto())
-																.build();
-			GroupConsumerProto consumer = GroupConsumerProto.newBuilder()
-															.setStore(proto)
-															.build();
-			return consume(consumer);
-		}
-		
-		private GroupByKeyProto groupByKey() {
-			GroupByKeyProto.Builder builder = GroupByKeyProto.newBuilder()
-														.setCompareColumns(m_cmpCols);
-			m_tagCols.ifPresent(builder::setTagColumns);
-			m_orderKeyCols.ifPresent(builder::setOrderColumns);
-			m_workerCount.ifPresent(cnt -> builder.setGroupWorkerCount(cnt));
-			return builder.build();
-		}
-		
-		private PlanBuilder transformByGroup(ReducerProto reducer) {
-			TransformByGroupProto transform = TransformByGroupProto.newBuilder()
-																.setGrouper(groupByKey())
-																.setTransform(reducer)
-																.build();
-			return m_planBuilder.add(OperatorProto.newBuilder()
-													.setTransformByGroup(transform)
-													.build());
-		}
-		
-		private PlanBuilder apply(SerializedProto func) {
-			ReducerProto reducer = ReducerProto.newBuilder().setReducer(func).build();
-			return transformByGroup(reducer);
-		}
 	}
 
 	/**
@@ -1313,6 +1136,26 @@ public class PlanBuilder {
 		
 		return add(OperatorProto.newBuilder()
 								.setStoreIntoDataset(store)
+								.build());
+	}
+	
+	public PlanBuilder arcSplit(String geomCol, String splitDsId, String splitKey,
+								String outDir, StoreDataSetOptions opts) {
+		Utilities.checkNotNullArgument(geomCol, "geometry column is null");
+		Utilities.checkNotNullArgument(splitDsId, "split dataset is null");
+		Utilities.checkNotNullArgument(splitKey, "split key is null");
+		Utilities.checkNotNullArgument(outDir, "output dataset directory is null");
+		Utilities.checkNotNullArgument(opts, "StoreDataSetOptions is null");
+		
+		ArcSplitProto proto = ArcSplitProto.newBuilder()
+											.setGeomColumn(geomCol)
+											.setSplitDataset(splitDsId)
+											.setSplitKey(splitKey)
+											.setOutputDatasetDir(outDir)
+											.setOptions(opts.toProto())
+											.build();
+		return add(OperatorProto.newBuilder()
+								.setArcSplit(proto)
 								.build());
 	}
 
@@ -1664,15 +1507,17 @@ public class PlanBuilder {
 	 * 입력 레코드의 주어진 이름의 공간 컬럼 값을 그것의 무게 중심점으로 변환시키는 명령을 수행한다.
 	 * 
 	 * @param inGeomCol	centroid 연산 대상 공간 컬럼 이름. 
+	 * @param inside	대상 영역내에서 중심점을 검색할지 여부.
 	 * @param opts		연산 옵션
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
-	public PlanBuilder centroid(String inGeomCol, GeomOpOptions opts) {
+	public PlanBuilder centroid(String inGeomCol, boolean inside, GeomOpOptions opts) {
 		Utilities.checkNotNullArgument(inGeomCol, "inGeomCol is null");
 		Utilities.checkNotNullArgument(opts, "GeomOpOptions is null");
 		
 		CentroidTransformProto centroid = CentroidTransformProto.newBuilder()
 																.setGeometryColumn(inGeomCol)
+																.setInside(inside)
 																.setOptions(opts.toProto())
 																.build();
 		
@@ -1681,7 +1526,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder centroid(String inGeomCol) {
-		return centroid(inGeomCol, GeomOpOptions.create());
+		return centroid(inGeomCol, false, GeomOpOptions.create());
 	}
 
 	/**
@@ -1711,6 +1556,25 @@ public class PlanBuilder {
 	}
 	public PlanBuilder buffer(String geomCol, double distance) {
 		return buffer(geomCol, distance, FOption.empty(), GeomOpOptions.create());
+	}
+	public PlanBuilder buffer(String geomCol, String distanceCol,
+								FOption<Integer> segmentCount, GeomOpOptions opts) {
+		BufferTransformProto.Builder builder = BufferTransformProto.newBuilder()
+																.setGeometryColumn(geomCol)
+																.setDistanceColumn(distanceCol)
+																.setOptions(opts.toProto());
+		segmentCount.ifPresent(builder::setSegmentCount);
+		BufferTransformProto buffer = builder.build();
+
+		return add(OperatorProto.newBuilder()
+								.setBuffer(buffer)
+								.build());
+	}
+	public PlanBuilder buffer(String geomCol, String distanceCol) {
+		return buffer(geomCol, distanceCol, FOption.empty(), GeomOpOptions.create());
+	}
+	public PlanBuilder buffer(String geomCol, String distanceCol, GeomOpOptions opts) {
+		return buffer(geomCol, distanceCol, FOption.empty(), opts);
 	}
 
 	/**
@@ -2091,20 +1955,20 @@ public class PlanBuilder {
 	 * 대치된다.
 	 * 
 	 * @param inputGeomCol	입력 레코드 중에서 조인에 사용할 공간 객체 컬럼 이름.
-	 * @param clipperDataSet	클립 조인 인자 데이터세트 이름.
+	 * @param clipDataSet	클립 조인 인자 데이터세트 이름.
 	 * 
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체. 
 	 */
-	public PlanBuilder clipJoin(String inputGeomCol, String clipperDataSet) {
+	public PlanBuilder arcClip(String inputGeomCol, String clipDataSet) {
 		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column is null");
-		Utilities.checkNotNullArgument(clipperDataSet, "clipper DataSet id is null");
+		Utilities.checkNotNullArgument(clipDataSet, "Clip DataSet id is null");
 		
-		SpatialClipJoinProto clip = SpatialClipJoinProto.newBuilder()
-													.setGeomColumn(inputGeomCol)
-													.setParamDataset(clipperDataSet)
-													.build();
+		ArcClipProto clip = ArcClipProto.newBuilder()
+										.setGeomColumn(inputGeomCol)
+										.setParamDataset(clipDataSet)
+										.build();
 		return add(OperatorProto.newBuilder()
-								.setSpatialClipJoin(clip)
+								.setArcClip(clip)
 								.build());
 	}
 	
@@ -2179,20 +2043,29 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder arcGisSpatialJoin(String inputGeomCol, String paramDataSet,
-										boolean includeParamData, SpatialJoinOptions opts) {
+	public PlanBuilder arcSpatialJoin(String inputGeomCol, String paramDataSet,
+										boolean oneToMany, boolean includeParamCols,
+										FOption<String> joinExpr) {
 		Utilities.checkNotNullArgument(inputGeomCol, "input Geometry column is null");
 		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 		
-		ArcGisSpatialJoinProto join = ArcGisSpatialJoinProto.newBuilder()
-															.setGeomColumn(inputGeomCol)
-															.setParamDataset(paramDataSet)
-															.setIncludeParamData(includeParamData)
-															.setOptions(opts.toProto())
-															.build();
+		ArcSpatialJoinProto.Builder builder
+							= ArcSpatialJoinProto.newBuilder()
+												.setGeomColumn(inputGeomCol)
+												.setParamDataset(paramDataSet)
+												.setOneToMany(oneToMany)
+												.setIncludeParamCols(includeParamCols);
+		joinExpr.ifPresent(builder::setJoinExpr);
+		ArcSpatialJoinProto proto = builder.build();
+		
 		return add(OperatorProto.newBuilder()
-								.setArcgisJoin(join)
+								.setArcSpatialJoin(proto)
 								.build());
+	}
+	public PlanBuilder arcSpatialJoin(String inputGeomCol, String paramDataSet,
+										boolean oneToMany, boolean includeParamCols) {
+		return arcSpatialJoin(inputGeomCol, paramDataSet, oneToMany, includeParamCols,
+								FOption.empty());
 	}
 	
 	public PlanBuilder interpolateSpatially(String geomColumn, String paramDataSet,
@@ -2418,77 +2291,5 @@ public class PlanBuilder {
 		return add(OperatorProto.newBuilder()
 								.setSplitGeometry(dissolve)
 								.build());
-	}
-	
-	public static class ScriptRecordSetReducerBuilder {
-		private final PlanBuilder m_planBuilder;
-		private final GroupByPlanBuilder m_grpByBuilder;
-		private RecordSchema m_intermediateSchema;
-		private String m_produceExpr;
-		private FOption<String> m_combinerInitializeExpr;
-		private String m_combineExpr;
-		
-		ScriptRecordSetReducerBuilder(PlanBuilder planBuilder,
-										GroupByPlanBuilder grpByBuilder) {
-			m_planBuilder = planBuilder;
-			m_grpByBuilder = grpByBuilder;
-		}
-		
-		public class ToIntermediateBuilder {
-			public CombinerBuilder toIntermediate(String intermSchemaStr,
-												String toIntermExpr) {
-				m_intermediateSchema = RecordSchema.parse(intermSchemaStr);
-				m_produceExpr = toIntermExpr;
-				return new CombinerBuilder();
-			}
-		}
-		
-		public class CombinerBuilder {
-			public ToReducedBuilder combine(String expr) {
-				m_combinerInitializeExpr = FOption.empty();
-				m_combineExpr = expr;
-				return new ToReducedBuilder();
-			}
-			public ToReducedBuilder combine(String initExpr, String expr) {
-				m_combinerInitializeExpr = FOption.of(initExpr);
-				m_combineExpr = expr;
-				return new ToReducedBuilder();
-			}
-		}
-		
-		public class ToReducedBuilder {
-			public PlanBuilder toReducedOutput(String reducedSchemaStr, String expr) {
-				RecordSchema reducedSchema = RecordSchema.parse(reducedSchemaStr);
-
-				ScriptRecordSetReducerProto.Builder reducerBuilder
-							= ScriptRecordSetReducerProto.newBuilder()
-											.setOutputSchema(reducedSchema.toProto())
-											.setIntermediateSchema(m_intermediateSchema.toProto())
-											.setProducerExpr(m_produceExpr)
-											.setCombinerExpr(m_combineExpr)
-											.setFinalizerExpr(expr);
-				m_combinerInitializeExpr.ifPresent(reducerBuilder::setCombinerInitializeExpr);
-				ScriptRecordSetReducerProto proto = reducerBuilder.build();
-
-				GroupByKeyProto.Builder grpBuilder
-							= GroupByKeyProto.newBuilder()
-											.setCompareColumns(m_grpByBuilder.m_cmpCols);
-				m_grpByBuilder.m_tagCols.ifPresent(grpBuilder::setTagColumns);
-				m_grpByBuilder.m_workerCount.ifPresent(cnt -> grpBuilder.setGroupWorkerCount(cnt));
-				GroupByKeyProto grpBy = grpBuilder.build();
-				ReducerProto reducer = ReducerProto.newBuilder()
-													.setReducer(PBUtils.serialize(proto))
-													.build();
-				TransformByGroupProto reduceByGrp
-											= TransformByGroupProto.newBuilder()
-																.setGrouper(grpBy)
-																.setTransform(reducer)
-																.build();
-				
-				return m_planBuilder.add(OperatorProto.newBuilder()
-														.setTransformByGroup(reduceByGrp)
-														.build());
-			}
-		}
 	}
 }

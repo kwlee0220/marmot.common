@@ -29,6 +29,7 @@ service DataSetService {
 	rpc getDataSetInfo(marmot.proto.StringProto) returns (DataSetInfoResponse);
 	rpc getDataSetInfoAllInDir(DirectoryTraverseRequest) returns (stream DataSetInfoResponse);
 	rpc getDefaultSpatialIndexInfo(marmot.proto.StringProto) returns (SpatialIndexInfoResponse);
+	rpc updateGeometryColumnInfo(UpdateGeometryColumnInfoRequest) returns (DataSetInfoResponse);
 	
 	//
 	// DataSet Directory related interface
@@ -105,6 +106,13 @@ message DataSetInfoResponse {
 	oneof either {
 		DataSetInfoProto dataset_info = 1;
 		marmot.proto.service.ErrorProto error = 2;
+	}
+}
+
+message UpdateGeometryColumnInfoRequest {
+	string id = 1;
+	oneof optional_geometry_column_info {
+		GeometryColumnInfoProto gc_info = 2;
 	}
 }
 

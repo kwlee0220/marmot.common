@@ -10,59 +10,59 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class AggregateFunction {
-	public AggrType m_type;
+	public AggregateType m_type;
 	@Nullable public String m_aggrColumn;		// nullable
 	public String m_resultColumn;
 	@Nullable public String m_args;				// nullable
 	
 	public static AggregateFunction COUNT() {
-		return new AggregateFunction(AggrType.COUNT, null, "count");
+		return new AggregateFunction(AggregateType.COUNT, null, "count");
 	}
 	
 	public static AggregateFunction MAX(String col) {
-		return new AggregateFunction(AggrType.MAX, col, "max");
+		return new AggregateFunction(AggregateType.MAX, col, "max");
 	}
 	
 	public static AggregateFunction MIN(String col) {
-		return new AggregateFunction(AggrType.MIN, col, "min");
+		return new AggregateFunction(AggregateType.MIN, col, "min");
 	}
 	
 	public static AggregateFunction SUM(String col) {
-		return new AggregateFunction(AggrType.SUM, col, "sum");
+		return new AggregateFunction(AggregateType.SUM, col, "sum");
 	}
 
 	public static AggregateFunction AVG(String col) {
-		return new AggregateFunction(AggrType.AVG, col, "avg");
+		return new AggregateFunction(AggregateType.AVG, col, "avg");
 	}
 	
 	public static AggregateFunction STDDEV(String col) {
-		return new AggregateFunction(AggrType.STDDEV, col, "stddev");
+		return new AggregateFunction(AggregateType.STDDEV, col, "stddev");
 	}
 	
 	public static AggregateFunction CONVEX_HULL(String col) {
-		return new AggregateFunction(AggrType.CONVEX_HULL, col, "the_geom");
+		return new AggregateFunction(AggregateType.CONVEX_HULL, col, "the_geom");
 	}
 	
 	public static AggregateFunction ENVELOPE(String col) {
-		return new AggregateFunction(AggrType.ENVELOPE, col, "mbr");
+		return new AggregateFunction(AggregateType.ENVELOPE, col, "mbr");
 	}
 	
-	public static AggregateFunction GEOM_UNION(String col) {
-		return new AggregateFunction(AggrType.GEOM_UNION, col, "union");
+	public static AggregateFunction UNION_GEOM(String col) {
+		return new AggregateFunction(AggregateType.UNION_GEOM, col, "geom_union");
 	}
 	
 	public static AggregateFunction CONCAT_STR(String col, String... args) {
 		String delim = args[0];
-		return new AggregateFunction(AggrType.CONCAT_STR, col, "concat", delim);
+		return new AggregateFunction(AggregateType.CONCAT_STR, col, "concat", delim);
 	}
 	
-	public AggregateFunction(AggrType type, String aggrCol, String outCol) {
+	public AggregateFunction(AggregateType type, String aggrCol, String outCol) {
 		m_type = type;
 		m_aggrColumn = aggrCol;
 		m_resultColumn = outCol;
 	}
 	
-	public AggregateFunction(AggrType type, String aggrCol, String outCol,
+	public AggregateFunction(AggregateType type, String aggrCol, String outCol,
 							String args) {
 		m_type = type;
 		m_aggrColumn = aggrCol;
@@ -100,7 +100,7 @@ public class AggregateFunction {
     	}
     	String outCol = comps[2].trim();
 
-        AggrType type = AggrType.valueOf(comps[0].toUpperCase());
+        AggregateType type = AggregateType.valueOf(comps[0].toUpperCase());
         AggregateFunction func;
         switch ( type ) {
             case COUNT:
@@ -127,8 +127,8 @@ public class AggregateFunction {
             case ENVELOPE:
                 func = ENVELOPE(aggrCol);
                 break;
-            case GEOM_UNION:
-                func = GEOM_UNION(aggrCol);
+            case UNION_GEOM:
+                func = UNION_GEOM(aggrCol);
                 break;
             case CONCAT_STR:
             	if ( args == null ) {

@@ -153,6 +153,8 @@ public interface DataSet {
 	 */
 	public long length();
 	
+	public DataSet updateGeometryColumnInfo(FOption<GeometryColumnInfo> gcInfo);
+	
 	/**
 	 * 데이터세트에 저장된 레코드 세트를 읽는다.
 	 * 
