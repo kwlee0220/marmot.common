@@ -1,6 +1,7 @@
 package marmot.geo.command;
 
 import io.vavr.CheckedConsumer;
+import marmot.BindDataSetOptions;
 import marmot.DataSet;
 import marmot.DataSetType;
 import marmot.GeometryColumnInfo;
@@ -24,7 +25,7 @@ public class BindDataSetCommand implements CheckedConsumer<MarmotRuntime> {
 		private String m_path;
 		
 		@Option(names={"-t", "-type"}, paramLabel="type", required=true,
-				description={"dataset type ('csv','custom','file', or 'dataset)"})
+				description={"source type ('text', 'file', or 'dataset)"})
 		private String m_type;
 		
 		@Option(names={"-d", "-dataset"}, paramLabel="dataset_id", required=true,
@@ -37,31 +38,37 @@ public class BindDataSetCommand implements CheckedConsumer<MarmotRuntime> {
 		public void setGeometryColumnInfo(String gcInfoStr) {
 			m_gcInfo = GeometryColumnInfo.fromString(gcInfoStr);
 		}
+		
+		@Option(names={"-f", "-force"}, description="force to bind to a new dataset")
+		private boolean m_force;
 	}
 
 	@Override
 	public void accept(MarmotRuntime marmot) throws Exception {
 		DataSetType type;
-		if ( "dataset".equals(m_params.m_type) ) {
-			DataSet srcDs = marmot.getDataSet(m_params.m_path);
-			m_params.m_path = srcDs.getHdfsPath();
-			type = srcDs.getType();
-			
-			if ( srcDs.hasGeometryColumn() ) {
-				m_params.m_gcInfo = srcDs.getGeometryColumnInfo();
-			}
+		switch ( m_params.m_type ) {
+			case "text":
+				type = DataSetType.TEXT;
+				break;
+			case "file":
+				type = DataSetType.FILE;
+				break;
+			case "dataset":
+				DataSet srcDs = marmot.getDataSet(m_params.m_path);
+				if ( m_params.m_gcInfo == null && srcDs.hasGeometryColumn() ) {
+					m_params.m_gcInfo = srcDs.getGeometryColumnInfo();
+				}
+				m_params.m_path = srcDs.getHdfsPath();
+				type = DataSetType.LINK;
+				break;
+			default:
+				throw new IllegalArgumentException("invalid dataset type: " + m_params.m_type);
 		}
-		else {
-			type = DataSetType.fromString(m_params.m_type.toUpperCase());
-		}
-
-		marmot.deleteDataSet(m_params.m_dataset);
+		
+		BindDataSetOptions opts = BindDataSetOptions.create().force(m_params.m_force);
 		if ( m_params.m_gcInfo != null ) {
-			marmot.bindExternalDataSet(m_params.m_dataset, m_params.m_path, type,
-										m_params.m_gcInfo);
+			opts.geometryColumnInfo(m_params.m_gcInfo);
 		}
-		else {
-			marmot.bindExternalDataSet(m_params.m_dataset, m_params.m_path, type);
-		}
+		marmot.bindExternalDataSet(m_params.m_dataset, m_params.m_path, type, opts);
 	}
 }

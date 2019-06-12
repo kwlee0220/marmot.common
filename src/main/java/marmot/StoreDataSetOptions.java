@@ -26,6 +26,14 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		return new StoreDataSetOptions();
 	}
 	
+	public static StoreDataSetOptions DEFAULT() {
+		return new StoreDataSetOptions().force(true);
+	}
+	
+	public static StoreDataSetOptions DEFAULT(GeometryColumnInfo gcInfo) {
+		return new StoreDataSetOptions().geometryColumnInfo(gcInfo).force(true);
+	}
+	
 	public FOption<GeometryColumnInfo> geometryColumnInfo() {
 		return m_gcInfo;
 	}

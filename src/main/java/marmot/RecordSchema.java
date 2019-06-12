@@ -165,7 +165,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		
 		Set<CIString> names = FStream.from(key)
 									.map(CIString::of)
-									.toHashSet();
+									.toSet();
 		return FStream.of(m_columns)
 						.filter(c -> !names.contains(c.columnName()))
 						.toList();
@@ -183,7 +183,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		
 		Set<CIString> names = FStream.from(key)
 									.map(CIString::of)
-									.toHashSet();
+									.toSet();
 		return FStream.of(m_columns)
 						.filter(c -> !names.contains(c.columnName()))
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))

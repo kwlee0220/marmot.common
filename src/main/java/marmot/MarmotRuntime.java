@@ -7,6 +7,7 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import marmot.io.MarmotFileNotFoundException;
 import utils.Utilities;
 import utils.func.FOption;
 
@@ -163,16 +164,6 @@ public interface MarmotRuntime {
 	
 	public DataSet appendIntoDataSet(String dsId, Plan plan, ExecutePlanOptions execOpts)
 		throws DataSetNotFoundException;
-
-	/**
-	 * 기존 데이터세트와 바인딩시킨다.
-	 * 
-	 * @param dsId	바인딩된 데이터세트 식별자.
-	 * @param srcPath	바인딩할 원시 데이터의 식별자.
-	 * @param type	원시 데이터 형태.
-	 * @return	바인딩되어 생성된 데이터 세트 객체.
-	 */
-	public DataSet bindExternalDataSet(String dsId, String srcPath, DataSetType type);
 	
 	/**
 	 * 기존 데이터세트와 바인딩시킨다.
@@ -180,11 +171,11 @@ public interface MarmotRuntime {
 	 * @param dsId	바인딩된 데이터세트 식별자.
 	 * @param srcPath	바인딩할 원시 데이터의 식별자.
 	 * @param type	원시 데이터 형태.
-	 * @param geomColInfo	바인딩된 데이터세트에 설정할 기본 공간정보 컬럼 정보.
+	 * @param opts	바인딩된 데이터세트에 설정할 옵션 정보.
 	 * @return	바인딩되어 생성된 데이터 세트 객체.
 	 */
 	public DataSet bindExternalDataSet(String dsId, String srcPath, DataSetType type,
-										GeometryColumnInfo geomColInfo);
+										BindDataSetOptions opts);
 	
 	/**
 	 * 시스템에 등록된 모든 폴더의 이름들을 반환한다.
@@ -262,7 +253,7 @@ public interface MarmotRuntime {
 	 */
 	public void execute(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
 	public default void execute(Plan plan) throws PlanExecutionException {
-		execute(plan, ExecutePlanOptions.create().disableLocalExecution(true));
+		execute(plan, ExecutePlanOptions.create());
 	}
 	
 	/**
@@ -421,6 +412,7 @@ public interface MarmotRuntime {
 	
 	public void createKafkaTopic(String topic, boolean force);
 	
+	public RecordSet readMarmotFile(String path) throws MarmotFileNotFoundException;
 	public void copyToHdfsFile(String path, Iterator<byte[]> blocks, FOption<Long> blockSize)
 		throws IOException;
 	public void deleteHdfsFile(String path) throws IOException;

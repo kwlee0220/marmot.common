@@ -10,6 +10,15 @@ import public "marmot.service.proto";
 import public "marmot.optor.proto";
 import public "marmot.service.exec.proto";
 
+message BindDataSetOptionsProto {
+	oneof optional_geom_col_info {
+		marmot.proto.GeometryColumnInfoProto geom_col_info  = 1;
+	}
+	oneof optional_force {
+		bool force = 2;
+	}
+}
+
 service DataSetService {
 	rpc createDataSet(CreateDataSetRequest) returns (DataSetInfoResponse);
 	rpc appendIntoDataSet(AppendIntoDataSetRequest) returns (DataSetInfoResponse);
@@ -161,9 +170,7 @@ message BindDataSetRequest {
 	string dataset = 1;
 	string file_path = 2;
 	DataSetTypeProto type = 3;
-	oneof optional_geometry_info {
-		GeometryColumnInfoProto geometry_info = 4;
-	}
+	BindDataSetOptionsProto options = 4;
 }
 
 message ClusterDataSetRequest {

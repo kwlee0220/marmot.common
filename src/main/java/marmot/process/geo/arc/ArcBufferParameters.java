@@ -85,9 +85,9 @@ public class ArcBufferParameters {
 	}
 	
 	/**
-	 * 인자 데이터세트 식별자를 설정한다.
+	 * 버퍼 거리를 설정한다.
 	 * 
-	 * @param dsId	데이터세트 식별자.
+	 * @param dist	거리 (단위: 미터).
 	 */
 	public void setDistance(double dist) {
 		m_params.put(DISTANCE, "" + dist);
@@ -99,11 +99,9 @@ public class ArcBufferParameters {
 	}
 	
 	/**
-	 * 결과 속성 컬럼 리스트를 설정한다.
-	 * <p>
-	 * 하나 이상의 컬럼을 지정하는 경우는 쉼표(',')로 컬럼 이름이 구분되어야 한다.
+	 * 거리 값 컬럼 이름을 설정한다.
 	 * 
-	 * @param cols	컬럼 이름 리스트.
+	 * @param col	거리 컬럼 이름.
 	 */
 	public void setDistanceColumn(String col) {
 		Utilities.checkNotNullArgument(col, "distance column is null");

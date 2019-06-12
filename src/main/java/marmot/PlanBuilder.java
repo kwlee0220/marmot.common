@@ -41,7 +41,6 @@ import marmot.proto.optor.BinarySpatialIntersectionProto;
 import marmot.proto.optor.BinarySpatialIntersectsProto;
 import marmot.proto.optor.BreakLineStringProto;
 import marmot.proto.optor.BufferTransformProto;
-import marmot.proto.optor.CascadeGeometryProto;
 import marmot.proto.optor.CentroidTransformProto;
 import marmot.proto.optor.ClusterChroniclesProto;
 import marmot.proto.optor.ConsumeByGroupProto;
@@ -154,6 +153,28 @@ public class PlanBuilder {
 	}
 
 	/**
+	 * 주어진 식별자들의 데이터세트들을 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
+	 * <p>
+	 * 데이터세트 적재시 추가 정보를  {@link LoadOptions}을 활용하여 전달한다.
+	 * 
+	 * @param dsIdList	대상 데이터세트 이름 리스트.
+	 * @param opts		옵션 리스트.
+	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
+	 */
+	public PlanBuilder load(Iterable<String> dsIdList, LoadOptions opts) {
+		Utilities.checkNotNullArguments(dsIdList, "dataset list is null");
+		Utilities.checkNotNullArgument(opts, "opts is null");
+		
+		LoadDataSetProto proto = LoadDataSetProto.newBuilder()
+												.addAllDsIds(dsIdList)
+												.setOptions(opts.toProto())
+												.build();
+		return add(OperatorProto.newBuilder()
+								.setLoadDataset(proto)
+								.build());
+	}
+
+	/**
 	 * 주어진 식별자의 데이터세트를 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
 	 * <p>
 	 * 데이터세트 적재시 추가 정보를  {@link LoadOptions}을 활용하여 전달한다.
@@ -166,33 +187,23 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(dsId, "dsId is null");
 		Utilities.checkNotNullArgument(opts, "opts is null");
 		
-		LoadDataSetProto proto = LoadDataSetProto.newBuilder()
-												.addAllDsIds(Arrays.asList(dsId))
-												.setOptions(opts.toProto())
-												.build();
-		return add(OperatorProto.newBuilder()
-								.setLoadDataset(proto)
-								.build());
+		return load(Arrays.asList(dsId), opts);
 	}
-	public PlanBuilder load(List<String> dsIdList, LoadOptions opts) {
-		Utilities.checkNotNullArgument(dsIdList, "dataset list is null");
-		Utilities.checkNotNullArgument(opts, "opts is null");
-		
-		LoadDataSetProto proto = LoadDataSetProto.newBuilder()
-												.addAllDsIds(dsIdList)
-												.setOptions(opts.toProto())
-												.build();
-		return add(OperatorProto.newBuilder()
-								.setLoadDataset(proto)
-								.build());
-	}
-	public PlanBuilder load(String dsId) {
-		return load(dsId, LoadOptions.create());
+
+	/**
+	 * 주어진 식별자의 데이터세트를 읽어 {@link RecordSet}를 적재하는 연산을 추가한다.
+	 * 
+	 * @param dsId	대상 데이터세트 이름.
+	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
+	 */
+	public PlanBuilder load(String... dsId) {
+		return load(Arrays.asList(dsId), LoadOptions.create());
 	}
 	
 	/*
 	 *	주요 레코드 세트 적재 연산자들
 	 */
+	
 	/**
 	 * 주어진 경로에 해당하는 marmot 파일들을 읽는 {@link RecordSet}을 생성하는 연산을 추가한다.
 	 * 
@@ -344,8 +355,8 @@ public class PlanBuilder {
 								.setPath(path)
 								.build();
 		return add(OperatorProto.newBuilder()
-				.setTee(tee)
-				.build());
+								.setTee(tee)
+								.build());
 	}
 	
 	/**
@@ -723,10 +734,10 @@ public class PlanBuilder {
 	}
 	public PlanBuilder aggregateByGroup(Group group, List<AggregateFunction> aggrs) {
 		ValueAggregateReducersProto varp = FStream.from(aggrs)
-												.map(AggregateFunction::toProto)
-												.foldLeft(ValueAggregateReducersProto.newBuilder(),
-															(b,f) -> b.addAggregate(f))
-												.build();
+													.map(AggregateFunction::toProto)
+													.foldLeft(ValueAggregateReducersProto.newBuilder(),
+																(b,f) -> b.addAggregate(f))
+													.build();
 		ReducerProto reducer = ReducerProto.newBuilder()
 											.setValAggregates(varp)
 											.build();
@@ -933,7 +944,7 @@ public class PlanBuilder {
 //	 */
 //	public PlanBuilder pickTopRankK(String orderKeyColSpecs, int topK);
 	
-	public PlanBuilder loadHashJoinFile(String leftDataSet, String leftJoinCols,
+	public PlanBuilder loadHashJoin(String leftDataSet, String leftJoinCols,
 										String rightDataSet, String rightJoinCols,
 										String outputColumnExpr, JoinOptions opts) {
 		Utilities.checkNotNullArgument(leftDataSet,  "left dataset id is null");
@@ -2116,7 +2127,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder estimateIDW(String geomColumn, String paramDataSet, String valueColumn,
+	public PlanBuilder estimateIdw(String geomColumn, String paramDataSet, String valueColumn,
 									double radius, int topK, String densityColumn,
 									FOption<Double> power) {
 		Utilities.checkNotNullArgument(geomColumn, "input Geometry column is null");
@@ -2250,22 +2261,6 @@ public class PlanBuilder {
 
 		return add(OperatorProto.newBuilder()
 								.setValidateGeometry(validate)
-								.build());
-	}
-	
-	public PlanBuilder cascadeGeometry(String inGeomCol, String outGeomCol, int count, int skip) {
-		Utilities.checkNotNullArgument(inGeomCol, "inGeomCol is null");
-		Utilities.checkNotNullArgument(outGeomCol, "outGeomCol is null");
-
-		CascadeGeometryProto cascade = CascadeGeometryProto.newBuilder()
-														.setGeometryColumn(inGeomCol)
-														.setOutputGeometryColumn(outGeomCol)
-														.setCount(count)
-														.setSkip(skip)
-														.build();
-
-		return add(OperatorProto.newBuilder()
-								.setCascadeGeometry(cascade)
 								.build());
 	}
 	

@@ -10,6 +10,8 @@ import public "marmot.service.proto";
 
 
 service FileService {
+	rpc readMarmotFile(stream DownChunkResponse) returns (stream DownChunkRequest);
+	
 	// 주어진 바이너리 데이터를 지정 경로의 HDFS 파일에 저장함.
 	rpc copyToHdfsFile(stream CopyToHdfsFileRequest) returns (VoidResponse);
 	

@@ -85,7 +85,7 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 		
 		Plan plan;
 		plan = marmot.planBuilder("spatial diff")
-					.loadHashJoinFile(ds1.getId(), m_params.m_keyCols,
+					.loadHashJoin(ds1.getId(), m_params.m_keyCols,
 									ds2.getId(), m_params.m_keyCols,
 									outCols, FULL_OUTER_JOIN())
 					.update(adjustExpr)

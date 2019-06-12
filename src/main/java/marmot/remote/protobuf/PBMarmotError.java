@@ -20,6 +20,8 @@ import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
 import marmot.ThumbnailNotFoundException;
 import marmot.geo.catalog.IndexNotFoundException;
+import marmot.io.MarmotFileExistsException;
+import marmot.io.MarmotFileNotFoundException;
 import marmot.optor.RecordSetOperatorException;
 import marmot.support.PBException;
 import utils.Throwables;
@@ -35,6 +37,8 @@ public enum PBMarmotError {
 	DATASET_EXISTS(1, DataSetExistsException.class),
 	THUMBNAIL(2, InsufficientThumbnailException.class),
 	THUMBNAIL_NOT_FOUND(3, ThumbnailNotFoundException.class),
+	MARMOT_NOT_FOUND(4, MarmotFileNotFoundException.class),
+	MARMOT_EXISTS(5, MarmotFileExistsException.class),
 
 	STREAM_CLOSED(10, PBStreamClosedException.class),
 	RECORD_SET_CLOSED(15, RecordSetClosedException.class),
