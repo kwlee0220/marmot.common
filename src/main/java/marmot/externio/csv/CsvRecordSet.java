@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
-import io.vavr.control.Try;
 import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -28,6 +27,7 @@ import marmot.rset.AbstractRecordSet;
 import marmot.support.DataUtils;
 import marmot.type.DataType;
 import utils.Utilities;
+import utils.func.Try;
 import utils.stream.FStream;
 
 

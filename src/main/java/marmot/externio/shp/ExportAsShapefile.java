@@ -14,7 +14,6 @@ import com.google.common.base.Preconditions;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
-import io.vavr.control.Try;
 import marmot.RecordSet;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.geo.geotools.SimpleFeatures;
@@ -26,6 +25,7 @@ import utils.async.AbstractThreadedExecution;
 import utils.async.CancellableWork;
 import utils.async.ProgressiveExecution;
 import utils.func.FOption;
+import utils.func.Try;
 
 /**
  * 

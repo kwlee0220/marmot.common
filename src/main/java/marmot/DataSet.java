@@ -153,6 +153,14 @@ public interface DataSet {
 	 */
 	public long length();
 	
+	/**
+	 * 기본 공간 컬럼 정보를 설정한다.
+	 * <p>
+	 * 기존 공간 컬럼 정보를 제거하려는 경우는 {@link FOption#empty()} 를 사용한다.
+	 * 
+	 * @param gcInfo	공간 컬럼 정보.
+	 * @return	공간 컬럼 정보가 갱신된 데이터 세트
+	 */
 	public DataSet updateGeometryColumnInfo(FOption<GeometryColumnInfo> gcInfo);
 	
 	/**

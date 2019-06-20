@@ -19,9 +19,9 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.geo.geotools.SimpleFeatures;
 import marmot.rset.ConcatedRecordSet;
+import utils.func.FOption;
 import utils.io.FileUtils;
 import utils.stream.FStream;
-import utils.unchecked.Unchecked;
 
 /**
  * 
@@ -85,9 +85,20 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			return rset;
 		}
 		else {
-			return m_files.next()
-							.map(file -> Unchecked.supplyRTE(() -> parseGeoJson(file, m_geomColName, m_charset)))
-							.getOrNull();
+			FOption<File> next = m_files.next();
+			if ( next.isPresent() ) {
+				try {
+					return parseGeoJson(next.getUnchecked(), m_geomColName, m_charset);
+				}
+				catch ( IOException e ) {
+					String msg = String.format("fails to load GeoJSON file: path=%s, details=%s",
+												next.getUnchecked(), e);
+					throw new RecordSetException(msg);
+				}
+			}
+			else {
+				return null;
+			}
 		}
 	}
 	

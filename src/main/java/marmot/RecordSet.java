@@ -19,7 +19,6 @@ import com.google.common.collect.Maps;
 import io.reactivex.Observer;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import io.vavr.control.Try;
 import marmot.rset.AbstractRecordSet;
 import marmot.rset.RecordSets;
 import marmot.support.DefaultRecord;
@@ -27,6 +26,7 @@ import utils.LoggerSettable;
 import utils.Throwables;
 import utils.Utilities;
 import utils.func.FOption;
+import utils.func.Try;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 

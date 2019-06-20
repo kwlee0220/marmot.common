@@ -31,10 +31,21 @@ public interface Record extends PBSerializable<RecordProto> {
 	 */
 	public RecordSchema getRecordSchema();
 	
+	/**
+	 * 컬럼 수를 반환한다.
+	 * 
+	 * @return	컬럼 수
+	 */
 	public default int getColumnCount() {
 		return getRecordSchema().getColumnCount();
 	}
 	
+	/**
+	 * 주어진 이름의 컬럼의 존재 유무를 반환한다.
+	 * 
+	 * @param name	검색 대상 컬럼 이름.
+	 * @return	컬럼 존재 여부
+	 */
 	public default boolean existsColumn(String name) {
 		return getRecordSchema().existsColumn(name);
 	}

@@ -4,8 +4,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import com.google.common.base.Preconditions;
 
@@ -237,19 +235,19 @@ public class DefaultRecord implements Record {
 	
 	@Override
 	public String toString() {
-		Stream<String> colNameStream = m_schema.getColumnNames().stream();
-		return colNameStream
-					.map(n -> {
-						Object v = get(n);
-						if ( v == null ) {
-							v = "null";
-						}
-						else if ( v instanceof byte[] ) {
-							v = String.format("binary[%d]", ((byte[])v).length);
-						}
-						return String.format("%s:%s", n, v);
-					})
-					.collect(Collectors.joining(",", "[", "]"));
+		return m_schema.streamColumns()
+						.map(Column::name)
+						.map(n -> {
+							Object v = get(n);
+							if ( v == null ) {
+								v = "null";
+							}
+							else if ( v instanceof byte[] ) {
+								v = String.format("binary[%d]", ((byte[])v).length);
+							}
+							return String.format("%s:%s", n, v);
+						})
+						.join(",", "[", "]");
 	}
 	
 	public static DefaultRecord fromProto(RecordSchema schema, RecordProto proto) {

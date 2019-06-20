@@ -15,7 +15,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 
-import io.vavr.control.Try;
 import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -25,6 +24,7 @@ import marmot.rset.AbstractRecordSet;
 import marmot.support.DataUtils;
 import marmot.type.DataType;
 import utils.Utilities;
+import utils.func.Try;
 
 /**
  * 

@@ -157,7 +157,7 @@ public class PlanBuilder {
 	 * <p>
 	 * 데이터세트 적재시 추가 정보를  {@link LoadOptions}을 활용하여 전달한다.
 	 * 
-	 * @param dsIdList	대상 데이터세트 이름 리스트.
+	 * @param dsIdList	적재할 데이터세트 이름 리스트.
 	 * @param opts		옵션 리스트.
 	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
 	 */
@@ -197,7 +197,7 @@ public class PlanBuilder {
 	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder load(String... dsId) {
-		return load(Arrays.asList(dsId), LoadOptions.create());
+		return load(Arrays.asList(dsId), LoadOptions.DEFAULT());
 	}
 	
 	/*
@@ -213,7 +213,7 @@ public class PlanBuilder {
 	public PlanBuilder loadMarmotFile(String... pathes) {
 		Utilities.checkNotNullArguments(pathes, "pathes is null");
 		
-		return loadMarmotFile(Arrays.asList(pathes), LoadOptions.create());
+		return loadMarmotFile(Arrays.asList(pathes), LoadOptions.DEFAULT());
 	}
 	
 	/**
@@ -226,6 +226,7 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder loadMarmotFile(Iterable<String> pathes, LoadOptions opts) {
 		Utilities.checkNotNullArgument(pathes, "pathes is null");
+		Utilities.checkNotNullArgument(opts, "opts is null");
 		
 		LoadMarmotFileProto load = LoadMarmotFileProto.newBuilder()
 													.addAllPaths(pathes)
@@ -258,27 +259,26 @@ public class PlanBuilder {
 	 * @param opts		활용 option 정보.
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
 	 */
-	public PlanBuilder loadTextFile(List<String> pathes, LoadOptions opts) {
+	public PlanBuilder loadTextFile(Iterable<String> pathes, LoadOptions opts) {
 		Utilities.checkNotNullArgument(pathes, "pathes is null");
-		Utilities.checkArgument(pathes.size() > 0, "pathes is empty");
 		
 		LoadTextFileProto load = LoadTextFileProto.newBuilder()
-														.addAllPaths(pathes)
-														.setOptions(opts.toProto())
-														.build();
+													.addAllPaths(pathes)
+													.setOptions(opts.toProto())
+													.build();
 		return add(OperatorProto.newBuilder()
 								.setLoadTextfile(load)
 								.build());
 		
 	}
 	public PlanBuilder loadTextFile(String... pathes) {
-		return loadTextFile(Arrays.asList(pathes), LoadOptions.create());
+		return loadTextFile(Arrays.asList(pathes), LoadOptions.DEFAULT());
 	}
 	
 	public PlanBuilder loadCustomTextFile(String path) {
 		Utilities.checkNotNullArgument(path, "path is null");
 		
-		LoadOptions opts = LoadOptions.create();
+		LoadOptions opts = LoadOptions.DEFAULT();
 		LoadCustomTextFileProto load = LoadCustomTextFileProto.newBuilder()
 															.setPath(path)
 															.setOptions(opts.toProto())
@@ -300,6 +300,10 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder loadJdbcTable(String tableName, JdbcConnectOptions jdbcOpts,
 									LoadJdbcTableOptions opts) {
+		Utilities.checkNotNullArgument(tableName, "tableName is null");
+		Utilities.checkNotNullArgument(jdbcOpts, "JdbcConnectOptions is null");
+		Utilities.checkNotNullArgument(opts, "LoadJdbcTableOptions is null");
+		
 		LoadJdbcTableProto load = LoadJdbcTableProto.newBuilder()
 													.setTableName(tableName)
 													.setJdbcOptions(jdbcOpts.toProto())
@@ -492,10 +496,21 @@ public class PlanBuilder {
 								.build());
 	}
 	
+	/**
+	 * 주어진 갱신 표현식을 이용하여, 레코드 세트에 포함된 모든 레코드에 반영시킨다.
+	 * 
+	 * @param updateExpr	갱신 표현식
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder update(String updateExpr) {
 		return update(RecordScript.of(updateExpr));
 	}
-	
+	/**
+	 * 주어진 갱신 표현식을 이용하여, 레코드 세트에 포함된 모든 레코드에 반영시킨다.
+	 * 
+	 * @param expr	갱신 표현식
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder update(RecordScript expr) {
 		Utilities.checkNotNullArgument(expr, "update expression is null");
 		
@@ -508,6 +523,13 @@ public class PlanBuilder {
 								.build());
 	}
 
+	/**
+	 * 주어진 레코드 세트에 포함된 레코드에 주어진 이름의 컬럼을 추가한다.
+	 * 추가된 컬럼의 값은 {@code null}로 설정된다.
+	 * 
+	 * @param colDecl	추가될 컬럼의 이름과 타입 정보
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder defineColumn(String colDecl) {
 		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
 		
@@ -519,6 +541,14 @@ public class PlanBuilder {
 								.build());
 	}
 
+	/**
+	 * 주어진 레코드 세트에 포함된 레코드에 주어진 이름의 컬럼을 추가하고,
+	 * 해당 컬럼의 초기값을 설정한다.
+	 * 
+	 * @param colDecl	추가될 컬럼의 이름과 타입 정보
+	 * @param colInit	추가된 컬럼의 초기값 설정식
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder defineColumn(String colDecl, String colInit) {
 		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
 		Utilities.checkNotNullArgument(colInit, "colInit is null");
@@ -526,6 +556,14 @@ public class PlanBuilder {
 		return defineColumn(colDecl, RecordScript.of(colInit));
 	}
 
+	/**
+	 * 주어진 레코드 세트에 포함된 레코드에 주어진 이름의 컬럼을 추가하고,
+	 * 해당 컬럼의 초기값을 설정한다.
+	 * 
+	 * @param colDecl	추가될 컬럼의 이름과 타입 정보
+	 * @param colInitScript	추가된 컬럼의 초기값 설정식
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder defineColumn(String colDecl, RecordScript colInitScript) {
 		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
 		Utilities.checkNotNullArgument(colInitScript, "colInitScript is null");
@@ -570,6 +608,13 @@ public class PlanBuilder {
 								.build());
 	}
 
+	/**
+	 * 입력 레코드의 지정된 컬럼의 CSV 값을 파싱한 결과를 레코드에 추가한다.
+	 * 
+	 * @param csvColumn	CSV 값을 갖고 있는 컬럼 이름.
+	 * @param opts		CSV 파싱 옵션 정보
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder parseCsv(String csvColumn, ParseCsvOptions opts) {
 		Utilities.checkNotNullArgument(csvColumn, "CSV column is null");
 		Utilities.checkNotNullArgument(opts, "ParseCsvOptions is null");
@@ -583,6 +628,15 @@ public class PlanBuilder {
 								.build());
 	}
 
+	/**
+	 * 입력 레코드 세트에 포함된 모든 레코드에 유일 식별자 컬럼을 추가한다.
+	 * <p>
+	 * 부여된 식별자는 {@code long} 타입으로 정의된다. 식별자는 일반적으로 0부터 순차적으로
+	 * 커지는 값이 부여되지만, 반드시 1씩 증가되는 값이 부여되지는 않는다.
+	 * 
+	 * @param uidColName	식별자 컬럼 이름.
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder assignUid(String uidColName) {
 		Utilities.checkNotNullArgument(uidColName, "uid column is null");
 		
@@ -706,9 +760,11 @@ public class PlanBuilder {
 	 * @param aggrFuncs	적용할 집계 함수 리스트.
 	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
+	public PlanBuilder aggregate(Iterable<AggregateFunction> aggrFuncs) {
+		Utilities.checkNotNullArguments(aggrFuncs, "empty AggregateFunction");
+		
 		ValueAggregateReducersProto varp
-							= FStream.of(aggrFuncs)
+							= FStream.from(aggrFuncs)
 									.map(AggregateFunction::toProto)
 									.foldLeft(ValueAggregateReducersProto.newBuilder(),
 												(builder,aggr) -> builder.addAggregate(aggr))
@@ -720,6 +776,20 @@ public class PlanBuilder {
 								.setReduce(reducer)
 								.build());
 	}
+	/**
+	 * 본 {@code PlanBuilder}에 하나 이상의 집계함수를 수행하는 연산을 추가한다.
+	 * <p>
+	 * 본 연산은 입력 레코드 세트에 포함된 모든 레코드에 주어진 집계 연산 ({@code aggregators})들을
+	 * 적용하여 하나의 레코드를 생성하는 연산이다.
+	 * 
+	 * @param aggrFuncs	적용할 집계 함수 리스트.
+	 * @return 연산이 추가된 {@link PlanBuilder} 객체.
+	 */
+	public PlanBuilder aggregate(AggregateFunction... aggrFuncs) {
+		Utilities.checkNotNullArguments(aggrFuncs, "empty AggregateFunction");
+		
+		return aggregate(Arrays.asList(aggrFuncs));
+	}
 
 	/**
 	 * {@link Group} 작업으로 그룹핑된 각 레코드 그룹에 대해
@@ -730,9 +800,23 @@ public class PlanBuilder {
 	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder aggregateByGroup(Group group, AggregateFunction... aggrs) {
+		Utilities.checkNotNullArgument(group, "group is null");
+		Utilities.checkNotNullArguments(aggrs, "empty AggregateFunction");
+		
 		return aggregateByGroup(group, Arrays.asList(aggrs));
 	}
+	/**
+	 * {@link Group} 작업으로 그룹핑된 각 레코드 그룹에 대해
+	 * 집계 함수를 적용시켜 결과 레코드 세트를 출력하는 작업을 추가한다.
+	 * 
+	 * @param group		그룹 지정 정보
+	 * @param aggrs	각 레코드 그룹에 적용할 집계함수 리스트. 계함수 리스트. 
+	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder aggregateByGroup(Group group, List<AggregateFunction> aggrs) {
+		Utilities.checkNotNullArgument(group, "group is null");
+		Utilities.checkNotNullArguments(aggrs, "empty AggregateFunction");
+		
 		ValueAggregateReducersProto varp = FStream.from(aggrs)
 													.map(AggregateFunction::toProto)
 													.foldLeft(ValueAggregateReducersProto.newBuilder(),
@@ -744,7 +828,21 @@ public class PlanBuilder {
 		return reduceByGroup(group, reducer);
 	}
 	
+	/**
+	 * 입력 레코드들을 {@code group}을 기준으로 그룹핑하고, 각 그룹에 포함된
+	 * 레코드들 중에서 주어진 갯수만큼만 뽑은 레코드 세트를 생성시킨다.
+	 * <p>
+	 * 그룹에 포함된 레코드의 수가 주어진 {@code count}보다 작은 경우는 해당 레코드들만
+	 * 선택된다.
+	 * 
+	 * @param group	그룹 기준
+	 * @param count	각 그룹에서 선택할 레코드의 수
+	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder takeByGroup(Group group, int count) {
+		Utilities.checkNotNullArgument(group, "group is null");
+		Utilities.checkArgument(count > 0, "count > 0");
+		
 		TakeReducerProto take = TakeReducerProto.newBuilder().setCount(count).build();
 		ReducerProto reducer = ReducerProto.newBuilder()
 											.setTake(take)
@@ -752,7 +850,16 @@ public class PlanBuilder {
 		return reduceByGroup(group, reducer);
 	}
 	
+	/**
+	 * 입력 레코드들을 {@code group}을 기준으로 그룹핑하고, 각 그룹별로 레코드의 순서가
+	 * 바뀐 레코드 세트를 생성시킨다.
+	 * 
+	 * @param group	그룹 기준
+	 * @return 작업이 추가된 {@link PlanBuilder} 객체.
+	 */
 	public PlanBuilder listByGroup(Group group) {
+		Utilities.checkNotNullArgument(group, "group is null");
+		
 		ListReducerProto list = ListReducerProto.newBuilder().build();
 		ReducerProto reducer = ReducerProto.newBuilder()
 											.setList(list)
@@ -771,7 +878,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder reduceToSingleRecordByGroup(Group group, RecordSchema outSchema,
-											String tagCol, String valueCol) {
+													String tagCol, String valueCol) {
 		PutSideBySideProto put = PutSideBySideProto.newBuilder()
 												.setOutputSchema(outSchema.toProto())
 												.setTagColumn(tagCol)
@@ -1000,8 +1107,7 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
 		Utilities.checkNotNullArgument(paramJoinCols, "parameter join columns are null");
 		Utilities.checkNotNullArgument(outputColumnExpr, "output column expression is null");
-		
-		opts = (opts == null) ? new JoinOptions() : opts;
+		Utilities.checkNotNullArgument(opts, "JoinOptions is null");
 		
 		HashJoinProto join = HashJoinProto.newBuilder()
 										.setJoinColumns(inputJoinCols)
@@ -1035,7 +1141,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder reload() {
-		return reload(LoadOptions.create());
+		return reload(LoadOptions.DEFAULT());
 	}
 	
 	//***********************************************************************
@@ -1067,7 +1173,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder query(String dsId, Geometry key) {
-		return query(dsId, key, PredicateOptions.create());
+		return query(dsId, key, PredicateOptions.EMPTY);
 	}
 	public PlanBuilder query(String dsId, Envelope bounds, PredicateOptions opts) {
 		Utilities.checkNotNullArgument(bounds, "key bounds");
@@ -1075,7 +1181,7 @@ public class PlanBuilder {
 		return query(dsId, GeoClientUtils.toPolygon(bounds), opts);
 	}
 	public PlanBuilder query(String dsId, Envelope bounds) {
-		return query(dsId, bounds, PredicateOptions.create());
+		return query(dsId, bounds, PredicateOptions.EMPTY);
 	}
 	
 	public PlanBuilder query(String dsId, String keyDsId, PredicateOptions opts) {
@@ -1093,7 +1199,78 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder query(String dsId, String keyDsId) {
-		return query(dsId, keyDsId, PredicateOptions.create());
+		return query(dsId, keyDsId, PredicateOptions.EMPTY);
+	}
+
+	/**
+	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
+	 * 주어진 공간 객체 컬럼와 교집합이 존재하는
+	 * 레코드들로 구성된 레코드 세트를 생성하는 연산을 추가한다.
+	 * <p>
+	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
+	 * 
+	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
+	 * @param rel		조건 공간 연산 관계
+	 * @param key		교집합 여부를 검사할 공간 객체.
+	 * @param opts		옵션 리스트
+	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
+	 */
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Geometry key,
+										PredicateOptions opts) {
+		Utilities.checkNotNullArgument(geomCol, "geometry column name");
+		Utilities.checkNotNullArgument(rel, "SpatialRelation");
+		Utilities.checkNotNullArgument(key, "key geometry");
+		Utilities.checkNotNullArgument(opts, "PredicateOption");
+		
+		GeometryProto keyProto = PBUtils.toProto(key);
+		FilterSpatiallyProto op = FilterSpatiallyProto.newBuilder()
+														.setGeometryColumn(geomCol)
+														.setSpatialRelation(rel.toStringExpr())
+														.setKeyGeometry(keyProto)
+														.setOptions(opts.toProto())
+														.build();
+
+		return add(OperatorProto.newBuilder()
+								.setFilterSpatially(op)
+								.build());
+	}
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Geometry key) {
+		return filterSpatially(geomCol, rel, key, PredicateOptions.EMPTY);
+	}
+
+	/**
+	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
+	 * 주어진 공간 객체 컬럼와 교집합이 존재하는
+	 * 레코드들로 구성된 레코드 세트를 생성하는 연산을 추가한다.
+	 * <p>
+	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
+	 * 
+	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
+	 * @param rel		조건 공간 연산 관계
+	 * @param keyDsId	교집합 여부를 검사할 공간 객체가 저장된 데이터세트 식별자.
+	 * @param opts		옵션 리스트
+	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
+	 */
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, String keyDsId,
+										PredicateOptions opts) {
+		Utilities.checkNotNullArgument(geomCol, "geometry column name");
+		Utilities.checkNotNullArgument(rel, "SpatialRelation");
+		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
+		Utilities.checkNotNullArgument(opts, "PredicateOption");
+		
+		FilterSpatiallyProto op = FilterSpatiallyProto.newBuilder()
+													.setGeometryColumn(geomCol)
+													.setSpatialRelation(rel.toStringExpr())
+													.setKeyDataset(keyDsId)
+													.setOptions(opts.toProto())
+													.build();
+
+		return add(OperatorProto.newBuilder()
+								.setFilterSpatially(op)
+								.build());
+	}
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, String keyDsId) {
+		return filterSpatially(geomCol, rel, keyDsId, PredicateOptions.EMPTY);
 	}
 	
 	/**
@@ -1308,78 +1485,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder dropEmptyGeometry(String geomCol) {
-		return dropEmptyGeometry(geomCol, PredicateOptions.create());
-	}
-
-	/**
-	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
-	 * 주어진 공간 객체 컬럼와 교집합이 존재하는
-	 * 레코드들로 구성된 레코드 세트를 생성하는 연산을 추가한다.
-	 * <p>
-	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
-	 * 
-	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
-	 * @param rel		조건 공간 연산 관계
-	 * @param key		교집합 여부를 검사할 공간 객체.
-	 * @param opts		옵션 리스트
-	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
-	 */
-	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Geometry key,
-										PredicateOptions opts) {
-		Utilities.checkNotNullArgument(geomCol, "geometry column name");
-		Utilities.checkNotNullArgument(rel, "SpatialRelation");
-		Utilities.checkNotNullArgument(key, "key geometry");
-		Utilities.checkNotNullArgument(opts, "PredicateOption");
-		
-		GeometryProto keyProto = PBUtils.toProto(key);
-		FilterSpatiallyProto op = FilterSpatiallyProto.newBuilder()
-														.setGeometryColumn(geomCol)
-														.setSpatialRelation(rel.toStringExpr())
-														.setKeyGeometry(keyProto)
-														.setOptions(opts.toProto())
-														.build();
-
-		return add(OperatorProto.newBuilder()
-								.setFilterSpatially(op)
-								.build());
-	}
-	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Geometry key) {
-		return filterSpatially(geomCol, rel, key, PredicateOptions.create());
-	}
-
-	/**
-	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
-	 * 주어진 공간 객체 컬럼와 교집합이 존재하는
-	 * 레코드들로 구성된 레코드 세트를 생성하는 연산을 추가한다.
-	 * <p>
-	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
-	 * 
-	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
-	 * @param rel		조건 공간 연산 관계
-	 * @param keyDsId	교집합 여부를 검사할 공간 객체가 저장된 데이터세트 식별자.
-	 * @param opts		옵션 리스트
-	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
-	 */
-	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, String keyDsId,
-										PredicateOptions opts) {
-		Utilities.checkNotNullArgument(geomCol, "geometry column name");
-		Utilities.checkNotNullArgument(rel, "SpatialRelation");
-		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
-		Utilities.checkNotNullArgument(opts, "PredicateOption");
-		
-		FilterSpatiallyProto op = FilterSpatiallyProto.newBuilder()
-													.setGeometryColumn(geomCol)
-													.setSpatialRelation(rel.toStringExpr())
-													.setKeyDataset(keyDsId)
-													.setOptions(opts.toProto())
-													.build();
-
-		return add(OperatorProto.newBuilder()
-								.setFilterSpatially(op)
-								.build());
-	}
-	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, String keyDsId) {
-		return filterSpatially(geomCol, rel, keyDsId, PredicateOptions.create());
+		return dropEmptyGeometry(geomCol, PredicateOptions.EMPTY);
 	}
 	
 	/**
@@ -1410,7 +1516,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder intersectsBinary(String leftGeomCol, String rightGeomCol) {
-		return intersectsBinary(leftGeomCol, rightGeomCol, PredicateOptions.create());
+		return intersectsBinary(leftGeomCol, rightGeomCol, PredicateOptions.EMPTY);
 	}
 
 	//***********************************************************************
@@ -1537,7 +1643,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder centroid(String inGeomCol) {
-		return centroid(inGeomCol, false, GeomOpOptions.create());
+		return centroid(inGeomCol, false, GeomOpOptions.EMPTY);
 	}
 
 	/**
@@ -1566,7 +1672,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder buffer(String geomCol, double distance) {
-		return buffer(geomCol, distance, FOption.empty(), GeomOpOptions.create());
+		return buffer(geomCol, distance, FOption.empty(), GeomOpOptions.EMPTY);
 	}
 	public PlanBuilder buffer(String geomCol, String distanceCol,
 								FOption<Integer> segmentCount, GeomOpOptions opts) {
@@ -1582,7 +1688,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder buffer(String geomCol, String distanceCol) {
-		return buffer(geomCol, distanceCol, FOption.empty(), GeomOpOptions.create());
+		return buffer(geomCol, distanceCol, FOption.empty(), GeomOpOptions.EMPTY);
 	}
 	public PlanBuilder buffer(String geomCol, String distanceCol, GeomOpOptions opts) {
 		return buffer(geomCol, distanceCol, FOption.empty(), opts);
@@ -1614,7 +1720,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder intersection(String geomCol, Geometry key) {
-		return intersection(geomCol, key, GeomOpOptions.create());
+		return intersection(geomCol, key, GeomOpOptions.EMPTY);
 	}
 	
 	/**
@@ -1728,7 +1834,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder transformCrs(String geomCol, String srcSrid, String tarSrid) {
-		return transformCrs(geomCol, srcSrid, tarSrid, GeomOpOptions.create());
+		return transformCrs(geomCol, srcSrid, tarSrid, GeomOpOptions.EMPTY);
 	}
 
 	/**
@@ -1794,7 +1900,7 @@ public class PlanBuilder {
 	public PlanBuilder loadSpatialIndexJoin(String leftDataSet, String rightDataSet,
 											String outCols) {
 		return loadSpatialIndexJoin(leftDataSet, rightDataSet,
-									SpatialJoinOptions.create().outputColumns(outCols));
+									SpatialJoinOptions.OUTPUT(outCols));
 	}
 
 	/**
@@ -1851,7 +1957,7 @@ public class PlanBuilder {
 		return spatialJoin(geomCol, paramDataSet, opts.outputColumns(outputColumns));
 	}
 	public PlanBuilder spatialJoin(String geomCol, String paramDataSet, String outputColumns) {
-		return spatialJoin(geomCol, paramDataSet, outputColumns, SpatialJoinOptions.create());
+		return spatialJoin(geomCol, paramDataSet, outputColumns, SpatialJoinOptions.EMPTY);
 	}
 	
 	public PlanBuilder spatialOuterJoin(String inputGeomCol, String paramDataSet,
@@ -1873,7 +1979,7 @@ public class PlanBuilder {
 										String outputColumns) {
 		Utilities.checkNotNullArgument(outputColumns, "output columns are null");
 		
-		return spatialOuterJoin(geomCol, paramDataSet, SpatialJoinOptions.create().outputColumns(outputColumns));
+		return spatialOuterJoin(geomCol, paramDataSet, SpatialJoinOptions.OUTPUT(outputColumns));
 	}
 	
 	public PlanBuilder spatialSemiJoin(String geomCol, String paramDataSet,
@@ -1892,7 +1998,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder spatialSemiJoin(String geomCol, String paramDataSet) {
-		return spatialSemiJoin(geomCol, paramDataSet, SpatialJoinOptions.create());
+		return spatialSemiJoin(geomCol, paramDataSet, SpatialJoinOptions.EMPTY);
 	}
 	
 	/**
@@ -1928,7 +2034,7 @@ public class PlanBuilder {
 	public PlanBuilder knnJoin(String geomCol, String paramDsId, int topK, double dist,
 								String outCols) {
 		return knnJoin(geomCol, paramDsId, topK, dist,
-						SpatialJoinOptions.create().outputColumns(outCols));
+						SpatialJoinOptions.OUTPUT(outCols));
 	}
 
 	public PlanBuilder knnOuterJoin(String inputGeomCol, String paramDataSet, int topK,
@@ -1952,7 +2058,7 @@ public class PlanBuilder {
 	public PlanBuilder knnOuterJoin(String inputGeomCol, String paramDataSet, int topK,
 									double dist, String outCols) {
 		return knnOuterJoin(inputGeomCol, paramDataSet, topK, dist,
-							SpatialJoinOptions.create().outputColumns(outCols));
+							SpatialJoinOptions.OUTPUT(outCols));
 	}
 
 	/**
@@ -2027,7 +2133,7 @@ public class PlanBuilder {
 	
 	public PlanBuilder spatialAggregateJoin(String geomCol, String paramDataSet,
 											AggregateFunction... aggrFuncs) {
-		return spatialAggregateJoin(geomCol, paramDataSet, aggrFuncs, SpatialJoinOptions.create());
+		return spatialAggregateJoin(geomCol, paramDataSet, aggrFuncs, SpatialJoinOptions.EMPTY);
 	}
 	
 	public PlanBuilder spatialAggregateJoin(String inputGeomCol, String paramDataSet,

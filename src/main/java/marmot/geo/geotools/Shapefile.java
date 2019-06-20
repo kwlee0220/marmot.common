@@ -17,15 +17,15 @@ import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.google.common.collect.Maps;
 
-import io.vavr.control.Try;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
+import utils.func.Try;
+import utils.func.Unchecked;
 import utils.io.FileUtils;
 import utils.stream.FStream;
-import utils.unchecked.Unchecked;
 
 /**
  * 
@@ -107,7 +107,7 @@ public class Shapefile {
 		}
 		finally {
 			if ( reader != null ) {
-				Unchecked.runRTE(reader::close);
+				Unchecked.runSneakily(reader::close);
 			}
 		}
 	}
@@ -118,7 +118,8 @@ public class Shapefile {
 	
 	public static FStream<Shapefile> traverse(File start, Charset charset) throws IOException {
 		return traverseFiles(start, charset)
-						.flatMapTry(file -> Try.of(() -> of(file, charset)));
+						.map(file -> of(file, charset));
+//						.flatMapTry(file -> Try.supply(() -> of(file, charset)));
 	}
 	
 	private static class RecordSetImpl extends AbstractRecordSet {

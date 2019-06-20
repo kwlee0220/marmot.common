@@ -9,10 +9,21 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class PredicateOptions implements PBSerializable<PredicateOptionsProto> {
-	private FOption<Boolean> m_negated = FOption.empty();
+	private final FOption<Boolean> m_negated;
 	
-	public static PredicateOptions create() {
-		return new PredicateOptions();
+	public static PredicateOptions EMPTY = new PredicateOptions();
+	public static PredicateOptions NEGATED = new PredicateOptions().negated(true);
+	
+	private PredicateOptions() {
+		m_negated = FOption.empty();
+	}
+	
+	private PredicateOptions(FOption<Boolean> negated) {
+		m_negated = negated;
+	}
+	
+	public static PredicateOptions NEGATED(boolean flag) {
+		return new PredicateOptions(FOption.of(flag));
 	}
 	
 	public FOption<Boolean> negated() {
@@ -20,18 +31,15 @@ public class PredicateOptions implements PBSerializable<PredicateOptionsProto> {
 	}
 	
 	public PredicateOptions negated(boolean flag) {
-		m_negated = FOption.of(flag);
-		
-		return this;
+		return new PredicateOptions(FOption.of(flag));
 	}
 
 	public static PredicateOptions fromProto(PredicateOptionsProto proto) {
-		PredicateOptions opts = PredicateOptions.create();
+		PredicateOptions opts = new PredicateOptions();
 		
 		switch ( proto.getOptionalNegatedCase() ) {
 			case NEGATED:
-				opts.negated(proto.getNegated());
-				break;
+				return NEGATED(proto.getNegated());
 			default:
 		}
 		

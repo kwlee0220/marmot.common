@@ -87,12 +87,12 @@ import utils.Size2d;
 import utils.Size2i;
 import utils.Throwables;
 import utils.UnitUtils;
+import utils.func.CheckedSupplier;
 import utils.func.FOption;
 import utils.func.Result;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
-import utils.unchecked.CheckedSupplier;
 
 /**
  * 

@@ -3,6 +3,7 @@ package marmot.plan;
 import marmot.optor.geo.SpatialRelation;
 import marmot.proto.optor.SpatialJoinOptionsProto;
 import marmot.support.PBSerializable;
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -10,17 +11,40 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProto> {
-	private FOption<String> m_joinExpr = FOption.empty();
-	private FOption<Boolean> m_clusterOuter = FOption.empty();
-	private FOption<Boolean> m_negated = FOption.empty();
-	private FOption<String> m_outputCols = FOption.empty();
+	public static final SpatialJoinOptions EMPTY
+							= new SpatialJoinOptions(FOption.empty(), FOption.empty(),
+													FOption.empty(), FOption.empty());
+	public static final SpatialJoinOptions NEGATED
+							= new SpatialJoinOptions(FOption.empty(), FOption.empty(),
+													FOption.of(true), FOption.empty());
 	
-	public static SpatialJoinOptions create() {
-		return new SpatialJoinOptions();
+	private final FOption<String> m_joinExpr;
+	private final FOption<Boolean> m_clusterOuter;
+	private final FOption<Boolean> m_negated;
+	private final FOption<String> m_outputCols;
+	
+	private SpatialJoinOptions(FOption<String> joinExpr, FOption<Boolean> clusterOuter,
+								FOption<Boolean> negated, FOption<String> outputCols) {
+		m_joinExpr = joinExpr;
+		m_clusterOuter = clusterOuter;
+		m_negated = negated;
+		m_outputCols = outputCols;
 	}
 	
 	public static SpatialJoinOptions OUTPUT(String outCols) {
-		return new SpatialJoinOptions().outputColumns(outCols);
+		Utilities.checkNotNullArgument(outCols, "output columns are null");
+		
+		return new SpatialJoinOptions(FOption.empty(), FOption.empty(), FOption.empty(),
+										FOption.of(outCols));
+	}
+	
+	public static SpatialJoinOptions WITHIN_DISTANCE(double dist) {
+		Utilities.checkArgument(dist >= 0, "dist >= 0");
+		
+		FOption<String> joinExprStr = FOption.of(SpatialRelation.WITHIN_DISTANCE(dist))
+											.map(SpatialRelation::toStringExpr);
+		return new SpatialJoinOptions(joinExprStr, FOption.empty(), FOption.empty(),
+										FOption.empty());
 	}
 	
 	public FOption<String> joinExpr() {
@@ -28,22 +52,26 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	}
 	
 	public SpatialJoinOptions joinExpr(String expr) {
-		m_joinExpr = FOption.ofNullable(expr);
+		Utilities.checkNotNullArgument(expr, "join expression");
 		
-		return this;
+		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, m_negated,
+										FOption.of(expr));
 	}
 	
 	public SpatialJoinOptions joinExpr(SpatialRelation rel) {
-		m_joinExpr = FOption.ofNullable(rel).map(SpatialRelation::toStringExpr);
+		Utilities.checkNotNullArgument(rel, "join expression");
 		
-		return this;
+		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, m_negated,
+										FOption.of(rel)
+												.map(SpatialRelation::toStringExpr));
 	}
 	
 	public SpatialJoinOptions withinDistance(double dist) {
-		m_joinExpr = FOption.of(SpatialRelation.WITHIN_DISTANCE(dist))
-							.map(SpatialRelation::toStringExpr);
+		Utilities.checkArgument(dist >= 0, "dist >= 0");
 		
-		return this;
+		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, m_negated,
+									FOption.of(SpatialRelation.WITHIN_DISTANCE(dist))
+											.map(SpatialRelation::toStringExpr));
 	}
 	
 	public FOption<Boolean> clusterOuterRecords() {
@@ -51,9 +79,7 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	}
 	
 	public SpatialJoinOptions clusterOuterRecords(boolean flag) {
-		m_clusterOuter = FOption.of(flag);
-		
-		return this;
+		return new SpatialJoinOptions(m_joinExpr, FOption.of(flag), m_negated, m_outputCols);
 	}
 	
 	public FOption<Boolean> negated() {
@@ -61,9 +87,8 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	}
 	
 	public SpatialJoinOptions negated(boolean flag) {
-		m_negated = FOption.of(flag);
-		
-		return this;
+		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, FOption.of(flag),
+										m_outputCols);
 	}
 	
 	public FOption<String> outputColumns() {
@@ -71,34 +96,33 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	}
 	
 	public SpatialJoinOptions outputColumns(String outCols) {
-		m_outputCols = FOption.ofNullable(outCols);
-		
-		return this;
+		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, m_negated,
+										FOption.of(outCols));
 	}
 	
 	public static SpatialJoinOptions fromProto(SpatialJoinOptionsProto proto) {
-		SpatialJoinOptions opts = SpatialJoinOptions.create();
+		SpatialJoinOptions opts = SpatialJoinOptions.EMPTY;
 		switch ( proto.getOptionalJoinExprCase() ) {
 			case JOIN_EXPR:
-				opts.joinExpr(proto.getJoinExpr());
+				opts = opts.joinExpr(proto.getJoinExpr());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalClusterOuterRecordsCase() ) {
 			case CLUSTER_OUTER_RECORDS:
-				opts.clusterOuterRecords(proto.getClusterOuterRecords());
+				opts = opts.clusterOuterRecords(proto.getClusterOuterRecords());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalNegatedCase() ) {
 			case NEGATED:
-				opts.negated(proto.getNegated());
+				opts = opts.negated(proto.getNegated());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalOutputColumnsCase() ) {
 			case OUTPUT_COLUMNS:
-				opts.outputColumns(proto.getOutputColumns());
+				opts = opts.outputColumns(proto.getOutputColumns());
 				break;
 			default:
 		}

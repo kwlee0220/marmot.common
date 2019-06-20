@@ -8,12 +8,12 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vavr.control.Try;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.geo.geotools.Shapefile;
 import marmot.rset.ConcatedRecordSet;
+import utils.func.Try;
 import utils.stream.FStream;
 
 /**
@@ -44,7 +44,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 			m_rsets = Shapefile.traverse(start, charset)
 								.flatMapTry(shp -> {
 									getLogger().info("loading shapefile: " + shp);
-									return Try.of(() -> shp.read());
+									return Try.supply(() -> shp.read());
 								});
 			
 			getLogger().info("loading {}: nfiles={}", this, files.size());
@@ -82,7 +82,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 	
 	public static RecordSchema loadRecordSchema(File start, Charset charset) throws IOException {
 		return Shapefile.traverse(start, charset)
-						.flatMapTry(shp -> Try.of(() -> shp.getRecordSchema()))
+						.flatMapTry(shp -> Try.supply(shp::getRecordSchema))
 						.next()
 						.getOrElseThrow(() -> new IllegalArgumentException("no valid shapefile to read: path=" + start));
 	}

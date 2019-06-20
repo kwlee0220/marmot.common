@@ -9,7 +9,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.vavr.control.Try;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -18,6 +17,7 @@ import marmot.rset.AbstractRecordSet;
 import marmot.rset.ConcatedRecordSet;
 import marmot.type.DataType;
 import utils.func.FOption;
+import utils.func.Try;
 import utils.io.FileUtils;
 import utils.stream.FStream;
 

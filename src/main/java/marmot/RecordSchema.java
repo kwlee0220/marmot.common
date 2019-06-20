@@ -115,17 +115,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public List<Column> getColumns() {
 		return Arrays.asList(m_columns);
 	}
-	
-	/**
-	 * 레코드에 정의된 모든 컬럼의 이름 집합을 반환한다.
-	 * 
-	 * @return	컬럼 이름 집합
-	 */
-	public List<String> getColumnNames() {
-		return FStream.of(m_columns)
-						.map(Column::name)
-						.toList();
-	}
 
 	/**
 	 * 레코드 스키마에 정의된 모든 컬럼 객체 스트림을 반환한다.
@@ -136,6 +125,12 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		return FStream.of(m_columns);
 	}
 	
+	/**
+	 * 하나 이상의 레코드 스키마를 차례대로 연결하여 하나의 레코드 스키마를 생성한다.
+	 * 
+	 * @param schema	연결할 원소 레코드 스키마 배열
+	 * @return	연결된 레코드 스키마.
+	 */
 	public static RecordSchema concat(RecordSchema... schemas) {
 		Utilities.checkNotNullArgument(schemas, "RecordSchemas are null");
 		
@@ -160,17 +155,6 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 					.build();
 	}
 	
-	public List<Column> findUnmatcheds(List<String> key) {
-		Utilities.checkNotNullArgument(key, "key column list is null");
-		
-		Set<CIString> names = FStream.from(key)
-									.map(CIString::of)
-									.toSet();
-		return FStream.of(m_columns)
-						.filter(c -> !names.contains(c.columnName()))
-						.toList();
-	}
-	
 	/**
 	 * 주어진 키에 포함되지 않은 컬럼 이름에 해당하는 레코드 스키마를 생성한다.
 	 * 
@@ -181,9 +165,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	public RecordSchema complement(List<String> key) {
 		Utilities.checkNotNullArgument(key, "key column list is null");
 		
-		Set<CIString> names = FStream.from(key)
-									.map(CIString::of)
-									.toSet();
+		Set<CIString> names = FStream.from(key).map(CIString::of).toSet();
 		return FStream.of(m_columns)
 						.filter(c -> !names.contains(c.columnName()))
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
