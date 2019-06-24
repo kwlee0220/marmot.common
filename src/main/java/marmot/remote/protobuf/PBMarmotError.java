@@ -22,7 +22,6 @@ import marmot.ThumbnailNotFoundException;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.io.MarmotFileExistsException;
 import marmot.io.MarmotFileNotFoundException;
-import marmot.optor.RecordSetOperatorException;
 import marmot.support.PBException;
 import utils.Throwables;
 import utils.func.FOption;
@@ -52,7 +51,6 @@ public enum PBMarmotError {
 	PLAN_EXECUTION_CANCELLED(102, CancellationException.class),
 	PLAN_EXECUTION_FAILED(103, PlanExecutionException.class),
 	PLAN_EXECUTION_TIMED_OUT(104, TimeoutException.class),
-	OPERATOR(110, RecordSetOperatorException.class),
 
 	NULL_POINTER(900, NullPointerException.class),
 	INVALID_ARGUMENT(901, IllegalArgumentException.class),

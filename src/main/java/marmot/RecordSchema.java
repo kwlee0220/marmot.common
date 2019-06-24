@@ -184,9 +184,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	
 	@Override
 	public RecordSchemaProto toProto() {
-		List<ColumnProto> cols = streamColumns()
-									.map(Column::toProto)
-									.toList();
+		List<ColumnProto> cols = streamColumns().map(Column::toProto).toList();
 		return RecordSchemaProto.newBuilder()
 								.addAllColumns(cols)
 								.build();

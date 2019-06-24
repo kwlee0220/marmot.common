@@ -10,8 +10,8 @@ public class DataSetExistsException extends DataSetException {
 	public DataSetExistsException(String name) {
 		super(name);
 	}
-	
-	public DataSetExistsException(String name, Throwable cause) {
-		super(name, cause);
+
+	public DataSetExistsException(String details, Throwable cause) {
+		super(details, cause);
 	}
 }

@@ -139,7 +139,7 @@ public class Shapefile {
 
 		@Override
 		protected void closeInGuard() {
-			Try.run(m_sfRSet::close);
+			m_sfRSet.closeQuietly();
 			Try.run(m_store::dispose);
 			
 			super.close();

@@ -10,12 +10,4 @@ public class RecordSetNotExistsException extends RecordSetException {
 	public RecordSetNotExistsException(String details) {
 		super(details);
 	}
-	
-	public RecordSetNotExistsException(Throwable cause) {
-		super(cause);
-	}
-	
-	public RecordSetNotExistsException(String details, Throwable cause) {
-		super(details, cause);
-	}
 }

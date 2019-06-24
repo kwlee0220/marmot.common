@@ -127,7 +127,7 @@ public interface RecordSet extends Closeable {
 			
 			@Override
 			protected void closeInGuard() throws Exception {
-				Try.run(fstream::close);
+				fstream.closeQuietly();
 			}
 			
 			@Override
@@ -346,8 +346,7 @@ public interface RecordSet extends Closeable {
 			}
 		}
 		catch ( Throwable e ) {
-			Throwables.throwIfInstanceOf(e, RecordSetException.class);
-			throw new RecordSetException(e);
+			Throwables.sneakyThrow(e);
 		}
 		finally {
 			closeQuietly();
@@ -386,8 +385,7 @@ public interface RecordSet extends Closeable {
 			}
 		}
 		catch ( Throwable e ) {
-			Throwables.throwIfInstanceOf(e, RecordSetException.class);
-			throw new RecordSetException(e);
+			Throwables.sneakyThrow(e);
 		}
 		finally {
 			closeQuietly();

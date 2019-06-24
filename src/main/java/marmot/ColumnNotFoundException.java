@@ -10,8 +10,4 @@ public class ColumnNotFoundException extends DataSetException {
 	public ColumnNotFoundException(String name) {
 		super(name);
 	}
-	
-	public ColumnNotFoundException(String name, Throwable cause) {
-		super(name, cause);
-	}
 }

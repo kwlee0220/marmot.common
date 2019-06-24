@@ -10,12 +10,4 @@ public class RecordSetClosedException extends RecordSetException {
 	public RecordSetClosedException(String details) {
 		super(details);
 	}
-	
-	public RecordSetClosedException(Throwable cause) {
-		super(cause);
-	}
-	
-	public RecordSetClosedException(String details, Throwable cause) {
-		super(details, cause);
-	}
 }

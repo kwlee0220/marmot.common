@@ -96,9 +96,8 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 			return rset;
 		}
 		catch ( IOException e ) {
-			getLogger().warn("fails to load CsvRecordSet: from=" + file
-							+ ", cause=" + e);
-			throw new RecordSetException(e);
+			String msg = String.format("fails to load CsvRecordSet: from=%s", file);
+			throw new RecordSetException(msg, e);
 		}
 	}
 }

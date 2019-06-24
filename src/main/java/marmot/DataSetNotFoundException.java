@@ -10,8 +10,4 @@ public class DataSetNotFoundException extends DataSetException {
 	public DataSetNotFoundException(String name) {
 		super(name);
 	}
-	
-	public DataSetNotFoundException(String name, Throwable cause) {
-		super(name, cause);
-	}
 }

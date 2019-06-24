@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import marmot.MarmotInternalException;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -131,7 +132,6 @@ public class MVELScript {
 			ParserContext pc = ParserContext.create();
 
 			importFunctions(pc, Functions.class);
-//			importFunctions(pc, GeoFunctions.class);
 			importFunctions(pc, DateTimeFunctions.class);
 			importFunctions(pc, DateFunctions.class);
 			importFunctions(pc, TimeFunctions.class);
@@ -146,7 +146,7 @@ public class MVELScript {
 			return pc;
 		}
 		catch ( Exception e ) {
-			throw new ScriptException(e);
+			throw new MarmotInternalException("fails to initialize MVEL script", e);
 		}
 	}
 	
