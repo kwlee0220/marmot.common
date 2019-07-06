@@ -155,14 +155,16 @@ public class CsvRecordSet extends AbstractRecordSet {
 	}
 	
 	private void set(Record output, List<String> values) {
-		
 		for ( int i =0; i < values.size(); ++i ) {
 			String value = values.get(i);
 			
-			if ( value == null && m_nullValue != null) {
-				value = m_nullValue;
-			}
 			if ( m_columns[i].type() != DataType.STRING ) {
+				// 컬럼 값을 다른 타입으로 변환시키는 경우, 길이 0 문자열을 null로 간주한다.
+				// 이 경우 'null_value' 옵션이 설정된 경우 해당 값으로 치환시킨다.
+				if ( value.length() == 0 ) {
+					value = m_nullValue;
+				}
+				
 				output.set(i, DataUtils.cast(value, m_columns[i].type()));
 			}
 			else {

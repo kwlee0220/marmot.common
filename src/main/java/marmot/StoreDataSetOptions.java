@@ -2,12 +2,9 @@ package marmot;
 
 import java.util.Map;
 
-import com.google.common.collect.Maps;
-
 import marmot.proto.service.StoreDataSetOptionsProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
-import utils.UnitUtils;
 import utils.func.FOption;
 
 /**
@@ -15,23 +12,48 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsProto> {
-	private FOption<GeometryColumnInfo> m_gcInfo = FOption.empty();
-	private FOption<Boolean> m_force = FOption.empty();
-	private FOption<Boolean> m_append = FOption.empty();
-	private FOption<Long> m_blockSize = FOption.empty();
-	private FOption<Boolean> m_compress = FOption.empty();
-	private FOption<Map<String,String>> m_metaData = FOption.empty();
-			
-	public static StoreDataSetOptions create() {
-		return new StoreDataSetOptions();
+	public static final StoreDataSetOptions EMPTY
+			= new StoreDataSetOptions(FOption.empty(), FOption.empty(), FOption.empty(),
+										FOption.empty(), FOption.empty(), FOption.empty());
+	public static final StoreDataSetOptions FORCE
+			= new StoreDataSetOptions(FOption.empty(), FOption.of(true), FOption.empty(),
+										FOption.empty(), FOption.empty(), FOption.empty());
+	
+	
+	private final FOption<GeometryColumnInfo> m_gcInfo;
+	private final FOption<Boolean> m_force;
+	private final FOption<Boolean> m_append;
+	private final FOption<Long> m_blockSize;
+	private final FOption<Boolean> m_compress;
+	private final FOption<Map<String,String>> m_metaData;
+	
+	private StoreDataSetOptions(FOption<GeometryColumnInfo> gcInfo, FOption<Boolean> force,
+								FOption<Boolean> append, FOption<Long> blockSize,
+								FOption<Boolean> compression, FOption<Map<String,String>> metadata) {
+		m_gcInfo = gcInfo;
+		m_force = force;
+		m_append = append;
+		m_blockSize = blockSize;
+		m_compress = compression;
+		m_metaData = metadata;
 	}
 	
-	public static StoreDataSetOptions DEFAULT() {
-		return new StoreDataSetOptions().force(true);
+	public static StoreDataSetOptions GEOMETRY(GeometryColumnInfo gcInfo) {
+		return new StoreDataSetOptions(FOption.of(gcInfo), FOption.empty(),
+										FOption.empty(), FOption.empty(), FOption.empty(),
+										FOption.empty());
 	}
 	
-	public static StoreDataSetOptions DEFAULT(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions().geometryColumnInfo(gcInfo).force(true);
+	public static StoreDataSetOptions FORCE(GeometryColumnInfo gcInfo) {
+		return new StoreDataSetOptions(FOption.of(gcInfo), FOption.of(true),
+										FOption.empty(), FOption.empty(), FOption.empty(),
+										FOption.empty());
+	}
+	
+	public static StoreDataSetOptions APPEND(GeometryColumnInfo gcInfo) {
+		return new StoreDataSetOptions(FOption.of(gcInfo), FOption.empty(),
+										FOption.of(true), FOption.empty(), FOption.empty(),
+										FOption.empty());
 	}
 	
 	public FOption<GeometryColumnInfo> geometryColumnInfo() {
@@ -39,8 +61,8 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		m_gcInfo = FOption.ofNullable(gcInfo);
-		return this;
+		return new StoreDataSetOptions(FOption.of(gcInfo), m_force, m_append,
+										m_blockSize, m_compress, m_metaData);
 	}
 	
 	public FOption<Boolean> force() {
@@ -48,8 +70,8 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions force(Boolean flag) {
-		m_force = FOption.ofNullable(flag);
-		return this;
+		return new StoreDataSetOptions(m_gcInfo, FOption.of(flag), m_append,
+										m_blockSize, m_compress, m_metaData);
 	}
 	
 	public FOption<Boolean> append() {
@@ -57,8 +79,8 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions append(Boolean flag) {
-		m_append = FOption.ofNullable(flag);
-		return this;
+		return new StoreDataSetOptions(m_gcInfo, m_force, FOption.of(flag),
+										m_blockSize, m_compress, m_metaData);
 	}
 	
 	public FOption<Long> blockSize() {
@@ -66,13 +88,12 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 
 	public StoreDataSetOptions blockSize(long blkSize) {
-		m_blockSize = FOption.of(blkSize);
-		return this;
+		return new StoreDataSetOptions(m_gcInfo, m_force, m_append,
+										FOption.of(blkSize), m_compress, m_metaData);
 	}
 
 	public StoreDataSetOptions blockSize(String blkSizeStr) {
-		m_blockSize = FOption.of(UnitUtils.parseByteSize(blkSizeStr));
-		return this;
+		return blockSize(Long.parseLong(blkSizeStr));
 	}
 	
 	public FOption<Boolean> compression() {
@@ -80,8 +101,8 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions compression(Boolean flag) {
-		m_compress = FOption.ofNullable(flag);
-		return this;
+		return new StoreDataSetOptions(m_gcInfo, m_force, m_append, m_blockSize,
+										FOption.of(flag), m_metaData);
 	}
 	
 	public FOption<Map<String,String>> metaData() {
@@ -89,64 +110,52 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 
 	public StoreDataSetOptions metaData(Map<String,String> metaData) {
-		m_metaData = FOption.of(metaData);
-		return this;
-	}
-	
-	public StoreDataSetOptions duplicate() {
-		StoreDataSetOptions opts = StoreDataSetOptions.create();
-		opts.m_gcInfo = m_gcInfo;
-		opts.m_force = m_force;
-		opts.m_append = m_append;
-		opts.m_blockSize = m_blockSize;
-		opts.m_compress = m_compress;
-		m_metaData.map(Maps::newHashMap).ifPresent(opts::metaData);
-		
-		return opts;
+		return new StoreDataSetOptions(m_gcInfo, m_force, m_append, m_blockSize,
+										m_compress, FOption.of(metaData));
 	}
 
 	public static StoreDataSetOptions fromProto(StoreDataSetOptionsProto proto) {
-		StoreDataSetOptions options = StoreDataSetOptions.create();
+		StoreDataSetOptions opts = StoreDataSetOptions.EMPTY;
 		
 		switch ( proto.getOptionalGeomColInfoCase() ) {
 			case GEOM_COL_INFO:
-				options.geometryColumnInfo(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
+				opts = opts.geometryColumnInfo(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
 				break;
 			default:
 		}
 		switch ( proto.getOptionalForceCase() ) {
 			case FORCE:
-				options.force(proto.getForce());
+				opts = opts.force(proto.getForce());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalAppendCase()) {
 			case APPEND:
-				options.append(proto.getForce());
+				opts = opts.append(proto.getAppend());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalBlockSizeCase() ) {
 			case BLOCK_SIZE:
-				options.blockSize(proto.getBlockSize());
+				opts = opts.blockSize(proto.getBlockSize());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalCompressCase() ) {
 			case COMPRESS:
-				options.compression(proto.getCompress());
+				opts = opts.compression(proto.getCompress());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalMetadataCase() ) {
 			case METADATA:
 				Map<String,String> metadata = PBUtils.fromProto(proto.getMetadata());
-				options.metaData(metadata);
+				opts = opts.metaData(metadata);
 				break;
 			default:
 		}
 		
-		return options;
+		return opts;
 	}
 	
 	@Override

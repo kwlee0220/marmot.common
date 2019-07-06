@@ -12,13 +12,10 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class StoreDataSetParameters {
-	private final StoreDataSetOptions m_options;
+	private StoreDataSetOptions m_options = StoreDataSetOptions.EMPTY;
 	private FOption<Integer> m_reportInterval = FOption.empty();
 	
 	public StoreDataSetParameters() {
-		m_options = StoreDataSetOptions.create()
-										.force(false)
-										.append(false);
 	}
 	private StoreDataSetParameters(StoreDataSetOptions opts) {
 		m_options = opts;
@@ -35,7 +32,7 @@ public class StoreDataSetParameters {
 	}
 	
 	public void setGeometryColumnInfo(GeometryColumnInfo info) {
-		m_options.geometryColumnInfo(info);
+		m_options = m_options.geometryColumnInfo(info);
 	}
 	
 	public void setGeometryColumnInfo(String geomCol, String srid) {
@@ -48,7 +45,7 @@ public class StoreDataSetParameters {
 
 	@Option(names={"-f", "-force"}, description="force to create a new dataset")
 	public void setForce(boolean flag) {
-		m_options.force(flag);
+		m_options = m_options.force(flag);
 	}
 	
 	/**
@@ -67,7 +64,7 @@ public class StoreDataSetParameters {
 	 */
 	@Option(names={"-a", "-append"}, description="append to the existing dataset")
 	public void setAppend(boolean flag) {
-		m_options.append(flag);
+		m_options = m_options.append(flag);
 	}
 	
 	public FOption<Long> getBlockSize() {
@@ -80,7 +77,7 @@ public class StoreDataSetParameters {
 	}
 	
 	public void setBlockSize(long blockSize) {
-		m_options.blockSize(blockSize);
+		m_options = m_options.blockSize(blockSize);
 	}
 	
 	public FOption<Boolean> getCompression() {
@@ -89,7 +86,7 @@ public class StoreDataSetParameters {
 
 	@Option(names={"-compression"}, description="compress while stored data")
 	public void setCompression(boolean flag) {
-		m_options.compression(flag);
+		m_options = m_options.compression(flag);
 	}
 	
 	public FOption<Integer> getReportInterval() {
@@ -103,14 +100,10 @@ public class StoreDataSetParameters {
 	}
 	
 	public StoreDataSetOptions toOptions() {
-		return m_options.duplicate();
+		return m_options;
 	}
 	
 	public static StoreDataSetParameters fromOptions(StoreDataSetOptions options) {
-		StoreDataSetOptions opts = options.duplicate();
-		opts.force().ifAbsent(() -> opts.force(false));
-		opts.append().ifAbsent(() -> opts.append(false));
-		
-		return new StoreDataSetParameters(opts);
+		return new StoreDataSetParameters(options);
 	}
 }

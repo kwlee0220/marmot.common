@@ -48,7 +48,7 @@ public class AggregateFunction {
 	}
 	
 	public static AggregateFunction UNION_GEOM(String col) {
-		return new AggregateFunction(AggregateType.UNION_GEOM, col, "geom_union");
+		return new AggregateFunction(AggregateType.UNION_GEOM, col, "the_geom");
 	}
 	
 	public static AggregateFunction CONCAT_STR(String col, String... args) {

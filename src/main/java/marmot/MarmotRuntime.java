@@ -117,7 +117,7 @@ public interface MarmotRuntime {
 	 */
 	public default DataSet createDataSet(String dsId, Plan plan, StoreDataSetOptions opts)
 		throws DataSetExistsException {
-		return createDataSet(dsId, plan, ExecutePlanOptions.create(), opts);
+		return createDataSet(dsId, plan, ExecutePlanOptions.DEFAULT, opts);
 	}
 
 	/**
@@ -253,7 +253,7 @@ public interface MarmotRuntime {
 	 */
 	public void execute(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
 	public default void execute(Plan plan) throws PlanExecutionException {
-		execute(plan, ExecutePlanOptions.create());
+		execute(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
 	/**
@@ -288,7 +288,7 @@ public interface MarmotRuntime {
 	 */
 	public FOption<Record> executeToRecord(Plan plan, ExecutePlanOptions opts);
 	public default FOption<Record> executeToRecord(Plan plan) {
-		return executeToRecord(plan, ExecutePlanOptions.create());
+		return executeToRecord(plan, ExecutePlanOptions.DEFAULT);
 	}
 
 	/**
@@ -308,7 +308,7 @@ public interface MarmotRuntime {
 		return executeToRecord(plan, opts).map(r -> r.getGeometry(0));
 	}
 	public default FOption<Geometry> executeToGeometry(Plan plan) {
-		return executeToGeometry(plan, ExecutePlanOptions.create());
+		return executeToGeometry(plan, ExecutePlanOptions.DEFAULT);
 	}
 
 	/**
@@ -328,7 +328,7 @@ public interface MarmotRuntime {
 		return executeToRecord(plan, opts).map(r -> r.getInt(0));
 	}
 	public default FOption<Integer> executeToInt(Plan plan) {
-		return executeToInt(plan, ExecutePlanOptions.create());
+		return executeToInt(plan, ExecutePlanOptions.DEFAULT);
 	}
 
 	/**
@@ -348,7 +348,7 @@ public interface MarmotRuntime {
 		return executeToRecord(plan, opts).map(r -> r.getLong(0));
 	}
 	public default FOption<Long> executeToLong(Plan plan) {
-		return executeToLong(plan, ExecutePlanOptions.create());
+		return executeToLong(plan, ExecutePlanOptions.DEFAULT);
 	}
 
 	/**
@@ -368,7 +368,7 @@ public interface MarmotRuntime {
 		return executeToRecord(plan, opts).map(r -> r.getDouble(0));
 	}
 	public default FOption<Double> executeToDouble(Plan plan) {
-		return executeToDouble(plan, ExecutePlanOptions.create());
+		return executeToDouble(plan, ExecutePlanOptions.DEFAULT);
 	}
 
 	/**
@@ -388,7 +388,7 @@ public interface MarmotRuntime {
 		return executeToRecord(plan, opts).map(r -> r.getString(0));
 	}
 	public default FOption<String> executeToString(Plan plan) {
-		return executeToString(plan, ExecutePlanOptions.create());
+		return executeToString(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -396,12 +396,12 @@ public interface MarmotRuntime {
 		return executeToRecord(plan, opts).map(r -> (T)r.get(0));
 	}
 	public default <T> FOption<T> executeToSingle(Plan plan) {
-		return executeToSingle(plan, ExecutePlanOptions.create());
+		return executeToSingle(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
 	public RecordSet executeToRecordSet(Plan plan, ExecutePlanOptions opts);
 	public default RecordSet executeToRecordSet(Plan plan) {
-		return executeToRecordSet(plan, ExecutePlanOptions.create());
+		return executeToRecordSet(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
 	public RecordSet executeToStream(String id, Plan plan);

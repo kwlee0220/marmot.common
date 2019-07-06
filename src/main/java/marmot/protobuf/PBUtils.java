@@ -217,7 +217,7 @@ public class PBUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> FOption<T> getOptionField(Message proto, String field) {
 		try {
-			return FOption.ofNullable((T)KVFStream.of(proto.getAllFields())
+			return FOption.ofNullable((T)KVFStream.from(proto.getAllFields())
 												.filter(kv -> kv.key().getName().equals(field))
 												.next()
 												.map(kv -> kv.value())
@@ -228,22 +228,26 @@ public class PBUtils {
 		}
 	}
 
-	public static FOption<String> getOptionalStringField(Message proto, String field) {
-		try {
-			return KVFStream.of(proto.getAllFields())
-								.filter(kv -> kv.key().getName().equals(field))
-								.next()
-								.map(kv -> (String)kv.value());
-		}
-		catch ( Exception e ) {
-			throw new PBException("fails to get the field " + field, e);
-		}
+	public static FOption<String> getStringOptionField(Message proto, String field) {
+		return getOptionField(proto, field).cast(String.class);
+	}
+
+	public static FOption<Double> getDoubleOptionField(Message proto, String field) {
+		return getOptionField(proto, field).cast(Double.class);
+	}
+
+	public static FOption<Long> geLongOptionField(Message proto, String field) {
+		return getOptionField(proto, field).cast(Long.class);
+	}
+
+	public static FOption<Integer> getIntOptionField(Message proto, String field) {
+		return getOptionField(proto, field).cast(Integer.class);
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <T> T getField(Message proto, String field) {
 		try {
-			return(T)KVFStream.of(proto.getAllFields())
+			return(T)KVFStream.from(proto.getAllFields())
 									.filter(kv -> kv.key().getName().equals(field))
 									.next()
 									.map(kv -> kv.value())
@@ -662,6 +666,13 @@ public class PBUtils {
 				throw new AssertionError();
 		}
 	}
+	
+	public static TypeCodeProto toProto(TypeCode tc) {
+		return TypeCodeProto.forNumber(tc.get());
+	}
+	public static TypeCode fromProto(TypeCodeProto proto) {
+		return TypeCode.fromCode(proto.getNumber());
+	}
 
 	private static final GeometryProto NULL_GEOM = GeometryProto.newBuilder().setNull(VOID).build();
 	public static GeometryProto toProto(Geometry geom) {
@@ -738,7 +749,7 @@ public class PBUtils {
 	}
 	
 	public static PropertiesProto toProto(Map<String,String> metadata) {
-		List<PropertyProto> properties = KVFStream.of(metadata)
+		List<PropertyProto> properties = KVFStream.from(metadata)
 												.map(kv -> PropertyProto.newBuilder()
 																		.setKey(kv.key())
 																		.setValue(kv.value())
@@ -775,13 +786,13 @@ public class PBUtils {
 	
 	public static Map<String,Object> fromProto(KeyValueMapProto kvmProto) {
 		return FStream.from(kvmProto.getKeyValueList())
-					.toKVFStream(KeyValueProto::getKey, KeyValueProto::getValue)
+					.toKeyValueStream(KeyValueProto::getKey, KeyValueProto::getValue)
 					.mapValue(vproto -> fromProto(vproto)._2)
 					.toMap();
 	}
 	
 	public static KeyValueMapProto toKeyValueMapProto(Map<String,Object> keyValueMap) {
-		List<KeyValueProto> keyValues = KVFStream.of(keyValueMap)
+		List<KeyValueProto> keyValues = KVFStream.from(keyValueMap)
 												.map(kv -> KeyValueProto.newBuilder()
 																	.setKey(kv.key())
 																	.setValue(toValueProto(kv.value()))

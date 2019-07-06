@@ -43,8 +43,7 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 		
 		FOption<String> joinExprStr = FOption.of(SpatialRelation.WITHIN_DISTANCE(dist))
 											.map(SpatialRelation::toStringExpr);
-		return new SpatialJoinOptions(joinExprStr, FOption.empty(), FOption.empty(),
-										FOption.empty());
+		return new SpatialJoinOptions(joinExprStr, FOption.empty(), FOption.empty(), FOption.empty());
 	}
 	
 	public FOption<String> joinExpr() {
@@ -54,24 +53,19 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	public SpatialJoinOptions joinExpr(String expr) {
 		Utilities.checkNotNullArgument(expr, "join expression");
 		
-		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, m_negated,
-										FOption.of(expr));
+		return new SpatialJoinOptions(FOption.of(expr), m_clusterOuter, m_negated, m_outputCols);
 	}
 	
 	public SpatialJoinOptions joinExpr(SpatialRelation rel) {
 		Utilities.checkNotNullArgument(rel, "join expression");
-		
-		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, m_negated,
-										FOption.of(rel)
-												.map(SpatialRelation::toStringExpr));
+
+		return joinExpr(rel.toStringExpr());
 	}
 	
 	public SpatialJoinOptions withinDistance(double dist) {
 		Utilities.checkArgument(dist >= 0, "dist >= 0");
 		
-		return new SpatialJoinOptions(m_joinExpr, m_clusterOuter, m_negated,
-									FOption.of(SpatialRelation.WITHIN_DISTANCE(dist))
-											.map(SpatialRelation::toStringExpr));
+		return joinExpr(SpatialRelation.WITHIN_DISTANCE(dist));
 	}
 	
 	public FOption<Boolean> clusterOuterRecords() {

@@ -19,7 +19,7 @@ public class PeekableRecordSet extends AbstractRecordSet implements ProgressRepo
 	private final RecordSet m_input;
 	private FOption<Record> m_peeked = null;
 	
-	PeekableRecordSet(RecordSet input) {
+	public PeekableRecordSet(RecordSet input) {
 		Utilities.checkNotNullArgument(input, "Peeking RecordSet is null");
 		
 		m_input = input;

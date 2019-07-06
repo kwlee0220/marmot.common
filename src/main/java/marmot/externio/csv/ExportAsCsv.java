@@ -12,7 +12,6 @@ import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
 import marmot.optor.StoreAsCsvOptions;
-import marmot.rset.RecordSets;
 import marmot.type.DataType;
 import utils.Utilities;
 import utils.async.ProgressReporter;
@@ -27,7 +26,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	private final String m_dsId;
 	private FOption<Long> m_reportInterval = FOption.empty();
 	private final CsvParameters m_options;
-	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
+	private final BehaviorSubject<Long> m_subject = BehaviorSubject.createDefault(0L);
 	
 	public ExportAsCsv(String dsId, CsvParameters options) {
 		Utilities.checkNotNullArgument(dsId, "dataset id is null");
@@ -93,10 +92,6 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 		}
 		
 		RecordSet rset = marmot.executeLocally(builder.build());
-		if ( m_reportInterval.isPresent() ) {
-			rset = RecordSets.reportProgress(rset, m_subject, m_reportInterval.get());
-		}
-		
-		return rset;
+		return m_reportInterval.transform(rset, (r,intvl) -> r.reportProgress(m_subject,intvl));
 	}
 }

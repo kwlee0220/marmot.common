@@ -4,43 +4,57 @@ import java.nio.charset.Charset;
 
 import marmot.proto.optor.CsvOptionsProto;
 import marmot.support.PBSerializable;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-@Command(description="CSV options")
 public class CsvOptions implements PBSerializable<CsvOptionsProto> {
-	private char m_delim = ',';
-	private FOption<Character> m_quote = FOption.empty();
-	private FOption<Character> m_escape = FOption.empty();
-	private FOption<Charset> m_charset = FOption.empty();
+	private final char m_delim;
+	private final FOption<Character> m_quote;
+	private final FOption<Character> m_escape;
+	private final FOption<Charset> m_charset;
 	
-	public static CsvOptions create() {
-		return new CsvOptions();
+	private CsvOptions(char delim, FOption<Character> quote, FOption<Character> escape,
+						FOption<Charset> charset) {
+		m_delim = delim;
+		m_quote = quote;
+		m_escape = escape;
+		m_charset = charset;
+	}
+	
+	public static CsvOptions DEFAULT() {
+		return new CsvOptions(',', FOption.empty(), FOption.empty(), FOption.empty());
+	}
+	
+	public static CsvOptions DEFAULT(char delim) {
+		return new CsvOptions(delim, FOption.empty(), FOption.empty(), FOption.empty());
+	}
+	
+	public static CsvOptions DEFAULT(char delim, char quote) {
+		return new CsvOptions(delim, FOption.of(quote), FOption.empty(), FOption.empty());
+	}
+	
+	public static CsvOptions DEFAULT(char delim, char quote, char escape) {
+		return new CsvOptions(delim, FOption.of(quote), FOption.of(escape), FOption.empty());
 	}
 	
 	public char delimiter() {
 		return m_delim;
 	}
 
-	@Option(names={"-delim"}, paramLabel="char", description={"delimiter for CSV file"})
-	public CsvOptions delimiter(Character delim) {
-		m_delim = delim;
-		return this;
+	public CsvOptions delimiter(char delim) {
+		return new CsvOptions(delim, m_quote, m_escape, m_charset);
 	}
 	
 	public FOption<Character> quote() {
 		return m_quote;
 	}
 
-	@Option(names={"-quote"}, paramLabel="char", description={"quote character for CSV file"})
 	public CsvOptions quote(char quote) {
-		m_quote = FOption.of(quote);
-		return this;
+		return new CsvOptions(m_delim, FOption.of(quote), m_escape, m_charset);
 	}
 	
 	public FOption<Character> escape() {
@@ -48,64 +62,48 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	}
 	
 	public CsvOptions escape(char escape) {
-		m_escape = FOption.of(escape);
-		return this;
+		return new CsvOptions(m_delim, m_quote, FOption.of(escape), m_charset);
 	}
 	
 	public FOption<Charset> charset() {
 		return m_charset;
 	}
 
-	@Option(names={"-charset"}, paramLabel="charset-string",
-			description={"Character encoding of the target CSV file"})
 	public CsvOptions charset(String charset) {
-		m_charset = FOption.ofNullable(charset)
-							.map(Charset::forName);
-		return this;
+		return charset(Charset.forName(charset));
 	}
 	
 	public CsvOptions charset(Charset charset) {
-		m_charset = FOption.ofNullable(charset);
-		return this;
-	}
-	
-	public CsvOptions duplicate() {
-		CsvOptions dupl = create();
-		dupl.m_delim = m_delim;
-		dupl.m_charset = m_charset;
-		dupl.m_quote = m_quote;
-		dupl.m_escape = m_escape;
+		Utilities.checkNotNullArgument(charset, "Charset is null");
 		
-		return dupl;
+		return new CsvOptions(m_delim, m_quote, m_escape, FOption.of(charset));
 	}
 	
 	@Override
 	public String toString() {
 		String csStr = !charset().toString().equalsIgnoreCase("utf-8")
 						? String.format(", %s", charset().toString()) : "";
-		return String.format("delim='%s'%s",
-								m_delim, csStr);
+		return String.format("delim='%s'%s", m_delim, csStr);
 	}
 
 	public static CsvOptions fromProto(CsvOptionsProto proto) {
-		CsvOptions opts = CsvOptions.create()
-									.delimiter(proto.getDelimiter().charAt(0));
+		CsvOptions opts = CsvOptions.DEFAULT(proto.getDelimiter().charAt(0));
 		
 		switch ( proto.getOptionalQuoteCase() ) {
 			case QUOTE:
-				opts.quote(proto.getQuote().charAt(0));
+				opts = opts.quote(proto.getQuote().charAt(0));
 				break;
 			default:
 		}
 		switch ( proto.getOptionalEscapeCase() ) {
 			case ESCAPE:
-				opts.escape(proto.getEscape().charAt(0));
+				opts = opts.escape(proto.getEscape().charAt(0));
 				break;
 			default:
 		}
 		switch ( proto.getOptionalCharsetCase() ) {
 			case CHARSET:
-				opts.charset(proto.getCharset());
+				opts = opts.charset(proto.getCharset());
 				break;
 			default:
 		}

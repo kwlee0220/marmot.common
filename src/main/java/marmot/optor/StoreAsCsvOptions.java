@@ -12,24 +12,30 @@ import utils.func.FOption;
  */
 public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto> {
 	private final CsvOptions m_csvOptions;
-	private FOption<Boolean> m_headerFirst = FOption.empty();
-	private FOption<Long> m_blockSize = FOption.empty();
+	private final FOption<Boolean> m_headerFirst;
+	private final FOption<Long> m_blockSize;
 	
-	public static StoreAsCsvOptions create() {
-		return new StoreAsCsvOptions(CsvOptions.create());
+	private StoreAsCsvOptions(CsvOptions csvOpts, FOption<Boolean> headerFirst,
+							FOption<Long> blockSize) {
+		m_csvOptions = csvOpts;
+		m_headerFirst = headerFirst;
+		m_blockSize = blockSize;
 	}
 	
-	private StoreAsCsvOptions(CsvOptions csvOpts) {
-		m_csvOptions = csvOpts;
+	public static StoreAsCsvOptions DEFAULT() {
+		return new StoreAsCsvOptions(CsvOptions.DEFAULT(), FOption.empty(), FOption.empty());
+	}
+	
+	public static StoreAsCsvOptions DEFAULT(char delim) {
+		return new StoreAsCsvOptions(CsvOptions.DEFAULT(delim), FOption.empty(), FOption.empty());
 	}
 	
 	public char delimiter() {
 		return m_csvOptions.delimiter();
 	}
 
-	public StoreAsCsvOptions delimiter(Character delim) {
-		m_csvOptions.delimiter(delim);
-		return this;
+	public StoreAsCsvOptions delimiter(char delim) {
+		return new StoreAsCsvOptions(m_csvOptions.delimiter(delim), m_headerFirst, m_blockSize);
 	}
 	
 	public FOption<Character> quote() {
@@ -37,8 +43,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions quote(char quote) {
-		m_csvOptions.quote(quote);
-		return this;
+		return new StoreAsCsvOptions(m_csvOptions.quote(quote), m_headerFirst, m_blockSize);
 	}
 	
 	public FOption<Character> escape() {
@@ -46,8 +51,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 	
 	public StoreAsCsvOptions escape(char escape) {
-		m_csvOptions.escape(escape);
-		return this;
+		return new StoreAsCsvOptions(m_csvOptions.escape(escape), m_headerFirst, m_blockSize);
 	}
 	
 	public FOption<Charset> charset() {
@@ -55,13 +59,11 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions charset(String charset) {
-		m_csvOptions.charset(charset);
-		return this;
+		return new StoreAsCsvOptions(m_csvOptions.charset(charset), m_headerFirst, m_blockSize);
 	}
 
 	public StoreAsCsvOptions charset(Charset charset) {
-		m_csvOptions.charset(charset);
-		return this;
+		return new StoreAsCsvOptions(m_csvOptions.charset(charset), m_headerFirst, m_blockSize);
 	}
 	
 	public FOption<Boolean> headerFirst() {
@@ -69,8 +71,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions headerFirst(boolean flag) {
-		m_headerFirst = FOption.of(flag);
-		return this;
+		return new StoreAsCsvOptions(m_csvOptions, FOption.of(flag), m_blockSize);
 	}
 	
 	public FOption<Long> blockSize() {
@@ -78,15 +79,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions blockSize(long blkSize) {
-		m_blockSize = FOption.of(blkSize);
-		return this;
-	}
-	
-	public StoreAsCsvOptions duplicate() {
-		StoreAsCsvOptions dupl = new StoreAsCsvOptions(m_csvOptions.duplicate());
-		dupl.m_headerFirst = m_headerFirst;
-		
-		return dupl;
+		return new StoreAsCsvOptions(m_csvOptions, m_headerFirst, FOption.of(blkSize));
 	}
 	
 	@Override
@@ -102,11 +95,17 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 
 	public static StoreAsCsvOptions fromProto(StoreAsCsvOptionsProto proto) {
 		CsvOptions csvOpts = CsvOptions.fromProto(proto.getCsvOptions());
-		StoreAsCsvOptions opts = new StoreAsCsvOptions(csvOpts);
+		StoreAsCsvOptions opts = new StoreAsCsvOptions(csvOpts, FOption.empty(), FOption.empty());
 		
 		switch ( proto.getOptionalHeaderFirstCase() ) {
 			case HEADER_FIRST:
-				opts.headerFirst(proto.getHeaderFirst());
+				opts = opts.headerFirst(proto.getHeaderFirst());
+				break;
+			default:
+		}
+		switch ( proto.getOptionalBlockSizeCase() ) {
+			case BLOCK_SIZE:
+				opts = opts.blockSize(proto.getBlockSize());
 				break;
 			default:
 		}
@@ -120,6 +119,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 														.setCsvOptions(m_csvOptions.toProto());
 		
 		m_headerFirst.ifPresent(builder::setHeaderFirst);
+		m_blockSize.ifPresent(builder::setBlockSize);
 		
 		return builder.build();
 	}

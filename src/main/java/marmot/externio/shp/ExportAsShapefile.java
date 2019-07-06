@@ -15,10 +15,9 @@ import com.google.common.base.Preconditions;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import marmot.RecordSet;
+import marmot.RecordSets.CountingRecordSet;
 import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.geo.geotools.SimpleFeatures;
-import marmot.rset.RecordSets;
-import marmot.rset.RecordSets.CountingRecordSet;
 import utils.StopWatch;
 import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
@@ -89,7 +88,7 @@ class ExportAsShapefile {
 			
 			RecordSet src;
  			if ( m_interval.isPresent() ) {
-				src = RecordSets.reportProgress(m_source, m_subject, m_interval.get());
+				src = m_source.reportProgress(m_subject, m_interval.get());
 				m_subject.subscribe(count -> System.out.printf("count=%,d, elapsed=%s%n",
 															count, watch.getElapsedSecondString()));
 			}
@@ -97,7 +96,7 @@ class ExportAsShapefile {
 				src = m_source;
 			}
 			
-			try ( CountingRecordSet rset = RecordSets.toCountingRecordSet(src) ) {
+			try ( CountingRecordSet rset = src.asCountingRecordSet() ) {
 				if ( m_force ) {
 					Try.run(() -> FileUtils.forceDelete(m_outputDir));
 				}

@@ -8,19 +8,27 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class BindDataSetOptions {
-	private FOption<GeometryColumnInfo> m_gcInfo = FOption.empty();
-	private FOption<Boolean> m_force = FOption.empty();
-			
-	public static BindDataSetOptions create() {
-		return new BindDataSetOptions();
+	public static final BindDataSetOptions EMPTY
+							= new BindDataSetOptions(FOption.empty(), FOption.empty());
+	
+	private final FOption<GeometryColumnInfo> m_gcInfo;
+	private final FOption<Boolean> m_force;
+	
+	private BindDataSetOptions(FOption<GeometryColumnInfo> gcInfo, FOption<Boolean> force) {
+		m_gcInfo = gcInfo;
+		m_force = force;
 	}
 	
 	public static BindDataSetOptions DEFAULT() {
-		return new BindDataSetOptions().force(true);
+		return new BindDataSetOptions(FOption.empty(), FOption.of(true));
 	}
 	
 	public static BindDataSetOptions DEFAULT(GeometryColumnInfo gcInfo) {
-		return new BindDataSetOptions().geometryColumnInfo(gcInfo).force(true);
+		return new BindDataSetOptions(FOption.of(gcInfo), FOption.of(true));
+	}
+	
+	public static BindDataSetOptions FORCE(boolean flag) {
+		return new BindDataSetOptions(FOption.empty(), FOption.of(flag));
 	}
 	
 	public FOption<GeometryColumnInfo> geometryColumnInfo() {
@@ -28,8 +36,7 @@ public class BindDataSetOptions {
 	}
 	
 	public BindDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		m_gcInfo = FOption.ofNullable(gcInfo);
-		return this;
+		return new BindDataSetOptions(FOption.of(gcInfo), m_force);
 	}
 	
 	public FOption<Boolean> force() {
@@ -37,38 +44,30 @@ public class BindDataSetOptions {
 	}
 	
 	public BindDataSetOptions force(Boolean flag) {
-		m_force = FOption.ofNullable(flag);
-		return this;
-	}
-	
-	public BindDataSetOptions duplicate() {
-		BindDataSetOptions opts = BindDataSetOptions.create();
-		opts.m_gcInfo = m_gcInfo;
-		opts.m_force = m_force;
-		
-		return opts;
+		return new BindDataSetOptions(m_gcInfo, FOption.of(flag));
 	}
 	
 	public StoreDataSetOptions toStoreDataSetOptions() {
-		StoreDataSetOptions opts = StoreDataSetOptions.create();
-		m_gcInfo.ifPresent(opts::geometryColumnInfo);
-		m_force.ifPresent(opts::force);
+		StoreDataSetOptions opts = StoreDataSetOptions.EMPTY;
+		opts = m_gcInfo.transform(opts, StoreDataSetOptions::geometryColumnInfo);
+		opts = m_force.transform(opts, StoreDataSetOptions::force);
 		
 		return opts;
 	}
 
 	public static BindDataSetOptions fromProto(BindDataSetOptionsProto proto) {
-		BindDataSetOptions options = BindDataSetOptions.create();
+		BindDataSetOptions options = BindDataSetOptions.EMPTY;
 		
 		switch ( proto.getOptionalGeomColInfoCase() ) {
 			case GEOM_COL_INFO:
-				options.geometryColumnInfo(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
+				GeometryColumnInfo gcInfo = GeometryColumnInfo.fromProto(proto.getGeomColInfo());
+				options = options.geometryColumnInfo(gcInfo);
 				break;
 			default:
 		}
 		switch ( proto.getOptionalForceCase() ) {
 			case FORCE:
-				options.force(proto.getForce());
+				options = options.force(proto.getForce());
 				break;
 			default:
 		}

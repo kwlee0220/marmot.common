@@ -2,8 +2,6 @@ package marmot.io;
 
 import java.util.Map;
 
-import com.google.common.collect.Maps;
-
 import utils.UnitUtils;
 import utils.func.FOption;
 
@@ -12,23 +10,41 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class MarmotFileWriteOptions {
-	protected FOption<Boolean> m_force = FOption.empty();
-	protected FOption<Boolean> m_append = FOption.empty();
-	protected FOption<Long> m_blockSize = FOption.empty();
-	protected FOption<Boolean> m_compress = FOption.empty();
-	protected FOption<Map<String,String>> m_metaData = FOption.empty();
-			
-	public static MarmotFileWriteOptions create() {
-		return new MarmotFileWriteOptions();
+	public static final MarmotFileWriteOptions EMPTY
+			= new MarmotFileWriteOptions(FOption.empty(), FOption.empty(), FOption.empty(),
+								FOption.empty(), FOption.empty());
+	public static final MarmotFileWriteOptions FORCE
+			= new MarmotFileWriteOptions(FOption.of(true), FOption.empty(), FOption.empty(),
+										FOption.empty(), FOption.empty());
+	
+	private final FOption<Boolean> m_force;
+	private final FOption<Boolean> m_append;
+	private final FOption<Long> m_blockSize;
+	private final FOption<Boolean> m_compress;
+	private final FOption<Map<String,String>> m_metaData;
+	
+	private MarmotFileWriteOptions(FOption<Boolean> force, FOption<Boolean> append,
+									FOption<Long> blockSize, FOption<Boolean> compress,
+									FOption<Map<String,String>> metadata) {
+		m_force = force;
+		m_append = append;
+		m_blockSize = blockSize;
+		m_compress = compress;
+		m_metaData = metadata;
+	}
+	
+	public static MarmotFileWriteOptions META_DATA(Map<String,String> metadata) {
+		return new MarmotFileWriteOptions(FOption.empty(), FOption.empty(), FOption.empty(),
+											FOption.empty(), FOption.of(metadata));
 	}
 	
 	public FOption<Boolean> force() {
 		return m_force;
 	}
-	
+
 	public MarmotFileWriteOptions force(Boolean flag) {
-		m_force = FOption.ofNullable(flag);
-		return this;
+		return new MarmotFileWriteOptions(FOption.of(flag), m_append, m_blockSize,
+											m_compress, m_metaData);
 	}
 	
 	public FOption<Boolean> append() {
@@ -36,8 +52,8 @@ public class MarmotFileWriteOptions {
 	}
 	
 	public MarmotFileWriteOptions append(Boolean flag) {
-		m_append = FOption.ofNullable(flag);
-		return this;
+		return new MarmotFileWriteOptions(m_force, FOption.of(flag), m_blockSize,
+											m_compress, m_metaData);
 	}
 	
 	public FOption<Long> blockSize() {
@@ -45,13 +61,12 @@ public class MarmotFileWriteOptions {
 	}
 
 	public MarmotFileWriteOptions blockSize(long blkSize) {
-		m_blockSize = FOption.of(blkSize);
-		return this;
+		return new MarmotFileWriteOptions(m_force, m_append, FOption.of(blkSize),
+											m_compress, m_metaData);
 	}
 
 	public MarmotFileWriteOptions blockSize(String blkSizeStr) {
-		m_blockSize = FOption.of(UnitUtils.parseByteSize(blkSizeStr));
-		return this;
+		return blockSize(UnitUtils.parseByteSize(blkSizeStr));
 	}
 	
 	public FOption<Boolean> compress() {
@@ -59,8 +74,8 @@ public class MarmotFileWriteOptions {
 	}
 	
 	public MarmotFileWriteOptions compress(Boolean flag) {
-		m_compress = FOption.ofNullable(flag);
-		return this;
+		return new MarmotFileWriteOptions(m_force, m_append, m_blockSize,
+											FOption.of(flag), m_metaData);
 	}
 	
 	public FOption<Map<String,String>> metaData() {
@@ -68,18 +83,7 @@ public class MarmotFileWriteOptions {
 	}
 
 	public MarmotFileWriteOptions metaData(Map<String,String> metaData) {
-		m_metaData = FOption.of(metaData);
-		return this;
-	}
-	
-	public MarmotFileWriteOptions duplicate() {
-		MarmotFileWriteOptions opts = MarmotFileWriteOptions.create();
-		opts.m_force = m_force;
-		opts.m_append = m_append;
-		opts.m_blockSize = m_blockSize;
-		opts.m_compress = m_compress;
-		m_metaData.map(Maps::newHashMap).ifPresent(opts::metaData);
-		
-		return opts;
+		return new MarmotFileWriteOptions(m_force, m_append, m_blockSize,
+											m_compress, FOption.of(metaData));
 	}
 }

@@ -431,7 +431,7 @@ public class GeoClientUtils {
 	}
 	
 	public static String toNonGeomString(Record record) {
-		return KVFStream.of(record.toMap())
+		return KVFStream.from(record.toMap())
 						.filterValue(v -> !(v instanceof Geometry))
 						.toMap()
 						.toString();

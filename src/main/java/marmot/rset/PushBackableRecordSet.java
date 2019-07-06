@@ -9,7 +9,7 @@ import utils.Utilities;
  * @author Kang-Woo Lee (ETRI)
  */
 public interface PushBackableRecordSet extends RecordSet {
-	public void pushBack(Record record);
+	public PushBackableRecordSet pushBack(Record record);
 	
 	public default boolean hasNext() {
 		return peekCopy() != null;

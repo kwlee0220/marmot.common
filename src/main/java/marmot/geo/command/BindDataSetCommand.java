@@ -65,9 +65,9 @@ public class BindDataSetCommand implements CheckedConsumer<MarmotRuntime> {
 				throw new IllegalArgumentException("invalid dataset type: " + m_params.m_type);
 		}
 		
-		BindDataSetOptions opts = BindDataSetOptions.create().force(m_params.m_force);
+		BindDataSetOptions opts = BindDataSetOptions.FORCE(m_params.m_force);
 		if ( m_params.m_gcInfo != null ) {
-			opts.geometryColumnInfo(m_params.m_gcInfo);
+			opts = opts.geometryColumnInfo(m_params.m_gcInfo);
 		}
 		marmot.bindExternalDataSet(m_params.m_dataset, m_params.m_path, type, opts);
 	}

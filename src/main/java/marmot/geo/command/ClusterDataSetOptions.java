@@ -3,6 +3,7 @@ package marmot.geo.command;
 import com.google.common.base.Preconditions;
 
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.func.FOption;
 
 
@@ -11,63 +12,67 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class ClusterDataSetOptions {
-	private FOption<String> m_quadKeyFilePath = FOption.empty();
-	private FOption<Double> m_sampleRatio = FOption.empty();
-	private FOption<Double> m_blockFillRatio = FOption.empty();
-	private FOption<Long> m_blockSize = FOption.empty();
-	private FOption<Integer> m_workerCount = FOption.empty();
+	private static final ClusterDataSetOptions EMPTY
+						= new ClusterDataSetOptions(FOption.empty(), FOption.empty(),
+													FOption.empty(), FOption.empty(),
+													FOption.empty());
 	
-	public static ClusterDataSetOptions create() {
-		return new ClusterDataSetOptions();
+	private final FOption<String> m_quadKeyFilePath;
+	private final FOption<Double> m_sampleRatio;
+	private final FOption<Double> m_blockFillRatio;
+	private final FOption<Long> m_blockSize;
+	private final FOption<Integer> m_workerCount;
+	
+	private ClusterDataSetOptions(FOption<String> path, FOption<Double> sample,
+								FOption<Double> blockFill, FOption<Long> blkSz,
+								FOption<Integer> cnt) {
+		m_quadKeyFilePath = path;
+		m_sampleRatio = sample;
+		m_blockFillRatio = blockFill;
+		m_blockSize = blkSz;
+		m_workerCount = cnt;
+	}
+	
+	public static ClusterDataSetOptions DEFAULT() {
+		return EMPTY;
+	}
+	
+	public static ClusterDataSetOptions WORKER_COUNT(int count) {
+		Utilities.checkArgument(count > 0, "count > 0");
+		
+		return new ClusterDataSetOptions(FOption.empty(), FOption.empty(),
+									FOption.empty(), FOption.empty(), FOption.of(count));
 	}
 	
 	public FOption<String> quadKeyFilePath() {
 		return m_quadKeyFilePath;
 	}
 	
-	public ClusterDataSetOptions quadKeyFilePath(FOption<String> path) {
-		m_quadKeyFilePath = path;
-		return this;
+	public ClusterDataSetOptions quadKeyFilePath(String path) {
+		return new ClusterDataSetOptions(FOption.of(path), m_sampleRatio, m_blockFillRatio,
+										m_blockSize, m_workerCount);
 	}
 	
 	public FOption<Double> sampleRatio() {
 		return m_sampleRatio;
 	}
 	
-	public ClusterDataSetOptions sampleRatio(FOption<Double> ratio) {
-		if ( ratio.isPresent() ) {
-			Preconditions.checkArgument(ratio.get() > 0, "invalid sample_ratio: value=" + ratio);
-		}
-		
-		m_sampleRatio = ratio;
-		return this;
-	}
-	
 	public ClusterDataSetOptions sampleRatio(double ratio) {
 		Preconditions.checkArgument(ratio > 0, "invalid sample_ratio: value=" + ratio);
 		
-		m_sampleRatio = FOption.of(ratio);
-		return this;
+		return new ClusterDataSetOptions(m_quadKeyFilePath, FOption.of(ratio),
+										m_blockFillRatio, m_blockSize, m_workerCount);
 	}
 	
 	public FOption<Double> blockFillRatio() {
 		return m_blockFillRatio;
 	}
 	
-	public ClusterDataSetOptions blockFillRatio(FOption<Double> ratio) {
-		if ( ratio.isPresent() ) {
-			Preconditions.checkArgument(ratio.get() > 0, "invalid block_fill_ratio: value=" + ratio);
-		}
-		
-		m_blockFillRatio = ratio;
-		return this;
-	}
-	
 	public ClusterDataSetOptions blockFillRatio(double ratio) {
 		Preconditions.checkArgument(ratio > 0, "invalid block_fill_ratio: value=" + ratio);
 		
-		m_blockFillRatio = FOption.of(ratio);
-		return this;
+		return new ClusterDataSetOptions(m_quadKeyFilePath, m_sampleRatio, FOption.of(ratio),
+										m_blockSize, m_workerCount);
 	}
 	
 	public FOption<Long> blockSize() {
@@ -76,16 +81,9 @@ public class ClusterDataSetOptions {
 	
 	public ClusterDataSetOptions blockSize(long blkSize) {
 		Preconditions.checkArgument(blkSize > 0, "invalid block_size=" + blkSize);
-		return blockSize(FOption.of(blkSize));
-	}
-	
-	public ClusterDataSetOptions blockSize(FOption<Long> blkSize) {
-		if ( blkSize.isPresent() ) {
-			Preconditions.checkArgument(blkSize.get() > 0, "invalid block_size: value=" + blkSize);
-		}
 		
-		m_blockSize = blkSize;
-		return this;
+		return new ClusterDataSetOptions(m_quadKeyFilePath, m_sampleRatio,
+										m_blockFillRatio, FOption.of(blkSize), m_workerCount);
 	}
 	
 	public FOption<Integer> workerCount() {
@@ -94,16 +92,9 @@ public class ClusterDataSetOptions {
 	
 	public ClusterDataSetOptions workerCount(int count) {
 		Preconditions.checkArgument(count > 0, "invalid worker_count=" + count);
-		return workerCount(FOption.of(count));
-	}
-	
-	public ClusterDataSetOptions workerCount(FOption<Integer> count) {
-		if ( count.isPresent() ) {
-			Preconditions.checkArgument(count.get() > 0, "invalid worker_count: value=" + count);
-		}
 		
-		m_workerCount = count;
-		return this;
+		return new ClusterDataSetOptions(m_quadKeyFilePath, m_sampleRatio,
+										m_blockFillRatio, m_blockSize, FOption.of(count));
 	}
 	
 	@Override

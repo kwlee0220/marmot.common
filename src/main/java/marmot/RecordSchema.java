@@ -128,7 +128,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	/**
 	 * 하나 이상의 레코드 스키마를 차례대로 연결하여 하나의 레코드 스키마를 생성한다.
 	 * 
-	 * @param schema	연결할 원소 레코드 스키마 배열
+	 * @param schemas	연결할 원소 레코드 스키마 배열
 	 * @return	연결된 레코드 스키마.
 	 */
 	public static RecordSchema concat(RecordSchema... schemas) {
@@ -353,7 +353,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 			CIString key = CIString.of(colName);
 			LinkedHashMap<CIString, Column> old = m_columns;
 			m_columns = new LinkedHashMap<>(old.size());
-			KVFStream.of(old)
+			KVFStream.from(old)
 					.filterKey(k -> !k.equals(key))
 					.toValueStream()
 					.forEach(this::addColumn);

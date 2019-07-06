@@ -8,13 +8,23 @@ import marmot.support.PBSerializable;
  * @author Kang-Woo Lee (ETRI)
  */
 public class JdbcConnectOptions implements PBSerializable<JdbcConnectOptionsProto> {
-	private String m_jdbcUrl;
-	private String m_user;
-	private String m_passwd;
-	private String m_driverClassName;
+	private final String m_jdbcUrl;
+	private final String m_user;
+	private final String m_passwd;
+	private final String m_driverClassName;
 	
-	public static JdbcConnectOptions create() {
-		return new JdbcConnectOptions();
+	public JdbcConnectOptions(String jdbcUrl, String user, String passwd,
+								String driverClassName) {
+		m_jdbcUrl = jdbcUrl;
+		m_user = user;
+		m_passwd = passwd;
+		m_driverClassName = driverClassName;
+	}
+	
+	public static JdbcConnectOptions POSTGRES_SQL(String host, int port, String dbName,
+													String user, String passwd) {
+		String url = String.format("jdbc:postgresql://%s:%d/%s", host, port, dbName);
+		return new JdbcConnectOptions(url, user, passwd, "org.postgresql.Driver");
 	}
 	
 	public String jdbcUrl() {
@@ -22,8 +32,7 @@ public class JdbcConnectOptions implements PBSerializable<JdbcConnectOptionsProt
 	}
 	
 	public JdbcConnectOptions jdbcUrl(String url) {
-		m_jdbcUrl = url;
-		return this;
+		return new JdbcConnectOptions(url, m_user, m_passwd, m_driverClassName);
 	}
 	
 	public String user() {
@@ -31,8 +40,7 @@ public class JdbcConnectOptions implements PBSerializable<JdbcConnectOptionsProt
 	}
 	
 	public JdbcConnectOptions user(String user) {
-		m_user = user;
-		return this;
+		return new JdbcConnectOptions(m_jdbcUrl, user, m_passwd, m_driverClassName);
 	}
 	
 	public String passwd() {
@@ -40,8 +48,7 @@ public class JdbcConnectOptions implements PBSerializable<JdbcConnectOptionsProt
 	}
 	
 	public JdbcConnectOptions passwd(String passwd) {
-		m_passwd = passwd;
-		return this;
+		return new JdbcConnectOptions(m_jdbcUrl, m_user, passwd, m_driverClassName);
 	}
 	
 	public String driverClassName() {
@@ -49,16 +56,12 @@ public class JdbcConnectOptions implements PBSerializable<JdbcConnectOptionsProt
 	}
 	
 	public JdbcConnectOptions driverClassName(String clsName) {
-		m_driverClassName = clsName;
-		return this;
+		return new JdbcConnectOptions(m_jdbcUrl, m_user, m_passwd, clsName);
 	}
 
 	public static JdbcConnectOptions fromProto(JdbcConnectOptionsProto proto) {
-		return JdbcConnectOptions.create()
-									.jdbcUrl(proto.getJdbcUrl())
-									.user(proto.getUser())
-									.passwd(proto.getPasswd())
-									.driverClassName(proto.getDriverClassName());
+		return new JdbcConnectOptions(proto.getJdbcUrl(), proto.getUser(), proto.getPasswd(),
+										proto.getDriverClassName());
 	}
 
 	@Override

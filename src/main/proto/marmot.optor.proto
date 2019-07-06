@@ -631,6 +631,14 @@ message BinarySpatialIntersectionProto {
 		marmot.proto.TypeCodeProto out_geometry_type = 4;
 	}
 }
+message BinarySpatialUnionProto {
+	string left_geometry_column = 1;
+	string right_geometry_column = 2;
+	string out_geometry_column = 3;
+	oneof optional_out_geometry_type {
+		marmot.proto.TypeCodeProto out_geometry_type = 4;
+	}
+}
 message GeomOpOptionsProto {
 	oneof optional_out_geom_col {
 		string out_geom_col = 1;
@@ -829,21 +837,23 @@ message OperatorProto {
 		FilterSpatiallyProto filter_spatially = 405;
 		
 		// basic geometry transform operators
-		CentroidTransformProto centroid = 501;
-		BufferTransformProto buffer = 502;
-		UnarySpatialIntersectionProto unary_spatial_intersection = 503;
-		BinarySpatialIntersectionProto binary_spatial_intersection = 504;
-		TransformCrsProto transform_crs = 505;
-		ReduceGeometryPrecisionProto reduce_precision = 506;
-		FlattenGeometryProto flatten_geometry = 507;
-		BreakLineStringProto break_line = 508;
-		SplitGeometryProto split_geometry = 509;
-		ValidateGeometryProto validate_geometry = 510;
-		CascadeGeometryProto cascade_geometry = 511;
-		AttachQuadKeyProto attach_quad_key = 512;
-		AttachGeoHashProto attach_geohash = 513;
-		ToGeometryPointProto to_point = 514;
-		ToXYCoordinatesProto to_x_y_coordinates = 515;
+		ToGeometryPointProto to_point = 501;
+		ToXYCoordinatesProto to_x_y_coordinates = 502;
+		CentroidTransformProto centroid = 503;
+		BufferTransformProto buffer = 504;
+		UnarySpatialIntersectionProto unary_spatial_intersection = 505;
+		BinarySpatialIntersectionProto binary_spatial_intersection = 506;
+		BinarySpatialUnionProto binary_spatial_union = 507;
+		
+		TransformCrsProto transform_crs = 521;
+		ReduceGeometryPrecisionProto reduce_precision = 522;
+		FlattenGeometryProto flatten_geometry = 523;
+		BreakLineStringProto break_line = 524;
+		SplitGeometryProto split_geometry = 525;
+		ValidateGeometryProto validate_geometry = 526;
+		CascadeGeometryProto cascade_geometry = 527;
+		AttachQuadKeyProto attach_quad_key = 528;
+		AttachGeoHashProto attach_geohash = 529;
 		
 		// advanced geometry operators
 		AssignSquareGridCellProto assign_square_grid_cell = 601;

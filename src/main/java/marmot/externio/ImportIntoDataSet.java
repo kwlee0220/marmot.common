@@ -9,7 +9,6 @@ import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.command.ImportParameters;
 import marmot.proto.optor.OperatorProto;
-import marmot.rset.RecordSets;
 import utils.Throwables;
 import utils.Utilities;
 import utils.async.ProgressReporter;
@@ -52,7 +51,8 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 			
 			RecordSet rset0 = loadRecordSet(marmot);
 			RecordSet rset = m_params.getReportInterval()
-								.transform(rset0, (r,n) -> RecordSets.reportProgress(r, m_subject, n));
+									.transform(rset0,
+											(r,n) -> r.reportProgress(m_subject).reportInterval(n));
 
 			DataSet ds;
 			if ( !append ) {

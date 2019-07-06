@@ -20,7 +20,7 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-@Command(description="CSV options")
+@Command(description="CSV Parameters")
 public class CsvParameters {
 	private char m_delim = ',';
 	private FOption<Character> m_quote = FOption.empty();
@@ -223,8 +223,7 @@ public class CsvParameters {
 	}
 	
 	public StoreAsCsvOptions toStoreOptions() {
-		StoreAsCsvOptions opts = StoreAsCsvOptions.create();
-		opts.delimiter(m_delim);
+		StoreAsCsvOptions opts = StoreAsCsvOptions.DEFAULT(m_delim);
 		m_quote.ifPresent(opts::quote);
 		m_escape.ifPresent(opts::escape);
 		m_charset.ifPresent(opts::charset);
@@ -236,12 +235,12 @@ public class CsvParameters {
 	@Override
 	public String toString() {
 		String headerFirst = m_headerFirst.filter(f -> f)
-											.map(f -> ", header")
+											.map(f -> ",HF")
 											.getOrElse("");
 		String nullString = m_nullValue.map(v -> String.format(", null=\"%s\"", v))
 										.getOrElse("");
 		String csStr = !charset().toString().equalsIgnoreCase("utf-8")
-						? String.format(", %s", charset().toString()) : "";
+						? String.format(",%s", charset().get().toString()) : "";
 		String ptStr = pointColumns().map(xy -> String.format(", POINT(%s,%s)", xy._1, xy._2))
 									.getOrElse("");
 		String srcSrid = m_srid.map(s -> String.format(", csv_srid=%s", s))

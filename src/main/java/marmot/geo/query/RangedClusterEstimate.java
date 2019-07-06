@@ -1,4 +1,4 @@
-package marmot.support;
+package marmot.geo.query;
 
 import java.util.List;
 import java.util.Map;
@@ -20,7 +20,7 @@ import utils.stream.KVFStream;
  */
 public class RangedClusterEstimate {
 	private final DataSet m_ds;
-	private final Map<String,Match> m_matches;
+	private final Map<String,RangeMatch> m_matches;
 	private final Envelope m_range;
 	private final int m_totalGuess;
 	
@@ -37,7 +37,7 @@ public class RangedClusterEstimate {
 		
 		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
 		m_matches = guessRelevants();
-		m_totalGuess = (int)KVFStream.of(m_matches)
+		m_totalGuess = (int)KVFStream.from(m_matches)
 									.toValueStream()
 									.mapToInt(m -> m.m_matchCount)
 									.sum();
@@ -67,24 +67,29 @@ public class RangedClusterEstimate {
 				.getOrElse(0);
 	}
 	
-	private FOption<Match> getMatch(String quadKey) {
+	@Override
+	public String toString() {
+		String matchStr = KVFStream.from(m_matches).toValueStream().join(",", "[", "]");
+		return String.format("%s:%d:%s", m_ds.getId(), m_totalGuess, matchStr);
+	}
+	
+	private FOption<RangeMatch> getMatch(String quadKey) {
 		return FOption.ofNullable(m_matches.get(quadKey));
 	}
 	
-	private class Match {
+	private class RangeMatch {
 		private final SpatialClusterInfo m_info;
 		private final Envelope m_domain;
-		private final double m_inClusterPortion;
+		private final double m_matchRatio;
 		private final int m_matchCount;
 		
-		private Match(SpatialClusterInfo info, Envelope range) {
+		private RangeMatch(SpatialClusterInfo info, Envelope range) {
 			m_info = info;
 			
-			m_domain = info.getTileBounds()
-							.intersection(info.getDataBounds());
+			m_domain = info.getTileBounds().intersection(info.getDataBounds());
 			Envelope matchingArea = m_range.intersection(m_domain);
-			m_inClusterPortion = matchingArea.getArea() / m_domain.getArea();
-			m_matchCount = (int)Math.round(m_info.getOwnedRecordCount() * m_inClusterPortion);
+			m_matchRatio = matchingArea.getArea() / m_domain.getArea();
+			m_matchCount = (int)Math.round(m_info.getOwnedRecordCount() * m_matchRatio);
 		}
 		
 		private int getThumbnailRecordCount(double ratio) {
@@ -94,14 +99,14 @@ public class RangedClusterEstimate {
 		@Override
 		public String toString() {
 			return String.format("%s: %d(%.3f)", m_info.getQuadKey(),
-									m_info.getOwnedRecordCount(), m_inClusterPortion);
+									m_info.getOwnedRecordCount(), m_matchRatio);
 		}
 	}
 	
-	private Map<String,Match> guessRelevants() {
+	private Map<String,RangeMatch> guessRelevants() {
 		List<SpatialClusterInfo> infos = m_ds.querySpatialClusterInfo(m_range);
 		return FStream.from(infos)
-						.map(info -> new Match(info, m_range))
-						.toMap(m -> m.m_info.getQuadKey(), m -> m);
+						.map(info -> new RangeMatch(info, m_range))
+						.toMap(m -> m.m_info.getQuadKey());
 	}
 }

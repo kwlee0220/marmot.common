@@ -9,16 +9,22 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class ExecutePlanOptions implements PBSerializable<ExecutePlanOptionsProto> {
-	private FOption<Boolean> m_disableLocalExec = FOption.empty();
-	private FOption<String> m_mapOutputCompressCodec = FOption.empty();
+	public static final ExecutePlanOptions EMPTY
+							= new ExecutePlanOptions(FOption.empty(), FOption.empty());
+	public static final ExecutePlanOptions DEFAULT = EMPTY;
+	public static final ExecutePlanOptions DISABLE_LOCAL_EXEC
+							= new ExecutePlanOptions(FOption.of(true), FOption.empty());
 	
-	public static ExecutePlanOptions create() {
-		return new ExecutePlanOptions();
+	private final FOption<Boolean> m_disableLocalExec;
+	private final FOption<String> m_mapOutputCompressCodec;
+	
+	private ExecutePlanOptions(FOption<Boolean> dle, FOption<String> codec) {
+		m_disableLocalExec = dle;
+		m_mapOutputCompressCodec = codec;
 	}
 	
 	public ExecutePlanOptions disableLocalExecution(boolean flag) {
-		m_disableLocalExec = FOption.of(flag);
-		return this;
+		return new ExecutePlanOptions(FOption.of(flag), m_mapOutputCompressCodec);
 	}
 	
 	public FOption<Boolean> disableLocalExecution() {
@@ -26,13 +32,11 @@ public class ExecutePlanOptions implements PBSerializable<ExecutePlanOptionsProt
 	}
 	
 	public ExecutePlanOptions disableMapOutputCompression() {
-		m_mapOutputCompressCodec = FOption.empty();
-		return this;
+		return new ExecutePlanOptions(m_disableLocalExec, FOption.empty());
 	}
 	
 	public ExecutePlanOptions mapOutputCompressionCodec(String codec) {
-		m_mapOutputCompressCodec = FOption.ofNullable(codec);
-		return this;
+		return new ExecutePlanOptions(m_disableLocalExec, FOption.of(codec));
 	}
 	
 	public FOption<String> mapOutputCompressionCodec() {
@@ -40,19 +44,20 @@ public class ExecutePlanOptions implements PBSerializable<ExecutePlanOptionsProt
 	}
 	
 	public static ExecutePlanOptions fromProto(ExecutePlanOptionsProto proto) {
-		ExecutePlanOptions opts = ExecutePlanOptions.create();
+		ExecutePlanOptions opts = EMPTY;
 		
 		switch ( proto.getOptionalDisableLocalExecutionCase() ) {
 			case DISABLE_LOCAL_EXECUTION:
-				opts.disableLocalExecution(proto.getDisableLocalExecution());
+				opts = opts.disableLocalExecution(proto.getDisableLocalExecution());
+				break;
 			default:
 		}
 		switch ( proto.getOptionalMapOutputCompressCodecCase() ) {
 			case MAP_OUTPUT_COMPRESS_CODEC:
-				opts.mapOutputCompressionCodec(proto.getMapOutputCompressCodec());
+				opts = opts.mapOutputCompressionCodec(proto.getMapOutputCompressCodec());
 				break;
 			case OPTIONALMAPOUTPUTCOMPRESSCODEC_NOT_SET:
-				opts.m_mapOutputCompressCodec = FOption.empty();
+				opts = opts.disableMapOutputCompression();
 				break;
 			default:
 		}

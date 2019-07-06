@@ -11,12 +11,8 @@ import utils.func.FOption;
 public class PredicateOptions implements PBSerializable<PredicateOptionsProto> {
 	private final FOption<Boolean> m_negated;
 	
-	public static PredicateOptions EMPTY = new PredicateOptions();
-	public static PredicateOptions NEGATED = new PredicateOptions().negated(true);
-	
-	private PredicateOptions() {
-		m_negated = FOption.empty();
-	}
+	public static PredicateOptions DEFAULT = new PredicateOptions(FOption.empty());
+	public static PredicateOptions NEGATED = new PredicateOptions(FOption.of(true));
 	
 	private PredicateOptions(FOption<Boolean> negated) {
 		m_negated = negated;
@@ -35,15 +31,13 @@ public class PredicateOptions implements PBSerializable<PredicateOptionsProto> {
 	}
 
 	public static PredicateOptions fromProto(PredicateOptionsProto proto) {
-		PredicateOptions opts = new PredicateOptions();
-		
 		switch ( proto.getOptionalNegatedCase() ) {
 			case NEGATED:
 				return NEGATED(proto.getNegated());
 			default:
 		}
 		
-		return opts;
+		return DEFAULT;
 	}
 
 	@Override

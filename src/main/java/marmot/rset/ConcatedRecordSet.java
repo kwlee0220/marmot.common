@@ -3,12 +3,9 @@ package marmot.rset;
 import javax.annotation.Nullable;
 
 import marmot.Record;
-import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
-import utils.Utilities;
 import utils.io.IOUtils;
-import utils.stream.FStream;
 
 /**
  * 
@@ -70,37 +67,5 @@ public abstract class ConcatedRecordSet extends AbstractRecordSet {
 		}
 		
 		return true;
-	}
-	
-	static class FStreamConcatedRecordSet extends ConcatedRecordSet {
-		private final RecordSchema m_schema;
-		private final FStream<? extends RecordSet> m_components;
-		
-		FStreamConcatedRecordSet(RecordSchema schema,
-								FStream<? extends RecordSet> components) {
-			Utilities.checkNotNullArgument(schema, "schema is null");
-			Utilities.checkNotNullArgument(components, "components is null");
-			
-			m_schema = schema;
-			m_components = components;
-		}
-
-		@Override
-		protected void closeInGuard() {
-			// 남은 RecordSet들을 close 시킨다.
-			m_components.forEach(RecordSet::closeQuietly);
-			
-			super.close();
-		}
-
-		@Override
-		public RecordSchema getRecordSchema() {
-			return m_schema;
-		}
-
-		@Override
-		protected RecordSet loadNext() {
-			return m_components.next().getOrNull();
-		}
 	}
 }

@@ -56,7 +56,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 	@GuardedBy("m_lock") private long m_lastSupplyMillis;
 	@GuardedBy("m_lock") private long m_lastConsumeMillis;
 	
-	PipedRecordSet(RecordSchema schema, int queueLength) {
+	public PipedRecordSet(RecordSchema schema, int queueLength) {
 		Utilities.checkNotNullArgument(schema, "schema is null");
 		Preconditions.checkArgument(queueLength > 0, "queue length should be larger than zero");
 		

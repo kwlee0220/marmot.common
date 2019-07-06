@@ -14,7 +14,7 @@ import marmot.support.DefaultRecord;
 public class FlatTransformedRecordSet extends AbstractRecordSet {
 	private final RecordSet m_input;
 	private final RecordSchema m_outSchema;
-	private final Function<Record,RecordSet> m_transform;
+	private final Function<? super Record,RecordSet> m_transform;
 	
 	private RecordSet m_transformeds;
 	private final Record m_inputRecord;
@@ -23,7 +23,7 @@ public class FlatTransformedRecordSet extends AbstractRecordSet {
 	private long m_outCount =0;
 	
 	public FlatTransformedRecordSet(RecordSet input, RecordSchema outSchema,
-									Function<Record,RecordSet> transform) {
+									Function<? super Record,RecordSet> transform) {
 		m_input = input;
 		m_transform = transform;
 		m_outSchema = outSchema;

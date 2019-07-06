@@ -2,7 +2,6 @@ package marmot.plan;
 
 import marmot.proto.optor.LoadOptionsProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -10,40 +9,32 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class LoadOptions implements PBSerializable<LoadOptionsProto> {
-	private FOption<Integer> m_nsplits = FOption.empty();
+	public static final LoadOptions DEFAULT = new LoadOptions(FOption.empty());
 	
-	public static LoadOptions DEFAULT() {
-		return new LoadOptions();
+	private final FOption<Integer> m_nsplits;
+	
+	private LoadOptions(FOption<Integer> splitCount) {
+		m_nsplits = splitCount;
 	}
 	
 	public static LoadOptions SPLIT_COUNT(int count) {
-		return new LoadOptions().splitCount(count);
-	}
-	
-	public LoadOptions splitCount(int count) {
-		Utilities.checkArgument(count >= 1, "count >= 1");
-		
-		m_nsplits = FOption.of(count);
-		return this;
+		return new LoadOptions(FOption.of(count));
 	}
 	
 	public FOption<Integer> splitCount() {
 		return m_nsplits;
 	}
 	
-	public LoadOptions duplicate() {
-		LoadOptions opts = LoadOptions.DEFAULT();
-		opts.m_nsplits = m_nsplits;
-		
-		return opts;
+	public LoadOptions splitCount(int count) {
+		return new LoadOptions(FOption.of(count));
 	}
 
 	public static LoadOptions fromProto(LoadOptionsProto proto) {
-		LoadOptions opts = LoadOptions.DEFAULT();
+		LoadOptions opts = DEFAULT;
 		
 		switch ( proto.getOptionalSplitCountPerBlockCase() ) {
 			case SPLIT_COUNT_PER_BLOCK:
-				opts.splitCount(proto.getSplitCountPerBlock());
+				opts = opts.splitCount(proto.getSplitCountPerBlock());
 				break;
 			case OPTIONALSPLITCOUNTPERBLOCK_NOT_SET:
 				break;

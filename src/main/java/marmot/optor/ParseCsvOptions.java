@@ -13,29 +13,58 @@ import utils.func.FOption;
  */
 public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	private final CsvOptions m_csvOptions;
+	private final FOption<Boolean> m_headerFirst;
+	private final FOption<String> m_header;
+	private final FOption<Boolean> m_trimColumns;
+	private final FOption<String> m_nullValue;
+	private final FOption<Integer> m_maxColLength;
+	private final FOption<Boolean> m_throwParseError;
 	
-	private FOption<Boolean> m_headerFirst = FOption.empty();
-	private FOption<String> m_header = FOption.empty();
-	private FOption<Boolean> m_trimColumns = FOption.empty();
-	private FOption<String> m_nullValue = FOption.empty();
-	private FOption<Integer> m_maxColLength = FOption.empty();
-	private FOption<Boolean> m_throwParseError = FOption.empty();
-	
-	public static ParseCsvOptions create() {
-		return new ParseCsvOptions(CsvOptions.create());
+	private ParseCsvOptions(CsvOptions csvOpts, FOption<Boolean> headerFirst,
+							FOption<String> header, FOption<Boolean> trimColumns,
+							FOption<String> nullValue, FOption<Integer> maxColLength,
+							FOption<Boolean> throwParseError) {
+		m_csvOptions = csvOpts;
+		m_headerFirst = headerFirst;
+		m_header = header;
+		m_trimColumns = trimColumns;
+		m_nullValue = nullValue;
+		m_maxColLength = maxColLength;
+		m_throwParseError = throwParseError;
 	}
 	
-	private ParseCsvOptions(CsvOptions csvOpts) {
-		m_csvOptions = csvOpts;
+	public static ParseCsvOptions DEFAULT() {
+		return new ParseCsvOptions(CsvOptions.DEFAULT(), FOption.empty(), FOption.empty(),
+									FOption.empty(), FOption.empty(), FOption.empty(),
+									FOption.empty());
+	}
+	
+	public static ParseCsvOptions DEFAULT(char delim) {
+		return new ParseCsvOptions(CsvOptions.DEFAULT(delim), FOption.empty(), FOption.empty(),
+									FOption.empty(), FOption.empty(), FOption.empty(),
+									FOption.empty());
+	}
+	
+	public static ParseCsvOptions DEFAULT(char delim, char quote) {
+		return new ParseCsvOptions(CsvOptions.DEFAULT(delim, quote), FOption.empty(),
+									FOption.empty(), FOption.empty(), FOption.empty(),
+									FOption.empty(), FOption.empty());
+	}
+	
+	public static ParseCsvOptions DEFAULT(char delim, char quote, char escape) {
+		return new ParseCsvOptions(CsvOptions.DEFAULT(delim, quote, escape), FOption.empty(),
+									FOption.empty(), FOption.empty(), FOption.empty(),
+									FOption.empty(), FOption.empty());
 	}
 	
 	public char delimiter() {
 		return m_csvOptions.delimiter();
 	}
 
-	public ParseCsvOptions delimiter(Character delim) {
-		m_csvOptions.delimiter(delim);
-		return this;
+	public ParseCsvOptions delimiter(char delim) {
+		return new ParseCsvOptions(m_csvOptions.delimiter(delim), m_headerFirst,
+									m_header, m_trimColumns, m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 	
 	public FOption<Character> quote() {
@@ -43,8 +72,9 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	}
 
 	public ParseCsvOptions quote(char quote) {
-		m_csvOptions.quote(quote);
-		return this;
+		return new ParseCsvOptions(m_csvOptions.quote(quote), m_headerFirst,
+									m_header, m_trimColumns, m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 	
 	public FOption<Character> escape() {
@@ -52,8 +82,9 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	}
 	
 	public ParseCsvOptions escape(char escape) {
-		m_csvOptions.escape(escape);
-		return this;
+		return new ParseCsvOptions(m_csvOptions.escape(escape), m_headerFirst,
+									m_header, m_trimColumns, m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 	
 	public FOption<Charset> charset() {
@@ -61,13 +92,15 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	}
 
 	public ParseCsvOptions charset(String charset) {
-		m_csvOptions.charset(charset);
-		return this;
+		return new ParseCsvOptions(m_csvOptions.charset(charset), m_headerFirst,
+									m_header, m_trimColumns, m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 
 	public ParseCsvOptions charset(Charset charset) {
-		m_csvOptions.charset(charset);
-		return this;
+		return new ParseCsvOptions(m_csvOptions.charset(charset), m_headerFirst,
+									m_header, m_trimColumns, m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 	
 	public FOption<String> header() {
@@ -77,8 +110,9 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	public ParseCsvOptions header(String header) {
 		Utilities.checkNotNullArgument(header, "CSV header");
 		
-		m_header = FOption.of(header);
-		return this;
+		return new ParseCsvOptions(m_csvOptions, m_headerFirst, FOption.of(header),
+									m_trimColumns, m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 	
 	public FOption<Boolean> headerFirst() {
@@ -86,13 +120,15 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	}
 
 	public ParseCsvOptions headerFirst(boolean flag) {
-		m_headerFirst = FOption.of(flag);
-		return this;
+		return new ParseCsvOptions(m_csvOptions, FOption.of(flag), m_header,
+									m_trimColumns, m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 
 	public ParseCsvOptions nullValue(String str) {
-		m_nullValue = FOption.ofNullable(str);
-		return this;
+		return new ParseCsvOptions(m_csvOptions, m_headerFirst, m_header,
+									m_trimColumns, FOption.ofNullable(str),
+									m_maxColLength, m_throwParseError);
 	}
 	
 	public FOption<String> nullValue() {
@@ -100,8 +136,9 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	}
 
 	public ParseCsvOptions trimColumns(boolean flag) {
-		m_trimColumns = FOption.of(flag);
-		return this;
+		return new ParseCsvOptions(m_csvOptions, m_headerFirst, m_header,
+									FOption.of(flag), m_nullValue,
+									m_maxColLength, m_throwParseError);
 	}
 	
 	public FOption<Boolean> trimColumn() {
@@ -115,8 +152,9 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	public ParseCsvOptions maxColumnLength(int length) {
 		Utilities.checkArgument(length > 0, "length > 0");
 		
-		m_maxColLength = FOption.of(length);
-		return this;
+		return new ParseCsvOptions(m_csvOptions, m_headerFirst, m_header,
+									m_trimColumns, m_nullValue,
+									FOption.of(length), m_throwParseError);
 	}
 	
 	public FOption<Boolean> throwParseError() {
@@ -124,20 +162,9 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	}
 
 	public ParseCsvOptions throwParseError(boolean flag) {
-		m_throwParseError = FOption.of(flag);
-		return this;
-	}
-	
-	public ParseCsvOptions duplicate() {
-		ParseCsvOptions dupl = new ParseCsvOptions(m_csvOptions.duplicate());
-		dupl.m_headerFirst = m_headerFirst;
-		dupl.m_trimColumns = m_trimColumns;
-		dupl.m_header = m_header;
-		dupl.m_nullValue = m_nullValue;
-		dupl.m_maxColLength = m_maxColLength;
-		dupl.m_throwParseError = m_throwParseError;
-		
-		return dupl;
+		return new ParseCsvOptions(m_csvOptions, m_headerFirst, m_header,
+									m_trimColumns, m_nullValue,
+									m_maxColLength, FOption.of(flag));
 	}
 	
 	@Override
@@ -155,45 +182,46 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 
 	public static ParseCsvOptions fromProto(ParseCsvOptionsProto proto) {
 		CsvOptions csvOpts = CsvOptions.fromProto(proto.getCsvOptions());
-		ParseCsvOptions opts = new ParseCsvOptions(csvOpts);
+		ParseCsvOptions opts = new ParseCsvOptions(csvOpts, FOption.empty(), FOption.empty(),
+													FOption.empty(), FOption.empty(),
+													FOption.empty(), FOption.empty());
 		
 		switch ( proto.getOptionalHeaderCase() ) {
 			case HEADER:
-				opts.header(proto.getHeader());
+				opts = opts.header(proto.getHeader());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalHeaderFirstCase() ) {
 			case HEADER_FIRST:
-				opts.headerFirst(proto.getHeaderFirst());
+				opts = opts.headerFirst(proto.getHeaderFirst());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalTrimColumnCase() ) {
 			case TRIM_COLUMN:
-				opts.trimColumns(proto.getTrimColumn());
+				opts = opts.trimColumns(proto.getTrimColumn());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalNullValueCase() ) {
 			case NULL_VALUE:
-				opts.nullValue(proto.getNullValue());
+				opts = opts.nullValue(proto.getNullValue());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalMaxColumnLengthCase() ) {
 			case MAX_COLUMN_LENGTH:
-				opts.maxColumnLength(proto.getMaxColumnLength());
+				opts = opts.maxColumnLength(proto.getMaxColumnLength());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalThrowParseErrorCase() ) {
 			case THROW_PARSE_ERROR:
-				opts.throwParseError(proto.getThrowParseError());
+				opts = opts.throwParseError(proto.getThrowParseError());
 				break;
 			default:
 		}
-		
 		
 		return opts;
 	}

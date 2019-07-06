@@ -8,7 +8,7 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class GeomOpOptions {
-	public static final GeomOpOptions EMPTY = new GeomOpOptions(FOption.empty(), FOption.empty());
+	public static final GeomOpOptions DEFAULT = new GeomOpOptions(FOption.empty(), FOption.empty());
 	
 	private FOption<String> m_outColumn = FOption.empty();
 	private FOption<Boolean> m_throwOpError = FOption.empty();
@@ -39,7 +39,7 @@ public class GeomOpOptions {
 	}
 
 	public static GeomOpOptions fromProto(GeomOpOptionsProto proto) {
-		return GeomOpOptions.EMPTY.loadFromProto(proto);
+		return GeomOpOptions.DEFAULT.loadFromProto(proto);
 	}
 
 	public GeomOpOptions loadFromProto(GeomOpOptionsProto proto) {

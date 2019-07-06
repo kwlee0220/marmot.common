@@ -202,7 +202,7 @@ public interface DataSet {
 	 * @return	생성된 인덱스의 등록정보.
 	 */
 	public default SpatialIndexInfo cluster() {
-		return cluster(new ClusterDataSetOptions());
+		return cluster(ClusterDataSetOptions.DEFAULT());
 	}
 	
 	/**

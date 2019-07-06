@@ -9,11 +9,20 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class LoadJdbcTableOptions implements PBSerializable<LoadJdbcTableOptionsProto> {
-	private FOption<String> m_selectExpr = FOption.empty();
-	private FOption<Integer> m_mapperCount = FOption.empty();
+	private final FOption<String> m_selectExpr;
+	private final FOption<Integer> m_mapperCount;
 	
-	public static LoadJdbcTableOptions create() {
-		return new LoadJdbcTableOptions();
+	private LoadJdbcTableOptions(FOption<String> selectExpr, FOption<Integer> mapperCount) {
+		m_selectExpr = selectExpr;
+		m_mapperCount = mapperCount;
+	}
+	
+	public static LoadJdbcTableOptions DEFAULT() {
+		return new LoadJdbcTableOptions(FOption.empty(), FOption.empty());
+	}
+	
+	public static LoadJdbcTableOptions SELECT(String expr) {
+		return new LoadJdbcTableOptions(FOption.of(expr), FOption.empty());
 	}
 	
 	public FOption<String> selectExpr() {
@@ -21,8 +30,7 @@ public class LoadJdbcTableOptions implements PBSerializable<LoadJdbcTableOptions
 	}
 	
 	public LoadJdbcTableOptions selectExpr(String outCol) {
-		m_selectExpr = FOption.ofNullable(outCol);
-		return this;
+		return new LoadJdbcTableOptions(FOption.ofNullable(outCol), m_mapperCount);
 	}
 	
 	public FOption<Integer> mapperCount() {
@@ -30,22 +38,21 @@ public class LoadJdbcTableOptions implements PBSerializable<LoadJdbcTableOptions
 	}
 	
 	public LoadJdbcTableOptions mapperCount(int count) {
-		m_mapperCount = FOption.of(count);
-		return this;
+		return new LoadJdbcTableOptions(m_selectExpr, FOption.of(count));
 	}
 
 	public static LoadJdbcTableOptions fromProto(LoadJdbcTableOptionsProto proto) {
-		LoadJdbcTableOptions opts = LoadJdbcTableOptions.create();
+		LoadJdbcTableOptions opts = LoadJdbcTableOptions.DEFAULT();
 		
 		switch ( proto.getOptionalSelectExprCase() ) {
 			case SELECT_EXPR:
-				opts.selectExpr(proto.getSelectExpr());
+				opts = opts.selectExpr(proto.getSelectExpr());
 				break;
 			default:
 		}
 		switch ( proto.getOptionalMapperCountCase() ) {
 			case MAPPER_COUNT:
-				opts.mapperCount(proto.getMapperCount());
+				opts = opts.mapperCount(proto.getMapperCount());
 				break;
 			default:
 		}

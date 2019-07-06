@@ -1,6 +1,7 @@
 package marmot.rset;
 
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.common.base.Preconditions;
 
@@ -14,15 +15,15 @@ import utils.Utilities;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackableRecordSet {
+public class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackableRecordSet {
 	private final RecordSet m_input;
-	private final Stack<Record> m_pushBackeds;
+	private final List<Record> m_pushBackeds;
 	
-	PushBackableRecordSetImpl(RecordSet rset) {
+	public PushBackableRecordSetImpl(RecordSet rset) {
 		Utilities.checkNotNullArgument(rset, "rset is null");
 		
 		m_input = rset;
-		m_pushBackeds = new Stack<>();
+		m_pushBackeds = new ArrayList<>();
 	}
 	
 	@Override
@@ -40,7 +41,7 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 		checkNotClosed();
 		
 		if ( !m_pushBackeds.isEmpty() ) {
-			record.set(m_pushBackeds.pop());
+			record.set(m_pushBackeds.remove(m_pushBackeds.size()-1));
 			return true;
 		}
 		else {
@@ -53,7 +54,7 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 		checkNotClosed();
 
 		if ( !m_pushBackeds.isEmpty() ) {
-			return m_pushBackeds.pop();
+			return m_pushBackeds.remove(m_pushBackeds.size()-1);
 		}
 		else {
 			return m_input.nextCopy();
@@ -61,12 +62,13 @@ class PushBackableRecordSetImpl extends AbstractRecordSet implements PushBackabl
 	}
 
 	@Override
-	public void pushBack(Record record) {
+	public PushBackableRecordSet pushBack(Record record) {
 		checkNotClosed();
 		Preconditions.checkArgument(m_input.getRecordSchema().equals(record.getRecordSchema()),
 									"Push-backed record is incompatible");
 		
-		m_pushBackeds.push(record.duplicate());
+		m_pushBackeds.add(record.duplicate());
+		return this;
 	}
 	
 	@Override

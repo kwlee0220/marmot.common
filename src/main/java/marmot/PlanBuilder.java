@@ -39,6 +39,7 @@ import marmot.proto.optor.AttachGeoHashProto;
 import marmot.proto.optor.AttachQuadKeyProto;
 import marmot.proto.optor.BinarySpatialIntersectionProto;
 import marmot.proto.optor.BinarySpatialIntersectsProto;
+import marmot.proto.optor.BinarySpatialUnionProto;
 import marmot.proto.optor.BreakLineStringProto;
 import marmot.proto.optor.BufferTransformProto;
 import marmot.proto.optor.CentroidTransformProto;
@@ -122,6 +123,7 @@ import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
+
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
@@ -197,7 +199,7 @@ public class PlanBuilder {
 	 * @return	연산이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder load(String... dsId) {
-		return load(Arrays.asList(dsId), LoadOptions.DEFAULT());
+		return load(Arrays.asList(dsId), LoadOptions.DEFAULT);
 	}
 	
 	/*
@@ -213,7 +215,7 @@ public class PlanBuilder {
 	public PlanBuilder loadMarmotFile(String... pathes) {
 		Utilities.checkNotNullArguments(pathes, "pathes is null");
 		
-		return loadMarmotFile(Arrays.asList(pathes), LoadOptions.DEFAULT());
+		return loadMarmotFile(Arrays.asList(pathes), LoadOptions.DEFAULT);
 	}
 	
 	/**
@@ -272,13 +274,13 @@ public class PlanBuilder {
 		
 	}
 	public PlanBuilder loadTextFile(String... pathes) {
-		return loadTextFile(Arrays.asList(pathes), LoadOptions.DEFAULT());
+		return loadTextFile(Arrays.asList(pathes), LoadOptions.DEFAULT);
 	}
 	
 	public PlanBuilder loadCustomTextFile(String path) {
 		Utilities.checkNotNullArgument(path, "path is null");
 		
-		LoadOptions opts = LoadOptions.DEFAULT();
+		LoadOptions opts = LoadOptions.DEFAULT;
 		LoadCustomTextFileProto load = LoadCustomTextFileProto.newBuilder()
 															.setPath(path)
 															.setOptions(opts.toProto())
@@ -384,7 +386,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder storeAsCsv(String path) {
-		return storeAsCsv(path, StoreAsCsvOptions.create());
+		return storeAsCsv(path, StoreAsCsvOptions.DEFAULT());
 	}
 	
 	/**
@@ -1061,7 +1063,7 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(outputColumnExpr, "output columns is null");
 		Utilities.checkNotNullArgument(opts, "JoinOptions is null");
 		
-		opts = (opts == null) ? new JoinOptions() : opts;
+		opts = (opts == null) ? JoinOptions.INNER_JOIN : opts;
 		
 		LoadHashJoinProto load = LoadHashJoinProto.newBuilder()
 												.setLeftDataset(leftDataSet)
@@ -1141,7 +1143,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder reload() {
-		return reload(LoadOptions.DEFAULT());
+		return reload(LoadOptions.DEFAULT);
 	}
 	
 	//***********************************************************************
@@ -1173,7 +1175,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder query(String dsId, Geometry key) {
-		return query(dsId, key, PredicateOptions.EMPTY);
+		return query(dsId, key, PredicateOptions.DEFAULT);
 	}
 	public PlanBuilder query(String dsId, Envelope bounds, PredicateOptions opts) {
 		Utilities.checkNotNullArgument(bounds, "key bounds");
@@ -1181,7 +1183,7 @@ public class PlanBuilder {
 		return query(dsId, GeoClientUtils.toPolygon(bounds), opts);
 	}
 	public PlanBuilder query(String dsId, Envelope bounds) {
-		return query(dsId, bounds, PredicateOptions.EMPTY);
+		return query(dsId, bounds, PredicateOptions.DEFAULT);
 	}
 	
 	public PlanBuilder query(String dsId, String keyDsId, PredicateOptions opts) {
@@ -1199,7 +1201,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder query(String dsId, String keyDsId) {
-		return query(dsId, keyDsId, PredicateOptions.EMPTY);
+		return query(dsId, keyDsId, PredicateOptions.DEFAULT);
 	}
 
 	/**
@@ -1235,7 +1237,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Geometry key) {
-		return filterSpatially(geomCol, rel, key, PredicateOptions.EMPTY);
+		return filterSpatially(geomCol, rel, key, PredicateOptions.DEFAULT);
 	}
 
 	/**
@@ -1270,7 +1272,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, String keyDsId) {
-		return filterSpatially(geomCol, rel, keyDsId, PredicateOptions.EMPTY);
+		return filterSpatially(geomCol, rel, keyDsId, PredicateOptions.DEFAULT);
 	}
 	
 	/**
@@ -1356,6 +1358,7 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder loadGrid(SquareGrid grid, int nparts) {
 		Utilities.checkNotNullArgument(grid, "SquareGrid is null");
+		Utilities.checkArgument(nparts > 0, "invalid part count: count=" + nparts);
 
 		LoadSquareGridFileProto load = LoadSquareGridFileProto.newBuilder()
 																.setGrid(grid.toProto())
@@ -1485,7 +1488,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder dropEmptyGeometry(String geomCol) {
-		return dropEmptyGeometry(geomCol, PredicateOptions.EMPTY);
+		return dropEmptyGeometry(geomCol, PredicateOptions.DEFAULT);
 	}
 	
 	/**
@@ -1516,7 +1519,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder intersectsBinary(String leftGeomCol, String rightGeomCol) {
-		return intersectsBinary(leftGeomCol, rightGeomCol, PredicateOptions.EMPTY);
+		return intersectsBinary(leftGeomCol, rightGeomCol, PredicateOptions.DEFAULT);
 	}
 
 	//***********************************************************************
@@ -1643,7 +1646,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder centroid(String inGeomCol) {
-		return centroid(inGeomCol, false, GeomOpOptions.EMPTY);
+		return centroid(inGeomCol, false, GeomOpOptions.DEFAULT);
 	}
 
 	/**
@@ -1672,7 +1675,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder buffer(String geomCol, double distance) {
-		return buffer(geomCol, distance, FOption.empty(), GeomOpOptions.EMPTY);
+		return buffer(geomCol, distance, FOption.empty(), GeomOpOptions.DEFAULT);
 	}
 	public PlanBuilder buffer(String geomCol, String distanceCol,
 								FOption<Integer> segmentCount, GeomOpOptions opts) {
@@ -1688,7 +1691,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder buffer(String geomCol, String distanceCol) {
-		return buffer(geomCol, distanceCol, FOption.empty(), GeomOpOptions.EMPTY);
+		return buffer(geomCol, distanceCol, FOption.empty(), GeomOpOptions.DEFAULT);
 	}
 	public PlanBuilder buffer(String geomCol, String distanceCol, GeomOpOptions opts) {
 		return buffer(geomCol, distanceCol, FOption.empty(), opts);
@@ -1720,7 +1723,7 @@ public class PlanBuilder {
 								.build());
 	}
 	public PlanBuilder intersection(String geomCol, Geometry key) {
-		return intersection(geomCol, key, GeomOpOptions.EMPTY);
+		return intersection(geomCol, key, GeomOpOptions.DEFAULT);
 	}
 	
 	/**
@@ -1746,7 +1749,7 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(outputGeomCol, "output Geometry column name");
 		Utilities.checkNotNullArgument(outputGeomType, "output Geometry column type");
 
-		TypeCodeProto outType = TypeCodeProto.valueOf(outputGeomType.getName());
+		TypeCodeProto outType = TypeCodeProto.valueOf(outputGeomType.getTypeCode().name());
 		BinarySpatialIntersectionProto intersects = BinarySpatialIntersectionProto.newBuilder()
 															.setLeftGeometryColumn(leftGeomCol)
 															.setRightGeometryColumn(rightGeomCol)
@@ -1772,6 +1775,26 @@ public class PlanBuilder {
 		
 		return add(OperatorProto.newBuilder()
 								.setBinarySpatialIntersection(intersects)
+								.build());
+	}
+
+	public PlanBuilder union(String leftGeomCol, String rightGeomCol,
+							String outputGeomCol, DataType outputGeomType) {
+		Utilities.checkNotNullArgument(leftGeomCol, "left Geometry column name");
+		Utilities.checkNotNullArgument(rightGeomCol, "right Geometry column name");
+		Utilities.checkNotNullArgument(outputGeomCol, "output Geometry column name");
+		Utilities.checkNotNullArgument(outputGeomType, "output Geometry column type");
+
+		TypeCodeProto outType = PBUtils.toProto(outputGeomType.getTypeCode());
+		BinarySpatialUnionProto union = BinarySpatialUnionProto.newBuilder()
+															.setLeftGeometryColumn(leftGeomCol)
+															.setRightGeometryColumn(rightGeomCol)
+															.setOutGeometryColumn(outputGeomCol)
+															.setOutGeometryType(outType)
+															.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setBinarySpatialUnion(union)
 								.build());
 	}
 	
@@ -1834,7 +1857,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder transformCrs(String geomCol, String srcSrid, String tarSrid) {
-		return transformCrs(geomCol, srcSrid, tarSrid, GeomOpOptions.EMPTY);
+		return transformCrs(geomCol, srcSrid, tarSrid, GeomOpOptions.DEFAULT);
 	}
 
 	/**
