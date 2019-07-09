@@ -27,6 +27,10 @@ message LoadMarmotFileProto {
 	LoadOptionsProto options = 1;
 	repeated string paths = 2;
 }
+message LoadWholeFileProto {
+	LoadOptionsProto options = 1;
+	repeated string paths = 2;
+}
 message LoadCustomTextFileProto {
 	string path = 1;
 	LoadOptionsProto options = 2;
@@ -789,6 +793,7 @@ message OperatorProto {
 		LoadHexagonGridFileProto load_hexagon_gridfile = 8;
 		QueryDataSetProto query_dataset = 9;
 		LoadSpatialClusteredFileProto load_spatial_cluster_file = 10;
+		LoadWholeFileProto load_whole_file = 11;
 		
 		StoreAsHeapfileProto store_as_heapfile = 51;
 		StoreAsCsvProto store_as_csv = 52;

@@ -49,6 +49,7 @@ message SpatialIndexInfoProto {
 	EnvelopeProto data_bounds = 4;
 	int64 record_count = 5;
 	string hdfs_path = 6;
+	int64 updated_millis = 7;
 }
 
 message RecordProto {

@@ -109,6 +109,7 @@ message DataSetInfoProto {
 	bool compression = 8;		// 압축 저장 여부
 	int64 block_size = 9;		// HDFS 파일 블록 크기 (기본 64mb)
 	float thumbnail_ratio = 10;	// Thumbnail sample ratio (없는 경우는 -1)
+	int64 updated_millis = 11;	// 최근 변경 시간 (단위: UTC epoc millis)
 }
 
 message DataSetInfoResponse {

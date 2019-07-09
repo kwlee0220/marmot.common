@@ -32,6 +32,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	private boolean m_mapOutputCompression = false;
 	private long m_blockSize = -1;
 	private float m_thumbnailRatio = -1;
+	private long m_updatedMillis = -1;
 	
 	@SuppressWarnings("unused")
 	private DataSetInfo() { }
@@ -162,6 +163,14 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 		m_thumbnailRatio = size;
 	}
 	
+	public long getUpdatedMillis() {
+		return m_updatedMillis;
+	}
+	
+	public void setUpdatedMillis(long millis) {
+		m_updatedMillis = millis;
+	}
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -210,6 +219,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 		info.m_compression = proto.getCompression();
 		info.m_blockSize = proto.getBlockSize();
 		info.m_thumbnailRatio = proto.getThumbnailRatio();
+		info.m_updatedMillis = proto.getUpdatedMillis();
 		
 		return info;
 	}
@@ -225,7 +235,8 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 												.setHdfsPath(m_filePath)
 												.setBlockSize(getBlockSize())
 												.setCompression(m_compression)
-												.setThumbnailRatio(m_thumbnailRatio);
+												.setThumbnailRatio(m_thumbnailRatio)
+												.setUpdatedMillis(m_updatedMillis);
 		m_geomColInfo.ifPresent(geomCol -> {
 			DataSetGeometryInfoProto geomProto = DataSetGeometryInfoProto.newBuilder()
 												.setColumn(geomCol.name())

@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import marmot.MarmotRuntime;
-import utils.CommandLine;
 import utils.StopWatch;
 import utils.UnitUtils;
 import utils.Utilities;

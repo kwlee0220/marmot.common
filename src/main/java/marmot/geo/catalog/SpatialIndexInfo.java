@@ -22,6 +22,7 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	private Envelope m_dataBounds = new Envelope();
 	private long m_count = -1;
 	private String m_hdfsPath;
+	private long m_updatedMillis = -1;
 	
 	public SpatialIndexInfo(String dataset, GeometryColumnInfo geomCol) {
 		Utilities.checkNotNullArgument(dataset, "dataset is null");
@@ -99,6 +100,14 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	public void setRecordCount(long count) {
 		m_count = count;
 	}
+	
+	public long getUpdatedMillis() {
+		return m_updatedMillis;
+	}
+	
+	public void setUpdatedMillis(long millis) {
+		m_updatedMillis = millis;
+	}
 
 	public static SpatialIndexInfo fromProto(SpatialIndexInfoProto proto) {
 		GeometryColumnInfo geomCol = GeometryColumnInfo.fromProto(proto.getGeometryColumn());
@@ -107,6 +116,7 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 		info.setDataBounds(PBUtils.fromProto(proto.getDataBounds()));
 		info.setRecordCount(proto.getRecordCount());
 		info.setHdfsFilePath(proto.getHdfsPath());
+		info.setUpdatedMillis(proto.getUpdatedMillis());
 		
 		return info;
 	}
@@ -120,6 +130,7 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 									.setDataBounds(PBUtils.toProto(m_dataBounds))
 									.setRecordCount(m_count)
 									.setHdfsPath(m_hdfsPath)
+									.setUpdatedMillis(m_updatedMillis)
 									.build();
 	}
 	

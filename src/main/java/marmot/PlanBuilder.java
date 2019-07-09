@@ -74,6 +74,7 @@ import marmot.proto.optor.LoadSpatialClusteredFileProto;
 import marmot.proto.optor.LoadSpatialIndexJoinProto;
 import marmot.proto.optor.LoadSquareGridFileProto;
 import marmot.proto.optor.LoadTextFileProto;
+import marmot.proto.optor.LoadWholeFileProto;
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.ParseCsvProto;
 import marmot.proto.optor.PickTopKProto;
@@ -237,6 +238,25 @@ public class PlanBuilder {
 		return add(OperatorProto.newBuilder()
 								.setLoadMarmotfile(load)
 								.build());
+	}
+	
+	public PlanBuilder loadWholeFile(Iterable<String> pathes, LoadOptions opts) {
+		Utilities.checkNotNullArgument(pathes, "pathes is null");
+		Utilities.checkNotNullArgument(opts, "opts is null");
+		
+		LoadWholeFileProto load = LoadWholeFileProto.newBuilder()
+													.addAllPaths(pathes)
+													.setOptions(opts.toProto())
+													.build();
+		return add(OperatorProto.newBuilder()
+								.setLoadWholeFile(load)
+								.build());
+	}
+	public PlanBuilder loadWholeFile(String... pathes) {
+		return loadWholeFile(Arrays.asList(pathes), LoadOptions.DEFAULT);
+	}
+	public PlanBuilder loadWholeFile(String path, LoadOptions opts) {
+		return loadWholeFile(Arrays.asList(path), opts);
 	}
 	
 	public PlanBuilder loadSpatialClusteredFile(String dsId, String clusterCols) {
