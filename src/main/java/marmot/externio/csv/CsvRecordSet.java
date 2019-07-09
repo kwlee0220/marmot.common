@@ -79,7 +79,12 @@ public class CsvRecordSet extends AbstractRecordSet {
 		CSVFormat format = CSVFormat.DEFAULT.withDelimiter(opts.delimiter());
 		format = opts.quote().map(format::withQuote).getOrElse(format);
 		format = opts.escape().map(format::withEscape).getOrElse(format);
-		format = format.withTrim(opts.trimColumn().getOrElse(false));
+		if ( opts.trimColumn().getOrElse(false) ) {
+			format = format.withTrim(true).withIgnoreSurroundingSpaces(true);
+		}
+		else {
+			format = format.withTrim(false).withIgnoreSurroundingSpaces(false);
+		}
 		m_parser = format.parse(reader);
 		
 		m_iter = m_parser.iterator();
@@ -157,14 +162,13 @@ public class CsvRecordSet extends AbstractRecordSet {
 	private void set(Record output, List<String> values) {
 		for ( int i =0; i < values.size(); ++i ) {
 			String value = values.get(i);
-			
+
+			// 길이 0 문자열을 null로 간주한다.
+			// 이 경우 'null_value' 옵션이 설정된 경우 해당 값으로 치환시킨다.
+			if ( value.length() == 0 ) {
+				value = m_nullValue;
+			}
 			if ( m_columns[i].type() != DataType.STRING ) {
-				// 컬럼 값을 다른 타입으로 변환시키는 경우, 길이 0 문자열을 null로 간주한다.
-				// 이 경우 'null_value' 옵션이 설정된 경우 해당 값으로 치환시킨다.
-				if ( value.length() == 0 ) {
-					value = m_nullValue;
-				}
-				
 				output.set(i, DataUtils.cast(value, m_columns[i].type()));
 			}
 			else {
