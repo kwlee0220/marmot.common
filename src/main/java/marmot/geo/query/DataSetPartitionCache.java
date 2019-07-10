@@ -40,6 +40,8 @@ public class DataSetPartitionCache {
 	private final FileObjectStore<PartitionKey,InputStream> m_cache;
 
 	public DataSetPartitionCache(MarmotRuntime marmot, File storeRoot) throws IOException {
+		s_logger.info("use dataset_partition_cache: {}", storeRoot);
+		
 		m_cache = new FileObjectStore<>(storeRoot, new ParitionFileHandler(storeRoot));
 		m_dsCache = CacheBuilder.newBuilder()
 								.expireAfterAccess(DS_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES)
