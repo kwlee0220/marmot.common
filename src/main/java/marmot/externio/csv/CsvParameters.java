@@ -34,7 +34,6 @@ public class CsvParameters {
 	private FOption<Boolean> m_trimColumns = FOption.empty();
 	private FOption<String> m_nullValue = FOption.empty();
 	private boolean m_tiger = false;
-	private FOption<Integer> m_maxColLength = FOption.empty();
 	
 	public static CsvParameters create() {
 		return new CsvParameters();
@@ -190,19 +189,6 @@ public class CsvParameters {
 		return this;
 	}
 	
-	public FOption<Integer> maxColumnLength() {
-		return m_maxColLength;
-	}
-
-	@Option(names={"-max_column_length"}, paramLabel="column_length",
-			description={"set maximum column length"})
-	public CsvParameters maxColumnLength(int length) {
-		Utilities.checkArgument(length > 0, "length > 0");
-		
-		m_maxColLength = FOption.of(length);
-		return this;
-	}
-	
 	public CsvParameters duplicate() {
 		CsvParameters dupl = create();
 		dupl.m_delim = m_delim;
@@ -217,7 +203,6 @@ public class CsvParameters {
 		dupl.m_header = m_header;
 		dupl.m_nullValue = m_nullValue;
 		dupl.m_tiger = m_tiger;
-		dupl.m_maxColLength = m_maxColLength;
 		
 		return dupl;
 	}
