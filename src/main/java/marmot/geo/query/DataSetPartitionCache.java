@@ -82,6 +82,10 @@ public class DataSetPartitionCache {
 		m_cache.remove(new PartitionKey(dsId, quadKey));
 	}
 	
+	public File getTopDir() {
+		return m_cache.getRootDir();
+	}
+	
 	private File writeIntoCache(PartitionKey key, RecordSet rset)
 		throws IOException {
 		rset = RecordSet.from(rset.getRecordSchema(), rset.fstream().shuffle());
