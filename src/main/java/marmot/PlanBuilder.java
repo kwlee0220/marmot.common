@@ -588,12 +588,14 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder defineColumn(String colDecl, RecordScript colInitScript) {
 		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
-		Utilities.checkNotNullArgument(colInitScript, "colInitScript is null");
 		
-		DefineColumnProto op = DefineColumnProto.newBuilder()
-											.setColumnDecl(colDecl)
-											.setColumnInitializer(colInitScript.toProto())
-											.build();
+		DefineColumnProto.Builder bldr = DefineColumnProto.newBuilder()
+														.setColumnDecl(colDecl);
+		if ( colInitScript != null ) {
+			bldr = bldr.setColumnInitializer(colInitScript.toProto());
+		}
+		
+		DefineColumnProto op = bldr.build();
 		return add(OperatorProto.newBuilder()
 								.setDefineColumn(op)
 								.build());

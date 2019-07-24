@@ -42,11 +42,11 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 	}
 
 	private RecordScript(String init, String expr) {
-		Utilities.checkNotNullArgument(init, "init is null");
 		Utilities.checkNotNullArgument(expr, "expr is null");
 		
 		m_script = MVELScript.of(expr);
-		m_initializer = FOption.of(MVELScript.of(init));
+		m_initializer = FOption.ofNullable(init)
+								.map(MVELScript::of);
 	}
 	
 	public String getExpression() {
