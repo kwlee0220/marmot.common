@@ -51,7 +51,7 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public interface RecordSet extends Closeable {
+public interface RecordSet extends Closeable, Iterable<Record> {
 	/**
 	 * 본 레코드 세트에 속한 레코드들의 스키마를 반환한다.
 	 * 
