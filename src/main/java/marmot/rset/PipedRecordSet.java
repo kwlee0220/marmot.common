@@ -30,7 +30,7 @@ import utils.Utilities;
 public class PipedRecordSet extends AbstractRecordSet {
 	private static final Logger s_logger = LoggerFactory.getLogger(PipedRecordSet.class);
 	
-	private static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(3);	// 3m
+	private static final long DEFAULT_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5);	// 5m
 	enum State {
 		/** 작동 중인 상태.*/
 		OPEN,

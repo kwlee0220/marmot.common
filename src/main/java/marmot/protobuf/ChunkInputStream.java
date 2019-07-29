@@ -26,7 +26,7 @@ import utils.UnitUtils;
  */
 public class ChunkInputStream extends InputStream {
 	private static final Logger s_logger = LoggerFactory.getLogger(ChunkInputStream.class);
-	private static final long TIMEOUT = UnitUtils.parseDuration("3s");
+	private static final long TIMEOUT = UnitUtils.parseDuration("10s");
 	
 	private final int m_capacity;
 	
