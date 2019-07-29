@@ -115,7 +115,8 @@ public class GeoDataStore {
 	 */
 	public List<DataSet> getGeoDataSetAll() {
 		return FStream.from(m_marmot.getDataSetAll())
-						.filter(DataSet::isSpatiallyClustered)
+//						.filter(DataSet::isSpatiallyClustered)
+						.filter(DataSet::hasGeometryColumn)
 						.toList();
 	}
 	
