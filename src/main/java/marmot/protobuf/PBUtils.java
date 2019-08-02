@@ -626,10 +626,7 @@ public class PBUtils {
 	}
 	
 	public static Envelope fromProto(EnvelopeProto proto) {
-		CoordinateProto tl = proto.getTl();
-		CoordinateProto br = proto.getBr();
-		return new Envelope(new Coordinate(tl.getX(), tl.getY()),
-							new Coordinate(br.getX(), br.getY()));
+		return new Envelope(fromProto(proto.getTl()), fromProto(proto.getBr()));
 	}
 	
 	public static EnvelopeProto toProto(Envelope envl) {
