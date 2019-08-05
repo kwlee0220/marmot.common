@@ -1201,8 +1201,17 @@ public class PlanBuilder {
 	}
 	public PlanBuilder query(String dsId, Envelope bounds, PredicateOptions opts) {
 		Utilities.checkNotNullArgument(bounds, "key bounds");
-		
-		return query(dsId, GeoClientUtils.toPolygon(bounds), opts);
+		Utilities.checkNotNullArgument(dsId, "input dataset id");
+		Utilities.checkNotNullArgument(bounds, "bounds is null");
+				
+		QueryDataSetProto query = QueryDataSetProto.newBuilder()
+													.setDsId(dsId)
+													.setBounds(PBUtils.toProto(bounds))
+													.setOptions(opts.toProto())
+													.build();
+		return add(OperatorProto.newBuilder()
+								.setQueryDataset(query)
+								.build());
 	}
 	public PlanBuilder query(String dsId, Envelope bounds) {
 		return query(dsId, bounds, PredicateOptions.DEFAULT);

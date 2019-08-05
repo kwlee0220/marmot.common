@@ -45,10 +45,11 @@ message LoadSpatialClusteredFileProto {
 message QueryDataSetProto {
 	string ds_id = 1;
 	oneof either_key {
-		GeometryProto key_geometry = 2;
-		string key_dataset = 3;
+		EnvelopeProto bounds = 2;
+		GeometryProto key_geometry = 3;
+		string key_dataset = 4;
 	}
-	PredicateOptionsProto options = 4;
+	PredicateOptionsProto options = 5;
 }
 
 message FilterSpatiallyProto {
