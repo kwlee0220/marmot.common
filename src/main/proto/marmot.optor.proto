@@ -55,11 +55,12 @@ message QueryDataSetProto {
 message FilterSpatiallyProto {
 	string geometry_column = 1;
 	oneof either_key {
-		GeometryProto key_geometry = 2;
-		string key_dataset = 3;
+		EnvelopeProto key_bounds = 2;
+		GeometryProto key_geometry = 3;
+		string key_dataset = 4;
 	}
-	string spatial_relation = 4;
-	PredicateOptionsProto options = 5;
+	string spatial_relation = 5;
+	PredicateOptionsProto options = 6;
 }
 
 message JdbcConnectOptionsProto {

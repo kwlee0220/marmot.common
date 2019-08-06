@@ -39,23 +39,6 @@ public class UploadFiles {
 	private final String m_dest;
 	private FOption<Long> m_blockSize = FOption.empty();
 	
-//	public static void run(MarmotRuntime marmot, CommandLine cl) throws Exception {
-//		if ( cl.hasOption("h") ) {
-//			cl.exitWithUsage(0);
-//		}
-//		
-//		File start = new File(cl.getArgument(0));
-//		String dest = cl.getArgument(1);
-//		FOption<Long> blockSize = cl.getOptionString("block_size")
-//									.map(UnitUtils::parseByteSize);
-//		String glob = cl.getOptionString("glob").getOrNull();
-//		
-//		new UploadFiles(marmot, start, dest)
-//			.glob(glob)
-//			.blockSize(blockSize)
-//			.run();
-//	}
-	
 	public UploadFiles(MarmotRuntime marmot, File start, String dest) {
 		Utilities.checkNotNullArgument(marmot, "marmot is null");
 		Utilities.checkNotNullArgument(start, "source file(or directory)");

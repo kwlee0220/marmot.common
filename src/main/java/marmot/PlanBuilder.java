@@ -27,7 +27,6 @@ import marmot.plan.LoadOptions;
 import marmot.plan.PredicateOptions;
 import marmot.plan.SpatialJoinOptions;
 import marmot.proto.GeometryColumnInfoProto;
-import marmot.proto.GeometryProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.TypeCodeProto;
 import marmot.proto.optor.ArcClipProto;
@@ -1244,6 +1243,41 @@ public class PlanBuilder {
 	 * 
 	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
 	 * @param rel		조건 공간 연산 관계
+	 * @param key		교집합 여부를 검사할 사각 영역 객체.
+	 * @param opts		옵션 리스트
+	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
+	 */
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Envelope key,
+										PredicateOptions opts) {
+		Utilities.checkNotNullArgument(geomCol, "geometry column name");
+		Utilities.checkNotNullArgument(rel, "SpatialRelation");
+		Utilities.checkNotNullArgument(key, "key geometry");
+		Utilities.checkNotNullArgument(opts, "PredicateOption");
+		
+		FilterSpatiallyProto op = FilterSpatiallyProto.newBuilder()
+														.setGeometryColumn(geomCol)
+														.setSpatialRelation(rel.toStringExpr())
+														.setKeyBounds(PBUtils.toProto(key))
+														.setOptions(opts.toProto())
+														.build();
+
+		return add(OperatorProto.newBuilder()
+								.setFilterSpatially(op)
+								.build());
+	}
+	public PlanBuilder filterSpatially(String geomCol, SpatialRelation rel, Envelope key) {
+		return filterSpatially(geomCol, rel, key, PredicateOptions.DEFAULT);
+	}
+
+	/**
+	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
+	 * 주어진 공간 객체 컬럼와 교집합이 존재하는
+	 * 레코드들로 구성된 레코드 세트를 생성하는 연산을 추가한다.
+	 * <p>
+	 * 레코드 내의 공간 객체와 인자로 주어진 공간 객체 {@code key}는 동일한 SRID 이어야 한다. 
+	 * 
+	 * @param geomCol	입력 레코드에서 사용될 공간 객체 컬럼 이름.
+	 * @param rel		조건 공간 연산 관계
 	 * @param key		교집합 여부를 검사할 공간 객체.
 	 * @param opts		옵션 리스트
 	 * @return 명령이 추가된 {@code PlanBuilder} 객체.
@@ -1255,11 +1289,10 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(key, "key geometry");
 		Utilities.checkNotNullArgument(opts, "PredicateOption");
 		
-		GeometryProto keyProto = PBUtils.toProto(key);
 		FilterSpatiallyProto op = FilterSpatiallyProto.newBuilder()
 														.setGeometryColumn(geomCol)
 														.setSpatialRelation(rel.toStringExpr())
-														.setKeyGeometry(keyProto)
+														.setKeyGeometry(PBUtils.toProto(key))
 														.setOptions(opts.toProto())
 														.build();
 
