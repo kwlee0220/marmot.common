@@ -6,6 +6,8 @@ import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.geotools.geometry.jts.Geometries;
@@ -45,6 +47,7 @@ import marmot.type.GeometryDataType;
 import utils.Size2d;
 import utils.Size2i;
 import utils.Utilities;
+import utils.func.FOption;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
 
@@ -105,6 +108,28 @@ public class GeoClientUtils {
 	
 	public static Size2d size(Envelope envl) {
 		return new Size2d(envl.getWidth(), envl.getHeight());
+	}
+
+	private static final String FPN = "(\\d+(\\.\\d*)?|(\\d+)?\\.\\d+)";
+	private static final String PT = String.format("\\(\\s*%s\\s*,\\s*%s\\s*\\)", FPN, FPN);
+	private static final String SZ = String.format("\\s*%s\\s*[xX]\\s*%s", FPN, FPN);
+	private static final String ENVL =  String.format("\\s*%s\\s*:\\s*%s", PT, SZ);
+	private static final Pattern PATTERN_ENVL = Pattern.compile(ENVL);
+	public static FOption<Envelope> parseEnvelope(String expr) {
+		Matcher matcher = PATTERN_ENVL.matcher(expr);
+		if ( matcher.find() ) {
+			FOption.empty();
+		}
+		
+		double x = Double.parseDouble(matcher.group(1));
+		double y = Double.parseDouble(matcher.group(4));
+		Coordinate min = new Coordinate(x, y);
+		
+		double width = Double.parseDouble(matcher.group(7));
+		double height = Double.parseDouble(matcher.group(10));
+		Coordinate max = new Coordinate(x + width, y + height);
+		
+		return FOption.of(new Envelope(min, max));
 	}
 
 	public static Geometry fromWKT(String wktStr) throws ParseException {
