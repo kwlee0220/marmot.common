@@ -112,6 +112,9 @@ message StoreAsCsvProto {
 		oneof optional_block_size {
 			int64 block_size = 3;
 		}
+		oneof optional_compression_codec_name {
+			string compression_codec_name = 4;
+		}
 	}
 }
 
