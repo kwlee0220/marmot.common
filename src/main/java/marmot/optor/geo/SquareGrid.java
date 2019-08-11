@@ -53,6 +53,16 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 	public Size2d getCellSize() {
 		return m_cellSize;
 	}
+	
+	@Override
+	public String toString() {
+		if ( m_gridBounds.isLeft() ) {
+			return String.format("%s:%s", m_gridBounds.getLeft(), m_cellSize);
+		}
+		else {
+			return String.format("%s:%s", m_gridBounds.right().get(), m_cellSize);
+		}
+	}
 
 	public static SquareGrid fromProto(SquareGridProto proto) {
 		Size2dProto sizeProto = proto.getCellSize();
