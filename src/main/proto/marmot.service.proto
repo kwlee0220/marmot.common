@@ -150,8 +150,8 @@ message StoreDataSetOptionsProto {
 	oneof optional_block_size {
 		int64 block_size = 4;
 	}
-	oneof optional_compress {
-		bool compress = 5;
+	oneof optional_compression_codec_name {
+		string compression_codec_name = 5;
 	}
 	oneof optional_metadata {
 		PropertiesProto metadata = 6;

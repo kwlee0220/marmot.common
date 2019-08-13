@@ -20,16 +20,16 @@ public class MarmotFileWriteOptions {
 	private final FOption<Boolean> m_force;
 	private final FOption<Boolean> m_append;
 	private final FOption<Long> m_blockSize;
-	private final FOption<Boolean> m_compress;
+	private final FOption<String> m_compressionCodecName;
 	private final FOption<Map<String,String>> m_metaData;
 	
 	private MarmotFileWriteOptions(FOption<Boolean> force, FOption<Boolean> append,
-									FOption<Long> blockSize, FOption<Boolean> compress,
+									FOption<Long> blockSize, FOption<String> codecName,
 									FOption<Map<String,String>> metadata) {
 		m_force = force;
 		m_append = append;
 		m_blockSize = blockSize;
-		m_compress = compress;
+		m_compressionCodecName = codecName;
 		m_metaData = metadata;
 	}
 	
@@ -44,7 +44,7 @@ public class MarmotFileWriteOptions {
 
 	public MarmotFileWriteOptions force(Boolean flag) {
 		return new MarmotFileWriteOptions(FOption.of(flag), m_append, m_blockSize,
-											m_compress, m_metaData);
+											m_compressionCodecName, m_metaData);
 	}
 	
 	public FOption<Boolean> append() {
@@ -53,7 +53,7 @@ public class MarmotFileWriteOptions {
 	
 	public MarmotFileWriteOptions append(Boolean flag) {
 		return new MarmotFileWriteOptions(m_force, FOption.of(flag), m_blockSize,
-											m_compress, m_metaData);
+											m_compressionCodecName, m_metaData);
 	}
 	
 	public FOption<Long> blockSize() {
@@ -62,20 +62,24 @@ public class MarmotFileWriteOptions {
 
 	public MarmotFileWriteOptions blockSize(long blkSize) {
 		return new MarmotFileWriteOptions(m_force, m_append, FOption.of(blkSize),
-											m_compress, m_metaData);
+											m_compressionCodecName, m_metaData);
 	}
 
 	public MarmotFileWriteOptions blockSize(String blkSizeStr) {
 		return blockSize(UnitUtils.parseByteSize(blkSizeStr));
 	}
 	
-	public FOption<Boolean> compress() {
-		return m_compress;
+	public FOption<String> compressionCodecName() {
+		return m_compressionCodecName;
 	}
 	
-	public MarmotFileWriteOptions compress(Boolean flag) {
+	public MarmotFileWriteOptions compressionCodecName(String name) {
 		return new MarmotFileWriteOptions(m_force, m_append, m_blockSize,
-											FOption.of(flag), m_metaData);
+											FOption.of(name), m_metaData);
+	}
+	
+	public MarmotFileWriteOptions compressionCodecName(FOption<String> name) {
+		return new MarmotFileWriteOptions(m_force, m_append, m_blockSize, name, m_metaData);
 	}
 	
 	public FOption<Map<String,String>> metaData() {
@@ -84,6 +88,6 @@ public class MarmotFileWriteOptions {
 
 	public MarmotFileWriteOptions metaData(Map<String,String> metaData) {
 		return new MarmotFileWriteOptions(m_force, m_append, m_blockSize,
-											m_compress, FOption.of(metaData));
+											m_compressionCodecName, FOption.of(metaData));
 	}
 }

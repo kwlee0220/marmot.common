@@ -126,7 +126,7 @@ public interface DataSet {
 	 * 
 	 * @return	반환 여부
 	 */
-	public boolean isCompressed();
+	public FOption<String> getCompressionCodecName();
 	
 	/**
 	 * 본 데이터 세트가 공간 클러스터가 존재하는지 유무를 반환한다.

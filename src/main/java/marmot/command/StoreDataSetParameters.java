@@ -80,13 +80,13 @@ public class StoreDataSetParameters {
 		m_options = m_options.blockSize(blockSize);
 	}
 	
-	public FOption<Boolean> getCompression() {
-		return m_options.compression();
+	public FOption<String> getCompressionCodecName() {
+		return m_options.compressionCodecName();
 	}
 
-	@Option(names={"-compression"}, description="compress while stored data")
-	public void setCompression(boolean flag) {
-		m_options = m_options.compression(flag);
+	@Option(names={"-compression"}, description="compression codec name")
+	public void setCompressionCodecName(String codecName) {
+		m_options = m_options.compressionCodecName(codecName);
 	}
 	
 	public FOption<Integer> getReportInterval() {

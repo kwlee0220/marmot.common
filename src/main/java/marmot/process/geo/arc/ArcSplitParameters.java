@@ -132,13 +132,17 @@ public class ArcSplitParameters {
 		m_params.put(FORCE, "" + flag);
 	}
 	
-	public FOption<Boolean> getCompression() {
-		String str = m_params.get(COMPRESSION);
-		return str != null ? FOption.of(DataUtils.asBoolean(str)) : FOption.empty();
+	public FOption<String> getCompressionCodecName() {
+		return FOption.ofNullable(m_params.get(COMPRESSION));
 	}
 	
-	public void setCompression(boolean flag) {
-		m_params.put(COMPRESSION, "" + flag);
+	public void setCompressionCodecName(String codecName) {
+		if ( codecName != null ) {
+			m_params.put(COMPRESSION, codecName);
+		}
+		else {
+			m_params.remove(COMPRESSION);
+		}
 	}
 	
 	public FOption<Long> getBlockSize() {

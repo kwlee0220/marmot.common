@@ -28,7 +28,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 	private long m_count = 0;
 	private RecordSchema m_schema;
 	private String m_filePath;
-	private boolean m_compression = false;
+	private FOption<String> m_compressionCodecName = FOption.empty();
 	private boolean m_mapOutputCompression = false;
 	private long m_blockSize = -1;
 	private float m_thumbnailRatio = -1;
@@ -131,12 +131,16 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 		return info;
 	}
 	
-	public boolean getCompression() {
-		return m_compression;
+	public FOption<String> getCompressionCodecName() {
+		return m_compressionCodecName;
 	}
 	
-	public void setCompression(boolean flag) {
-		m_compression = flag;
+	public void setCompressionCodecName(String codecName) {
+		m_compressionCodecName = FOption.ofNullable(codecName);
+	}
+	
+	public void setCompressionCodecName(FOption<String> codecName) {
+		m_compressionCodecName = codecName;
 	}
 	
 	public boolean getMapOutputCompression() {
@@ -216,7 +220,17 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 			info.m_bounds = PBUtils.fromProto(geom.getBounds());
 		});
 		
-		info.m_compression = proto.getCompression();
+		switch ( proto.getOptionalCompressionCodecNameCase() ) {
+			case COMPRESSION_CODEC_NAME:
+				info.m_compressionCodecName = FOption.of(proto.getCompressionCodecName());
+				break;
+			case OPTIONALCOMPRESSIONCODECNAME_NOT_SET:
+				info.m_compressionCodecName = FOption.empty();
+				break;
+			default:
+				throw new AssertionError();
+		}
+		
 		info.m_blockSize = proto.getBlockSize();
 		info.m_thumbnailRatio = proto.getThumbnailRatio();
 		info.m_updatedMillis = proto.getUpdatedMillis();
@@ -234,7 +248,6 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 												.setRecordCount(m_count)
 												.setHdfsPath(m_filePath)
 												.setBlockSize(getBlockSize())
-												.setCompression(m_compression)
 												.setThumbnailRatio(m_thumbnailRatio)
 												.setUpdatedMillis(m_updatedMillis);
 		m_geomColInfo.ifPresent(geomCol -> {
@@ -246,6 +259,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 												.build();
 			builder.setGeometryInfo(geomProto);
 		});
+		m_compressionCodecName.ifPresent(builder::setCompressionCodecName);
 		
 		return builder.build();
 	}

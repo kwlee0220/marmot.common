@@ -106,7 +106,9 @@ message DataSetInfoProto {
 	}
 	int64 record_count = 6;		// 레코드 수
 	string hdfs_path = 7;		// HDFS 저장 경로
-	bool compression = 8;		// 압축 저장 여부
+	oneof optional_compression_codec_name {
+		string compression_codec_name = 8;		// 압축 저장 여부
+	}
 	int64 block_size = 9;		// HDFS 파일 블록 크기 (기본 64mb)
 	float thumbnail_ratio = 10;	// Thumbnail sample ratio (없는 경우는 -1)
 	int64 updated_millis = 11;	// 최근 변경 시간 (단위: UTC epoc millis)
