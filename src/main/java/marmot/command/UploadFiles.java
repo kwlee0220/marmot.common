@@ -38,6 +38,7 @@ public class UploadFiles {
 	private PathMatcher m_pathMatcher;
 	private final String m_dest;
 	private FOption<Long> m_blockSize = FOption.empty();
+	private FOption<String> m_codecName = FOption.empty();
 	
 	public UploadFiles(MarmotRuntime marmot, File start, String dest) {
 		Utilities.checkNotNullArgument(marmot, "marmot is null");
@@ -70,6 +71,15 @@ public class UploadFiles {
 		return this;
 	}
 	
+	public FOption<String> compressionCodecName() {
+		return m_codecName;
+	}
+	
+	public UploadFiles compressionCodecName(String codecName) {
+		m_codecName = FOption.ofNullable(codecName);
+		return this;
+	}
+	
 	public void run() throws Exception {
 		StopWatch watch = StopWatch.start();
 		
@@ -90,7 +100,7 @@ public class UploadFiles {
 			String destPath = m_dest + "/" + suffix;
 			
 			try ( FileBlockIterator blocks = new FileBlockIterator(path) ) {
-				m_marmot.copyToHdfsFile(destPath, blocks, m_blockSize);
+				m_marmot.copyToHdfsFile(destPath, blocks, m_blockSize, m_codecName);
 			}
 		}
 		

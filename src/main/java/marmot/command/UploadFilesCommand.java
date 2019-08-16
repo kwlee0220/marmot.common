@@ -27,6 +27,10 @@ public class UploadFilesCommand implements CheckedConsumer<MarmotRuntime> {
 	private String m_glob = null;
 
 	private long m_blockSize = -1;
+	
+	@Option(names={"-c", "-compression"}, paramLabel="codec_name", description="compression codec name")
+	private String m_codecName = null;
+	
 	@Mixin private UsageHelp m_help;
 	
 	@Override
@@ -34,6 +38,7 @@ public class UploadFilesCommand implements CheckedConsumer<MarmotRuntime> {
 		UploadFiles upload = new UploadFiles(marmot, new File(m_srcPath), m_destPath);
 		Funcs.when(m_glob != null, () -> upload.glob(m_glob));
 		Funcs.when(m_blockSize > 0, () -> upload.blockSize(m_blockSize));
+		Funcs.acceptIfNotNull(m_codecName, upload::compressionCodecName);
 		upload.run();
 	}
 
