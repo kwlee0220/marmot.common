@@ -27,6 +27,7 @@ import utils.fostore.FileObjectHandler;
 import utils.fostore.FileObjectStore;
 import utils.func.FOption;
 import utils.io.IOUtils;
+import utils.io.Lz4Compressions;
 
 /**
  * 
@@ -38,8 +39,10 @@ public class DataSetPartitionCache {
 
 	private final LoadingCache<String,DataSet> m_dsCache;
 	private final FileObjectStore<PartitionKey,InputStream> m_cache;
+	private final boolean m_useCompression;
 
-	public DataSetPartitionCache(MarmotRuntime marmot, File storeRoot) throws IOException {
+	public DataSetPartitionCache(MarmotRuntime marmot, File storeRoot, boolean useCompression)
+		throws IOException {
 		s_logger.info("use dataset_partition_cache: {}", storeRoot);
 		
 		m_cache = new FileObjectStore<>(storeRoot, new ParitionFileHandler(storeRoot));
@@ -52,6 +55,7 @@ public class DataSetPartitionCache {
 										return marmot.getDataSet(key);
 									}
 								});
+		m_useCompression = useCompression;
 	}
 	
 	public boolean exists(String dsId, String quadKey) {
@@ -59,18 +63,25 @@ public class DataSetPartitionCache {
 	}
 	
 	public RecordSet get(String dsId, String quadKey) throws IOException {
+		InputStream is;
+		
 		PartitionKey key = new PartitionKey(dsId, quadKey);
 		FOption<InputStream> ois = m_cache.get(key);
-		if ( ois.isPresent() ) {
-			return PBInputStreamRecordSet.from(ois.getUnchecked());
+		if ( ois.isPresent() ) {	// cache에 해당 파티션이 존재하는 경
+			is = ois.getUnchecked();
 		}
-		else {
+		else {	// cache에 파티션이 존재하지 않는 경우
 			DataSet ds = m_dsCache.getUnchecked(key.m_dsId);
 			RecordSet cluster = ds.readSpatialCluster(key.m_quadKey);
 			
 			File file = writeIntoCache(key, cluster);
-			return PBInputStreamRecordSet.from(new FileInputStream(file));
+			is = new FileInputStream(file);
 		}
+		
+		if ( m_useCompression ) {
+			is = Lz4Compressions.decompress(is);
+		}
+		return PBInputStreamRecordSet.from(is);
 	}
 	
 	public void put(String dsId, String quadKey, RecordSet rset)
@@ -89,7 +100,17 @@ public class DataSetPartitionCache {
 	private File writeIntoCache(PartitionKey key, RecordSet rset)
 		throws IOException {
 		rset = RecordSet.from(rset.getRecordSchema(), rset.fstream().shuffle());
-		return m_cache.insert(key, PBRecordSetInputStream.from(rset));
+		
+		InputStream is = PBRecordSetInputStream.from(rset);
+		try {
+			if ( m_useCompression ) {
+				is = Lz4Compressions.compress(is);
+			}
+			return m_cache.insert(key, is);
+		}
+		finally {
+			is.close();
+		}
 	}
 	
 	private void onDataSetRemoved(RemovalNotification<String,DataSet> noti) {

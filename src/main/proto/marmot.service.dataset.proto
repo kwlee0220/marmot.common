@@ -21,14 +21,14 @@ message BindDataSetOptionsProto {
 
 service DataSetService {
 	rpc createDataSet(CreateDataSetRequest) returns (DataSetInfoResponse);
-	rpc appendIntoDataSet(AppendIntoDataSetRequest) returns (DataSetInfoResponse);
 	rpc bindDataSet(BindDataSetRequest) returns (DataSetInfoResponse);
-	// StringProto
+	// ReadDataSetRequest
 	rpc readDataSet(stream DownChunkResponse) returns (stream DownChunkRequest);
 	// QueryRangeRequest
 	rpc queryRange(stream DownChunkResponse) returns (stream DownChunkRequest);
 	// AppendRecordSetRequest
 	rpc appendRecordSet(stream UpChunkRequest) returns (stream UpChunkResponse);
+	rpc appendPlanResult(AppendPlanResultRequest) returns (DataSetInfoResponse);
 	rpc deleteDataSet(marmot.proto.StringProto) returns (BoolResponse);
 	rpc moveDataSet(MoveDataSetRequest) returns (VoidResponse);
 	rpc clusterDataSet(ClusterDataSetRequest) returns (SpatialIndexInfoResponse);
@@ -80,6 +80,7 @@ message ReadThumbnailRequest {
 	string id = 1;				// 데이터세트 식별자
 	EnvelopeProto range = 2;
 	int32 count = 3;
+	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
 }
 
 enum DataSetTypeProto {
@@ -139,18 +140,24 @@ message CreateDataSetRequest {
 	StoreDataSetOptionsProto options = 4;
 }
 
-message AppendIntoDataSetRequest {
+message ReadDataSetRequest {
+	string id = 1;						// 읽고자 하는 데이터세트의 식별자.
+	bool use_compression = 2;			// 데이터 송수신할 때 압축사용 여부
+}
+
+message AppendPlanResultRequest {
 	string id = 1;						// 추가하고자 하는 데이터세트의 식별자.
 	marmot.proto.service.ExecutePlanRequest plan_exec = 2;
 }
 
 message AppendRecordSetRequest {  
-	string id = 1;		// 업로드 대상 데이터세트 식별자
-	string rset_id = 2;	// 업로드할 레코드세트 식별자
+	string id = 1;				// 업로드 대상 데이터세트 식별자
+	string rset_id = 2;			// 업로드할 레코드세트 식별자
 	oneof optional_plan {
 		// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
 		marmot.proto.optor.PlanProto plan = 3;
 	}
+	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
 }
 
 message AppendRecordSetChunkProto {
@@ -211,6 +218,7 @@ message QueryRangeRequest {
 	oneof optional_filter_epxr {
 		string filter_expr = 3;	// 검색 조건
 	}
+	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
 }
 
 
@@ -244,6 +252,7 @@ message SpatialClusterInfoProto {
 message ReadRawSpatialClusterRequest {
 	string dataset_id = 1;			// 접근하려는 데이터세트 식별자.
 	string quad_key = 2;			// 읽으려는 공간 클러스터 (인덱스 블럭) 식별자.
+	bool use_compression = 3;		// 데이터 송수신할 때 압축사용 여부
 }
 message SampleSpatialClusterRequest {
 	string dataset_id = 1;

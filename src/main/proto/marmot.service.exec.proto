@@ -11,13 +11,14 @@ import public "marmot.optor.proto";
 
 
 service PlanExecutionService {
+	// ExecutePlanRequest
 	rpc execute(ExecutePlanRequest) returns (VoidResponse);
-	// ExecutePlanLocallyRequest -> Stream
+	// ExecutePlanRequest -> Stream
 	rpc executeLocally(stream DownChunkResponse) returns (stream DownChunkRequest);
-	// ExecutePlanLocallyRequest
+	// ExecutePlanRequest
 	rpc executeLocallyWithInput(stream UpRequestDownResponse) returns (stream UpResponseDownRequest);
 	rpc executeToSingle(ExecutePlanRequest) returns (OptionalRecordResponse);
-	// ExecutePlanLocallyRequest -> Stream
+	// ExecutePlanRequest -> Stream
 	rpc executeToRecordSet(stream DownChunkResponse) returns (stream DownChunkRequest);
 	// GetStreamRequest -> Stream
 	rpc executeToStream(stream DownChunkResponse) returns (stream DownChunkRequest);
@@ -120,12 +121,8 @@ message GetOutputRecordSchemaRequest {
 message ExecutePlanRequest {
 	marmot.proto.optor.PlanProto plan = 1;
 	ExecutePlanOptionsProto options = 2;
-}
-
-message ExecutePlanLocallyRequest {
-	marmot.proto.optor.PlanProto plan = 1;
-	bool has_input_rset = 2;
-	ExecutePlanOptionsProto options = 3;
+	bool has_input_rset = 3;			// 입력 레코드세트 유무
+	bool use_compression = 4;			// 데이터 송수신할 때 압축사용 여부
 }
 
 message ExecuteProcessRequest {

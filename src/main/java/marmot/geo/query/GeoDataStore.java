@@ -55,7 +55,7 @@ public class GeoDataStore {
 		m_marmot = marmot;
 		m_dsAdaptor = new TextDataSetAdaptor(marmot);
 		
-		m_cache = new DataSetPartitionCache(marmot, cacheDir);
+		m_cache = new DataSetPartitionCache(marmot, cacheDir, true);
 		m_dsCache = CacheBuilder.newBuilder()
 								.expireAfterAccess(DEFAULT_DS_CACHE_EXPIRE_MINUTES, MINUTES)
 								.build(new CacheLoader<String,DataSet>() {
