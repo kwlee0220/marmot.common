@@ -24,11 +24,11 @@ import utils.UnitUtils;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class ChunkInputStream extends InputStream {
-	private static final Logger s_logger = LoggerFactory.getLogger(ChunkInputStream.class);
+public class SuppliableInputStream extends InputStream {
+	private static final Logger s_logger = LoggerFactory.getLogger(SuppliableInputStream.class);
 	private static final long TIMEOUT = UnitUtils.parseDuration("10s");
 	
-	private final int m_capacity;
+	private final int m_chunkQLength;
 	
 	private final Guard m_guard = Guard.create();
 	@GuardedBy("m_guard") private final List<ByteString> m_chunkQueue;
@@ -40,13 +40,13 @@ public class ChunkInputStream extends InputStream {
 	private int m_offset;
 	private long m_totalOffset = 0;
 	
-	public static ChunkInputStream create(int capacity) {
-		return new ChunkInputStream(capacity);
+	public static SuppliableInputStream create(int chunkQLength) {
+		return new SuppliableInputStream(chunkQLength);
 	}
 	
-	private ChunkInputStream(int capacity) {
-		m_capacity = capacity;
-		m_chunkQueue = Lists.newArrayListWithCapacity(capacity);
+	private SuppliableInputStream(int chunkQLength) {
+		m_chunkQLength = chunkQLength;
+		m_chunkQueue = Lists.newArrayListWithCapacity(chunkQLength);
 		m_buffer = null;
 	}
 	
@@ -132,7 +132,7 @@ public class ChunkInputStream extends InputStream {
 				if ( m_eos ) {
 					return;
 				}
-				if ( m_chunkQueue.size() < m_capacity ) {
+				if ( m_chunkQueue.size() < m_chunkQLength ) {
 					m_chunkQueue.add(chunk);
 					++m_chunkCount;
 					cond.signalAll();
