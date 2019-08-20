@@ -1084,7 +1084,7 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(outputColumnExpr, "output columns is null");
 		Utilities.checkNotNullArgument(opts, "JoinOptions is null");
 		
-		opts = (opts == null) ? JoinOptions.INNER_JOIN : opts;
+//		opts = (opts == null) ? JoinOptions.INNER_JOIN : opts;
 		
 		LoadHashJoinProto load = LoadHashJoinProto.newBuilder()
 												.setLeftDataset(leftDataSet)
