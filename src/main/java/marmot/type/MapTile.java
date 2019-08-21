@@ -71,6 +71,10 @@ public class MapTile implements Comparable<MapTile>, Serializable {
 		return new MapTile(zoom, tileX, tileY, quadKey);
 	}
 	
+	public static MapTile fromQuadValue(long quadValue) {
+		return fromQuadKey(Long.toString(quadValue, 4));
+	}
+	
 	public MapTile(int zoom, int x, int y) {
 		this(zoom, x, y, null);
 	}
@@ -119,6 +123,10 @@ public class MapTile implements Comparable<MapTile>, Serializable {
 		}
 		
 		return m_quadKey;
+	}
+	
+	public long getQuadValue() {
+		return Long.parseLong(getQuadKey());
 	}
 	
 	public boolean contains(Coordinate coord) {

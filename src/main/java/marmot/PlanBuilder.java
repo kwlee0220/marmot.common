@@ -31,7 +31,6 @@ import marmot.proto.SerializedProto;
 import marmot.proto.TypeCodeProto;
 import marmot.proto.optor.ArcClipProto;
 import marmot.proto.optor.ArcSpatialJoinProto;
-import marmot.proto.optor.ArcSplitProto;
 import marmot.proto.optor.AssignSquareGridCellProto;
 import marmot.proto.optor.AssignUidProto;
 import marmot.proto.optor.AttachGeoHashProto;
@@ -1390,26 +1389,6 @@ public class PlanBuilder {
 		
 		return add(OperatorProto.newBuilder()
 								.setStoreIntoDataset(store)
-								.build());
-	}
-	
-	public PlanBuilder arcSplit(String geomCol, String splitDsId, String splitKey,
-								String outDir, StoreDataSetOptions opts) {
-		Utilities.checkNotNullArgument(geomCol, "geometry column is null");
-		Utilities.checkNotNullArgument(splitDsId, "split dataset is null");
-		Utilities.checkNotNullArgument(splitKey, "split key is null");
-		Utilities.checkNotNullArgument(outDir, "output dataset directory is null");
-		Utilities.checkNotNullArgument(opts, "StoreDataSetOptions is null");
-		
-		ArcSplitProto proto = ArcSplitProto.newBuilder()
-											.setGeomColumn(geomCol)
-											.setSplitDataset(splitDsId)
-											.setSplitKey(splitKey)
-											.setOutputDatasetDir(outDir)
-											.setOptions(opts.toProto())
-											.build();
-		return add(OperatorProto.newBuilder()
-								.setArcSplit(proto)
 								.build());
 	}
 
