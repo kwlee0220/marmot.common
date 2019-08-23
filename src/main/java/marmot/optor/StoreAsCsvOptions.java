@@ -26,13 +26,13 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 	
 	public static StoreAsCsvOptions DEFAULT() {
-		return new StoreAsCsvOptions(CsvOptions.DEFAULT(), FOption.empty(), FOption.empty(),
-									FOption.empty());
+		return new StoreAsCsvOptions(CsvOptions.DEFAULT(), FOption.empty(),
+									FOption.empty(), FOption.empty());
 	}
 	
 	public static StoreAsCsvOptions DEFAULT(char delim) {
-		return new StoreAsCsvOptions(CsvOptions.DEFAULT(delim), FOption.empty(), FOption.empty(),
-									FOption.empty());
+		return new StoreAsCsvOptions(CsvOptions.DEFAULT(delim), FOption.empty(),
+									FOption.empty(), FOption.empty());
 	}
 	
 	public char delimiter() {
@@ -40,8 +40,8 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions delimiter(char delim) {
-		return new StoreAsCsvOptions(m_csvOptions.delimiter(delim), m_headerFirst, m_blockSize,
-									m_compressionCodecName);
+		return new StoreAsCsvOptions(m_csvOptions.delimiter(delim), m_headerFirst,
+									m_blockSize, m_compressionCodecName);
 	}
 	
 	public FOption<Character> quote() {
@@ -49,8 +49,8 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions quote(char quote) {
-		return new StoreAsCsvOptions(m_csvOptions.quote(quote), m_headerFirst, m_blockSize,
-									m_compressionCodecName);
+		return new StoreAsCsvOptions(m_csvOptions.quote(quote), m_headerFirst,
+									m_blockSize, m_compressionCodecName);
 	}
 	
 	public FOption<Character> escape() {
@@ -58,8 +58,8 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 	
 	public StoreAsCsvOptions escape(char escape) {
-		return new StoreAsCsvOptions(m_csvOptions.escape(escape), m_headerFirst, m_blockSize,
-									m_compressionCodecName);
+		return new StoreAsCsvOptions(m_csvOptions.escape(escape), m_headerFirst,
+									m_blockSize, m_compressionCodecName);
 	}
 	
 	public FOption<Charset> charset() {
@@ -67,13 +67,13 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions charset(String charset) {
-		return new StoreAsCsvOptions(m_csvOptions.charset(charset), m_headerFirst, m_blockSize,
-									m_compressionCodecName);
+		return new StoreAsCsvOptions(m_csvOptions.charset(charset), m_headerFirst,
+									m_blockSize, m_compressionCodecName);
 	}
 
 	public StoreAsCsvOptions charset(Charset charset) {
-		return new StoreAsCsvOptions(m_csvOptions.charset(charset), m_headerFirst, m_blockSize,
-									m_compressionCodecName);
+		return new StoreAsCsvOptions(m_csvOptions.charset(charset), m_headerFirst,
+									m_blockSize, m_compressionCodecName);
 	}
 	
 	public FOption<Boolean> headerFirst() {
@@ -103,7 +103,8 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions compressionCodecName(String name) {
-		return new StoreAsCsvOptions(m_csvOptions, m_headerFirst, m_blockSize, FOption.ofNullable(name));
+		return new StoreAsCsvOptions(m_csvOptions, m_headerFirst, m_blockSize,
+									FOption.ofNullable(name));
 	}
 	
 	@Override
@@ -119,8 +120,8 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 
 	public static StoreAsCsvOptions fromProto(StoreAsCsvOptionsProto proto) {
 		CsvOptions csvOpts = CsvOptions.fromProto(proto.getCsvOptions());
-		StoreAsCsvOptions opts = new StoreAsCsvOptions(csvOpts, FOption.empty(), FOption.empty(),
-														FOption.empty());
+		StoreAsCsvOptions opts = new StoreAsCsvOptions(csvOpts, FOption.empty(),
+														FOption.empty(), FOption.empty());
 		
 		switch ( proto.getOptionalHeaderFirstCase() ) {
 			case HEADER_FIRST:
