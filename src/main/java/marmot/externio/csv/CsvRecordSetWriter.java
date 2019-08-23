@@ -91,13 +91,13 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 		if ( m_options.escape().isPresent() ) {
 			format = format.withEscape(m_options.escape().get());
 		}
-		format = format.withSkipHeaderRecord(!m_options.headerFirst().getOrElse(false));
 
 		RecordSchema schema = rset.getRecordSchema();
 		String[] header = schema.streamColumns()
 								.map(Column::name)
 								.toArray(String.class);
 		format = format.withHeader(header);
+		format = format.withSkipHeaderRecord(!m_options.headerFirst().getOrElse(false));
 		
 		Column[] cols = schema.streamColumns().toArray(Column.class);
 		CSVPrinter printer = format.print(m_writer);

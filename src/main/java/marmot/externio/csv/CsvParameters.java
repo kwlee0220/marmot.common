@@ -209,10 +209,10 @@ public class CsvParameters {
 	
 	public StoreAsCsvOptions toStoreOptions() {
 		StoreAsCsvOptions opts = StoreAsCsvOptions.DEFAULT(m_delim);
-		m_quote.ifPresent(opts::quote);
-		m_escape.ifPresent(opts::escape);
-		m_charset.ifPresent(opts::charset);
-		m_headerFirst.ifPresent(opts::headerFirst);
+		opts = m_quote.transform(opts, (o,q) ->  o.quote(q));
+		opts = m_escape.transform(opts, (o,esc) ->  o.quote(esc));
+		opts = m_charset.transform(opts, (o,c) ->  o.charset(c));
+		opts = m_headerFirst.transform(opts, (o,f) ->  o.headerFirst(f));
 		
 		return opts;
 	}
