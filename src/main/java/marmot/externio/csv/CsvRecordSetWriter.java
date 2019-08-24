@@ -100,19 +100,19 @@ public class CsvRecordSetWriter implements RecordSetWriter, ProgressReporter<Lon
 		format = format.withSkipHeaderRecord(!m_options.headerFirst().getOrElse(false));
 		
 		Column[] cols = schema.streamColumns().toArray(Column.class);
-		CSVPrinter printer = format.print(m_writer);
-		
-		long nrecs = 0;
-		Record record = DefaultRecord.of(schema);
-		while ( rset.next(record) ) {
-			printer.printRecord(toCsvPartString(cols, record));
-			++nrecs;
-			if ( m_interval > 0 &&  (nrecs % m_interval) == 0 ) {
-				m_subject.onNext(nrecs);
+		try ( CSVPrinter printer = format.print(m_writer) ) {
+			long nrecs = 0;
+			Record record = DefaultRecord.of(schema);
+			while ( rset.next(record) ) {
+				printer.printRecord(toCsvPartString(cols, record));
+				++nrecs;
+				if ( m_interval > 0 &&  (nrecs % m_interval) == 0 ) {
+					m_subject.onNext(nrecs);
+				}
 			}
+			
+			return nrecs;
 		}
-		
-		return nrecs;
 	}
 
 	@Override
