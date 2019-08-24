@@ -15,7 +15,7 @@ import utils.Utilities;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public interface RecordWriter extends Closeable {
+public interface RecordWriter extends RecordSetWriter, Closeable {
 	public RecordSchema getRecordSchema();
 	
 	/**
