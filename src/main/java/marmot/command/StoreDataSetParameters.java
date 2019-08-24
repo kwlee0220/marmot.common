@@ -84,7 +84,7 @@ public class StoreDataSetParameters {
 		return m_options.compressionCodecName();
 	}
 
-	@Option(names={"-compression"}, description="compression codec name")
+	@Option(names={"-c", "-compress"}, description="compression codec name")
 	public void setCompressionCodecName(String codecName) {
 		m_options = m_options.compressionCodecName(codecName);
 	}
