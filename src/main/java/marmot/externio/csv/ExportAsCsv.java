@@ -11,7 +11,6 @@ import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
-import marmot.optor.StoreAsCsvOptions;
 import marmot.type.DataType;
 import utils.Utilities;
 import utils.async.ProgressReporter;
@@ -50,11 +49,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
 		Utilities.checkNotNullArgument(writer, "writer is null");
 		
-		StoreAsCsvOptions storeOpts = m_options.toStoreOptions();
-		try ( RecordSet rset = locateRecordSet(marmot);
-			CsvRecordSetWriter csvWriter = CsvRecordSetWriter.get(writer, storeOpts) ) {
-			return csvWriter.write(rset);
-		}
+		return CsvRecordWriter.write(writer, locateRecordSet(marmot), m_options.toStoreOptions());
 	}
 	
 	private RecordSet locateRecordSet(MarmotRuntime marmot) {

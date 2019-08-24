@@ -18,6 +18,7 @@ import io.reactivex.subjects.BehaviorSubject;
 import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
+import marmot.RecordSet;
 import marmot.externio.RecordWriter;
 import marmot.optor.StoreAsCsvOptions;
 import marmot.type.DataType;
@@ -63,6 +64,18 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 		return new CsvRecordWriter(new BufferedWriter(writer, DEFAULT_BUFFER_SIZE), schema, opts);
 	}
 	
+	public static long write(Writer writer, RecordSet rset, StoreAsCsvOptions opts) throws IOException {
+		try ( CsvRecordWriter csvWriter = get(writer, rset.getRecordSchema(), opts) ) {
+			return csvWriter.write(rset);
+		}
+	}
+	
+	public static long write(OutputStream os, RecordSet rset, StoreAsCsvOptions opts) throws IOException {
+		try ( CsvRecordWriter writer = get(os, rset.getRecordSchema(), opts) ) {
+			return writer.write(rset);
+		}
+	}
+	
 	private CsvRecordWriter(BufferedWriter writer, RecordSchema schema, StoreAsCsvOptions opts)
 		throws IOException {
 		Utilities.checkNotNullArgument(writer, "writer is null");
@@ -98,6 +111,10 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 	@Override
 	public RecordSchema getRecordSchema() {
 		return m_schema;
+	}
+
+	public void flush() throws IOException {
+		m_printer.flush();
 	}
 	
 	public CsvRecordWriter progressInterval(long interval) {

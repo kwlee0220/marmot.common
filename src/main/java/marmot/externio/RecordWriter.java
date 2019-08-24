@@ -39,12 +39,18 @@ public interface RecordWriter extends Closeable {
 		
 		long nwrites = 0;
 		Record record = DefaultRecord.of(getRecordSchema());
-		while ( rset.next(record) ) {
-			write(record);
-			++nwrites;
-		}
 		
-		return nwrites;
+		try {
+			while ( rset.next(record) ) {
+				write(record);
+				++nwrites;
+			}
+			
+			return nwrites;
+		}
+		finally {
+			rset.close();
+		}
 	}
 
 	/**
