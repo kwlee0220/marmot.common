@@ -106,14 +106,11 @@ message StoreAsCsvProto {
 	message StoreAsCsvOptionsProto {
 		CsvOptionsProto csv_options = 1;
 	
-		oneof optional_header_first {
-			bool header_first = 2;
-		}
 		oneof optional_block_size {
-			int64 block_size = 3;
+			int64 block_size = 2;
 		}
 		oneof optional_compression_codec_name {
-			string compression_codec_name = 4;
+			string compression_codec_name = 3;
 		}
 	}
 }
@@ -190,7 +187,10 @@ message CsvOptionsProto {
 		string escape = 3;
 	}
 	oneof optional_charset {
-		string charset = 8;
+		string charset = 4;
+	}
+	oneof optional_header_first {
+		bool header_first = 5;
 	}
 }
 
@@ -201,23 +201,20 @@ message ParseCsvProto {
 	message ParseCsvOptionsProto {
 		CsvOptionsProto csv_options = 1;
 
-		oneof optional_header_first {
-			bool header_first = 2;
-		}
 		oneof optional_header {
-			string header = 3;
+			string header = 2;
 		}
 		oneof optional_trim_column {
-			bool trim_column = 4;
+			bool trim_column = 3;
 		}
 		oneof optional_null_value {
-			string null_value = 5;
+			string null_value = 4;
 		}
 		oneof optional_max_column_length {
-			int32 max_column_length = 6;
+			int32 max_column_length = 5;
 		}
 		oneof optional_throw_parse_error {
-			bool throw_parse_error = 7;
+			bool throw_parse_error = 6;
 		}
 	}
 }

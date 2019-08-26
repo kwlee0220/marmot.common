@@ -24,15 +24,15 @@ import utils.func.FOption;
 public class ExportAsCsv implements ProgressReporter<Long> {
 	private final String m_dsId;
 	private FOption<Long> m_reportInterval = FOption.empty();
-	private final CsvParameters m_options;
+	private final CsvParameters m_params;
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.createDefault(0L);
 	
-	public ExportAsCsv(String dsId, CsvParameters options) {
+	public ExportAsCsv(String dsId, CsvParameters params) {
 		Utilities.checkNotNullArgument(dsId, "dataset id is null");
-		Utilities.checkNotNullArgument(options, "CsvOptions is null");
+		Utilities.checkNotNullArgument(params, "CsvParameters is null");
 		
 		m_dsId = dsId;
-		m_options = options;
+		m_params = params;
 	}
 	
 	public ExportAsCsv reportInterval(long interval) {
@@ -49,7 +49,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
 		Utilities.checkNotNullArgument(writer, "writer is null");
 		
-		return CsvRecordWriter.write(writer, locateRecordSet(marmot), m_options.toStoreOptions());
+		return CsvRecordWriter.write(writer, locateRecordSet(marmot), m_params.toCsvOptions());
 	}
 	
 	private RecordSet locateRecordSet(MarmotRuntime marmot) {
@@ -63,22 +63,22 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 			String geomCol = geomColInfo.name();
 			String srid = geomColInfo.srid();
 			
-			if ( m_options.srid().isPresent() ) {
-				String csvSrid = m_options.srid().get();
+			if ( m_params.srid().isPresent() ) {
+				String csvSrid = m_params.srid().get();
 				if ( !csvSrid.equals(srid) ) {
 					builder = builder.transformCrs(geomCol, srid, csvSrid);
 				}
 			}
 
 			DataType geomType = ds.getRecordSchema().getColumn(geomCol).type();
-			if ( m_options.pointColumns().isPresent() ) {
+			if ( m_params.pointColumns().isPresent() ) {
 				if ( geomType != DataType.POINT ) {
 					throw new IllegalArgumentException("geometry is not POINT type, but " + geomType);
 				}
-				Tuple2<String,String> pointCol = m_options.pointColumns().get();
+				Tuple2<String,String> pointCol = m_params.pointColumns().get();
 				builder = builder.toXY(geomCol, pointCol._1, pointCol._2);
 			}
-			else if ( m_options.tiger() ) {
+			else if ( m_params.tiger() ) {
 				String decl = String.format("%s:string", geomCol);
 				String initExpr = String.format("ST_AsHexString(%s)", geomCol);
 				builder = builder.defineColumn(decl, initExpr);

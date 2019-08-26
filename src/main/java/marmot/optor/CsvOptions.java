@@ -16,29 +16,35 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	private final FOption<Character> m_quote;
 	private final FOption<Character> m_escape;
 	private final FOption<Charset> m_charset;
+	private final FOption<Boolean> m_headerFirst;
 	
 	private CsvOptions(char delim, FOption<Character> quote, FOption<Character> escape,
-						FOption<Charset> charset) {
+						FOption<Charset> charset, FOption<Boolean> headerFirst) {
 		m_delim = delim;
 		m_quote = quote;
 		m_escape = escape;
 		m_charset = charset;
+		m_headerFirst = headerFirst;
 	}
 	
 	public static CsvOptions DEFAULT() {
-		return new CsvOptions(',', FOption.empty(), FOption.empty(), FOption.empty());
+		return new CsvOptions(',', FOption.empty(), FOption.empty(), FOption.empty(),
+							FOption.empty());
 	}
 	
 	public static CsvOptions DEFAULT(char delim) {
-		return new CsvOptions(delim, FOption.empty(), FOption.empty(), FOption.empty());
+		return new CsvOptions(delim, FOption.empty(), FOption.empty(), FOption.empty(),
+							FOption.empty());
 	}
 	
 	public static CsvOptions DEFAULT(char delim, char quote) {
-		return new CsvOptions(delim, FOption.of(quote), FOption.empty(), FOption.empty());
+		return new CsvOptions(delim, FOption.of(quote), FOption.empty(), FOption.empty(),
+							FOption.empty());
 	}
 	
 	public static CsvOptions DEFAULT(char delim, char quote, char escape) {
-		return new CsvOptions(delim, FOption.of(quote), FOption.of(escape), FOption.empty());
+		return new CsvOptions(delim, FOption.of(quote), FOption.of(escape),
+							FOption.empty(), FOption.empty());
 	}
 	
 	public char delimiter() {
@@ -46,7 +52,7 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	}
 
 	public CsvOptions delimiter(char delim) {
-		return new CsvOptions(delim, m_quote, m_escape, m_charset);
+		return new CsvOptions(delim, m_quote, m_escape, m_charset, m_headerFirst);
 	}
 	
 	public FOption<Character> quote() {
@@ -54,7 +60,7 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	}
 
 	public CsvOptions quote(char quote) {
-		return new CsvOptions(m_delim, FOption.of(quote), m_escape, m_charset);
+		return new CsvOptions(m_delim, FOption.of(quote), m_escape, m_charset, m_headerFirst);
 	}
 	
 	public FOption<Character> escape() {
@@ -62,7 +68,7 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	}
 	
 	public CsvOptions escape(char escape) {
-		return new CsvOptions(m_delim, m_quote, FOption.of(escape), m_charset);
+		return new CsvOptions(m_delim, m_quote, FOption.of(escape), m_charset, m_headerFirst);
 	}
 	
 	public FOption<Charset> charset() {
@@ -76,7 +82,15 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	public CsvOptions charset(Charset charset) {
 		Utilities.checkNotNullArgument(charset, "Charset is null");
 		
-		return new CsvOptions(m_delim, m_quote, m_escape, FOption.of(charset));
+		return new CsvOptions(m_delim, m_quote, m_escape, FOption.of(charset), m_headerFirst);
+	}
+	
+	public FOption<Boolean> headerFirst() {
+		return m_headerFirst;
+	}
+	
+	public CsvOptions headerFirst(Boolean flag) {
+		return new CsvOptions(m_delim, m_quote, m_escape, m_charset, FOption.ofNullable(flag));
 	}
 	
 	@Override
@@ -107,6 +121,12 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 				break;
 			default:
 		}
+		switch ( proto.getOptionalHeaderFirstCase() ) {
+			case HEADER_FIRST:
+				opts = opts.headerFirst(proto.getHeaderFirst());
+				break;
+			default:
+		}
 		
 		
 		return opts;
@@ -120,6 +140,7 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 		m_quote.map(c -> c.toString()).ifPresent(builder::setQuote);
 		m_escape.map(c -> c.toString()).ifPresent(builder::setEscape);
 		m_charset.map(Charset::name).ifPresent(builder::setCharset);
+		m_headerFirst.ifPresent(builder::setHeaderFirst);
 		
 		return builder.build();
 	}

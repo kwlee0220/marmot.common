@@ -10,6 +10,7 @@ import org.apache.commons.csv.CSVRecord;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import marmot.MarmotInternalException;
+import marmot.optor.CsvOptions;
 import marmot.optor.StoreAsCsvOptions;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -209,6 +210,16 @@ public class CsvParameters {
 	
 	public StoreAsCsvOptions toStoreOptions() {
 		StoreAsCsvOptions opts = StoreAsCsvOptions.DEFAULT(m_delim);
+		opts = m_quote.transform(opts, (o,q) ->  o.quote(q));
+		opts = m_escape.transform(opts, (o,esc) ->  o.quote(esc));
+		opts = m_charset.transform(opts, (o,c) ->  o.charset(c));
+		opts = m_headerFirst.transform(opts, (o,f) ->  o.headerFirst(f));
+		
+		return opts;
+	}
+	
+	public CsvOptions toCsvOptions() {
+		CsvOptions opts = CsvOptions.DEFAULT(m_delim);
 		opts = m_quote.transform(opts, (o,q) ->  o.quote(q));
 		opts = m_escape.transform(opts, (o,esc) ->  o.quote(esc));
 		opts = m_charset.transform(opts, (o,c) ->  o.charset(c));

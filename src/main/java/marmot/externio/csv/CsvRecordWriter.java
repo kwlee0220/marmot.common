@@ -20,7 +20,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.externio.RecordWriter;
-import marmot.optor.StoreAsCsvOptions;
+import marmot.optor.CsvOptions;
 import marmot.type.DataType;
 import utils.UnitUtils;
 import utils.Utilities;
@@ -42,13 +42,13 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	private long m_count = 0;
 	
-	public static CsvRecordWriter get(File file, RecordSchema schema, StoreAsCsvOptions opts)
+	public static CsvRecordWriter get(File file, RecordSchema schema, CsvOptions opts)
 		throws IOException {
 		Charset cs = opts.charset().getOrElse(DEFAULT_CHARSET);
 		return new CsvRecordWriter(Files.newBufferedWriter(file.toPath(), cs), schema, opts);
 	}
 	
-	public static CsvRecordWriter get(Writer writer, RecordSchema schema, StoreAsCsvOptions opts)
+	public static CsvRecordWriter get(Writer writer, RecordSchema schema, CsvOptions opts)
 		throws IOException {
 		BufferedWriter bwriter = (writer instanceof BufferedWriter)
 								? (BufferedWriter)writer
@@ -56,7 +56,7 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 		return new CsvRecordWriter(bwriter, schema, opts);
 	}
 	
-	public static CsvRecordWriter get(OutputStream os, RecordSchema schema, StoreAsCsvOptions opts)
+	public static CsvRecordWriter get(OutputStream os, RecordSchema schema, CsvOptions opts)
 		throws IOException {
 		Charset cs = opts.charset().getOrElse(DEFAULT_CHARSET);
 		
@@ -64,19 +64,19 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 		return new CsvRecordWriter(new BufferedWriter(writer, DEFAULT_BUFFER_SIZE), schema, opts);
 	}
 	
-	public static long write(Writer writer, RecordSet rset, StoreAsCsvOptions opts) throws IOException {
+	public static long write(Writer writer, RecordSet rset, CsvOptions opts) throws IOException {
 		try ( CsvRecordWriter csvWriter = get(writer, rset.getRecordSchema(), opts) ) {
 			return csvWriter.write(rset);
 		}
 	}
 	
-	public static long write(OutputStream os, RecordSet rset, StoreAsCsvOptions opts) throws IOException {
+	public static long write(OutputStream os, RecordSet rset, CsvOptions opts) throws IOException {
 		try ( CsvRecordWriter writer = get(os, rset.getRecordSchema(), opts) ) {
 			return writer.write(rset);
 		}
 	}
 	
-	private CsvRecordWriter(BufferedWriter writer, RecordSchema schema, StoreAsCsvOptions opts)
+	private CsvRecordWriter(BufferedWriter writer, RecordSchema schema, CsvOptions opts)
 		throws IOException {
 		Utilities.checkNotNullArgument(writer, "writer is null");
 		Utilities.checkNotNullArgument(opts, "StoreAsCsvOptions is null");
