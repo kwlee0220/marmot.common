@@ -33,12 +33,12 @@ import utils.func.Try;
 class ExportAsShapefile {
 	private final File m_outputDir;
 	private final String m_sfTypeName;
-	private final ShapefileParameters m_params;
+	private final ExportShapefileParameters m_params;
 	private boolean m_force = false;
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	private FOption<Long> m_interval = FOption.empty();
 	
-	protected ExportAsShapefile(String outputDir, ShapefileParameters params) {
+	protected ExportAsShapefile(String outputDir, ExportShapefileParameters params) {
 		Utilities.checkNotNullArgument(outputDir, "output directory is null");
 		Utilities.checkNotNullArgument(params, "ShapefileParameters is null");
 		

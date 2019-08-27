@@ -4,7 +4,7 @@ import io.vavr.CheckedConsumer;
 import marmot.MarmotRuntime;
 import marmot.command.UsageHelp;
 import marmot.externio.shp.ExportDataSetAsShapefile;
-import marmot.externio.shp.ShapefileParameters;
+import marmot.externio.shp.ExportShapefileParameters;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -17,7 +17,7 @@ import utils.func.FOption;
  */
 public class ExportAsShapefileCommand implements CheckedConsumer<MarmotRuntime> {
 	@Mixin private Params m_params;
-	@Mixin private ShapefileParameters m_shpParams;
+	@Mixin private ExportShapefileParameters m_shpParams;
 	@Mixin private UsageHelp m_help;
 	
 	private static class Params {

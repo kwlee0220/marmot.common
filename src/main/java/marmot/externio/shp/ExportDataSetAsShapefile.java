@@ -17,11 +17,12 @@ public class ExportDataSetAsShapefile extends ExportAsShapefile {
 	private final String m_dsId;
 	
 	public static ExportDataSetAsShapefile create(String dsId, String output,
-													ShapefileParameters params) {
+												ExportShapefileParameters params) {
 		return new ExportDataSetAsShapefile(dsId, output, params);
 	}
 	
-	public ExportDataSetAsShapefile(String dsId, String outputDir, ShapefileParameters params) {
+	public ExportDataSetAsShapefile(String dsId, String outputDir,
+									ExportShapefileParameters params) {
 		super(outputDir, params);
 		Utilities.checkNotNullArgument(dsId, "dataset id");
 		
