@@ -24,12 +24,12 @@ public class ExportAsShapefileCommand implements CheckedConsumer<MarmotRuntime> 
 		@Parameters(paramLabel="dataset-id", index="0", arity="1..1",
 					description={"id of the dataset to export"})
 		private String m_dsId;
-		
-		@Option(names={"-o", "-output_dir"}, paramLabel="output-directory", required=true,
-				description={"directory path for the output"})
+
+		@Parameters(paramLabel="output_dir", index="1", arity="1..1",
+					description={"directory path for the output shapefiles"})
 		private String m_output;
 		
-		@Option(names={"-f"}, description="force to create a new output directory")
+		@Option(names={"-f", "-force"}, description="force to create a new output directory")
 		private boolean m_force;
 		
 		@Option(names={"-report_interval"}, paramLabel="record count",
