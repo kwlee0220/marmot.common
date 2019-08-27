@@ -76,9 +76,10 @@ public class CsvRecordSet extends AbstractRecordSet {
 		
 		m_nullValue = opts.nullValue().getOrNull();
 		
-		CSVFormat format = CSVFormat.DEFAULT.withDelimiter(opts.delimiter());
-		format = opts.quote().map(format::withQuote).getOrElse(format);
-		format = opts.escape().map(format::withEscape).getOrElse(format);
+		CSVFormat format = CSVFormat.DEFAULT.withDelimiter(opts.delimiter())
+									.withQuote(null);
+		format = opts.quote().transform(format, (f,q) -> f.withQuote(q));
+		format = opts.escape().transform(format, (f,esc) -> f.withEscape(esc));
 		if ( opts.trimColumn().getOrElse(false) ) {
 			format = format.withTrim(true).withIgnoreSurroundingSpaces(true);
 		}

@@ -170,7 +170,7 @@ public class CsvParameters {
 		});
 	}
 
-	@Option(names={"-csv_srid"}, paramLabel="EPSG-code", description="EPSG code for input CSV file")
+	@Option(names={"-srid"}, paramLabel="EPSG-code", description="EPSG code for input CSV file")
 	public CsvParameters srid(String srid) {
 		m_srid = FOption.ofNullable(srid);
 		return this;
