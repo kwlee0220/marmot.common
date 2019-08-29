@@ -3,8 +3,6 @@ package marmot.externio.geojson;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
@@ -15,10 +13,7 @@ import marmot.RecordSetException;
 import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
 import marmot.support.MetaPlanLoader;
-import utils.CommandLine;
-import utils.StopWatch;
 import utils.Throwables;
-import utils.UnitUtils;
 import utils.func.FOption;
 
 /**
@@ -30,27 +25,26 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	
 	protected abstract FOption<Plan> loadMetaPlan();
 	
-	public static ImportGeoJson from(File file, GeoJsonParameters csvParams,
-									ImportParameters importParams) {
-		return new ImportCsvFileIntoDataSet(file, csvParams, importParams);
+	public static ImportGeoJson from(File file, GeoJsonParameters geojsonParams,
+									ImportParameters params) {
+		return new ImportGeoJsonFileIntoDataSet(file, geojsonParams, params);
 	}
 	
-	public static ImportGeoJson from(BufferedReader reader, GeoJsonParameters csvParams,
-									ImportParameters importParams) {
-		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.empty(), csvParams, importParams);
+	public static ImportGeoJson from(BufferedReader reader, GeoJsonParameters geojParams,
+									ImportParameters params) {
+		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.empty(), geojParams, params);
 	}
 	
 	public static ImportGeoJson from(BufferedReader reader, Plan plan,
-									GeoJsonParameters csvParams,
-									ImportParameters importParams) {
-		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.of(plan), csvParams,
-												importParams);
+									GeoJsonParameters geojParams, ImportParameters params) {
+		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.of(plan), geojParams,
+												params);
 	}
 
-	private ImportGeoJson(GeoJsonParameters csvParams, ImportParameters importParams) {
-		super(importParams);
+	private ImportGeoJson(GeoJsonParameters geojParams, ImportParameters params) {
+		super(params);
 		
-		m_gjsonParams = csvParams;
+		m_gjsonParams = geojParams;
 	}
 
 	@Override
@@ -91,12 +85,12 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		return FOption.empty();
 	}
 	
-	private static class ImportCsvFileIntoDataSet extends ImportGeoJson {
+	private static class ImportGeoJsonFileIntoDataSet extends ImportGeoJson {
 		private final File m_start;
 		
-		ImportCsvFileIntoDataSet(File file, GeoJsonParameters csvParams,
-								ImportParameters importParams) {
-			super(csvParams, importParams);
+		ImportGeoJsonFileIntoDataSet(File file, GeoJsonParameters csvParams,
+									ImportParameters params) {
+			super(csvParams, params);
 			
 			m_start = file;
 		}
@@ -123,8 +117,8 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		private final FOption<Plan> m_plan;
 		
 		ImportGeoJsonStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
-									GeoJsonParameters csvParams, ImportParameters importParams) {
-			super(csvParams, importParams);
+									GeoJsonParameters geojParams, ImportParameters params) {
+			super(geojParams, params);
 			
 			m_reader = reader;
 			m_plan = plan;
@@ -145,48 +139,5 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		protected FOption<Plan> loadMetaPlan() {
 			return m_plan;
 		}
-	}
-
-	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-	public static final void runCommand(MarmotRuntime marmot, CommandLine cl) throws IOException {
-		File file = new File(cl.getArgument("geojson_file"));
-		Charset cs = cl.getOptionString("charset")
-						.map(Charset::forName)
-						.getOrElse(DEFAULT_CHARSET);
-		FOption<String> srcSrid = cl.getOptionString("src_srid");
-		String dsId = cl.getString("dataset");
-		String geomCol = cl.getOptionString("geom_col").getOrElse("the_geom");
-		String srid = cl.getString("srid");
-		long blkSize = cl.getOptionString("block_size")
-						.map(UnitUtils::parseByteSize)
-						.getOrElse(-1L);
-		boolean force = cl.hasOption("f");
-		int reportInterval = cl.getOptionInt("report_interval").getOrElse(-1);
-		
-		StopWatch watch = StopWatch.start();
-		
-		ImportParameters params = new ImportParameters();
-		params.setDataSetId(dsId);
-		params.setGeometryColumnInfo(geomCol, srid);
-		params.setBlockSize(blkSize);
-		params.setReportInterval(reportInterval);
-		params.setForce(force);
-		
-		GeoJsonParameters gjsonParams = GeoJsonParameters.create()
-												.charset(cs);
-		srcSrid.ifPresent(gjsonParams::geoJsonSrid);
-		
-		ImportIntoDataSet importFile = ImportGeoJson.from(file, gjsonParams, params);
-		importFile.getProgressObservable()
-					.subscribe(report -> {
-						double velo = report / watch.getElapsedInFloatingSeconds();
-						System.out.printf("imported: count=%d, elapsed=%s, velo=%.0f/s%n",
-										report, watch.getElapsedMillisString(), velo);
-					});
-		long count = importFile.run(marmot);
-		
-		double velo = count / watch.getElapsedInFloatingSeconds();
-		System.out.printf("imported: dataset=%s count=%d elapsed=%s, velo=%.1f/s%n",
-							dsId, count, watch.getElapsedMillisString(), velo);
 	}
 }

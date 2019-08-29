@@ -1,7 +1,6 @@
 package marmot.type;
 
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.io.ParseException;
 
 import marmot.geo.GeoClientUtils;
 
@@ -29,16 +28,12 @@ public class EnvelopeType extends DataType {
 	
 	@Override
 	public Envelope parseInstance(String str) {
-		try {
-			return GeoClientUtils.fromWKT(str).getEnvelopeInternal();
-		}
-		catch ( ParseException e ) {
-			throw new IllegalArgumentException(e);
-		}
+		return GeoClientUtils.parseEnvelope(str)
+							.getOrElseThrow(() -> new IllegalArgumentException("envelope_string=" + str));
 	}
 	
 	@Override
 	public String toInstanceString(Object instance) {
-		return GeoClientUtils.toWKT(GeoClientUtils.toPolygon((Envelope)instance));
+		return GeoClientUtils.toString((Envelope)instance);
 	}
 }

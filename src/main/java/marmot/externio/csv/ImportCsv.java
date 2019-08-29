@@ -30,25 +30,24 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	
 	protected abstract FOption<Plan> loadMetaPlan();
 	
-	public static ImportCsv from(File file, CsvParameters csvOpts, ImportParameters importParams) {
-		return new ImportCsvFileIntoDataSet(file, csvOpts, importParams);
+	public static ImportCsv from(File file, CsvParameters csvParams, ImportParameters params) {
+		return new ImportCsvFileIntoDataSet(file, csvParams, params);
 	}
 	
-	public static ImportCsv from(BufferedReader reader, CsvParameters csvOpts,
-								ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvOpts, importParams);
+	public static ImportCsv from(BufferedReader reader, CsvParameters csvParams,
+									ImportParameters params) {
+		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvParams, params);
 	}
 	
-	public static ImportCsv from(BufferedReader reader, Plan plan, CsvParameters csvOpts,
-								ImportParameters importParams) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvOpts,
-												importParams);
+	public static ImportCsv from(BufferedReader reader, Plan plan, CsvParameters csvParams,
+									ImportParameters params) {
+		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvParams, params);
 	}
 
-	private ImportCsv(CsvParameters csvOpts, ImportParameters importParams) {
-		super(importParams);
+	private ImportCsv(CsvParameters csvParams, ImportParameters params) {
+		super(params);
 		
-		m_csvParams = csvOpts.duplicate();
+		m_csvParams = csvParams.duplicate();
 		m_csvParams.charset().ifAbsent(() -> m_csvParams.charset(DEFAULT_CHARSET));
 	}
 
@@ -104,8 +103,8 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	private static class ImportCsvFileIntoDataSet extends ImportCsv {
 		private final File m_start;
 		
-		ImportCsvFileIntoDataSet(File file, CsvParameters csvOpts, ImportParameters importParams) {
-			super(csvOpts, importParams);
+		ImportCsvFileIntoDataSet(File file, CsvParameters csvParams, ImportParameters params) {
+			super(csvParams, params);
 			
 			m_start = file;
 		}
@@ -131,8 +130,8 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		private final FOption<Plan> m_plan;
 		
 		ImportCsvStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
-									CsvParameters csvOpts, ImportParameters importParams) {
-			super(csvOpts, importParams);
+									CsvParameters csvParams, ImportParameters params) {
+			super(csvParams, params);
 			
 			m_reader = reader;
 			m_plan = plan;

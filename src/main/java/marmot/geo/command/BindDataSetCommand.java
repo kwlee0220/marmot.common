@@ -10,6 +10,7 @@ import marmot.command.UsageHelp;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.Utilities;
 
 /**
  * 
@@ -24,13 +25,13 @@ public class BindDataSetCommand implements CheckedConsumer<MarmotRuntime> {
 					description={"source file-path (or source dataset-id) to bind"})
 		private String m_path;
 		
+		@Parameters(paramLabel="dataset_id", index="1", arity="1..1",
+				description={"dataset id to bind into"})
+		private String m_dataset;
+		
 		@Option(names={"-t", "-type"}, paramLabel="type", required=true,
 				description={"source type ('text', 'file', or 'dataset)"})
 		private String m_type;
-		
-		@Option(names={"-d", "-dataset"}, paramLabel="dataset_id", required=true,
-				description="output dataset name")
-		private String m_dataset;
 
 		private GeometryColumnInfo m_gcInfo;
 		@Option(names={"-geom_col"}, paramLabel="column_name(EPSG code)",

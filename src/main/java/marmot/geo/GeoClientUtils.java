@@ -131,6 +131,12 @@ public class GeoClientUtils {
 		
 		return FOption.of(new Envelope(min, max));
 	}
+	
+	public static String toString(Envelope envl) {
+		double width = envl.getMaxX() - envl.getMinX();
+		double height = envl.getMaxY() - envl.getMinY();
+		return String.format("(%f,%f):%fx%f", envl.getMinX(), envl.getMinY(), width, height);
+	}
 
 	public static Geometry fromWKT(String wktStr) throws ParseException {
 		return (wktStr != null) ? new WKTReader(GEOM_FACT).read(wktStr) : null;

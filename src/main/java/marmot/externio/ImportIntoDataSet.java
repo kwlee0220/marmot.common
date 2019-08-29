@@ -27,6 +27,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 	
 	public ImportIntoDataSet(ImportParameters params) {
 		Utilities.checkNotNullArgument(params, "params is null");
+		Utilities.checkNotNullArgument(params.getDataSetId(), "params.dataset_id is null");
 
 		m_params = params;
 	}
@@ -43,9 +44,8 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 			throw new IllegalArgumentException("Both 'force' and 'append' cannot be set simultaneously");
 		}
 		
+		String dsId = m_params.getDataSetId();
 		try {
-			String dsId = m_params.getDataSetId();
-			
 			FOption<Plan> importPlan = loadImportPlan(marmot)
 											.map(this::adjustImportPlan);
 			
@@ -61,7 +61,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				ds = marmot.createDataSet(dsId, outSchema, m_params.toOptions());
 			}
 			else {
-				ds = marmot.getDataSet(m_params.getDataSetId());
+				ds = marmot.getDataSet(dsId);
 			}
 			
 			return importPlan.map(p -> ds.append(rset, p))
@@ -69,7 +69,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 		}
 		catch ( Throwable e ) {
 			if ( !append ) {
-				marmot.deleteDataSet(m_params.getDataSetId());
+				marmot.deleteDataSet(dsId);
 			}
 			
 			throw Throwables.toRuntimeException(e);

@@ -37,7 +37,7 @@ public class GeoJsonParameters {
 		return this;
 	}
 
-	@Option(names= {"-geojson_srid"}, paramLabel="EPSG-code", description="SRID for GeoJson file")
+	@Option(names= {"-srid"}, paramLabel="EPSG-code", description="SRID for GeoJson file")
 	public GeoJsonParameters geoJsonSrid(String srid) {
 		m_gjsonSrid = FOption.ofNullable(srid);
 		return this;

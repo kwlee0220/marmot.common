@@ -1,6 +1,5 @@
 package marmot.command;
 
-import picocli.CommandLine.Option;
 import utils.Utilities;
 
 
@@ -9,8 +8,6 @@ import utils.Utilities;
  * @author Kang-Woo Lee (ETRI)
  */
 public class ImportParameters extends StoreDataSetParameters {
-	@Option(names="-dataset", paramLabel="id", required=true,
-			description={"id of the dataset to import onto"})
 	private String m_dsId;
 
 	/**

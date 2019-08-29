@@ -1,16 +1,25 @@
 package marmot.optor.geo;
 
+import java.util.List;
+import java.util.Map;
+
 import com.vividsolutions.jts.geom.Envelope;
 
 import io.vavr.control.Either;
 import marmot.DataSet;
 import marmot.MarmotRuntime;
+import marmot.geo.GeoClientUtils;
+import marmot.plan.Group;
 import marmot.proto.Size2dProto;
 import marmot.proto.optor.SquareGridProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
+import utils.CSV;
+import utils.KeyValue;
 import utils.Size2d;
+import utils.UnitUtils;
 import utils.Utilities;
+import utils.stream.KVFStream;
 
 /**
  * 
@@ -57,11 +66,56 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 	@Override
 	public String toString() {
 		if ( m_gridBounds.isLeft() ) {
-			return String.format("%s:%s", m_gridBounds.getLeft(), m_cellSize);
+			return String.format("dataset=%s;cell=%s",
+								m_gridBounds.getLeft(), toString(m_cellSize));
 		}
 		else {
-			return String.format("%s:%s", m_gridBounds.right().get(), m_cellSize);
+			Envelope bounds = m_gridBounds.right().get();
+			return String.format("bounds=%s;cell=%s",
+								GeoClientUtils.toString(bounds), toString(m_cellSize));
 		}
+	}
+	
+	private String toString(Size2d size) {
+		return String.format("%sx%s", UnitUtils.toMeterString(size.getWidth()),
+										UnitUtils.toMeterString(size.getHeight()));
+	}
+	
+	public static SquareGrid parseString(String expr) {
+		Utilities.checkNotNullArgument(expr, "SquareGrid string is null");
+	
+		Map<String,String> kvMap = CSV.parseCsv(expr, ';')
+										.map(SquareGrid::parseKeyValue)
+										.toMap(KeyValue::key, KeyValue::value);
+		
+		String cellExpr = kvMap.get("cell");
+		if ( cellExpr == null ) {
+			throw new IllegalArgumentException("cell is absent: expr=" + expr);
+		}
+		Size2d cell = Size2d.fromString(cellExpr);
+		
+		String boundsExpr = kvMap.get("bounds");
+		if ( boundsExpr != null ) {
+			return new SquareGrid(GeoClientUtils.parseEnvelope(boundsExpr).get(), cell);
+		}
+		
+		String dsId = kvMap.get("dataset");
+		if ( dsId != null ) {
+			return new SquareGrid(dsId, cell);
+		}
+		
+		throw new IllegalArgumentException("invalid SquareGrid string: " + expr);
+	}
+	
+	private static KeyValue<String,String> parseKeyValue(String expr) {
+		List<String> parts = CSV.parseCsv(expr, '=')
+								.map(String::trim)
+								.toList();
+		if ( parts.size() != 2 ) {
+			throw new IllegalArgumentException("invalid key-value: " + expr);
+		}
+		
+		return KeyValue.of(parts.get(0), parts.get(1));
 	}
 
 	public static SquareGrid fromProto(SquareGridProto proto) {
