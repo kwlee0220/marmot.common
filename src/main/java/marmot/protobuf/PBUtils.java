@@ -800,9 +800,9 @@ public class PBUtils {
 							.build();
 	}
 	
-	private static final int TOO_BIG = (int)UnitUtils.parseByteSize("4mb");
-	private static final int STRING_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("512kb");
-	private static final int BINARY_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("1mb");
+//	private static final int TOO_BIG = (int)UnitUtils.parseByteSize("25mb");
+	private static final int STRING_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("1mb");
+	private static final int BINARY_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("4mb");
 	public static ValueProto toValueProto(TypeCode tc, Object obj) {
 		if ( obj == null ) {
 			return ValueProto.newBuilder()
@@ -841,10 +841,10 @@ public class PBUtils {
 				else {
 					try {
 						byte[] compressed = IOUtils.compress(str.getBytes());
-						if ( compressed.length > TOO_BIG ) {
-							throw new PBException("string value is too big: size="
-												+ UnitUtils.toByteSizeString(compressed.length));
-						}
+//						if ( compressed.length > TOO_BIG ) {
+//							throw new PBException("string value is too big: size="
+//												+ UnitUtils.toByteSizeString(compressed.length));
+//						}
 						builder.setCompressedStringValue(ByteString.copyFrom(compressed));
 					}
 					catch ( IOException e ) {
@@ -860,10 +860,10 @@ public class PBUtils {
 				else {
 					try {
 						byte[] compressed = IOUtils.compress(bytes);
-						if ( compressed.length > TOO_BIG ) {
-							throw new PBException("binary value is too big: size="
-												+ UnitUtils.toByteSizeString(compressed.length));
-						}
+//						if ( compressed.length > TOO_BIG ) {
+//							throw new PBException("binary value is too big: size="
+//												+ UnitUtils.toByteSizeString(compressed.length));
+//						}
 						builder.setCompressedBinaryValue(ByteString.copyFrom(compressed));
 					}
 					catch ( IOException e ) {
