@@ -101,7 +101,6 @@ import marmot.proto.optor.StoreAndReloadProto;
 import marmot.proto.optor.StoreAsCsvProto;
 import marmot.proto.optor.StoreAsHeapfileProto;
 import marmot.proto.optor.StoreDataSetProto;
-import marmot.proto.optor.StoreIntoDataSetProto;
 import marmot.proto.optor.StoreIntoJdbcTableProto;
 import marmot.proto.optor.StoreIntoKafkaTopicProto;
 import marmot.proto.optor.StoreKeyedDataSetProto;
@@ -1383,14 +1382,8 @@ public class PlanBuilder {
 	 */
 	public PlanBuilder store(String dsId) {
 		Utilities.checkNotNullArgument(dsId, "dataset id");
-
-		StoreIntoDataSetProto store = StoreIntoDataSetProto.newBuilder()
-															.setId(dsId)
-															.build();
 		
-		return add(OperatorProto.newBuilder()
-								.setStoreIntoDataset(store)
-								.build());
+		return store(dsId, StoreDataSetOptions.EMPTY);
 	}
 	
 	public PlanBuilder store(String dsId, StoreDataSetOptions opts) {

@@ -8,7 +8,6 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Geometry;
 
 import marmot.io.MarmotFileNotFoundException;
-import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -98,11 +97,11 @@ public interface MarmotRuntime {
 	 * 
 	 * @param dsId		생성될 데이터세트의 식별자.
 	 * @param schema	생성될 데이터세트의 스키마 정보.
-	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
+	 * @param opts		데이터세트 생성에 필요한 옵션 리스트.
 	 * @return	 생성된 데이터세트 객체.
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
-	public DataSet createDataSet(String dsId, RecordSchema schema, StoreDataSetOptions opts)
+	public DataSet createDataSet(String dsId, RecordSchema schema, CreateDataSetOptions opts)
 		throws DataSetExistsException;
 
 	/**
@@ -115,8 +114,8 @@ public interface MarmotRuntime {
 	 * @return	 생성된 데이터세트 객체.
 	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
 	 */
-	public DataSet createDataSet(String dsId, Plan plan, StoreDataSetOptions opts)
-		throws DataSetExistsException;
+//	public DataSet createDataSet(String dsId, Plan plan, StoreDataSetOptions opts)
+//		throws DataSetExistsException;
 
 	/**
 	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.

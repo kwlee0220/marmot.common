@@ -137,7 +137,7 @@ message CreateDataSetRequest {
 		// 생성될 데이터세트의 스키마 정보는 Plan 수행 결과 스키마를 사용한다.
 		marmot.proto.service.ExecutePlanRequest plan_exec = 3;
 	}
-	StoreDataSetOptionsProto options = 4;
+	CreateDataSetOptionsProto options = 4;
 }
 
 message ReadDataSetRequest {

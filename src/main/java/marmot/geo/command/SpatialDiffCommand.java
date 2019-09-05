@@ -92,8 +92,9 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 					.expand("size_delta:double,center_dist:double", diffExpr)
 					.filter(cmpExpr)
 					.project(prjExpr)
+					.store(m_params.m_outputDsId, FORCE)
 					.build();
-		marmot.createDataSet(m_params.m_outputDsId, plan, FORCE);
+		marmot.execute(plan);
 	}
 	
 	private DataSet summarize(MarmotRuntime marmot, String dsId) {
@@ -103,6 +104,7 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 		String areaExpr = String.format("ST_Area(%s)", gcInfo.name());
 		String centerExpr = String.format("ST_Centroid(%s)", gcInfo.name());
 		String prjExpr = String.format("%s,the_geom,area,centroid", m_params.m_keyCols);
+		String outId = generateTempDataSetId();
 
 		Plan plan;
 		plan = marmot.planBuilder("summarize spatial information")
@@ -110,10 +112,11 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 					.defineColumn("area:double", areaExpr)
 					.defineColumn("centroid:point", centerExpr)
 					.project(prjExpr)
+					.store(outId, FORCE(gcInfo))
 					.build();
+		marmot.execute(plan);
 		
-		String outId = generateTempDataSetId();
-		return marmot.createDataSet(outId, plan, FORCE(gcInfo));
+		return marmot.getDataSet(outId);
 	}
 	
 	private String generateTempDataSetId() {

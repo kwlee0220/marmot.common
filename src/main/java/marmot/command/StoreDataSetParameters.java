@@ -1,5 +1,6 @@
 package marmot.command;
 
+import marmot.CreateDataSetOptions;
 import marmot.GeometryColumnInfo;
 import marmot.StoreDataSetOptions;
 import picocli.CommandLine.Option;
@@ -101,6 +102,10 @@ public class StoreDataSetParameters {
 	
 	public StoreDataSetOptions toOptions() {
 		return m_options;
+	}
+	
+	public CreateDataSetOptions toCreateOptions() {
+		return m_options.toCreateOptions();
 	}
 	
 	public static StoreDataSetParameters fromOptions(StoreDataSetOptions options) {

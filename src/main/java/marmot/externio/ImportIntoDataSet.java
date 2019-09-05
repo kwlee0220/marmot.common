@@ -58,7 +58,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 			if ( !append ) {
 				RecordSchema outSchema = importPlan.transform(rset.getRecordSchema(),
 														(s,p) -> marmot.getOutputRecordSchema(p,s));
-				ds = marmot.createDataSet(dsId, outSchema, m_params.toOptions());
+				ds = marmot.createDataSet(dsId, outSchema, m_params.toCreateOptions());
 			}
 			else {
 				ds = marmot.getDataSet(dsId);

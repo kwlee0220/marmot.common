@@ -3,7 +3,6 @@ package marmot;
 import java.util.Map;
 
 import marmot.proto.service.StoreDataSetOptionsProto;
-import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import utils.UnitUtils;
 import utils.func.FOption;
@@ -14,66 +13,42 @@ import utils.func.FOption;
  */
 public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsProto> {
 	public static final StoreDataSetOptions EMPTY
-			= new StoreDataSetOptions(FOption.empty(), FOption.empty(), FOption.empty(),
-										FOption.empty(), FOption.empty(), FOption.empty());
+			= new StoreDataSetOptions(CreateDataSetOptions.EMPTY, FOption.empty());
 	public static final StoreDataSetOptions FORCE
-			= new StoreDataSetOptions(FOption.empty(), FOption.of(true), FOption.empty(),
-										FOption.empty(), FOption.empty(), FOption.empty());
+			= new StoreDataSetOptions(CreateDataSetOptions.FORCE, FOption.empty());
+	public static final StoreDataSetOptions APPEND
+			= new StoreDataSetOptions(CreateDataSetOptions.EMPTY, FOption.of(true));
 	
-	
-	private final FOption<GeometryColumnInfo> m_gcInfo;
-	private final FOption<Boolean> m_force;
+	private final CreateDataSetOptions m_createOptions;
 	private final FOption<Boolean> m_append;
-	private final FOption<Long> m_blockSize;
-	private final FOption<String> m_compressionCodecName;
-	private final FOption<Map<String,String>> m_metaData;
 	
-	private StoreDataSetOptions(FOption<GeometryColumnInfo> gcInfo, FOption<Boolean> force,
-								FOption<Boolean> append, FOption<Long> blockSize,
-								FOption<String> compressionCodecName,
-								FOption<Map<String,String>> metadata) {
-		m_gcInfo = gcInfo;
-		m_force = force;
+	private StoreDataSetOptions(CreateDataSetOptions createOpts, FOption<Boolean> append) {
+		m_createOptions = createOpts;
 		m_append = append;
-		m_blockSize = blockSize;
-		m_compressionCodecName = compressionCodecName;
-		m_metaData = metadata;
 	}
 	
 	public static StoreDataSetOptions GEOMETRY(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(FOption.of(gcInfo), FOption.empty(),
-										FOption.empty(), FOption.empty(), FOption.empty(),
-										FOption.empty());
+		return new StoreDataSetOptions(CreateDataSetOptions.GEOMETRY(gcInfo), FOption.empty());
 	}
 	
 	public static StoreDataSetOptions FORCE(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(FOption.of(gcInfo), FOption.of(true),
-										FOption.empty(), FOption.empty(), FOption.empty(),
-										FOption.empty());
-	}
-	
-	public static StoreDataSetOptions APPEND(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(FOption.of(gcInfo), FOption.empty(),
-										FOption.of(true), FOption.empty(), FOption.empty(),
-										FOption.empty());
+		return new StoreDataSetOptions(CreateDataSetOptions.FORCE(gcInfo), FOption.empty());
 	}
 	
 	public FOption<GeometryColumnInfo> geometryColumnInfo() {
-		return m_gcInfo;
+		return m_createOptions.geometryColumnInfo();
 	}
 	
 	public StoreDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(FOption.of(gcInfo), m_force, m_append,
-										m_blockSize, m_compressionCodecName, m_metaData);
+		return new StoreDataSetOptions(m_createOptions.geometryColumnInfo(gcInfo), m_append);
 	}
 	
 	public FOption<Boolean> force() {
-		return m_force;
+		return m_createOptions.force();
 	}
 	
 	public StoreDataSetOptions force(Boolean flag) {
-		return new StoreDataSetOptions(m_gcInfo, FOption.of(flag), m_append,
-										m_blockSize, m_compressionCodecName, m_metaData);
+		return new StoreDataSetOptions(m_createOptions.force(flag), m_append);
 	}
 	
 	public FOption<Boolean> append() {
@@ -81,17 +56,15 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions append(Boolean flag) {
-		return new StoreDataSetOptions(m_gcInfo, m_force, FOption.of(flag),
-										m_blockSize, m_compressionCodecName, m_metaData);
+		return new StoreDataSetOptions(m_createOptions, FOption.of(flag));
 	}
 	
 	public FOption<Long> blockSize() {
-		return m_blockSize;
+		return m_createOptions.blockSize();
 	}
 
 	public StoreDataSetOptions blockSize(long blkSize) {
-		return new StoreDataSetOptions(m_gcInfo, m_force, m_append,
-										FOption.of(blkSize), m_compressionCodecName, m_metaData);
+		return new StoreDataSetOptions(m_createOptions.blockSize(blkSize), m_append);
 	}
 
 	public StoreDataSetOptions blockSize(String blkSizeStr) {
@@ -99,60 +72,32 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public FOption<String> compressionCodecName() {
-		return m_compressionCodecName;
+		return m_createOptions.compressionCodecName();
 	}
 	
 	public StoreDataSetOptions compressionCodecName(String name) {
-		return new StoreDataSetOptions(m_gcInfo, m_force, m_append, m_blockSize,
-										FOption.ofNullable(name), m_metaData);
+		return new StoreDataSetOptions(m_createOptions.compressionCodecName(name), m_append);
 	}
 	
 	public FOption<Map<String,String>> metaData() {
-		return m_metaData;
+		return m_createOptions.metaData();
 	}
 
 	public StoreDataSetOptions metaData(Map<String,String> metaData) {
-		return new StoreDataSetOptions(m_gcInfo, m_force, m_append, m_blockSize,
-										m_compressionCodecName, FOption.of(metaData));
+		return new StoreDataSetOptions(m_createOptions.metaData(metaData), m_append);
+	}
+	
+	public CreateDataSetOptions toCreateOptions() {
+		return m_createOptions;
 	}
 
 	public static StoreDataSetOptions fromProto(StoreDataSetOptionsProto proto) {
-		StoreDataSetOptions opts = StoreDataSetOptions.EMPTY;
+		CreateDataSetOptions createOpts = CreateDataSetOptions.fromProto(proto.getCreateOptions());
+		StoreDataSetOptions opts = new StoreDataSetOptions(createOpts, FOption.empty());
 		
-		switch ( proto.getOptionalGeomColInfoCase() ) {
-			case GEOM_COL_INFO:
-				opts = opts.geometryColumnInfo(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
-				break;
-			default:
-		}
-		switch ( proto.getOptionalForceCase() ) {
-			case FORCE:
-				opts = opts.force(proto.getForce());
-				break;
-			default:
-		}
 		switch ( proto.getOptionalAppendCase()) {
 			case APPEND:
 				opts = opts.append(proto.getAppend());
-				break;
-			default:
-		}
-		switch ( proto.getOptionalBlockSizeCase() ) {
-			case BLOCK_SIZE:
-				opts = opts.blockSize(proto.getBlockSize());
-				break;
-			default:
-		}
-		switch ( proto.getOptionalCompressionCodecNameCase() ) {
-			case COMPRESSION_CODEC_NAME:
-				opts = opts.compressionCodecName(proto.getCompressionCodecName());
-				break;
-			default:
-		}
-		switch ( proto.getOptionalMetadataCase() ) {
-			case METADATA:
-				Map<String,String> metadata = PBUtils.fromProto(proto.getMetadata());
-				opts = opts.metaData(metadata);
 				break;
 			default:
 		}
@@ -163,25 +108,25 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	@Override
 	public StoreDataSetOptionsProto toProto() {
 		StoreDataSetOptionsProto.Builder builder = StoreDataSetOptionsProto.newBuilder();
-		m_gcInfo.map(GeometryColumnInfo::toProto).ifPresent(builder::setGeomColInfo);
-		m_force.map(builder::setForce);
+		builder.setCreateOptions(m_createOptions.toProto());
 		m_append.map(builder::setAppend);
-		m_blockSize.map(builder::setBlockSize);
-		m_compressionCodecName.map(builder::setCompressionCodecName);
-		m_metaData.map(PBUtils::toProto).ifPresent(builder::setMetadata);
 		
 		return builder.build();
 	}
 	
 	@Override
 	public String toString() {
-		String gcInfoStr = m_gcInfo.map(info -> String.format(",gcinfo=%s", info)).getOrElse("");
-		String blkStr = m_blockSize.map(UnitUtils::toByteSizeString)
+		String gcInfoStr = m_createOptions.geometryColumnInfo()
+										.map(info -> String.format(",gcinfo=%s", info)).getOrElse("");
+		String blkStr = m_createOptions.blockSize()
+									.map(UnitUtils::toByteSizeString)
 									.map(str -> String.format(",blksz=%s", str))
 									.getOrElse("");
-		String forceStr = m_force.getOrElse(false) ? ",force" : "";
+		String forceStr = m_createOptions.force()
+										.getOrElse(false) ? ",force" : "";
 		String appendStr = m_append.getOrElse(false) ? ",append" : "";
-		String compressStr = m_compressionCodecName.map(str -> String.format(",compress=%s", str))
+		String compressStr = m_createOptions.compressionCodecName()
+											.map(str -> String.format(",compress=%s", str))
 													.getOrElse("");
 		return String.format("store_options[%s%s%s%s%s]", gcInfoStr, compressStr, forceStr, appendStr,blkStr);
 	}

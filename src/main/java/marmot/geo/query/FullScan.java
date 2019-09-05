@@ -154,7 +154,10 @@ public class FullScan implements LoggerSettable {
 		Plan plan;
 		plan = m_marmot.planBuilder("scan range")
 						.query(m_ds.getId(), key)
+						.store(rangedDsId, FORCE(gcInfo))
 						.build();
-		return m_marmot.createDataSet(rangedDsId, plan, FORCE(gcInfo));
+		m_marmot.execute(plan);
+		
+		return m_marmot.getDataSet(rangedDsId);
 	}
 }

@@ -137,24 +137,27 @@ message RecordSetProto {
 }
 
 
-message StoreDataSetOptionsProto {
+message CreateDataSetOptionsProto {
 	oneof optional_geom_col_info {
 		marmot.proto.GeometryColumnInfoProto geom_col_info  = 1;
 	}
 	oneof optional_force {
 		bool force = 2;
 	}
-	oneof optional_append {
-		bool append = 3;
-	}
 	oneof optional_block_size {
-		int64 block_size = 4;
+		int64 block_size = 3;
 	}
 	oneof optional_compression_codec_name {
-		string compression_codec_name = 5;
+		string compression_codec_name = 4;
 	}
 	oneof optional_metadata {
-		PropertiesProto metadata = 6;
+		PropertiesProto metadata = 5;
+	}
+}
+message StoreDataSetOptionsProto {
+	CreateDataSetOptionsProto create_options = 1;
+	oneof optional_append {
+		bool append = 2;
 	}
 }
 message UpChunkRequest {

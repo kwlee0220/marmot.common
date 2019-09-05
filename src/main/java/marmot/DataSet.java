@@ -194,7 +194,7 @@ public interface DataSet {
 	 */
 	public long append(RecordSet rset, Plan plan);
 	
-	public void appendPlanResult(Plan plan, ExecutePlanOptions execOpts);
+//	public void appendPlanResult(Plan plan, ExecutePlanOptions execOpts);
 	
 	/**
 	 * 데이터세트의 기본 공간 컬럼을 기준으로 인덱스(클러스터)를 생성한다.
