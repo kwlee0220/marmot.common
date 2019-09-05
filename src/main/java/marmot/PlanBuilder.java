@@ -100,6 +100,7 @@ import marmot.proto.optor.SplitGeometryProto;
 import marmot.proto.optor.StoreAndReloadProto;
 import marmot.proto.optor.StoreAsCsvProto;
 import marmot.proto.optor.StoreAsHeapfileProto;
+import marmot.proto.optor.StoreDataSetProto;
 import marmot.proto.optor.StoreIntoDataSetProto;
 import marmot.proto.optor.StoreIntoJdbcTableProto;
 import marmot.proto.optor.StoreIntoKafkaTopicProto;
@@ -1389,6 +1390,19 @@ public class PlanBuilder {
 		
 		return add(OperatorProto.newBuilder()
 								.setStoreIntoDataset(store)
+								.build());
+	}
+	
+	public PlanBuilder store(String dsId, StoreDataSetOptions opts) {
+		Utilities.checkNotNullArgument(dsId, "dataset id");
+
+		StoreDataSetProto store = StoreDataSetProto.newBuilder()
+													.setId(dsId)
+													.setOptions(opts.toProto())
+													.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setStoreDataset(store)
 								.build());
 	}
 

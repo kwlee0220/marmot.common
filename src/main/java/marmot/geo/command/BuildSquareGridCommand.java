@@ -1,10 +1,11 @@
 package marmot.geo.command;
 
+import static marmot.StoreDataSetOptions.FORCE;
+
 import io.vavr.CheckedConsumer;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
-import static marmot.StoreDataSetOptions.*;
 import marmot.command.UsageHelp;
 import marmot.optor.geo.SquareGrid;
 import picocli.CommandLine.Mixin;
@@ -65,14 +66,16 @@ public class BuildSquareGridCommand implements CheckedConsumer<MarmotRuntime> {
 						.assignGridCell(gcInfo.name(), grid, false)
 						.project(prjExpr)
 						.distinct("cell_id")
+						.store(m_params.m_output, FORCE(gcInfo))
 						.build();
 		}
 		else {
 			plan = marmot.planBuilder("build_square_grid")
 						.loadGrid(grid)
+						.store(m_params.m_output, FORCE(gcInfo))
 						.build();
 		}
-		marmot.createDataSet(m_params.m_output, plan, FORCE(gcInfo));
+		marmot.execute(plan);
 		
 		watch.stop();
 		System.out.printf("grid_output=%s, elapsed time: %s%n",

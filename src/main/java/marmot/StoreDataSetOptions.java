@@ -5,6 +5,7 @@ import java.util.Map;
 import marmot.proto.service.StoreDataSetOptionsProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
+import utils.UnitUtils;
 import utils.func.FOption;
 
 /**
@@ -171,5 +172,17 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		
 		return builder.build();
 	}
-
+	
+	@Override
+	public String toString() {
+		String gcInfoStr = m_gcInfo.map(info -> String.format(",gcinfo=%s", info)).getOrElse("");
+		String blkStr = m_blockSize.map(UnitUtils::toByteSizeString)
+									.map(str -> String.format(",blksz=%s", str))
+									.getOrElse("");
+		String forceStr = m_force.getOrElse(false) ? ",force" : "";
+		String appendStr = m_append.getOrElse(false) ? ",append" : "";
+		String compressStr = m_compressionCodecName.map(str -> String.format(",compress=%s", str))
+													.getOrElse("");
+		return String.format("store_options[%s%s%s%s%s]", gcInfoStr, compressStr, forceStr, appendStr,blkStr);
+	}
 }
