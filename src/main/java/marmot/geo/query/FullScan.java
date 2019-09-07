@@ -81,7 +81,7 @@ public class FullScan implements LoggerSettable {
 		long count = m_sampleCount.get();
 		if ( m_range == null ) {
 			// 샘플 갯수를 이용하여 샘플링 비율을 추정한다.
-			return (double)count / m_ds.getRecordCount();
+			return Math.min((double)count / m_ds.getRecordCount(), 1);
 		}
 		else {
 			// 먼저 질의 영역에 속한 레코드를 질의하고, 이를 바탕으로 샘플링 비율을 계산함
@@ -89,7 +89,7 @@ public class FullScan implements LoggerSettable {
 			if ( m_rangedDataSet == null ) {
 				m_rangedDataSet = calcRangedDataSet();
 			}
-			return (double)count / m_rangedDataSet.getRecordCount();
+			return Math.min((double)count / m_rangedDataSet.getRecordCount(), 1);
 		}
 	}
 	
@@ -111,8 +111,7 @@ public class FullScan implements LoggerSettable {
 	public RecordSet run() {
 		double ratio = getSampleRatio();
 		String dsId = Funcs.getIfNotNull(m_rangedDataSet, m_rangedDataSet, m_ds).getId();
-		String msg = String.format("full-scan: dataset=%s, ratio=%.2f%%",
-									dsId, ratio*100);
+		String msg = String.format("full-scan: dataset=%s, ratio=%.2f%%", dsId, ratio*100);
 		getLogger().info(msg);
 
 		PlanBuilder builder = m_marmot.planBuilder(msg);

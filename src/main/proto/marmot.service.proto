@@ -193,6 +193,7 @@ message DownChunkResponse {
 		
 		int32 sync_back = 2;
 		ErrorProto error = 3;
+		bool cancel = 4;
 	}
 }
 

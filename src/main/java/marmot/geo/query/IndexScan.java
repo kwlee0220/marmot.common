@@ -51,7 +51,7 @@ public class IndexScan {
 	private volatile boolean m_usePrefetch = false;
 	
 	public static IndexScan on(DataSet ds, Envelope range, long sampleCount,
-						DataSetPartitionCache cache, int maxLocalCacheCost) {
+								DataSetPartitionCache cache, int maxLocalCacheCost) {
 		return new IndexScan(ds, range, sampleCount, cache, maxLocalCacheCost);
 	}
 	
@@ -83,17 +83,17 @@ public class IndexScan {
 	public RecordSet run() {
 		// 추정된 결과 레코드 수를 통해 샘플링 비율을 계산한다.
 		double ratio = (m_sampleCount > 0)
-							? (double)m_sampleCount / m_est.getTotalMatchCount() : 1d;
-		final double sampleRatio = ratio > 1 ? 1 : ratio;
+						? (double)m_sampleCount / m_est.getTotalMatchCount() : 1d;
+		final double sampleRatio = Math.min(ratio, 1);
 		
 		double fullRatio = (sampleRatio * m_est.getTotalMatchCount()) / m_ds.getRecordCount();
 		if ( fullRatio > 0.7 ) {
-			s_logger.info("too large for index-scan, use mixed-scan: id={}", m_dsId);
-			
 			if ( m_ds.hasThumbnail() && m_sampleCount > 0 ) {
+				s_logger.info("too large for index-scan, use thumbnail-scan: id={}", m_dsId);
 				return ThumbnailScan.on(m_ds, m_range, m_sampleCount).run();
 			}
 			else {
+				s_logger.info("too large for index-scan, use full-scan: id={}", m_dsId);
 				return FullScan.on(m_ds)
 								.setRange(m_range)
 								.setSampleRatio(sampleRatio)

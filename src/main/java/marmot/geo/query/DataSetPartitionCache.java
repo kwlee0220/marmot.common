@@ -38,14 +38,13 @@ public class DataSetPartitionCache {
 	private static final int DS_CACHE_EXPIRE_MINUTES = 30;
 
 	private final LoadingCache<String,DataSet> m_dsCache;
-	private final FileObjectStore<PartitionKey,InputStream> m_cache;
-	private final boolean m_useCompression;
+	private final FileObjectStore<PartitionKey,InputStream> m_partitionCache;
 
-	public DataSetPartitionCache(MarmotRuntime marmot, File storeRoot, boolean useCompression)
+	public DataSetPartitionCache(MarmotRuntime marmot, File storeRoot)
 		throws IOException {
 		s_logger.info("use dataset_partition_cache: {}", storeRoot);
 		
-		m_cache = new FileObjectStore<>(storeRoot, new ParitionFileHandler(storeRoot));
+		m_partitionCache = new FileObjectStore<>(storeRoot, new ParitionFileHandler(storeRoot));
 		m_dsCache = CacheBuilder.newBuilder()
 								.expireAfterAccess(DS_CACHE_EXPIRE_MINUTES, TimeUnit.MINUTES)
 								.removalListener(this::onDataSetRemoved)
@@ -55,18 +54,17 @@ public class DataSetPartitionCache {
 										return marmot.getDataSet(key);
 									}
 								});
-		m_useCompression = useCompression;
 	}
 	
 	public boolean exists(String dsId, String quadKey) {
-		return m_cache.exists(new PartitionKey(dsId, quadKey));
+		return m_partitionCache.exists(new PartitionKey(dsId, quadKey));
 	}
 	
 	public RecordSet get(String dsId, String quadKey) throws IOException {
 		InputStream is;
 		
 		PartitionKey key = new PartitionKey(dsId, quadKey);
-		FOption<InputStream> ois = m_cache.get(key);
+		FOption<InputStream> ois = m_partitionCache.get(key);
 		if ( ois.isPresent() ) {	// cache에 해당 파티션이 존재하는 경
 			is = ois.getUnchecked();
 		}
@@ -78,9 +76,7 @@ public class DataSetPartitionCache {
 			is = new FileInputStream(file);
 		}
 		
-		if ( m_useCompression ) {
-			is = Lz4Compressions.decompress(is);
-		}
+		is = Lz4Compressions.decompress(is);
 		return PBInputStreamRecordSet.from(is);
 	}
 	
@@ -90,11 +86,11 @@ public class DataSetPartitionCache {
 	}
 	
 	public void remove(String dsId, String quadKey) {
-		m_cache.remove(new PartitionKey(dsId, quadKey));
+		m_partitionCache.remove(new PartitionKey(dsId, quadKey));
 	}
 	
 	public File getTopDir() {
-		return m_cache.getRootDir();
+		return m_partitionCache.getRootDir();
 	}
 	
 	private File writeIntoCache(PartitionKey key, RecordSet rset)
@@ -103,10 +99,8 @@ public class DataSetPartitionCache {
 		
 		InputStream is = PBRecordSetInputStream.from(rset);
 		try {
-			if ( m_useCompression ) {
-				is = Lz4Compressions.compress(is);
-			}
-			return m_cache.insert(key, is);
+			is = Lz4Compressions.compress(is);
+			return m_partitionCache.insert(key, is);
 		}
 		finally {
 			is.close();
@@ -119,12 +113,12 @@ public class DataSetPartitionCache {
 		s_logger.info("victim selected: dataset={}", dsId);
 		
 		try {
-			List<PartitionKey> keys = m_cache.traverse()
+			List<PartitionKey> keys = m_partitionCache.traverse()
 												.filter(k -> k.m_dsId.equals(dsId))
 												.collect(Collectors.toList());
 			
 			for ( PartitionKey key: keys ) {
-				m_cache.remove(key);
+				m_partitionCache.remove(key);
 			}
 			
 			m_dsCache.invalidateAll(keys);

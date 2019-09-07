@@ -7,6 +7,7 @@ import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.DataSet;
 import marmot.RecordSet;
+import utils.StopWatch;
 import utils.Throwables;
 import utils.Utilities;
 
@@ -15,7 +16,7 @@ import utils.Utilities;
  * @author Kang-Woo Lee (ETRI)
  */
 public class RangeQuery {
-	static final Logger s_logger = LoggerFactory.getLogger(RangeQuery.class);
+	private static final Logger s_logger = LoggerFactory.getLogger(RangeQuery.class);
 	
 	private final String m_dsId;
 	private final DataSet m_ds;
@@ -85,33 +86,41 @@ public class RangeQuery {
 	 * @return	레코드 세트 객체
 	 */
 	public RecordSet run() {
+		StopWatch watch = StopWatch.start();
 		try {
 			// 질의 영역이 DataSet 전체 영역보다 더 넓은 경우는 인덱스를 사용하는 방법보다
-			// 그냥 full scan 방식을 사용한다.
+			// 그냥 전체를 읽는 방식을 사용한다.
+			// 이때 thumbnail이 존재하는 경우에는 이것을 사용하고, 그렇지 않는 경우에만
+			// full scan을 사용한다.
+			//
 			if ( m_range.contains(m_ds.getBounds()) ) {
 				if ( m_ds.hasThumbnail() && m_sampleCount > 0 ) {
-					s_logger.info("too large range, use thumbnail scan: id={}", m_dsId);
+					s_logger.info("RANGE > DS, use thumbnail scan: id={}", m_dsId);
 					return ThumbnailScan.on(m_ds, m_range, m_sampleCount).run();
 				}
 				else {
-					s_logger.info("too large range, use full scan: id={}, nsamples={}",
+					s_logger.info("RANGE > DS, use full scan: id={}, nsamples={}",
 									m_dsId, m_sampleCount);
 					return FullScan.on(m_ds).setSampleCount(m_sampleCount).run();
 				}
 			}
 			
-			// 대상 DataSet에 인덱스가 걸려있지 않는 경우에는 full scan 방식을 사용한다.
+			// 대상 DataSet에 인덱스가 걸려있지 않는 경우에도 full scan 방식을 사용한다.
 			if ( !m_ds.isSpatiallyClustered() ) {
 				if ( m_ds.hasThumbnail() && m_sampleCount > 0 ) {
 					s_logger.info("no spatial index, try to use mixed(thumbnail/full) scan: id={}", m_dsId);
 					return ThumbnailScan.on(m_ds, m_range, m_sampleCount).run();
 				}
 				else {
-					return FullScan.on(m_ds).setRange(m_range).setSampleCount(m_sampleCount).run();
+					return FullScan.on(m_ds)
+									.setRange(m_range)
+									.setSampleCount(m_sampleCount)
+									.run();
 				}
 			}
 			else {
-				// 질의 영역과 겹치는 quad-key들과, 해당 결과 레코드의 수를 추정한다.
+				// 질의 영역과 겹치는 quad-key들과, 해당 결과 레코드의 수를 추정하여
+				// 그에 따른 질의처리를 시도한다.
 				return IndexScan.on(m_ds, m_range, m_sampleCount, m_cache, m_maxLocalCacheCost)
 								.usePrefetch(m_usePrefetch)
 								.run();
@@ -119,6 +128,9 @@ public class RangeQuery {
 		}
 		catch ( Throwable e ) {
 			throw Throwables.toRuntimeException(Throwables.unwrapThrowable(e));
+		}
+		finally {
+			s_logger.debug("RangeQuery: dataset={}, elapsed={}", m_dsId, watch.stopAndGetElpasedTimeString());
 		}
 	}
 }

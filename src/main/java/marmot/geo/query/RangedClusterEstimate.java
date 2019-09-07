@@ -79,16 +79,16 @@ public class RangedClusterEstimate {
 	
 	private class RangeMatch {
 		private final SpatialClusterInfo m_info;
-		private final Envelope m_domain;
+		private final Envelope m_matchRange;
 		private final double m_matchRatio;
 		private final int m_matchCount;
 		
 		private RangeMatch(SpatialClusterInfo info, Envelope range) {
 			m_info = info;
 			
-			m_domain = info.getTileBounds().intersection(info.getDataBounds());
-			Envelope matchingArea = m_range.intersection(m_domain);
-			m_matchRatio = matchingArea.getArea() / m_domain.getArea();
+			m_matchRange = info.getTileBounds().intersection(info.getDataBounds());
+			Envelope matchingArea = m_range.intersection(m_matchRange);
+			m_matchRatio = matchingArea.getArea() / m_matchRange.getArea();
 			m_matchCount = (int)Math.round(m_info.getOwnedRecordCount() * m_matchRatio);
 		}
 		
