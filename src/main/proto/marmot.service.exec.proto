@@ -29,6 +29,8 @@ service PlanExecutionService {
 	rpc getProcessRecordSchema(ExecuteProcessRequest) returns (RecordSchemaResponse);
 	
 	rpc executeModule(StringProto) returns (VoidResponse);
+	
+	rpc ping(marmot.proto.VoidProto) returns (VoidResponse);
 }
 
 service PlanExecutionListenerService {
