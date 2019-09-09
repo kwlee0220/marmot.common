@@ -46,22 +46,21 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 		
 		String dsId = m_params.getDataSetId();
 		try {
-			FOption<Plan> importPlan = loadImportPlan(marmot)
-											.map(this::adjustImportPlan);
+			FOption<Plan> importPlan = loadImportPlan(marmot);
 			
 			RecordSet rset0 = loadRecordSet(marmot);
 			RecordSet rset = m_params.getReportInterval()
 									.transform(rset0,
 											(r,n) -> r.reportProgress(m_subject).reportInterval(n));
-
+			
 			DataSet ds;
-			if ( !append ) {
+			if ( append ) {
+				ds = marmot.getDataSet(dsId);
+			}
+			else {
 				RecordSchema outSchema = importPlan.transform(rset.getRecordSchema(),
 														(s,p) -> marmot.getOutputRecordSchema(p,s));
 				ds = marmot.createDataSet(dsId, outSchema, m_params.toCreateOptions());
-			}
-			else {
-				ds = marmot.getDataSet(dsId);
 			}
 			
 			return importPlan.map(p -> ds.append(rset, p))
@@ -76,18 +75,18 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 		}
 	}
 	
-	private Plan adjustImportPlan(Plan plan) {
-		OperatorProto last = plan.getLastOperator().get();
-		switch ( last.getOperatorCase() ) {
-			case STORE_INTO_DATASET:
-				break;
-			default:
-				plan = plan.toBuilder()
-							.store(m_params.getDataSetId())
-							.build();
-				break;
-		}
-		
-		return plan;
-	}
+//	private Plan adjustImportPlan(Plan plan) {
+//		OperatorProto last = plan.getLastOperator().get();
+//		switch ( last.getOperatorCase() ) {
+//			case STORE_INTO_DATASET:
+//				break;
+//			default:
+//				plan = plan.toBuilder()
+//							.store(m_params.getDataSetId())
+//							.build();
+//				break;
+//		}
+//		
+//		return plan;
+//	}
 }

@@ -103,59 +103,6 @@ public interface MarmotRuntime {
 	 */
 	public DataSet createDataSet(String dsId, RecordSchema schema, CreateDataSetOptions opts)
 		throws DataSetExistsException;
-
-	/**
-	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
-	 * 생성된 데이터세트의 정보는 Marmot 카타로그에 등록된다.
-	 * 
-	 * @param dsId		생성될 데이터세트의 식별자.
-	 * @param plan		실행시킬 {@link Plan} 객체.
-	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
-	 * @return	 생성된 데이터세트 객체.
-	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
-	 */
-//	public DataSet createDataSet(String dsId, Plan plan, StoreDataSetOptions opts)
-//		throws DataSetExistsException;
-
-	/**
-	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
-	 * 생성된 데이터세트의 정보는 Marmot 카타로그에 등록된다.
-	 * 
-	 * @param dsId		생성될 데이터세트의 식별자.
-	 * @param plan		실행시킬 {@link Plan} 객체.
-	 * @param execOpts	Plan 수행에 필요한 추가 옵션 리스트.
-	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
-	 * @return	 생성된 데이터세트 객체.
-	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
-	 */
-//	public DataSet createDataSet(String dsId, Plan plan, ExecutePlanOptions execOpts,
-//											StoreDataSetOptions opts)
-//		throws DataSetExistsException;
-
-	/**
-	 * 주어진 Plan을 수행시켜 생성된 결과를 주어진 이름의 데이터세트를 생성시켜 저장시킨다.
-	 * 생성된 데이터세트의 정보는 Marmot 카타로그에 등록된다.
-	 * 
-	 * @param dsId		생성될 데이터세트의 식별자.
-	 * @param plan		실행시킬 {@link Plan} 객체.
-	 * @param input		Plan 수행중 사용할 입력 레코드세트
-	 * @param opts		데이터세트 생성에 필요한 추가 옵션 리스트.
-	 * @return	 생성된 데이터세트 객체.
-	 * @throws DataSetExistsException	동일 경로명의 데이터세트가 이미 존재하는 경우.
-	 */
-//	public default DataSet createDataSet(String dsId, Plan plan, RecordSet input,
-//										StoreDataSetOptions opts)
-//		throws DataSetExistsException {
-//		Utilities.checkNotNullArgument(dsId, "dsId is null");
-//		Utilities.checkNotNullArgument(plan, "plan is null");
-//		Utilities.checkNotNullArgument(input, "input is null");
-//		
-//		RecordSchema outSchema = getOutputRecordSchema(plan, input.getRecordSchema());
-//		DataSet created = createDataSet(dsId, outSchema, opts);
-//		created.append(input, plan);
-//		
-//		return getDataSet(dsId);
-//	}
 	
 	/**
 	 * 기존 데이터세트와 바인딩시킨다.
@@ -409,4 +356,6 @@ public interface MarmotRuntime {
 								FOption<Long> blockSize, FOption<String> codecName)
 		throws IOException;
 	public void deleteHdfsFile(String path) throws IOException;
+	
+	public void ping();
 }
