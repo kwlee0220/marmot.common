@@ -5,6 +5,7 @@ import java.util.Map;
 import marmot.proto.service.StoreDataSetOptionsProto;
 import marmot.support.PBSerializable;
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -68,7 +69,7 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 
 	public StoreDataSetOptions blockSize(String blkSizeStr) {
-		return blockSize(Long.parseLong(blkSizeStr));
+		return blockSize(UnitUtils.parseByteSize(blkSizeStr));
 	}
 	
 	public FOption<String> compressionCodecName() {
