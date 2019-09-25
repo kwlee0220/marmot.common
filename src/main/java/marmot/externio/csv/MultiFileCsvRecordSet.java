@@ -1,8 +1,12 @@
 package marmot.externio.csv;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +44,8 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 		try {
 			List<File> files;
 			if ( start.isDirectory() ) {
-				files = FileUtils.walk(start, "**/*.csv").toList();
+				String glob = "**/*.{csv,gz,gzip,zip}";
+				files = FileUtils.walk(start, glob).toList();
 				if ( files.isEmpty() ) {
 					throw new IllegalArgumentException("no CSV files to read: path=" + start);
 				}
@@ -98,9 +103,27 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 		}
 	}
 	
+	@SuppressWarnings("resource")
 	private CsvRecordSet loadFile(File file) {
 		try {
-			CsvRecordSet rset = CsvRecordSet.from(file, m_params);
+			InputStream src = new FileInputStream(file);
+			String ext = FileUtils.getExtension(file);
+			switch ( ext ) {
+				case "csv":
+					break;
+				case "gz":
+				case "gzip":
+					src = new GZIPInputStream(src);
+					break;
+				case "zip":
+					src = new ZipInputStream(src);
+					break;
+				default:
+					String msg = String.format("fails to load CsvRecordSet: unknown extenstion=%s", ext);
+					throw new RecordSetException(msg);
+			}
+			
+			CsvRecordSet rset = CsvRecordSet.from(src, m_params);
 			getLogger().info("loading: CSV[{}], from={}", m_params, file);
 			
 			return rset;
