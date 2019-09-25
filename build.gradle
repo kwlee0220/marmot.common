@@ -7,7 +7,6 @@ version = '5.12.02'
 sourceCompatibility = JavaVersion.VERSION_1_8;
 [compileJava,compileTestJava]*.options*.encoding = 'UTF-8'
 
-
 buildscript {
 	repositories {
 		mavenLocal()

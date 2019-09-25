@@ -44,7 +44,7 @@ public class SuppliableInputStream extends InputStream {
 		return new SuppliableInputStream(chunkQLength);
 	}
 	
-	private SuppliableInputStream(int chunkQLength) {
+	protected SuppliableInputStream(int chunkQLength) {
 		m_chunkQLength = chunkQLength;
 		m_chunkQueue = Lists.newArrayListWithCapacity(chunkQLength);
 		m_buffer = null;
