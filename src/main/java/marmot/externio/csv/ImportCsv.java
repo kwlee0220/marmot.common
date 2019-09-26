@@ -126,13 +126,20 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	}
 	
 	private static class ImportCsvStreamIntoDataSet extends ImportCsv {
+		private final String m_key;
 		private final BufferedReader m_reader;
 		private final FOption<Plan> m_plan;
 		
 		ImportCsvStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
 									CsvParameters csvParams, ImportParameters params) {
+			this("unknown", reader, plan, csvParams, params);
+		}
+		
+		ImportCsvStreamIntoDataSet(String key, BufferedReader reader, FOption<Plan> plan,
+									CsvParameters csvParams, ImportParameters params) {
 			super(csvParams, params);
 			
+			m_key = key;
 			m_reader = reader;
 			m_plan = plan;
 		}
@@ -140,7 +147,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
 			try {
-				return CsvRecordSet.from(m_reader, m_csvParams);
+				return CsvRecordSet.from(m_key, m_reader, m_csvParams);
 			}
 			catch ( IOException e ) {
 				throw new RecordSetException("fails to load CsvRecordSet: cause=" + e);

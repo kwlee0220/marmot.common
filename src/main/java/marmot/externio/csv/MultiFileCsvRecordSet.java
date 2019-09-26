@@ -123,13 +123,13 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 					throw new RecordSetException(msg);
 			}
 			
-			CsvRecordSet rset = CsvRecordSet.from(src, m_params);
-			getLogger().info("loading: CSV[{}], from={}", m_params, file);
+			CsvRecordSet rset = CsvRecordSet.from(file.getParent(), src, m_params);
+			getLogger().info("loading: CSV[{}], {}", m_params, file);
 			
 			return rset;
 		}
 		catch ( IOException e ) {
-			String msg = String.format("fails to load CsvRecordSet: from=%s", file);
+			String msg = String.format("fails to load CsvRecordSet: %s", file);
 			throw new RecordSetException(msg, e);
 		}
 	}

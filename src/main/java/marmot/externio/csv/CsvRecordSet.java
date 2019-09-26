@@ -38,6 +38,7 @@ import utils.stream.FStream;
 public class CsvRecordSet extends AbstractRecordSet {
 	private static final Logger s_logger = LoggerFactory.getLogger(CsvRecordSet.class);
 	
+	private final String m_key;
 	private final CsvParameters m_options;
 	private final CSVParser m_parser;
 	private final Iterator<CSVRecord> m_iter;
@@ -45,21 +46,22 @@ public class CsvRecordSet extends AbstractRecordSet {
 	private final RecordSchema m_schema;
 	private final Column[] m_columns;
 	private List<String> m_first;
+	private long m_lineNo = 0;
 	
-	static CsvRecordSet from(InputStream is, CsvParameters opts) throws IOException {
+	static CsvRecordSet from(String key, InputStream is, CsvParameters opts) throws IOException {
 		Utilities.checkNotNullArgument(is, "is is null");
 		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is, opts.charset().get()));
-		return new CsvRecordSet(reader, opts);
+		return new CsvRecordSet(key, reader, opts);
 	}
 	
-	static CsvRecordSet from(BufferedReader reader, CsvParameters opts)
+	static CsvRecordSet from(String key, BufferedReader reader, CsvParameters opts)
 		throws IOException {
 		Utilities.checkNotNullArgument(reader, "reader is null");
 		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
 		
-		return new CsvRecordSet(reader, opts);
+		return new CsvRecordSet(key, reader, opts);
 	}
 	
 	static CsvRecordSet from(File file, CsvParameters opts) throws IOException {
@@ -67,10 +69,11 @@ public class CsvRecordSet extends AbstractRecordSet {
 		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
 		
 		Reader reader = new InputStreamReader(new FileInputStream(file), opts.charset().get());
-		return new CsvRecordSet(new BufferedReader(reader), opts);
+		return new CsvRecordSet(file.getAbsolutePath(), new BufferedReader(reader), opts);
 	}
 	
-	private CsvRecordSet(BufferedReader reader, CsvParameters opts) throws IOException {
+	private CsvRecordSet(String key, BufferedReader reader, CsvParameters opts) throws IOException {
+		m_key = key;
 		m_options = opts;
 		setLogger(s_logger);
 		
@@ -90,7 +93,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 		
 		m_iter = m_parser.iterator();
 		if ( !m_iter.hasNext() ) {
-			throw new IllegalArgumentException("input CSV file is empty");
+			throw new IllegalArgumentException("input CSV file is empty: key=" + m_key);
 		}
 		m_first = Lists.newArrayList(m_iter.next().iterator());
 		
@@ -129,6 +132,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 		checkNotClosed();
 		
 		if ( m_first != null ) {
+			++m_lineNo;
 			set(output, m_first);
 			m_first = null;
 			
@@ -140,10 +144,11 @@ public class CsvRecordSet extends AbstractRecordSet {
 				return false;
 			}
 			
+			++m_lineNo;
 			List<String> values = Lists.newArrayList(m_iter.next().iterator());
 			if ( values.size() != m_columns.length ) {
-				String msg = String.format("invalid CSV line: # of cols(%d), expected=%d, csv=%s",
-											values.size(), m_columns.length, values);
+				String msg = String.format("invalid CSV line: %s:%d, expected=%d, csv=%s",
+											m_key, m_lineNo, values.size(), m_columns.length, values);
 				throw new IOException(msg);
 			}
 			set(output, values);

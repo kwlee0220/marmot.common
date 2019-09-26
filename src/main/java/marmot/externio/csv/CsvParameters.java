@@ -239,8 +239,7 @@ public class CsvParameters {
 						? String.format(",%s", charset().get().toString()) : "";
 		String ptStr = pointColumns().map(xy -> String.format(", POINT(%s,%s)", xy._1, xy._2))
 									.getOrElse("");
-		String srcSrid = m_srid.map(s -> String.format(", csv_srid=%s", s))
-									.getOrElse("");
+		String srcSrid = m_srid.map(s -> String.format(",%s", s)).getOrElse("");
 		return String.format("delim='%s'%s%s%s%s%s",
 								m_delim, headerFirst, ptStr, srcSrid, csStr,
 								nullString);
