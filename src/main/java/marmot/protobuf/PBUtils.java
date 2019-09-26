@@ -65,7 +65,6 @@ import marmot.proto.service.FloatResponse;
 import marmot.proto.service.LongResponse;
 import marmot.proto.service.MarmotErrorCode;
 import marmot.proto.service.RecordResponse;
-import marmot.proto.service.ResultProto;
 import marmot.proto.service.StringResponse;
 import marmot.proto.service.VoidResponse;
 import marmot.remote.protobuf.PBMarmotError;
@@ -89,7 +88,6 @@ import utils.Throwables;
 import utils.UnitUtils;
 import utils.func.CheckedSupplier;
 import utils.func.FOption;
-import utils.func.Result;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
@@ -708,33 +706,6 @@ public class PBUtils {
 			default:
 				return PBUtils.toException(proto);
 		}
-	}
-	
-	public static Result<Void> fromProto(ResultProto proto) {
-		switch ( proto.getEitherCase() ) {
-			case VALUE:
-				return Result.some(null);
-			case FAILURE:
-				return Result.failure(parsePlanExecutionError(proto.getFailure()));
-			case NONE:
-				return  Result.none();
-			default:
-				throw new AssertionError();
-		}
-	}
-	
-	public static ResultProto toProto(Result<Void> result) {
-		ResultProto.Builder builder = ResultProto.newBuilder();
-		if ( result.isSuccess() ) {
-			builder.setValue(PBUtils.toValueProto(null));
-		}
-		else if ( result.isFailure() ) {
-			builder.setFailure(PBUtils.toErrorProto(result.getCause()));
-		}
-		else {
-			builder.setNone(PBUtils.VOID);
-		}
-		return builder.build();
 	}
 	
 	public static Map<String,String> fromProto(PropertiesProto proto) {

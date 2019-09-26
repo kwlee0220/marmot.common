@@ -12,6 +12,8 @@ import public "marmot.optor.proto";
 
 service PlanExecutionService {
 	// ExecutePlanRequest
+	rpc start(ExecutePlanRequest) returns (StringResponse);
+	// ExecutePlanRequest
 	rpc execute(ExecutePlanRequest) returns (VoidResponse);
 	// ExecutePlanRequest -> Stream
 	rpc executeLocally(stream DownChunkResponse) returns (stream DownChunkRequest);
@@ -30,22 +32,16 @@ service PlanExecutionService {
 	
 	rpc executeModule(StringProto) returns (VoidResponse);
 	
+	rpc getExecutionState(StringProto) returns (GetStateResponse);
+	
 	rpc ping(marmot.proto.VoidProto) returns (VoidResponse);
 }
 
-service PlanExecutionListenerService {
-    rpc notifyStarted(StringProto) returns (VoidResponse);
-    rpc notifyCompleted(StringProto) returns (VoidResponse);
-    rpc notifyFailed(NotifyFailedRequest) returns (VoidResponse);
-    rpc notifyCancelled(StringProto) returns (VoidResponse);
-}
-
-enum PlanExecutionStateProto {
-	PLAN_NOT_STARTED = 0;
-	PLAN_RUNNING = 1;
-	PLAN_COMPLETED = 2;
-	PLAN_FAILED = 3;
-	PLAN_CANCELLED = 4;
+enum ExecutionStateProto {
+	EXEC_RUNNING = 0;
+	EXEC_COMPLETED = 1;
+	EXEC_FAILED = 2;
+	EXEC_CANCELLED = 3;
 }
 
 message PlanExecutionListenerProto {
@@ -85,30 +81,9 @@ message TimeoutProto {
 	string time_unit = 2;
 }
 
-message ResultProto {
-	oneof either {
-		ValueProto value = 1;
-		ErrorProto failure = 2;
-		VoidProto none = 3;
-	}
-}
-
-message GetPlanResultRequest {
-	string id = 1;
-	oneof optional_timeout {
-		TimeoutProto timeout = 2;
-	}
-}
-
 message GetStateResponse {
 	oneof either {
-		PlanExecutionStateProto state = 1;
-		ErrorProto error = 2;
-	}
-}
-message GetResultResponse {
-	oneof either {
-		ResultProto result = 1;
+		ExecutionStateProto state = 1;
 		ErrorProto error = 2;
 	}
 }

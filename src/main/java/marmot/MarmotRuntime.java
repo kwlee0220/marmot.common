@@ -190,10 +190,15 @@ public interface MarmotRuntime {
 	 * @param plan	수행시킬 실행 계획.
 	 * @param opts	실행 계획 옵션
 	 */
-	public void execute(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
+	public MarmotExecution start(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
+	public default MarmotExecution start(Plan plan) throws PlanExecutionException {
+		return start(plan, ExecutePlanOptions.DEFAULT);
+	}
+	
 	public default void execute(Plan plan) throws PlanExecutionException {
 		execute(plan, ExecutePlanOptions.DEFAULT);
 	}
+	public void execute(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
 	
 	/**
 	 * 주어진 Plan을 MapReduce를 사용하지 않고 수행시킨다.
