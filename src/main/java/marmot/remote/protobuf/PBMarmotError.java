@@ -19,6 +19,7 @@ import marmot.PlanExecutionException;
 import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
 import marmot.ThumbnailNotFoundException;
+import marmot.exec.ExecutionNotFoundException;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.io.MarmotFileExistsException;
 import marmot.io.MarmotFileNotFoundException;
@@ -38,19 +39,20 @@ public enum PBMarmotError {
 	THUMBNAIL_NOT_FOUND(3, ThumbnailNotFoundException.class),
 	MARMOT_NOT_FOUND(4, MarmotFileNotFoundException.class),
 	MARMOT_EXISTS(5, MarmotFileExistsException.class),
+	
+	STREAM_CLOSED(50, PBStreamClosedException.class),
+	RECORD_SET_CLOSED(55, RecordSetClosedException.class),
+	RECORD_SET_ERROR(56, RecordSetException.class),
+	
+	COLUMN_NOT_FOUND(60, ColumnNotFoundException.class),
+	
+	INDEX_NOT_FOUND(70, IndexNotFoundException.class),
 
-	STREAM_CLOSED(10, PBStreamClosedException.class),
-	RECORD_SET_CLOSED(15, RecordSetClosedException.class),
-	RECORD_SET_ERROR(16, RecordSetException.class),
-	
-	COLUMN_NOT_FOUND(20, ColumnNotFoundException.class),
-	
-	INDEX_NOT_FOUND(30, IndexNotFoundException.class),
-	
-	PLAN_EXECUTION_INTERRUPTED(101, InterruptedException.class),
-	PLAN_EXECUTION_CANCELLED(102, CancellationException.class),
-	PLAN_EXECUTION_FAILED(103, PlanExecutionException.class),
-	PLAN_EXECUTION_TIMED_OUT(104, TimeoutException.class),
+	EXEC_UNKNOWN_ID(101, ExecutionNotFoundException.class),
+	EXEC_INTERRUPTED(102, InterruptedException.class),
+	EXEC_CANCELLED(103, CancellationException.class),
+	EXEC_FAILED(104, PlanExecutionException.class),
+	EXEC_TIMED_OUT(105, TimeoutException.class),
 
 	NULL_POINTER(900, NullPointerException.class),
 	INVALID_ARGUMENT(901, IllegalArgumentException.class),

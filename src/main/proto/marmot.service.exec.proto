@@ -33,15 +33,10 @@ service PlanExecutionService {
 	rpc executeModule(StringProto) returns (VoidResponse);
 	
 	rpc getExecutionState(StringProto) returns (GetStateResponse);
+	rpc cancelExecution(StringProto) returns (BoolResponse);
+	rpc waitForFinished(WaitForFinishedRequest) returns (BoolResponse);
 	
 	rpc ping(marmot.proto.VoidProto) returns (VoidResponse);
-}
-
-enum ExecutionStateProto {
-	EXEC_RUNNING = 0;
-	EXEC_COMPLETED = 1;
-	EXEC_FAILED = 2;
-	EXEC_CANCELLED = 3;
 }
 
 message PlanExecutionListenerProto {
@@ -81,6 +76,12 @@ message TimeoutProto {
 	string time_unit = 2;
 }
 
+enum ExecutionStateProto {
+	EXEC_RUNNING = 0;
+	EXEC_COMPLETED = 1;
+	EXEC_FAILED = 2;
+	EXEC_CANCELLED = 3;
+}
 message GetStateResponse {
 	oneof either {
 		ExecutionStateProto state = 1;
@@ -107,7 +108,9 @@ message ExecuteProcessRequest {
 	PropertiesProto params = 2;
 }
 
-message NotifyFailedRequest {
-    string id = 1;
-    ErrorProto error = 2;
+message WaitForFinishedRequest {
+	string exec_id = 1;
+	oneof optional_timeout {
+		int64 timeout = 2;
+	}
 }

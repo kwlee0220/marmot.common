@@ -25,7 +25,7 @@ public interface MarmotExecution {
 			m_code = code;
 		}
 		
-		int getCode() {
+		public int getCode() {
 			return m_code;
 		}
 		

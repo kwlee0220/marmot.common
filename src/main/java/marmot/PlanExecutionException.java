@@ -1,6 +1,5 @@
 package marmot;
 
-
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
