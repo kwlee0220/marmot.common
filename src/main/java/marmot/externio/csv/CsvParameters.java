@@ -230,17 +230,15 @@ public class CsvParameters {
 	
 	@Override
 	public String toString() {
-		String headerFirst = m_headerFirst.filter(f -> f)
-											.map(f -> ",HF")
-											.getOrElse("");
+		String headerFirst = m_headerFirst.filter(f -> f).map(f -> ",HF").getOrElse("");
 		String nullString = m_nullValue.map(v -> String.format(", null=\"%s\"", v))
 										.getOrElse("");
-		String csStr = !charset().toString().equalsIgnoreCase("utf-8")
-						? String.format(",%s", charset().get().toString()) : "";
+		String csStr = charset().get().toString().toLowerCase();
+		csStr = !csStr.equals("utf-8") ? String.format(",%s", csStr) : "";
 		String ptStr = pointColumns().map(xy -> String.format(", POINT(%s,%s)", xy._1, xy._2))
 									.getOrElse("");
 		String srcSrid = m_srid.map(s -> String.format(",%s", s)).getOrElse("");
-		return String.format("delim='%s'%s%s%s%s%s",
+		return String.format("'%s'%s%s%s%s%s",
 								m_delim, headerFirst, ptStr, srcSrid, csStr,
 								nullString);
 	}

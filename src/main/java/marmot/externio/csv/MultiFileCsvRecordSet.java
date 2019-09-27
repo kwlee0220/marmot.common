@@ -29,14 +29,19 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	private static final Logger s_logger = LoggerFactory.getLogger(MultiFileCsvRecordSet.class);
 	
 	private final File m_start;
-	private final FStream<File> m_files;
 	private final CsvParameters m_params;
+	private final FStream<File> m_files;
 	private CsvRecordSet m_first;
 	private final RecordSchema m_schema;
 	
 	MultiFileCsvRecordSet(File start, CsvParameters params) {
+		this(start, params, "**/*.csv");
+	}
+	
+	MultiFileCsvRecordSet(File start, CsvParameters params, String glob) {
 		Utilities.checkNotNullArgument(start, "start is null");
 		Utilities.checkNotNullArgument(params, "params is null");
+		Utilities.checkNotNullArgument(glob, "glob is null");
 		
 		m_start = start;
 		setLogger(s_logger);
@@ -44,7 +49,7 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 		try {
 			List<File> files;
 			if ( start.isDirectory() ) {
-				String glob = "**/*.{csv,gz,gzip,zip}";
+//				String glob = "**/*.{csv,gz,gzip,zip}";
 				files = FileUtils.walk(start, glob)
 								.sort()
 								.toList();

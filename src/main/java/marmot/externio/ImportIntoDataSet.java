@@ -8,7 +8,6 @@ import marmot.Plan;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.command.ImportParameters;
-import marmot.proto.optor.OperatorProto;
 import utils.Throwables;
 import utils.Utilities;
 import utils.async.ProgressReporter;

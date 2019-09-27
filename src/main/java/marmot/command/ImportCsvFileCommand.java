@@ -8,6 +8,7 @@ import marmot.externio.ImportIntoDataSet;
 import marmot.externio.csv.CsvParameters;
 import marmot.externio.csv.ImportCsv;
 import picocli.CommandLine.Mixin;
+import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import utils.StopWatch;
 import utils.Utilities;
@@ -26,18 +27,21 @@ public class ImportCsvFileCommand implements CheckedConsumer<MarmotRuntime> {
 	private String m_start;
 	
 	@Parameters(paramLabel="dataset_id", index="1", arity="1..1",
-			description={"dataset id to import onto"})
+				description={"dataset id to import onto"})
 	public void setDataSetId(String id) {
 		Utilities.checkNotNullArgument(id, "dataset id is null");
 		m_params.setDataSetId(id);
 	}
+	
+	@Option(names={"-glob"}, paramLabel="expr", description="glob expression for import files")
+	private String m_glob = "**/*.csv"; 
 
 	@Override
 	public void accept(MarmotRuntime marmot) {
 		StopWatch watch = StopWatch.start();
 		
 		File csvFilePath = new File(m_start);
-		ImportIntoDataSet importFile = ImportCsv.from(csvFilePath, m_csvParams, m_params);
+		ImportIntoDataSet importFile = ImportCsv.from(csvFilePath, m_csvParams, m_params, m_glob);
 		importFile.getProgressObservable()
 					.subscribe(report -> {
 						double velo = report / watch.getElapsedInFloatingSeconds();

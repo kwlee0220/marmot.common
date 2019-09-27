@@ -19,6 +19,7 @@ import marmot.support.MetaPlanLoader;
 import utils.Throwables;
 import utils.func.FOption;
 
+
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
@@ -31,7 +32,12 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	protected abstract FOption<Plan> loadMetaPlan();
 	
 	public static ImportCsv from(File file, CsvParameters csvParams, ImportParameters params) {
-		return new ImportCsvFileIntoDataSet(file, csvParams, params);
+		return new ImportCsvFileIntoDataSet(file, csvParams, params, "**/*.csv");
+	}
+	
+	public static ImportCsv from(File file, CsvParameters csvParams, ImportParameters params,
+								String glob) {
+		return new ImportCsvFileIntoDataSet(file, csvParams, params, glob);
 	}
 	
 	public static ImportCsv from(BufferedReader reader, CsvParameters csvParams,
@@ -102,16 +108,19 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	
 	private static class ImportCsvFileIntoDataSet extends ImportCsv {
 		private final File m_start;
+		private final String m_glob;
 		
-		ImportCsvFileIntoDataSet(File file, CsvParameters csvParams, ImportParameters params) {
+		ImportCsvFileIntoDataSet(File file, CsvParameters csvParams,
+									ImportParameters params, String glob) {
 			super(csvParams, params);
 			
 			m_start = file;
+			m_glob = glob;
 		}
 
 		@Override
 		protected RecordSet loadRecordSet(MarmotRuntime marmot) {
-			return new MultiFileCsvRecordSet(m_start, m_csvParams);
+			return new MultiFileCsvRecordSet(m_start, m_csvParams, m_glob);
 		}
 
 		@Override
