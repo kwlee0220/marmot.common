@@ -695,13 +695,13 @@ public class PBUtils {
 	
 	public static Throwable parsePlanExecutionError(ErrorProto proto) {
 		switch ( proto.getCode() ) {
-			case ERROR_PLAN_EXECUTION_INTERRUPTED:
+			case ERROR_EXEC_INTERRUPTED:
 				return new InterruptedException(proto.getDetails());
-			case ERROR_PLAN_EXECUTION_CANCELLED:
+			case ERROR_EXEC_CANCELLED:
 				return new CancellationException(proto.getDetails());
-			case ERROR_PLAN_EXECUTION_FAILED:
+			case ERROR_EXEC_FAILED:
 				return new ExecutionException(new PlanExecutionException(proto.getDetails()));
-			case ERROR_PLAN_EXECUTION_TIMED_OUT:
+			case ERROR_EXEC_TIMED_OUT:
 				return new TimeoutException(proto.getDetails());
 			default:
 				return PBUtils.toException(proto);
