@@ -45,7 +45,9 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 			List<File> files;
 			if ( start.isDirectory() ) {
 				String glob = "**/*.{csv,gz,gzip,zip}";
-				files = FileUtils.walk(start, glob).toList();
+				files = FileUtils.walk(start, glob)
+								.sort()
+								.toList();
 				if ( files.isEmpty() ) {
 					throw new IllegalArgumentException("no CSV files to read: path=" + start);
 				}
