@@ -145,6 +145,11 @@ public class PlanBuilder {
 								.build());
 	}
 	
+	public PlanBuilder removeLast() {
+		m_builder.removeOperators(m_builder.getOperatorsCount()-1);
+		return this;
+	}
+	
 	public String getName() {
 		return m_builder.getName();
 	}
