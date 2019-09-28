@@ -32,9 +32,11 @@ service PlanExecutionService {
 	
 	rpc executeModule(StringProto) returns (VoidResponse);
 	
-	rpc getExecutionState(StringProto) returns (GetStateResponse);
+	rpc getExecutionState(StringProto) returns (ExecutionStateResponse);
+	rpc getExecutionInfo(StringProto) returns (ExecutionInfoResponse);
+	rpc setExecutionInfo(SetExecutionInfoRequest) returns (ExecutionStateResponse);
 	rpc cancelExecution(StringProto) returns (BoolResponse);
-	rpc waitForFinished(WaitForFinishedRequest) returns (BoolResponse);
+	rpc waitForFinished(WaitForFinishedRequest) returns (ExecutionStateResponse);
 	
 	rpc ping(marmot.proto.VoidProto) returns (VoidResponse);
 }
@@ -71,21 +73,54 @@ message GetStreamRequest {
 	marmot.proto.optor.PlanProto plan = 2;
 }
 
+
+message ExecutionStateResponse {
+	enum ExecutionStateProto {
+		EXEC_RUNNING = 0;
+		EXEC_COMPLETED = 1;
+		EXEC_FAILED = 2;
+		EXEC_CANCELLED = 4;
+	}
+	message ExecutionStateInfoProto {
+		ExecutionStateProto state = 1;
+		oneof optional_failure_cause {
+			ErrorProto failure_cause = 2;
+		}
+	}
+	oneof either {
+		ExecutionStateInfoProto exec_state_info = 1;
+		ErrorProto error = 2;
+	}
+}
+
+message ExecutionInfoProto {
+	int64 started_time = 1;
+	int64 finished_time = 2;
+	int64 max_running_time = 3;
+	int64 retention_time = 4;
+}
+
+message SetExecutionInfoRequest {
+	string exec_id = 1;
+	ExecutionInfoProto exec_info = 2;
+}
+
+message ExecutionInfoResponse {
+	oneof either {
+		ExecutionInfoProto exec_info = 1;
+		ErrorProto error = 2;
+	}
+}
+
 message TimeoutProto {
 	int64 timeout = 1;
 	string time_unit = 2;
 }
 
-enum ExecutionStateProto {
-	EXEC_RUNNING = 0;
-	EXEC_COMPLETED = 1;
-	EXEC_FAILED = 2;
-	EXEC_CANCELLED = 3;
-}
-message GetStateResponse {
-	oneof either {
-		ExecutionStateProto state = 1;
-		ErrorProto error = 2;
+message WaitForFinishedRequest {
+	string exec_id = 1;
+	oneof optional_timeout {
+		TimeoutProto timeout = 2;
 	}
 }
 
@@ -106,11 +141,4 @@ message ExecutePlanRequest {
 message ExecuteProcessRequest {
 	string process_id = 1;
 	PropertiesProto params = 2;
-}
-
-message WaitForFinishedRequest {
-	string exec_id = 1;
-	oneof optional_timeout {
-		int64 timeout = 2;
-	}
 }

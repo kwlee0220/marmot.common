@@ -1,12 +1,14 @@
 package marmot;
 
 import java.io.IOException;
-import java.util.Iterator;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import marmot.exec.MarmotExecution;
+import marmot.exec.PlanExecutionException;
 import marmot.io.MarmotFileNotFoundException;
 import utils.func.FOption;
 
@@ -183,6 +185,8 @@ public interface MarmotRuntime {
 	 * @return	레코드세트 스키마.
 	 */
 	public RecordSchema getOutputRecordSchema(Plan plan);
+	
+	public MarmotExecution getMarmotExecution(String id);
 
 	/**
 	 * 주어진 Plan을 수행시킨다.
@@ -357,10 +361,12 @@ public interface MarmotRuntime {
 	public void createKafkaTopic(String topic, boolean force);
 	
 	public RecordSet readMarmotFile(String path) throws MarmotFileNotFoundException;
-	public void copyToHdfsFile(String path, Iterator<byte[]> blocks,
+	public void copyToHdfsFile(String path, InputStream stream,
 								FOption<Long> blockSize, FOption<String> codecName)
 		throws IOException;
 	public void deleteHdfsFile(String path) throws IOException;
 	
 	public void ping();
+	
+	public void shutdown();
 }

@@ -10,6 +10,7 @@ import java.util.List;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 
+import marmot.exec.PlanExecutionException;
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.PlanProto;
 import marmot.support.PBSerializable;

@@ -1,7 +1,7 @@
 package marmot.plan;
 
 import marmot.Plan;
-import marmot.PlanExecution;
+import marmot.exec.PlanExecution;
 
 /**
  * 

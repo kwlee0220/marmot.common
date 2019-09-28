@@ -1,4 +1,6 @@
-package marmot;
+package marmot.exec;
+
+import marmot.MarmotRuntimeException;
 
 /**
  * 

@@ -1,5 +1,7 @@
-package marmot;
+package marmot.exec;
 
+import marmot.Plan;
+import marmot.RecordSchema;
 import utils.async.AbstractThreadedExecution;
 
 

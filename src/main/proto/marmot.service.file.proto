@@ -13,25 +13,18 @@ service FileService {
 	rpc readMarmotFile(stream DownChunkResponse) returns (stream DownChunkRequest);
 	
 	// 주어진 바이너리 데이터를 지정 경로의 HDFS 파일에 저장함.
-	rpc copyToHdfsFile(stream CopyToHdfsFileRequest) returns (VoidResponse);
+	rpc copyToHdfsFile(stream UpChunkRequest) returns (stream UpChunkResponse);
 	
 	rpc deleteHdfsFile(marmot.proto.StringProto) returns (VoidResponse);
 }
 
 message CopyToHdfsFileRequest {
-	message HeaderProto {
-		StringProto path = 1;		// 업로드될 데이터를 저장할 HDFS 파일 경로
-		oneof optional_block_size {
-			int64 block_size = 2;	// 생성될 HDFS 파일의 블럭 크기. (기본값: 128mb)
-		}
-		oneof optional_compression_codec_name {
-			string compression_codec_name = 3;
-		}
+	StringProto path = 1;		// 업로드될 데이터를 저장할 HDFS 파일 경로
+	oneof optional_block_size {
+		int64 block_size = 2;	// 생성될 HDFS 파일의 블럭 크기. (기본값: 128mb)
 	}
-	// 데이터 전송 순서: header, block*
-	// 처음에 header를 보내고, 그 뒤부터는 추가할 데이터 블럭을 가 반복적으로 전송함..
-	oneof data {
-		HeaderProto header = 3;
-		bytes block = 4;
+	oneof optional_compression_codec_name {
+		string compression_codec_name = 3;
 	}
+	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
 }

@@ -12,7 +12,6 @@ import marmot.Column;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
-import marmot.PlanExecutionException;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
@@ -105,18 +104,13 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 			});
 	}
 	
-	private RecordSchema calcRecordSchema(JdbcProcessor jdbc) {
+	private RecordSchema calcRecordSchema(JdbcProcessor jdbc) throws SQLException {
 		if ( m_jdbcParams.selectExpr().isAbsent() && m_jdbcParams.wkbColumns().isAbsent() ) {
-			try {
-				return KVFStream.from(jdbc.getColumns(m_tableName))
-								.mapValue((k,v) -> JdbcRecordAdaptor.fromSqlType(v.type(), v.typeName()))
-								.foldLeft(RecordSchema.builder(),
-											(b,kv) -> b.addColumn(kv.key(), kv.value()))
-								.build();
-			}
-			catch ( Exception e ) {
-				throw new PlanExecutionException(e);
-			}
+			return KVFStream.from(jdbc.getColumns(m_tableName))
+							.mapValue((k,v) -> JdbcRecordAdaptor.fromSqlType(v.type(), v.typeName()))
+							.foldLeft(RecordSchema.builder(),
+										(b,kv) -> b.addColumn(kv.key(), kv.value()))
+							.build();
 		}
 		
 		String selectExpr = m_jdbcParams.selectExpr().getOrElse("*");
@@ -127,31 +121,27 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 											.map(arr -> KeyValue.of(arr[0], arr[1]))
 											.map(kv -> KeyValue.of(kv.key(), DataTypes.fromName(kv.value())))
 											.toMap(KeyValue::key, KeyValue::value);
-		try {
-			String sql = String.format("select %s from %s limit 1", selectExpr, m_tableName);
-			ResultSet rs = jdbc.executeQuery(sql);
-			ResultSetMetaData meta = rs.getMetaData();
-			
-			RecordSchema.Builder builder = RecordSchema.builder();
-			for ( int i =1; i <= meta.getColumnCount(); ++i ) {
-				String colName = meta.getColumnLabel(i);
-				DataType type = JdbcRecordAdaptor.fromSqlType(meta.getColumnType(i),
-															meta.getColumnName(i));
-				DataType geomType = wkbCols.get(colName);
-				if ( geomType != null ) {
-					if ( type != DataType.BINARY ) {
-						throw new IllegalArgumentException("invalid wtb column (not binary): name=" + colName);
-					}
-					builder.addColumn(colName, geomType);
+		String sql = String.format("select %s from %s limit 1", selectExpr, m_tableName);
+		ResultSet rs = jdbc.executeQuery(sql);
+		ResultSetMetaData meta = rs.getMetaData();
+		
+		RecordSchema.Builder builder = RecordSchema.builder();
+		for ( int i =1; i <= meta.getColumnCount(); ++i ) {
+			String colName = meta.getColumnLabel(i);
+			DataType type = JdbcRecordAdaptor.fromSqlType(meta.getColumnType(i),
+														meta.getColumnName(i));
+			DataType geomType = wkbCols.get(colName);
+			if ( geomType != null ) {
+				if ( type != DataType.BINARY ) {
+					throw new IllegalArgumentException("invalid wtb column (not binary): name=" + colName);
 				}
-				else {
-					builder.addColumn(meta.getColumnLabel(i), type);
-				}
+				builder.addColumn(colName, geomType);
 			}
-			return builder.build();
+			else {
+				builder.addColumn(meta.getColumnLabel(i), type);
+			}
 		}
-		catch ( Exception e ) {
-			throw new PlanExecutionException(e);
-		}
+		
+		return builder.build();
 	}
 }

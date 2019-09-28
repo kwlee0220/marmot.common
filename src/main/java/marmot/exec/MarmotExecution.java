@@ -1,5 +1,6 @@
-package marmot;
+package marmot.exec;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -14,10 +15,8 @@ public interface MarmotExecution {
 		COMPLETED(1),
 		/** 연산 수행 중 오류 발생으로 종료된 상태. */
 		FAILED(2),
-		/** 연산 수행 중단이 요청되어 중단 중인 상태. */
-		CANCELLING(3),
 		/** 연산 수행 중간에 강제로 중단된 상태. */
-		CANCELLED(4);
+		CANCELLED(3);
 		
 		int m_code;
 		
@@ -42,6 +41,12 @@ public interface MarmotExecution {
 	 * @return	연산 수행 상태.
 	 */
 	public State getState();
+	
+	public default boolean isRunning() {
+		return getState() == State.RUNNING;
+	}
+	
+	public Throwable getFailureCause() throws IllegalStateException;
 	
 	/**
 	 * 연산 수행을 중단시킨다.
@@ -78,4 +83,13 @@ public interface MarmotExecution {
 	 * @throws InterruptedException	작업 종료 대기 중 대기 쓰레드가 interrupt된 경우.
 	 */
 	public boolean waitForFinished(long timeout, TimeUnit unit) throws InterruptedException;
+	
+	public long getStartedTime();
+	public long getFinishedTime();
+	
+	public Duration getMaximumRunningTime();
+	public void setMaximumRunningTime(Duration dur);
+	
+	public Duration getRetentionTime();
+	public void setRetentionTime(Duration dur);
 }

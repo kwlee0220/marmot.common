@@ -1,16 +1,12 @@
 package marmot.command;
 
 import java.io.BufferedInputStream;
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -22,7 +18,6 @@ import utils.UnitUtils;
 import utils.Utilities;
 import utils.func.FOption;
 import utils.io.FileUtils;
-import utils.io.IOUtils;
 import utils.stream.FStream;
 
 
@@ -32,6 +27,7 @@ import utils.stream.FStream;
  */
 public class UploadFiles {
 	private static final Logger s_logger = LoggerFactory.getLogger(UploadFiles.class);
+	private static final int BLOCK_SIZE = (int)UnitUtils.parseByteSize("256kb");
 	
 	private final MarmotRuntime m_marmot;
 	private final File m_start;
@@ -87,7 +83,8 @@ public class UploadFiles {
 		int prefixLen = prefix.length();
 		
 		FStream<Path> pathes = FileUtils.walk(m_start.toPath())
-										.drop(1);	// root 자신을 제외시킴
+										.drop(1)	// root 자신을 제외시킴
+										.sort();
 		if ( m_pathMatcher != null ) {
 			pathes = pathes.filter(m_pathMatcher::matches);
 		}
@@ -99,61 +96,11 @@ public class UploadFiles {
 			}
 			String destPath = m_dest + "/" + suffix;
 			
-			try ( FileBlockIterator blocks = new FileBlockIterator(path) ) {
-				m_marmot.copyToHdfsFile(destPath, blocks, m_blockSize, m_codecName);
+			try ( InputStream is = new BufferedInputStream(Files.newInputStream(path), BLOCK_SIZE) ) {
+				m_marmot.copyToHdfsFile(destPath, is, m_blockSize, m_codecName);
 			}
 		}
 		
 		s_logger.info("uploaded: elapsed={}", watch.stopAndGetElpasedTimeString());
-	}
-
-	private static final int BLOCK_SIZE = (int)UnitUtils.parseByteSize("512kb");
-	private static class FileBlockIterator implements Iterator<byte[]>, Closeable {
-		private InputStream m_is;
-		private byte[] m_block;
-		private int m_nread;
-		
-		FileBlockIterator(Path path) throws IOException {
-			m_is = new BufferedInputStream(Files.newInputStream(path), BLOCK_SIZE);
-			
-			m_block = new byte[BLOCK_SIZE];
-			m_nread = m_is.read(m_block);
-			if ( m_nread < 0 ) {
-				IOUtils.closeQuietly(m_is);
-			}
-		}
-
-		@Override
-		public void close() throws IOException {
-			IOUtils.closeQuietly(m_is);
-			m_is = null;
-		}
-		
-		@Override
-		public boolean hasNext() {
-			return m_nread > 0;
-		}
-
-		@Override
-		public byte[] next() {
-			byte[] block = m_block;
-			if ( m_nread != BLOCK_SIZE ) {
-				block = Arrays.copyOf(m_block, m_nread);
-			}
-			
-			try {
-				m_block = new byte[BLOCK_SIZE];
-				m_nread = m_is.read(m_block);
-				
-				if ( m_nread < 0 ) {
-					IOUtils.closeQuietly(m_is);
-				}
-			}
-			catch ( IOException e ) {
-				m_nread = -1;
-			}
-			
-			return block;
-		}
 	}
 }
