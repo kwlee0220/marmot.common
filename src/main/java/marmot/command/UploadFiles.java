@@ -2,12 +2,14 @@ package marmot.command;
 
 import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
-import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,20 +78,27 @@ public class UploadFiles {
 		return this;
 	}
 	
-	public void run() throws Exception {
-		StopWatch watch = StopWatch.start();
+	private void uploadFile(File file) throws FileNotFoundException, IOException {
+		if ( m_pathMatcher != null && !m_pathMatcher.matches(file.toPath()) ) {
+			return;
+		}
 		
-		String prefix = m_start.toPath().toAbsolutePath().toString();
-		int prefixLen = prefix.length();
-		
-		FStream<Path> pathes = FileUtils.walk(m_start.toPath())
-										.drop(1)	// root 자신을 제외시킴
-										.sort();
+		String dest = m_dest + "/" + file.getName();
+		try ( InputStream is = new BufferedInputStream(new FileInputStream(file), BLOCK_SIZE) ) {
+			m_marmot.copyToHdfsFile(dest, is, m_blockSize, m_codecName);
+		}
+	}
+	
+	private void uploadDir(File start) throws IOException {
+		FStream<Path> pathes = FileUtils.walk(start.toPath()).drop(1).sort();
 		if ( m_pathMatcher != null ) {
 			pathes = pathes.filter(m_pathMatcher::matches);
 		}
-		List<Path> pathList = pathes.toList();
-		for ( Path path: pathList ) {
+		
+		String prefix = start.toPath().toAbsolutePath().toString();
+		int prefixLen = prefix.length();
+		
+		for ( Path path: pathes ) {
 			String suffix = path.toAbsolutePath().toString().substring(prefixLen);
 			if ( suffix.charAt(0) == '/' ) {
 				suffix = suffix.substring(1);
@@ -99,6 +108,17 @@ public class UploadFiles {
 			try ( InputStream is = new BufferedInputStream(Files.newInputStream(path), BLOCK_SIZE) ) {
 				m_marmot.copyToHdfsFile(destPath, is, m_blockSize, m_codecName);
 			}
+		}
+	}
+	
+	public void run() throws Exception {
+		StopWatch watch = StopWatch.start();
+		
+		if ( m_start.isFile() ) {
+			uploadFile(m_start);
+		}
+		else {
+			uploadDir(m_start);
 		}
 		
 		s_logger.info("uploaded: elapsed={}", watch.stopAndGetElpasedTimeString());
