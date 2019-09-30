@@ -695,7 +695,10 @@ message SquareGridProto {
 		string dataset = 1;
 		marmot.proto.EnvelopeProto bounds = 2;
 	}
-	marmot.proto.Size2dProto cell_size = 3;
+	oneof optional_margin {
+		double margin = 3;
+	}
+	marmot.proto.Size2dProto cell_size = 4;
 }
 
 message LoadSquareGridFileProto {

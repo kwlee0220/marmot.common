@@ -1,6 +1,5 @@
 package marmot.optor.geo;
 
-import java.util.List;
 import java.util.Map;
 
 import com.vividsolutions.jts.geom.Envelope;
@@ -9,7 +8,6 @@ import io.vavr.control.Either;
 import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.geo.GeoClientUtils;
-import marmot.plan.Group;
 import marmot.proto.Size2dProto;
 import marmot.proto.optor.SquareGridProto;
 import marmot.protobuf.PBUtils;
@@ -19,7 +17,6 @@ import utils.KeyValue;
 import utils.Size2d;
 import utils.UnitUtils;
 import utils.Utilities;
-import utils.stream.KVFStream;
 
 /**
  * 
@@ -28,6 +25,7 @@ import utils.stream.KVFStream;
 public class SquareGrid implements PBSerializable<SquareGridProto> {
 	private final Either<String, Envelope> m_gridBounds;
 	private final Size2d m_cellSize;
+	private double m_margin = 0;
 	
 	public SquareGrid(String dsId, Size2d cellSize) {
 		Utilities.checkNotNullArgument(dsId, "dataset id should not be null");
@@ -45,18 +43,39 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 		m_cellSize = cellSize;
 	}
 	
+	private SquareGrid(Either<String, Envelope> bounds, Size2d cellSize, double margin) {
+		m_gridBounds = bounds;
+		m_cellSize = cellSize;
+		m_margin = margin;
+	}
+	
+	public double margin() {
+		return m_margin;
+	}
+	
+	public SquareGrid margin(double margin) {
+		return new SquareGrid(m_gridBounds, m_cellSize, margin);
+	}
+	
 	public Either<String, Envelope> getGridBounds() {
 		return m_gridBounds;
 	}
 	
 	public Envelope getGridBounds(MarmotRuntime marmot) {
+		Envelope bounds = null;
 		if ( m_gridBounds.isRight() ) {
-			return m_gridBounds.right().get();
+			bounds = m_gridBounds.right().get();
 		}
 		else {
 			DataSet ds = marmot.getDataSet(m_gridBounds.getLeft());
-			return ds.getBounds();
+			bounds = ds.getBounds();
 		}
+		
+		if ( m_margin > 0 ) {
+			bounds.expandBy(m_margin);
+		}
+		
+		return bounds;
 	}
 	
 	public Size2d getCellSize() {
@@ -65,14 +84,16 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 	
 	@Override
 	public String toString() {
+		String marginStr = (m_margin > 0) ? String.format(",margin=%.3f", m_margin) : "";
+		
 		if ( m_gridBounds.isLeft() ) {
-			return String.format("dataset=%s;cell=%s",
-								m_gridBounds.getLeft(), toString(m_cellSize));
+			return String.format("dataset=%s;cell=%s%s",
+								m_gridBounds.getLeft(), toString(m_cellSize), marginStr);
 		}
 		else {
 			Envelope bounds = m_gridBounds.right().get();
-			return String.format("bounds=%s;cell=%s",
-								GeoClientUtils.toString(bounds), toString(m_cellSize));
+			return String.format("bounds=%s;cell=%s%s",
+								GeoClientUtils.toString(bounds), toString(m_cellSize), marginStr);
 		}
 	}
 	
@@ -85,7 +106,7 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 		Utilities.checkNotNullArgument(expr, "SquareGrid string is null");
 	
 		Map<String,String> kvMap = CSV.parseCsv(expr, ';')
-										.map(SquareGrid::parseKeyValue)
+										.map(KeyValue::fromString)
 										.toMap(KeyValue::key, KeyValue::value);
 		
 		String cellExpr = kvMap.get("cell");
@@ -94,39 +115,44 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 		}
 		Size2d cell = Size2d.fromString(cellExpr);
 		
+		double margin = 0;
+		String marginExpr = kvMap.get("margin");
+		if ( marginExpr != null ) {
+			margin = UnitUtils.parseLengthInMeter(marginExpr);
+		}
+		
 		String boundsExpr = kvMap.get("bounds");
 		if ( boundsExpr != null ) {
-			return new SquareGrid(GeoClientUtils.parseEnvelope(boundsExpr).get(), cell);
+			return new SquareGrid(GeoClientUtils.parseEnvelope(boundsExpr).get(), cell).margin(margin);
 		}
 		
 		String dsId = kvMap.get("dataset");
 		if ( dsId != null ) {
-			return new SquareGrid(dsId, cell);
+			return new SquareGrid(dsId, cell).margin(margin);
 		}
 		
 		throw new IllegalArgumentException("invalid SquareGrid string: " + expr);
-	}
-	
-	private static KeyValue<String,String> parseKeyValue(String expr) {
-		List<String> parts = CSV.parseCsv(expr, '=')
-								.map(String::trim)
-								.toList();
-		if ( parts.size() != 2 ) {
-			throw new IllegalArgumentException("invalid key-value: " + expr);
-		}
-		
-		return KeyValue.of(parts.get(0), parts.get(1));
 	}
 
 	public static SquareGrid fromProto(SquareGridProto proto) {
 		Size2dProto sizeProto = proto.getCellSize();
 		Size2d cellSize = new Size2d(sizeProto.getWidth(), sizeProto.getHeight());
 		
+		double margin = 0;
+		switch ( proto.getOptionalMarginCase() ) {
+			case MARGIN:
+				margin = proto.getMargin();
+				break;
+			case OPTIONALMARGIN_NOT_SET:
+				margin = 0;
+				break;
+		}
+		
 		switch ( proto.getGridBoundsCase() ) {
 			case DATASET:
-				return new SquareGrid(proto.getDataset(), cellSize);
+				return new SquareGrid(proto.getDataset(), cellSize).margin(margin);
 			case BOUNDS:
-				return new SquareGrid(PBUtils.fromProto(proto.getBounds()), cellSize);
+				return new SquareGrid(PBUtils.fromProto(proto.getBounds()), cellSize).margin(margin);
 			default:
 				throw new AssertionError();
 		}
@@ -138,12 +164,14 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 			return SquareGridProto.newBuilder()
 									.setDataset(m_gridBounds.getLeft())
 									.setCellSize(PBUtils.toProto(m_cellSize))
+									.setMargin(m_margin)
 									.build();
 		}
 		else {
 			return SquareGridProto.newBuilder()
 									.setBounds(PBUtils.toProto(m_gridBounds.right().get()))
 									.setCellSize(PBUtils.toProto(m_cellSize))
+									.setMargin(m_margin)
 									.build();
 		}
 	}
