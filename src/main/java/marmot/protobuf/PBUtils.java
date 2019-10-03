@@ -34,8 +34,8 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import marmot.Record;
 import marmot.RecordSchema;
-import marmot.exec.PlanExecutionException;
 import marmot.exec.MarmotExecution.State;
+import marmot.exec.MarmotExecutionException;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.BoolProto;
 import marmot.proto.CoordinateProto;
@@ -702,7 +702,7 @@ public class PBUtils {
 			case ERROR_EXEC_CANCELLED:
 				return new CancellationException(proto.getDetails());
 			case ERROR_EXEC_FAILED:
-				return new ExecutionException(new PlanExecutionException(proto.getDetails()));
+				return new ExecutionException(new MarmotExecutionException(proto.getDetails()));
 			case ERROR_EXEC_TIMED_OUT:
 				return new TimeoutException(proto.getDetails());
 			default:

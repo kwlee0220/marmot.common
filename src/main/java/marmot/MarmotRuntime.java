@@ -7,8 +7,9 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotExecution;
-import marmot.exec.PlanExecutionException;
+import marmot.exec.MarmotExecutionException;
 import marmot.io.MarmotFileNotFoundException;
 import utils.func.FOption;
 
@@ -185,6 +186,17 @@ public interface MarmotRuntime {
 	 * @return	레코드세트 스키마.
 	 */
 	public RecordSchema getOutputRecordSchema(Plan plan);
+
+	public MarmotAnalysis getMarmotAnalysis(String id);
+	public List<MarmotAnalysis> getMarmotAnalysisAllInDir(String folder, boolean recursive);
+	public default List<MarmotAnalysis> getMarmotAnalysisAll() {
+		return getMarmotAnalysisAllInDir("/", true);
+	}
+	public void addMarmotAnalysis(MarmotAnalysis analysis);
+	public void deleteMarmotAnalysis(String id);
+	public void deleteMarmotAnalysisAll(String folder);
+	public MarmotExecution startAnalysis(String analysisId) throws MarmotExecutionException;
+	public void executeAnalysis(String analysisId) throws MarmotExecutionException;
 	
 	public MarmotExecution getMarmotExecution(String id);
 
@@ -194,15 +206,15 @@ public interface MarmotRuntime {
 	 * @param plan	수행시킬 실행 계획.
 	 * @param opts	실행 계획 옵션
 	 */
-	public MarmotExecution start(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
-	public default MarmotExecution start(Plan plan) throws PlanExecutionException {
+	public MarmotExecution start(Plan plan, ExecutePlanOptions opts) throws MarmotExecutionException;
+	public default MarmotExecution start(Plan plan) throws MarmotExecutionException {
 		return start(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
-	public default void execute(Plan plan) throws PlanExecutionException {
+	public default void execute(Plan plan) throws MarmotExecutionException {
 		execute(plan, ExecutePlanOptions.DEFAULT);
 	}
-	public void execute(Plan plan, ExecutePlanOptions opts) throws PlanExecutionException;
+	public void execute(Plan plan, ExecutePlanOptions opts) throws MarmotExecutionException;
 	
 	/**
 	 * 주어진 Plan을 MapReduce를 사용하지 않고 수행시킨다.

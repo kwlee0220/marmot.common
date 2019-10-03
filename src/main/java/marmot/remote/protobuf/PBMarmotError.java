@@ -19,7 +19,7 @@ import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
 import marmot.ThumbnailNotFoundException;
 import marmot.exec.ExecutionNotFoundException;
-import marmot.exec.PlanExecutionException;
+import marmot.exec.MarmotExecutionException;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.io.MarmotFileExistsException;
 import marmot.io.MarmotFileNotFoundException;
@@ -51,7 +51,7 @@ public enum PBMarmotError {
 	EXEC_UNKNOWN_ID(101, ExecutionNotFoundException.class),
 	EXEC_INTERRUPTED(102, InterruptedException.class),
 	EXEC_CANCELLED(103, CancellationException.class),
-	EXEC_FAILED(104, PlanExecutionException.class),
+	EXEC_FAILED(104, MarmotExecutionException.class),
 	EXEC_TIMED_OUT(105, TimeoutException.class),
 
 	NULL_POINTER(900, NullPointerException.class),

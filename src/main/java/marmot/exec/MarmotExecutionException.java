@@ -6,18 +6,18 @@ import marmot.MarmotRuntimeException;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class PlanExecutionException extends MarmotRuntimeException {
+public class MarmotExecutionException extends MarmotRuntimeException {
 	private static final long serialVersionUID = 7397876817164231591L;
 
-	public PlanExecutionException(String details) {
+	public MarmotExecutionException(String details) {
 		super(details);
 	}
 
-	public PlanExecutionException(Throwable cause) {
+	public MarmotExecutionException(Throwable cause) {
 		super(cause);
 	}
 
-	public PlanExecutionException(String details, Throwable cause) {
+	public MarmotExecutionException(String details, Throwable cause) {
 		super(details, cause);
 	}
 }

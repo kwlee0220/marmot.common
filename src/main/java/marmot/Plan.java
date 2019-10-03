@@ -2,6 +2,7 @@ package marmot;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.Reader;
@@ -10,7 +11,6 @@ import java.util.List;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.util.JsonFormat;
 
-import marmot.exec.PlanExecutionException;
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.PlanProto;
 import marmot.support.PBSerializable;
@@ -48,25 +48,22 @@ public class Plan implements PBSerializable<PlanProto> {
 		}
 	}
 	
-	public static final Plan fromBytes(byte[] bytes) {
+	public static final Plan fromBytes(byte[] bytes) throws IOException {
 		try {
 			return new Plan(PlanProto.parseFrom(bytes));
 		}
 		catch ( InvalidProtocolBufferException e ) {
-			throw new PlanExecutionException(e);
+			throw new IOException(e);
 		}
 	}
 	
-	public static Plan fromEncodedString(String encoded) {
+	public static Plan fromEncodedString(String encoded) throws IOException {
 		return fromBytes(IOUtils.destringify(encoded));
 	}
 	
-	public static final Plan fromFile(File file) {
+	public static final Plan fromFile(File file) throws FileNotFoundException, IOException {
 		try ( FileInputStream fis = new FileInputStream(file) ) {
 			return Plan.fromProto(PlanProto.parseFrom(fis));
-		}
-		catch ( IOException e ) {
-			throw new PlanExecutionException(e);
 		}
 	}
 	
@@ -113,12 +110,9 @@ public class Plan implements PBSerializable<PlanProto> {
 					.foldLeft(new PlanBuilder(getName()), (b,o) -> b.add(o));
 	}
 	
-	public void save(File file) {
+	public void save(File file) throws IOException {
 		try ( FileOutputStream fos = new FileOutputStream(file) ) {
 			m_proto.writeTo(fos);
-		}
-		catch ( IOException e ) {
-			throw new PlanExecutionException(e);
 		}
 	}
 	
