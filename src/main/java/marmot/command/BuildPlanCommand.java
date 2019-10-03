@@ -44,6 +44,9 @@ public class BuildPlanCommand implements CheckedConsumer<MarmotRuntime> {
 
 	@Option(names={"-o"}, paramLabel="output_plan_file", description={"output plan file"})
 	private String m_output;
+
+	@Option(names={"-name"}, paramLabel="plan_name", description={"output plan name"})
+	private String m_planName;
 	
 	@Option(names="-create", description={"create an empty plan"})
 	private boolean m_create;
@@ -119,7 +122,8 @@ public class BuildPlanCommand implements CheckedConsumer<MarmotRuntime> {
 	
 	private Plan loadPlan(MarmotRuntime marmot) throws IOException {
 		if ( m_create ) {
-			return marmot.planBuilder("plan").build();
+			String name = (m_planName != null) ? m_planName : "plan";
+			return marmot.planBuilder(name).build();
 		}
 		
 		Reader reader = null;
@@ -134,7 +138,12 @@ public class BuildPlanCommand implements CheckedConsumer<MarmotRuntime> {
 		}
 		
 		try ( Reader r = reader ) {
-			return Plan.parseJson(r);
+			Plan plan = Plan.parseJson(r);
+			if ( m_planName != null ) {
+				plan.setName(m_planName);
+			}
+			
+			return plan;
 		}
 	}
 	
