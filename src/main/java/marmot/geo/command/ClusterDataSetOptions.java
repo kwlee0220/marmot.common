@@ -2,6 +2,8 @@ package marmot.geo.command;
 
 import com.google.common.base.Preconditions;
 
+import marmot.proto.service.ClusterDataSetOptionsProto;
+import marmot.support.PBSerializable;
 import utils.UnitUtils;
 import utils.Utilities;
 import utils.func.FOption;
@@ -11,7 +13,7 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class ClusterDataSetOptions {
+public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptionsProto> {
 	private static final ClusterDataSetOptions EMPTY
 						= new ClusterDataSetOptions(FOption.empty(), FOption.empty(),
 													FOption.empty(), FOption.empty(),
@@ -113,5 +115,72 @@ public class ClusterDataSetOptions {
 		}
 		
 		return builder.toString();
+	}
+	
+	public static ClusterDataSetOptions fromProto(ClusterDataSetOptionsProto proto) {
+		ClusterDataSetOptions opts = ClusterDataSetOptions.DEFAULT();
+		
+		switch ( proto.getOptionalQuadKeyFileCase() ) {
+			case QUAD_KEY_FILE:
+				opts = opts.quadKeyFilePath(proto.getQuadKeyFile());
+				break;
+			case OPTIONALQUADKEYFILE_NOT_SET:
+				break;
+			default:
+				throw new AssertionError();
+		}
+		
+		switch ( proto.getOptionalSampleRatioCase() ) {
+			case SAMPLE_RATIO:
+				opts = opts.sampleRatio(proto.getSampleRatio());
+				break;
+			case OPTIONALSAMPLERATIO_NOT_SET:
+				break;
+			default:
+				throw new AssertionError();
+		}
+		
+		switch ( proto.getOptionalBlockSizeCase() ) {
+			case BLOCK_SIZE:
+				opts = opts.blockSize(proto.getBlockSize());
+				break;
+			case OPTIONALBLOCKSIZE_NOT_SET:
+				break;
+			default:
+				throw new AssertionError();
+		}
+		
+		switch ( proto.getOptionalBlockFillRatioCase() ) {
+			case BLOCK_FILL_RATIO:
+				opts = opts.blockFillRatio(proto.getBlockFillRatio());
+				break;
+			case OPTIONALBLOCKFILLRATIO_NOT_SET:
+				break;
+			default:
+				throw new AssertionError();
+		}
+		
+		switch ( proto.getOptionalWorkerCountCase() ) {
+			case WORKER_COUNT:
+				opts = opts.workerCount(proto.getWorkerCount());
+				break;
+			case OPTIONALWORKERCOUNT_NOT_SET:
+				break;
+			default:
+				throw new AssertionError();
+		}
+		
+		return opts;
+	}
+
+	@Override
+	public ClusterDataSetOptionsProto toProto() {
+		ClusterDataSetOptionsProto.Builder builder = ClusterDataSetOptionsProto.newBuilder();
+		m_quadKeyFilePath.ifPresent(builder::setQuadKeyFile);
+		m_sampleRatio.ifPresent(builder::setSampleRatio);
+		m_blockSize.ifPresent(builder::setBlockSize);
+		m_blockFillRatio.ifPresent(builder::setBlockFillRatio);
+		
+		return builder.build();
 	}
 }

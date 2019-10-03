@@ -8,7 +8,7 @@ package marmot.proto.service;
 import public "marmot.proto";
 import public "marmot.service.proto";
 import public "marmot.optor.proto";
-import public "marmot.service.exec.proto";
+//import public "marmot.service.exec.proto";
 
 message BindDataSetOptionsProto {
 	oneof optional_geom_col_info {
@@ -28,7 +28,7 @@ service DataSetService {
 	rpc queryRange(stream DownChunkResponse) returns (stream DownChunkRequest);
 	// AppendRecordSetRequest
 	rpc appendRecordSet(stream UpChunkRequest) returns (stream UpChunkResponse);
-	rpc appendPlanResult(AppendPlanResultRequest) returns (DataSetInfoResponse);
+//	rpc appendPlanResult(AppendPlanResultRequest) returns (DataSetInfoResponse);
 	rpc deleteDataSet(marmot.proto.StringProto) returns (BoolResponse);
 	rpc moveDataSet(MoveDataSetRequest) returns (VoidResponse);
 	rpc clusterDataSet(ClusterDataSetRequest) returns (SpatialIndexInfoResponse);
@@ -135,7 +135,7 @@ message CreateDataSetRequest {
 		marmot.proto.RecordSchemaProto record_schema = 2;	// 생성하고자 하는 데이터세트의 스키마.
 		// 생성된 데이터세트에 채우기 위해 수행할 실행계획.
 		// 생성될 데이터세트의 스키마 정보는 Plan 수행 결과 스키마를 사용한다.
-		marmot.proto.service.ExecutePlanRequest plan_exec = 3;
+//		marmot.proto.service.ExecutePlanRequest plan_exec = 3;
 	}
 	CreateDataSetOptionsProto options = 4;
 }
@@ -145,10 +145,10 @@ message ReadDataSetRequest {
 	bool use_compression = 2;			// 데이터 송수신할 때 압축사용 여부
 }
 
-message AppendPlanResultRequest {
-	string id = 1;						// 추가하고자 하는 데이터세트의 식별자.
-	marmot.proto.service.ExecutePlanRequest plan_exec = 2;
-}
+//message AppendPlanResultRequest {
+//	string id = 1;						// 추가하고자 하는 데이터세트의 식별자.
+//	marmot.proto.service.ExecutePlanRequest plan_exec = 2;
+//}
 
 message AppendRecordSetRequest {  
 	string id = 1;				// 업로드 대상 데이터세트 식별자
@@ -183,8 +183,7 @@ message BindDataSetRequest {
 	BindDataSetOptionsProto options = 4;
 }
 
-message ClusterDataSetRequest {
-	string id = 1;		// 클러스터링 대상 데이터세트 식별자.
+message ClusterDataSetOptionsProto {
 	oneof optional_quad_key_file {
 		string quad_key_file = 2;
 	}
@@ -194,12 +193,17 @@ message ClusterDataSetRequest {
 	oneof optional_block_size {
 		int64 block_size = 4;	// 생성될 클러스터 파일의 블럭 크기.
 	}
-	oneof optiona_block_fill_ratio {
+	oneof optional_block_fill_ratio {
 		double block_fill_ratio = 5;
 	}
 	oneof optional_worker_count {
 		int32 worker_count = 6;	// 클러스터 생성 reducer 갯수
 	}
+}
+
+message ClusterDataSetRequest {
+	string id = 1;		// 클러스터링 대상 데이터세트 식별자.
+	ClusterDataSetOptionsProto options = 2;
 }
 
 message MoveDataSetRequest {

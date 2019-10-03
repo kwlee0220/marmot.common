@@ -106,7 +106,7 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 		Utilities.checkNotNullArgument(expr, "SquareGrid string is null");
 	
 		Map<String,String> kvMap = CSV.parseCsv(expr, ';')
-										.map(KeyValue::fromString)
+										.map(KeyValue::parse)
 										.toMap(KeyValue::key, KeyValue::value);
 		
 		String cellExpr = kvMap.get("cell");
