@@ -6,6 +6,7 @@ import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
 import marmot.proto.service.MarmotAnalysisProto.SystemExecProto;
 import utils.Utilities;
+import utils.stream.FStream;
 
 /**
  * 
@@ -28,6 +29,12 @@ public class SystemAnalysis extends MarmotAnalysis {
 	
 	public List<String> getArguments() {
 		return m_args;
+	}
+	
+	@Override
+	public String toString() {
+		String argStr = FStream.from(m_args).join(" ");
+		return String.format("%s: %s", m_funcId, argStr);
 	}
 	
 	public static SystemAnalysis fromProto(MarmotAnalysisProto proto) {
