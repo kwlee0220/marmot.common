@@ -63,12 +63,14 @@ public class MarmotAnalysisCommand {
 		
 		@Override
 		public void accept(MarmotRuntime marmot) throws Exception {
+			MarmotAnalysis analysis = marmot.getMarmotAnalysis(m_id);
+			
 			if ( m_async ) {
-				MarmotExecution exec = marmot.startAnalysis(m_id);
+				MarmotExecution exec = marmot.start(analysis);
 				System.out.println(exec.getId());
 			}
 			else {
-				marmot.executeAnalysis(m_id);
+				marmot.execute(analysis);
 			}
 		}
 	}
@@ -161,8 +163,15 @@ public class MarmotAnalysisCommand {
 		@Parameters(paramLabel="component_id", index="1..*", description={"component analysis list"})
 		private java.util.List<String> componentsList;
 		
+		@ParentCommand
+		private Add m_parent;
+		
 		@Override
 		public void accept(MarmotRuntime marmot) throws Exception {
+			if ( m_parent.m_force ) {
+				marmot.deleteMarmotAnalysis(m_id);
+			}
+			
 			CompositeAnalysis analysis = new CompositeAnalysis(m_id, componentsList);
 			marmot.addMarmotAnalysis(analysis);
 		}

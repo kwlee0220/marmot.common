@@ -39,8 +39,8 @@ service PlanExecutionService {
 	rpc getMarmotAnalysis(StringProto) returns (MarmotAnalysisResponse);
 	rpc getMarmotAnalysisAll(VoidProto) returns (stream MarmotAnalysisResponse);
 	rpc getMarmotAnalysisAllInDir(MarmotAnalysisTraverseRequest) returns (stream MarmotAnalysisResponse);
-	rpc startMarmotAnalysis(StringProto) returns (StringResponse);
-	rpc executeMarmotAnalysis(StringProto) returns (VoidResponse);
+	rpc startMarmotAnalysis(MarmotAnalysisProto) returns (StringResponse);
+	rpc executeMarmotAnalysis(MarmotAnalysisProto) returns (VoidResponse);
 	
 	rpc getExecutionState(StringProto) returns (ExecutionStateResponse);
 	rpc getExecutionInfo(StringProto) returns (ExecutionInfoResponse);

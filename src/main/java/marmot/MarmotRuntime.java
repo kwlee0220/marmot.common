@@ -10,6 +10,7 @@ import com.vividsolutions.jts.geom.Geometry;
 import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotExecution;
 import marmot.exec.MarmotExecutionException;
+import marmot.exec.PlanAnalysis;
 import marmot.io.MarmotFileNotFoundException;
 import utils.func.FOption;
 
@@ -161,6 +162,19 @@ public interface MarmotRuntime {
 	 * @param folder	대상 폴더 이름.
 	 */
 	public void deleteDir(String folder);
+
+	public MarmotAnalysis getMarmotAnalysis(String id);
+	public List<MarmotAnalysis> getMarmotAnalysisAllInDir(String folder, boolean recursive);
+	public default List<MarmotAnalysis> getMarmotAnalysisAll() {
+		return getMarmotAnalysisAllInDir("/", true);
+	}
+	public void addMarmotAnalysis(MarmotAnalysis analysis);
+	public void deleteMarmotAnalysis(String id);
+	public void deleteMarmotAnalysisAll(String folder);
+	
+	public MarmotExecution start(MarmotAnalysis analysis) throws MarmotExecutionException;
+	public void execute(MarmotAnalysis analysis) throws MarmotExecutionException;
+	public MarmotExecution getMarmotExecution(String id);
 	
 	/**
 	 * {@link Plan} 빌더 객체를 생성한다.
@@ -186,35 +200,20 @@ public interface MarmotRuntime {
 	 * @return	레코드세트 스키마.
 	 */
 	public RecordSchema getOutputRecordSchema(Plan plan);
-
-	public MarmotAnalysis getMarmotAnalysis(String id);
-	public List<MarmotAnalysis> getMarmotAnalysisAllInDir(String folder, boolean recursive);
-	public default List<MarmotAnalysis> getMarmotAnalysisAll() {
-		return getMarmotAnalysisAllInDir("/", true);
-	}
-	public void addMarmotAnalysis(MarmotAnalysis analysis);
-	public void deleteMarmotAnalysis(String id);
-	public void deleteMarmotAnalysisAll(String folder);
-	public MarmotExecution startAnalysis(String analysisId) throws MarmotExecutionException;
-	public void executeAnalysis(String analysisId) throws MarmotExecutionException;
 	
-	public MarmotExecution getMarmotExecution(String id);
-
-	/**
-	 * 주어진 Plan을 수행시킨다.
-	 * 
-	 * @param plan	수행시킬 실행 계획.
-	 * @param opts	실행 계획 옵션
-	 */
-	public MarmotExecution start(Plan plan, ExecutePlanOptions opts) throws MarmotExecutionException;
-	public default MarmotExecution start(Plan plan) throws MarmotExecutionException {
-		return start(plan, ExecutePlanOptions.DEFAULT);
+	public default MarmotExecution start(Plan plan, ExecutePlanOptions opts) {
+		return start(new PlanAnalysis("unnamed", plan, opts));
+	}
+	public default MarmotExecution start(Plan plan) {
+		return start(new PlanAnalysis("unnamed", plan));
 	}
 	
-	public default void execute(Plan plan) throws MarmotExecutionException {
-		execute(plan, ExecutePlanOptions.DEFAULT);
+	public default void execute(Plan plan, ExecutePlanOptions opts) {
+		execute(new PlanAnalysis("unnamed", plan, opts));
 	}
-	public void execute(Plan plan, ExecutePlanOptions opts) throws MarmotExecutionException;
+	public default void execute(Plan plan) {
+		execute(new PlanAnalysis("unnamed", plan));
+	}
 	
 	/**
 	 * 주어진 Plan을 MapReduce를 사용하지 않고 수행시킨다.
