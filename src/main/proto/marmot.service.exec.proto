@@ -7,6 +7,7 @@ package marmot.proto.service;
 
 import public "marmot.proto";
 import public "marmot.service.proto";
+import public "marmot.service.dataset.proto";
 import public "marmot.optor.proto";
 
 
@@ -31,6 +32,15 @@ service PlanExecutionService {
 	rpc getProcessRecordSchema(ExecuteProcessRequest) returns (RecordSchemaResponse);
 	
 	rpc executeModule(StringProto) returns (VoidResponse);
+	
+	rpc addMarmotAnalysis(MarmotAnalysisProto) returns (VoidResponse);
+	rpc deleteMarmotAnalysis(StringProto) returns (VoidResponse);
+	rpc deleteMarmotAnalysisAll(StringProto) returns (VoidResponse);
+	rpc getMarmotAnalysis(StringProto) returns (MarmotAnalysisResponse);
+	rpc getMarmotAnalysisAll(VoidProto) returns (stream MarmotAnalysisResponse);
+	rpc getMarmotAnalysisAllInDir(MarmotAnalysisTraverseRequest) returns (stream MarmotAnalysisResponse);
+	rpc startMarmotAnalysis(StringProto) returns (StringResponse);
+	rpc executeMarmotAnalysis(StringProto) returns (VoidResponse);
 	
 	rpc getExecutionState(StringProto) returns (ExecutionStateResponse);
 	rpc getExecutionInfo(StringProto) returns (ExecutionInfoResponse);
@@ -71,6 +81,47 @@ message OptionalRecordResponse {
 message GetStreamRequest {
 	string id = 1;
 	marmot.proto.optor.PlanProto plan = 2;
+}
+
+message MarmotAnalysisProto {
+	string id = 1;
+	oneof member {
+		PlanExecProto plan_exec = 2;
+		ModuleExecProto module_exec = 3;
+		CompositeExecProto composite_exec = 4;
+		SystemExecProto system_exec = 5;
+	}
+	
+	message PlanExecProto {
+		marmot.proto.optor.PlanProto plan = 1;
+		ExecutePlanOptionsProto options = 2;
+	}
+	
+	message ModuleExecProto {
+		string module_id = 1;
+		string module_args = 2;
+	}
+	
+	message CompositeExecProto {
+		repeated string component = 1;
+	}
+	
+	message SystemExecProto {
+		string function_id = 1;
+		repeated string function_arg = 2;
+	}
+}
+
+message MarmotAnalysisResponse {
+	oneof either {
+		MarmotAnalysisProto analysis = 1;
+		ErrorProto error = 2;
+	}
+}
+
+message MarmotAnalysisTraverseRequest {
+	string directory = 1;	// 검색 대상 시작 디렉토리 경로
+	bool recursive = 2;		// 하위 디렉토리 검색 여부.
 }
 
 
