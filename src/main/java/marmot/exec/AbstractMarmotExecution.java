@@ -30,6 +30,11 @@ public abstract class AbstractMarmotExecution implements MarmotExecution  {
 	}
 
 	@Override
+	public int getWorkingExecutionIndex() {
+		return 0;
+	}
+
+	@Override
 	public long getStartedTime() {
 		return m_startedTime;
 	}

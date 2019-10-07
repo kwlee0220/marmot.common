@@ -27,8 +27,8 @@ public class Catalogs {
 	
 	public static String toDataSetId(String folder, String name) {
 		Utilities.checkNotNullArgument(folder, "dataset folder is is null");
-		Utilities.checkNotNullArgument(name, "id is is null");
-		Preconditions.checkArgument(name.indexOf(ID_DELIM) >= 0, "invalid name: " + name);
+		Utilities.checkNotNullArgument(name, "dataset name is is null");
+		Preconditions.checkArgument(name.indexOf(ID_DELIM) < 0, "invalid name: " + name);
 		
 		return normalize(folder) + ID_DELIM + name;
 	}
@@ -38,5 +38,13 @@ public class Catalogs {
 		
 		int idx = dsId.lastIndexOf(ID_DELIM);
 		return (idx > 0) ? dsId.substring(0, idx) : "/";
+	}
+	
+	public static String getName(String dsId) {
+		dsId = normalize(dsId);
+		
+		int idx = dsId.lastIndexOf(ID_DELIM);
+		return dsId.substring(idx+1);
+		
 	}
 }

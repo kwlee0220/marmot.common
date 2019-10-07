@@ -33,6 +33,11 @@ public interface MarmotExecution {
 		}
 	};
 	
+	/**
+	 * 식별자를 반환한다.
+	 * 
+	 * @return	MarmotExecution 식별자
+	 */
 	public String getId();
 	
 	/**
@@ -42,11 +47,30 @@ public interface MarmotExecution {
 	 */
 	public State getState();
 	
+	/**
+	 * 연산의 수행 여부를 반환한다.
+	 * 
+	 * @return	수행여부
+	 */
 	public default boolean isRunning() {
 		return getState() == State.RUNNING;
 	}
 	
+	/**
+	 * 연산의 실패 원인 예외를 반환한다.
+	 * 
+	 * @return	실패 유발 예외 객체
+	 * @throws IllegalStateException	연산이 실패하지 않은 경우
+	 */
 	public Throwable getFailureCause() throws IllegalStateException;
+	
+	/**
+	 * 복합 연산의 경우 현재 수행 중인 원소 연산의 순번를 반환한다.
+	 * 복합 연산이 아닌 경우는 0을 ㅂ반환한다.
+	 * 
+	 * @return	연산 순서
+	 */
+	public int getWorkingExecutionIndex();
 	
 	/**
 	 * 연산 수행을 중단시킨다.
@@ -84,12 +108,48 @@ public interface MarmotExecution {
 	 */
 	public boolean waitForFinished(long timeout, TimeUnit unit) throws InterruptedException;
 	
+	/**
+	 * 연산의 시작 시각을 반환한다.
+	 * 
+	 * @return	UTC epoch millis
+	 */
 	public long getStartedTime();
+	
+	/**
+	 * 연산의 종료 시각을 반환한다.
+	 * 
+	 * @return	UTC epoch millis
+	 */
 	public long getFinishedTime();
 	
+	/**
+	 * 연산의 최대 수행 시간을 반환한다.
+	 * 최대 수행시간이 경과된 수행은 강제로 종료된다.
+	 * 
+	 * @return	수행 시간
+	 */
 	public Duration getMaximumRunningTime();
+	
+	/**
+	 * 연산의 최대 수행시간을 설정한다.
+	 * 
+	 * @param dur	수행기간
+	 */
 	public void setMaximumRunningTime(Duration dur);
 	
+	/**
+	 * 연산 종료 후 연산 상태를 유지하는 최대 시간을 반환한다.
+	 * 연산의 수행 결과와 무관하게 적용되며, 이 기간이 초과되면 
+	 * 해당 연산의 정보는 삭제된다.
+	 * 
+	 * @return	유지기간
+	 */
 	public Duration getRetentionTime();
+	
+	/**
+	 * 연산 종료 후 연산 상태를 유지하는 최대 시간을 설정한다.
+	 * 
+	 * @param dur	유지기간
+	 */
 	public void setRetentionTime(Duration dur);
 }

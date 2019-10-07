@@ -9,6 +9,7 @@ import java.io.Reader;
 import java.util.List;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.TextFormat;
 import com.google.protobuf.util.JsonFormat;
 
 import marmot.proto.optor.OperatorProto;
@@ -122,7 +123,7 @@ public class Plan implements PBSerializable<PlanProto> {
 	
 	@Override
 	public String toString() {
-		return m_proto.toString();
+		return TextFormat.printToUnicodeString(m_proto);
 	}
 
 	@Override
