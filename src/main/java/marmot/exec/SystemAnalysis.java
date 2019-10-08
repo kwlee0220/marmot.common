@@ -34,7 +34,7 @@ public class SystemAnalysis extends MarmotAnalysis {
 	@Override
 	public String toString() {
 		String argStr = FStream.from(m_args).join(" ");
-		return String.format("%s: %s", m_funcId, argStr);
+		return String.format("%s[%s]: %s", getType(), getId(), argStr);
 	}
 	
 	public static SystemAnalysis fromProto(MarmotAnalysisProto proto) {

@@ -36,7 +36,7 @@ public class PlanAnalysis extends MarmotAnalysis {
 	
 	@Override
 	public String toString() {
-		return String.format("analysis: id=%s, type=%s, plan=%s", getId(), getType(), m_plan);
+		return String.format("%s[%s]: %n%s", getType(), getId(), m_plan);
 	}
 	
 	public static PlanAnalysis fromProto(MarmotAnalysisProto proto) {

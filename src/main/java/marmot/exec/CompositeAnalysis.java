@@ -24,6 +24,17 @@ public class CompositeAnalysis extends MarmotAnalysis {
 		return m_components;
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder builder = new  StringBuilder();
+		builder.append(String.format("%s[%s]:%n", getType(), getId()));
+		for ( int i =0; i < m_components.size(); ++i ) {
+			builder.append(String.format("   %02d: %s%n", i+1, m_components.get(i)));
+		}
+		
+		return builder.toString();
+	}
+	
 	public static CompositeAnalysis fromProto(MarmotAnalysisProto proto) {
 		Utilities.checkArgument(proto.getMemberCase().equals(MemberCase.COMPOSITE_EXEC),
 								"not CompositeAnalytics");

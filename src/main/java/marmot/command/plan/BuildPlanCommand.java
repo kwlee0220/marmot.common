@@ -10,20 +10,28 @@ import marmot.Plan;
 import marmot.PlanBuilder;
 import marmot.StoreDataSetOptions;
 import marmot.command.PicocliCommands.SubCommand;
-import marmot.command.plan.BuildPlanCommand.AddArcClip;
-import marmot.command.plan.BuildPlanCommand.AddBuffer;
-import marmot.command.plan.BuildPlanCommand.AddCentroid;
+import marmot.command.plan.BuildPlanCommand.AddAggregate;
+import marmot.command.plan.BuildPlanCommand.AddAssignUid;
+import marmot.command.plan.BuildPlanCommand.AddDefineColumn;
+import marmot.command.plan.BuildPlanCommand.AddExpand;
 import marmot.command.plan.BuildPlanCommand.AddFilter;
 import marmot.command.plan.BuildPlanCommand.AddLoad;
 import marmot.command.plan.BuildPlanCommand.AddProject;
+import marmot.command.plan.BuildPlanCommand.AddShard;
 import marmot.command.plan.BuildPlanCommand.AddStore;
+import marmot.command.plan.BuildPlanCommand.AddUpdate;
 import marmot.command.plan.BuildPlanCommand.Create;
-import marmot.plan.GeomOpOptions;
+import marmot.command.plan.GroupByCommands.AddAggregateByGroup;
+import marmot.command.plan.SpatialCommands.AddArcClip;
+import marmot.command.plan.SpatialCommands.AddBuffer;
+import marmot.command.plan.SpatialCommands.AddCentroid;
+import marmot.command.plan.SpatialCommands.AddTransformCrs;
+import marmot.optor.AggregateFunction;
+import marmot.plan.Group;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import utils.UnitUtils;
 import utils.func.Funcs;
 
 /**
@@ -35,12 +43,23 @@ import utils.func.Funcs;
 			Create.class,
 			AddLoad.class, AddStore.class,
 			AddFilter.class, AddProject.class,
-			AddBuffer.class, AddCentroid.class,
+			AddDefineColumn.class, AddUpdate.class, AddExpand.class,
+			GroupByCommands.class, AddAggregate.class,
+			AddLoadHashJoin.class, AddHashJoin.class,
+			AddAssignUid.class, AddShard.class,
+			AddBuffer.class, AddCentroid.class, AddTransformCrs.class,
 			AddSpatialJoin.class,
 			AddArcClip.class,
 		},
 		description="add a operator into the plan")
 public class BuildPlanCommand extends SubCommand {
+	@Parameters(paramLabel="plan_file", arity="0..1", description={"Json plan file path"})
+	private String m_file;
+
+	String getPlanFile() {
+		return m_file;
+	}
+	
 	@Override
 	public void run(MarmotRuntime marmot) throws Exception {
 		getCommandLine().usage(System.out, Ansi.OFF);
@@ -48,19 +67,17 @@ public class BuildPlanCommand extends SubCommand {
 	
 	@Command(name="create", description="create an empty plan")
 	public static class Create extends SubCommand {
-		@Option(names={"-f"}, paramLabel="plan_file", description={"target plan file to build"})
-		private String m_file;
-
 		@Parameters(paramLabel="plan_name", arity="1..1", description={"plan name"})
 		private String m_planName;
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			Plan plan = marmot.planBuilder(m_planName).build();
+			String file = ((BuildPlanCommand)getParent()).m_file;
 			
 			Writer writer;
-			if ( m_file != null ) {
-				writer = new FileWriter(m_file);
+			if ( file != null ) {
+				writer = new FileWriter(file);
 			}
 			else {
 				writer = new PrintWriter(System.out);
@@ -109,6 +126,60 @@ public class BuildPlanCommand extends SubCommand {
 		}
 	}
 	
+	@Command(name="define_column", description="add a 'define_column' operator")
+	public static class AddDefineColumn extends AbstractAddOperatorCommand {
+		@Parameters(paramLabel="column", index="0", arity="1..1",
+					description={"column declaration"})
+		private String m_colDecl;
+
+		@Parameters(paramLabel="expr", index="1", arity="0..1",
+					description={"column expression"})
+		private String m_colInit;
+
+		@Override
+		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
+			if ( m_colInit != null ) {
+				return builder.defineColumn(m_colDecl, m_colInit);
+			}
+			else {
+				return builder.defineColumn(m_colDecl);
+			}
+		}
+	}
+	
+	@Command(name="expand", description="add a 'expand' operator")
+	public static class AddExpand extends AbstractAddOperatorCommand {
+		@Parameters(paramLabel="column", index="0", arity="1..1",
+					description={"column declarations"})
+		private String m_colsDecl;
+
+		@Parameters(paramLabel="expr", index="1", arity="0..1",
+					description={"column expression"})
+		private String m_expr;
+
+		@Override
+		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
+			if ( m_expr != null ) {
+				return builder.expand(m_colsDecl, m_expr);
+			}
+			else {
+				return builder.expand(m_colsDecl);
+			}
+		}
+	}
+	
+	@Command(name="update", description="add a 'update' operator")
+	public static class AddUpdate extends AbstractAddOperatorCommand {
+		@Parameters(paramLabel="expr", index="0", arity="1..1",
+					description={"column expression"})
+		private String m_expr;
+
+		@Override
+		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
+			return builder.update(m_expr);
+		}
+	}
+	
 	@Command(name="store", description="add a 'store' operator")
 	public static class AddStore extends AbstractAddOperatorCommand {
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1", description={"dataset id"})
@@ -121,7 +192,7 @@ public class BuildPlanCommand extends SubCommand {
 		}
 		private GeometryColumnInfo m_gcInfo;
 
-		@Option(names={"-force"}, description="force to create a new dataset")
+		@Option(names={"-f"}, description="force to create a new dataset")
 		private boolean m_force = false;
 		
 		@Option(names={"-a", "-append"}, description="append to the existing dataset")
@@ -143,69 +214,78 @@ public class BuildPlanCommand extends SubCommand {
 				opts = opts.force(true);
 			}
 
-			opts = Funcs.applyIfNotNull(m_gcInfo, opts::geometryColumnInfo);
-			opts = Funcs.applyIfNotNull(m_blockSize, opts::blockSize);
-			opts = Funcs.applyIfNotNull(m_codecName, opts::compressionCodecName);
+			opts = Funcs.applyIfNotNull(m_gcInfo, opts::geometryColumnInfo, opts);
+			opts = Funcs.applyIfNotNull(m_blockSize, opts::blockSize, opts);
+			opts = Funcs.applyIfNotNull(m_codecName, opts::compressionCodecName, opts);
 			
 			return builder.store(m_dsId, opts);
 		}
 	}
 	
-	@Command(name="buffer", description="add a 'buffer' operator")
-	public static class AddBuffer extends AbstractAddOperatorCommand {
-		@Parameters(paramLabel="geom_col", index="0",
-					description={"column name for the input geometry data"})
-		private String m_geomCol;
-
-		@Parameters(paramLabel="distance", index="1", arity="1..1", description={"buffer distance"})
-		private String m_distance;
-
-		private GeomOpOptions m_opts = GeomOpOptions.DEFAULT;
-		@Option(names={"-o"}, paramLabel="colname", description="output column name")
-		private void setOutput(String col) {
-			m_opts = m_opts.outputColumn(col);
-		}
-
-		@Override
-		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
-			return builder.buffer(m_geomCol, UnitUtils.parseLengthInMeter(m_distance), m_opts);
-		}
-	}
-	
-	@Command(name="centroid", description="add a 'centroid' operator")
-	public static class AddCentroid extends AbstractAddOperatorCommand {
-		@Parameters(paramLabel="geom_col", index="0",
-					description={"column name for the input geometry data"})
-		private String m_geomCol;
-
-		private GeomOpOptions m_opts = GeomOpOptions.DEFAULT;
-		@Option(names={"-o"}, paramLabel="colname", description="output column name")
-		private void setOutput(String col) {
-			m_opts = m_opts.outputColumn(col);
-		}
-
-		@Option(names={"-inside"}, description="find a centroid inside source geometry")
-		private boolean m_inside = false;
-
-		@Override
-		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
-			return builder.centroid(m_geomCol, m_inside, m_opts);
-		}
-	}
-	
-	@Command(name="arc_clip", description="add a 'arc_clip' operator")
-	public static class AddArcClip extends AbstractAddOperatorCommand {
-		@Parameters(paramLabel="geom_col", index="0",
-					description={"column name for the input geometry data"})
-		private String m_geomCol;
+	@Command(name="group",
+			subcommands = {
+				AddAggregateByGroup.class,
+			},
+			description="add a 'group-by' operators")
+	public abstract static class GroupByCommand extends AbstractAddOperatorCommand {
+		@Parameters(paramLabel="keys", index="0", arity="1..1",
+					description={"group key columns"})
+		private String m_keyCols;
 		
-		@Parameters(paramLabel="clip_dataset_id", index="1",
-					description={"dataset id for clip"})
-		private String m_clipDsId;
+		@Option(names={"-tags"}, paramLabel="columns", description="tag columns")
+		private String m_tagCols;
+		
+		@Option(names={"-order_by"}, paramLabel="columns", description="order-by columns")
+		private String m_orderByCols;
+		
+		abstract protected PlanBuilder addGroupByCommand(MarmotRuntime marmot,
+														PlanBuilder plan, Group group) throws Exception;
+
+		@Override
+		protected PlanBuilder add(MarmotRuntime marmot, PlanBuilder plan) throws Exception {
+			Group group = Group.ofKeys(m_keyCols);
+			if ( m_orderByCols != null ) {
+				group.orderBy(m_orderByCols);
+			}
+			if ( m_tagCols != null ) {
+				group.tags(m_tagCols);
+			}
+			
+			return addGroupByCommand(marmot, plan, group);
+		}
+	}
+	
+	@Command(name="assign_uid", description="add a 'assign_uid' operator")
+	public static class AddAssignUid extends AbstractAddOperatorCommand {
+		@Option(names={"-column"}, paramLabel="col_name", description={"output column name)"})
+		private String m_uidCol;
 
 		@Override
 		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
-			return builder.arcClip(m_geomCol, m_clipDsId);
+			return builder.assignUid(m_uidCol);
+		}
+	}
+	
+	@Command(name="aggregate", description="add a 'aggregate' operator")
+	public static class AddAggregate extends AbstractAddOperatorCommand {
+		@Option(names={"-aggregates"}, paramLabel="funcs", description={"aggregate functions)"})
+		private String m_aggrFuncs;
+
+		@Override
+		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
+			AggregateFunction[] aggrs = parseAggregate(m_aggrFuncs);
+			return builder.aggregate(aggrs);
+		}
+	}
+	
+	@Command(name="shard", description="add a 'shard' operator")
+	public static class AddShard extends AbstractAddOperatorCommand {
+		@Parameters(paramLabel="count", index="0", description={"shard count"})
+		private int m_partCount;
+
+		@Override
+		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
+			return builder.shard(m_partCount);
 		}
 	}
 }

@@ -1,20 +1,5 @@
 package marmot.command.plan;
 
-import static marmot.optor.AggregateFunction.AVG;
-import static marmot.optor.AggregateFunction.CONVEX_HULL;
-import static marmot.optor.AggregateFunction.COUNT;
-import static marmot.optor.AggregateFunction.ENVELOPE;
-import static marmot.optor.AggregateFunction.MAX;
-import static marmot.optor.AggregateFunction.MIN;
-import static marmot.optor.AggregateFunction.STDDEV;
-import static marmot.optor.AggregateFunction.SUM;
-import static marmot.optor.AggregateFunction.UNION_GEOM;
-
-import java.util.List;
-
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.optor.AggregateFunction;
@@ -22,7 +7,6 @@ import marmot.plan.SpatialJoinOptions;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import utils.CSV;
 
 /**
  * 
@@ -86,93 +70,5 @@ class AddSpatialJoin extends AbstractAddOperatorCommand {
 		}
 		
 		return builder;
-	}
-	
-	private AggregateFunction[] parseAggregate(String aggrsStr) {
-		List<AggregateFunction> aggrs = Lists.newArrayList();
-		for ( String aggrSpecStr: CSV.parseCsv(aggrsStr, ',', '\\').toList() ) {
-			List<String> aggrSpec = CSV.parseCsv(aggrSpecStr, ':', '\\').toList();
-			
-			AggregateFunction aggr = null;
-			switch ( aggrSpec.get(0).toUpperCase()) {
-				case "COUNT":
-					aggr = COUNT();
-					break;
-				case "SUM":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = SUM(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("SUM: target column is not specified");
-					}
-					break;
-				case "AVG":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = AVG(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("AVG: target column is not specified");
-					}
-					break;
-				case "MAX":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = MAX(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("MAX: target column is not specified");
-					}
-					break;
-				case "MIN":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = MIN(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("MIN: target column is not specified");
-					}
-					break;
-				case "STDDEV":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = STDDEV(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("STDDEV: target column is not specified");
-					}
-					break;
-				case "CONVEX_HULL":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = CONVEX_HULL(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("CONVEX_HULL: target column is not specified");
-					}
-					break;
-				case "ENVELOPE":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = ENVELOPE(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("ENVELOPE: target column is not specified");
-					}
-					break;
-				case "GEOM_UNION":
-					if ( aggrSpec.size() == 2 ) {
-						aggr = UNION_GEOM(aggrSpec.get(1));
-					}
-					else {
-						throw new IllegalArgumentException("GEOM_UNION: target column is not specified");
-					}
-					break;
-				default:
-					String details = String.format("invalid aggregation function: %s'%n", aggrSpec.get(0));
-					throw new IllegalArgumentException(details);
-					
-			}
-			if ( aggrSpec.size() >= 3 ) {
-				aggr = aggr.as(aggrSpec.get(2));
-			}
-			aggrs.add(aggr);
-		}
-		
-		return Iterables.toArray(aggrs, AggregateFunction.class);
 	}
 }

@@ -30,6 +30,10 @@ public class PicocliCommands {
 			return m_parent.getMarmotRuntime();
 		}
 		
+		public PicocliCommand getParent() {
+			return m_parent;
+		}
+		
 		public CommandLine getCommandLine() {
 			return m_spec.commandLine();
 		}

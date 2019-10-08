@@ -201,17 +201,19 @@ public interface MarmotRuntime {
 	 */
 	public RecordSchema getOutputRecordSchema(Plan plan);
 	
-	public default MarmotExecution start(Plan plan, ExecutePlanOptions opts) {
+	public default MarmotExecution start(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		return start(new PlanAnalysis("unnamed", plan, opts));
 	}
-	public default MarmotExecution start(Plan plan) {
+	public default MarmotExecution start(Plan plan) throws MarmotExecutionException {
 		return start(new PlanAnalysis("unnamed", plan));
 	}
 	
-	public default void execute(Plan plan, ExecutePlanOptions opts) {
+	public default void execute(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		execute(new PlanAnalysis("unnamed", plan, opts));
 	}
-	public default void execute(Plan plan) {
+	public default void execute(Plan plan) throws MarmotExecutionException {
 		execute(new PlanAnalysis("unnamed", plan));
 	}
 	
@@ -245,8 +247,9 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public FOption<Record> executeToRecord(Plan plan, ExecutePlanOptions opts);
-	public default FOption<Record> executeToRecord(Plan plan) {
+	public FOption<Record> executeToRecord(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException;
+	public default FOption<Record> executeToRecord(Plan plan) throws MarmotExecutionException {
 		return executeToRecord(plan, ExecutePlanOptions.DEFAULT);
 	}
 
@@ -263,10 +266,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Geometry> executeToGeometry(Plan plan, ExecutePlanOptions opts) {
+	public default FOption<Geometry> executeToGeometry(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		return executeToRecord(plan, opts).map(r -> r.getGeometry(0));
 	}
-	public default FOption<Geometry> executeToGeometry(Plan plan) {
+	public default FOption<Geometry> executeToGeometry(Plan plan) throws MarmotExecutionException {
 		return executeToGeometry(plan, ExecutePlanOptions.DEFAULT);
 	}
 
@@ -283,10 +287,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Integer> executeToInt(Plan plan, ExecutePlanOptions opts) {
+	public default FOption<Integer> executeToInt(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		return executeToRecord(plan, opts).map(r -> r.getInt(0));
 	}
-	public default FOption<Integer> executeToInt(Plan plan) {
+	public default FOption<Integer> executeToInt(Plan plan) throws MarmotExecutionException {
 		return executeToInt(plan, ExecutePlanOptions.DEFAULT);
 	}
 
@@ -303,10 +308,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Long> executeToLong(Plan plan, ExecutePlanOptions opts) {
+	public default FOption<Long> executeToLong(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		return executeToRecord(plan, opts).map(r -> r.getLong(0));
 	}
-	public default FOption<Long> executeToLong(Plan plan) {
+	public default FOption<Long> executeToLong(Plan plan) throws MarmotExecutionException {
 		return executeToLong(plan, ExecutePlanOptions.DEFAULT);
 	}
 
@@ -323,10 +329,11 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<Double> executeToDouble(Plan plan, ExecutePlanOptions opts) {
+	public default FOption<Double> executeToDouble(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		return executeToRecord(plan, opts).map(r -> r.getDouble(0));
 	}
-	public default FOption<Double> executeToDouble(Plan plan) {
+	public default FOption<Double> executeToDouble(Plan plan) throws MarmotExecutionException {
 		return executeToDouble(plan, ExecutePlanOptions.DEFAULT);
 	}
 
@@ -343,18 +350,20 @@ public interface MarmotRuntime {
 	 * @return	Plan 수행 결과로 생성된 레코드세트의 첫번째 레코드의 첫번째 컬럼 값.
 	 * 				만일 결과 레코드가 생성되지 않은 경우에는 {@link FOption#empty()}.
 	 */
-	public default FOption<String> executeToString(Plan plan, ExecutePlanOptions opts) {
+	public default FOption<String> executeToString(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		return executeToRecord(plan, opts).map(r -> r.getString(0));
 	}
-	public default FOption<String> executeToString(Plan plan) {
+	public default FOption<String> executeToString(Plan plan) throws MarmotExecutionException {
 		return executeToString(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public default <T> FOption<T> executeToSingle(Plan plan, ExecutePlanOptions opts) {
+	public default <T> FOption<T> executeToSingle(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException {
 		return executeToRecord(plan, opts).map(r -> (T)r.get(0));
 	}
-	public default <T> FOption<T> executeToSingle(Plan plan) {
+	public default <T> FOption<T> executeToSingle(Plan plan) throws MarmotExecutionException {
 		return executeToSingle(plan, ExecutePlanOptions.DEFAULT);
 	}
 	

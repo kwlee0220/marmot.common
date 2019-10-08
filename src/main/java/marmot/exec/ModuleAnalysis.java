@@ -32,6 +32,17 @@ public class ModuleAnalysis extends MarmotAnalysis {
 		return m_args;
 	}
 	
+	@Override
+	public String toString() {
+		StringBuilder builder = new  StringBuilder();
+		builder.append(String.format("%s[%s]:", getType(), getId()));
+		for ( Map.Entry<String, String> ent: m_args.entrySet() ) {
+			builder.append(String.format("   %10s: %s%n", ent.getKey(), ent.getValue()));
+		}
+		
+		return builder.toString();
+	}
+	
 	public static ModuleAnalysis fromProto(MarmotAnalysisProto proto) {
 		Utilities.checkArgument(proto.getMemberCase().equals(MemberCase.MODULE_EXEC), "not ModuleAnalysis");
 

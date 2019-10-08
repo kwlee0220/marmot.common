@@ -3,26 +3,26 @@ package marmot.command;
 import java.io.FileReader;
 import java.io.Reader;
 
-import io.vavr.CheckedConsumer;
 import marmot.MarmotRuntime;
 import marmot.Plan;
+import marmot.command.PicocliCommands.SubCommand;
 import marmot.exec.CompositeAnalysis;
 import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotExecution;
 import marmot.exec.PlanAnalysis;
 import marmot.exec.SystemAnalysis;
 import picocli.CommandLine.Command;
+import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import picocli.CommandLine.ParentCommand;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class MarmotAnalysisCommand {
+public class MarmotAnalysisCommands {
 	@Command(name="list", description="list MarmotAnalytics")
-	public static class List implements CheckedConsumer<MarmotRuntime> {
+	public static class List extends SubCommand {
 		@Parameters(paramLabel="path", arity = "0..*", description={"directory path to display from"})
 		private String m_start;
 
@@ -33,7 +33,7 @@ public class MarmotAnalysisCommand {
 		private boolean m_details;
 		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime marmot) throws Exception {
 			java.util.List<MarmotAnalysis> analList;
 			if ( m_start != null ) {
 				analList = marmot.getMarmotAnalysisAllInDir(m_start, m_recursive);
@@ -54,7 +54,7 @@ public class MarmotAnalysisCommand {
 	}
 
 	@Command(name="run", description="run MarmotAnalytics")
-	public static class Run implements CheckedConsumer<MarmotRuntime> {
+	public static class Run extends SubCommand {
 		@Parameters(paramLabel="id", arity = "1..1", description={"analysis id"})
 		private String m_id;
 		
@@ -62,7 +62,7 @@ public class MarmotAnalysisCommand {
 		private boolean m_async;
 		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime marmot) throws Exception {
 			MarmotAnalysis analysis = marmot.getMarmotAnalysis(m_id);
 			
 			if ( m_async ) {
@@ -76,24 +76,24 @@ public class MarmotAnalysisCommand {
 	}
 
 	@Command(name="cancel", description="cancel running MarmotExecution")
-	public static class Cancel implements CheckedConsumer<MarmotRuntime> {
+	public static class Cancel extends SubCommand {
 		@Parameters(paramLabel="id", arity = "1..1", description={"execution id"})
 		private String m_id;
 		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime marmot) throws Exception {
 			MarmotExecution exec = marmot.getMarmotExecution(m_id);
 			exec.cancel();
 		}
 	}
 
 	@Command(name="show", description="show analysis")
-	public static class Show implements CheckedConsumer<MarmotRuntime> {
+	public static class Show extends SubCommand {
 		@Parameters(paramLabel="id", index="0", arity = "1..1", description={"analysis id"})
 		private String m_id;
 		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime marmot) throws Exception {
 			MarmotAnalysis anal = marmot.getMarmotAnalysis(m_id);
 			System.out.println(anal);
 		}
@@ -101,84 +101,76 @@ public class MarmotAnalysisCommand {
 
 	@Command(name="add", description="add a MarmotAnalytics",
 			subcommands= { AddPlan.class, AddSystem.class, AddComposite.class })
-	public static class Add {
-		@Option(names={"-force"}, description="force to add")
-		private boolean m_force;
+	public static class Add extends SubCommand {
+		@Override
+		public void run(MarmotRuntime marmot) throws Exception {
+			getCommandLine().usage(System.out, Ansi.OFF);
+		}
 	}
-
-	@Command(name="plan", description="add a plan analysis")
-	public static class AddPlan implements CheckedConsumer<MarmotRuntime> {
+	
+	private abstract static class AddCommand extends SubCommand {
 		@Parameters(paramLabel="id", index="0", description={"analysis id"})
 		private String m_id;
 		
-		@Parameters(paramLabel="plan_file", index="1", description={"plan JSON file to register"})
-		private String m_planFile;
+		@Option(names={"-f", "-force"}, description="force to add")
+		private boolean m_force;
 		
-		@ParentCommand
-		private Add m_parent;
+		abstract protected void add(MarmotRuntime marmot, String id) throws Exception;
 		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
-			if ( m_parent.m_force ) {
+		public void run(MarmotRuntime marmot) throws Exception {
+			if ( m_force ) {
 				marmot.deleteMarmotAnalysis(m_id);
 			}
 			
+			add(marmot, m_id);
+		}
+		
+	}
+
+	@Command(name="plan", description="add a plan analysis")
+	public static class AddPlan extends AddCommand {
+		@Parameters(paramLabel="file_path", index="1", description={"plan file path"})
+		private String m_planFile;
+		
+		@Override
+		protected void add(MarmotRuntime marmot, String id) throws Exception {
 			try ( Reader reader = new FileReader(m_planFile) ) {
-				PlanAnalysis analysis = new PlanAnalysis(m_id, Plan.parseJson(reader));
+				PlanAnalysis analysis = new PlanAnalysis(id, Plan.parseJson(reader));
 				marmot.addMarmotAnalysis(analysis);
 			}
 		}
 	}
 
 	@Command(name="system", description="add a system analysis")
-	public static class AddSystem implements CheckedConsumer<MarmotRuntime> {
-		@Parameters(paramLabel="id", index="0", description={"analysis id"})
-		private String m_id;
-		
+	public static class AddSystem extends AddCommand {
 		@Parameters(paramLabel="func_id", index="1", description={"system function id"})
 		private String m_funcId;
 		
 		@Parameters(paramLabel="func_args", index="2..*", description={"system function args"})
 		private java.util.List<String> m_args;
 		
-		@ParentCommand
-		private Add m_parent;
-		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
-			if ( m_parent.m_force ) {
-				marmot.deleteMarmotAnalysis(m_id);
-			}
-			
-			SystemAnalysis analysis = new SystemAnalysis(m_id, m_funcId, m_args);
+		protected void add(MarmotRuntime marmot, String id) throws Exception {
+			SystemAnalysis analysis = new SystemAnalysis(id, m_funcId, m_args);
 			marmot.addMarmotAnalysis(analysis);
 		}
 	}
 
 	@Command(name="composite", description="add a composite analysis")
-	public static class AddComposite implements CheckedConsumer<MarmotRuntime> {
-		@Parameters(paramLabel="id", index="0", arity = "1..1", description={"analysis id"})
-		private String m_id;
-		
-		@Parameters(paramLabel="component_id", index="1..*", description={"component analysis list"})
+	public static class AddComposite extends AddCommand {
+		@Parameters(paramLabel="components", index="1..*", description={"component analysis list"})
 		private java.util.List<String> componentsList;
 		
-		@ParentCommand
-		private Add m_parent;
-		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
-			if ( m_parent.m_force ) {
-				marmot.deleteMarmotAnalysis(m_id);
-			}
-			
-			CompositeAnalysis analysis = new CompositeAnalysis(m_id, componentsList);
+		protected void add(MarmotRuntime marmot, String id) throws Exception {
+			CompositeAnalysis analysis = new CompositeAnalysis(id, componentsList);
 			marmot.addMarmotAnalysis(analysis);
 		}
 	}
 
 	@Command(name="delete", description="delete analysis")
-	public static class Delete implements CheckedConsumer<MarmotRuntime> {
+	public static class Delete extends SubCommand {
 		@Parameters(paramLabel="analysis_id (or directory-id)", arity = "1..1",
 					description={"analysis id to delete"})
 		private String m_target;
@@ -187,7 +179,7 @@ public class MarmotAnalysisCommand {
 		private boolean m_recursive;
 		
 		@Override
-		public void accept(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime marmot) throws Exception {
 			try {
 				if ( m_recursive ) {
 					marmot.deleteMarmotAnalysisAll(m_target);
