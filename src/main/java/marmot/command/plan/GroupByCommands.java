@@ -1,5 +1,7 @@
 package marmot.command.plan;
 
+import java.util.List;
+
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSchema;
@@ -13,6 +15,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.stream.FStream;
 
 /**
  * 
@@ -72,14 +75,16 @@ class GroupByCommands extends SubCommand {
 
 	@Command(name="aggregate", description="add a 'aggregate by group' operator")
 	static class AddAggregateByGroup extends AbstractGroupByCommand {
-		@Parameters(paramLabel="aggregates", index="0", arity="1..1",
+		@Parameters(paramLabel="aggregates", index="0", arity="1..*",
 					description={"group key columns"})
-		private String m_aggrFuncs;
+		private List<String> m_aggrFuncs;
 		
 		@Override
 		public PlanBuilder addGroupByCommand(MarmotRuntime marmot, PlanBuilder builder,
 											Group group) throws Exception {
-			AggregateFunction[] aggrs = parseAggregate(m_aggrFuncs);
+			List<AggregateFunction> aggrs = FStream.from(m_aggrFuncs)
+												.map(this::parseAggrFunction)
+												.toList();
 			return builder.aggregateByGroup(group, aggrs);
 		}
 	}
