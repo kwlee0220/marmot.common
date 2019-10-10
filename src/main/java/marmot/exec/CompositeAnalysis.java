@@ -1,5 +1,6 @@
 package marmot.exec;
 
+import java.util.Arrays;
 import java.util.List;
 
 import marmot.proto.service.MarmotAnalysisProto;
@@ -18,6 +19,12 @@ public class CompositeAnalysis extends MarmotAnalysis {
 		super(id, Type.COMPOSITE);
 
 		m_components = components;
+	}
+	
+	public CompositeAnalysis(String id, String... components) {
+		super(id, Type.COMPOSITE);
+
+		m_components = Arrays.asList(components);
 	}
 	
 	public List<String> getComponents() {

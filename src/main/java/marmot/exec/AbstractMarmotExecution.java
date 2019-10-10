@@ -11,8 +11,8 @@ public abstract class AbstractMarmotExecution implements MarmotExecution  {
 	private final long m_startedTime;
 	
 	protected volatile long m_finishedTime = -1;
-	private volatile Duration m_maxRunningTime = null;
-	private volatile Duration m_retentionTime = Duration.ofDays(1);
+	private volatile Duration m_maxRunningTime = Duration.ofDays(1);
+	private volatile Duration m_retentionTime = Duration.ofDays(2);
 	
 	protected AbstractMarmotExecution(String id) {
 		m_id = id;
@@ -27,11 +27,6 @@ public abstract class AbstractMarmotExecution implements MarmotExecution  {
 	@Override
 	public String getId() {
 		return m_id;
-	}
-
-	@Override
-	public int getWorkingExecutionIndex() {
-		return 0;
 	}
 
 	@Override

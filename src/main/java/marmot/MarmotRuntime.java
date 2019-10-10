@@ -8,6 +8,7 @@ import java.util.Map;
 import com.vividsolutions.jts.geom.Geometry;
 
 import marmot.exec.MarmotAnalysis;
+import marmot.exec.MarmotAnalysisExecution;
 import marmot.exec.MarmotExecution;
 import marmot.exec.MarmotExecutionException;
 import marmot.exec.PlanAnalysis;
@@ -172,7 +173,7 @@ public interface MarmotRuntime {
 	public void deleteMarmotAnalysis(String id);
 	public void deleteMarmotAnalysisAll(String folder);
 	
-	public MarmotExecution start(MarmotAnalysis analysis) throws MarmotExecutionException;
+	public MarmotAnalysisExecution start(MarmotAnalysis analysis) throws MarmotExecutionException;
 	public void execute(MarmotAnalysis analysis) throws MarmotExecutionException;
 	public MarmotExecution getMarmotExecution(String id);
 	

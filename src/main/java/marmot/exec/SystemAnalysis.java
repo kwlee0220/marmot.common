@@ -1,7 +1,9 @@
 package marmot.exec;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import marmot.geo.command.ClusterDataSetOptions;
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
 import marmot.proto.service.MarmotAnalysisProto.SystemExecProto;
@@ -15,6 +17,24 @@ import utils.stream.FStream;
 public class SystemAnalysis extends MarmotAnalysis {
 	private final String m_funcId;
 	private final List<String> m_args;
+	
+	public static SystemAnalysis clusterDataSet(String id, String dsId, ClusterDataSetOptions opts) {
+		List<String> args = new ArrayList<>();
+		args.add(dsId);
+		opts.workerCount().ifPresent(c -> args.add(String.format("workers=%d", c)));
+		
+		return new SystemAnalysis(id, "cluster_dataset", args);
+	}
+	
+	public static SystemAnalysis clusterDataSet(String id, String dsId) {
+		return clusterDataSet(id, dsId, ClusterDataSetOptions.DEFAULT());
+	}
+	
+	public static SystemAnalysis deleteDataSet(String id, String... dsIds) {
+		List<String> args = FStream.of(dsIds).toList();
+		
+		return new SystemAnalysis(id, "delete_dataset", args);
+	}
 	
 	public SystemAnalysis(String id, String funcId, List<String> args) {
 		super(id, Type.SYSTEM);
@@ -34,7 +54,7 @@ public class SystemAnalysis extends MarmotAnalysis {
 	@Override
 	public String toString() {
 		String argStr = FStream.from(m_args).join(" ");
-		return String.format("%s[%s]: %s", getType(), getId(), argStr);
+		return String.format("%s[%s]: %s(%s)", getType(), getId(), getFunctionId(), getArguments());
 	}
 	
 	public static SystemAnalysis fromProto(MarmotAnalysisProto proto) {

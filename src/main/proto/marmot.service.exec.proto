@@ -42,11 +42,10 @@ service PlanExecutionService {
 	rpc startMarmotAnalysis(MarmotAnalysisProto) returns (StringResponse);
 	rpc executeMarmotAnalysis(MarmotAnalysisProto) returns (VoidResponse);
 	
-	rpc getExecutionState(StringProto) returns (ExecutionStateResponse);
 	rpc getExecutionInfo(StringProto) returns (ExecutionInfoResponse);
-	rpc setExecutionInfo(SetExecutionInfoRequest) returns (ExecutionStateResponse);
+	rpc setExecutionInfo(SetExecutionInfoRequest) returns (ExecutionInfoResponse);
 	rpc cancelExecution(StringProto) returns (BoolResponse);
-	rpc waitForFinished(WaitForFinishedRequest) returns (ExecutionStateResponse);
+	rpc waitForFinished(WaitForFinishedRequest) returns (ExecutionInfoResponse);
 	
 	rpc ping(marmot.proto.VoidProto) returns (VoidResponse);
 }
@@ -90,6 +89,7 @@ message MarmotAnalysisProto {
 		ModuleExecProto module_exec = 3;
 		CompositeExecProto composite_exec = 4;
 		SystemExecProto system_exec = 5;
+		ExternExecProto extern_exec = 6;
 	}
 	
 	message PlanExecProto {
@@ -110,6 +110,11 @@ message MarmotAnalysisProto {
 		string function_id = 1;
 		repeated string function_arg = 2;
 	}
+	
+	message ExternExecProto {
+		string exec_path = 1;
+		repeated string arguments = 2;
+	}
 }
 
 message MarmotAnalysisResponse {
@@ -124,31 +129,27 @@ message MarmotAnalysisTraverseRequest {
 	bool recursive = 2;		// 하위 디렉토리 검색 여부.
 }
 
-
-message ExecutionStateResponse {
+message ExecutionInfoProto {
 	enum ExecutionStateProto {
 		EXEC_RUNNING = 0;
 		EXEC_COMPLETED = 1;
 		EXEC_FAILED = 2;
 		EXEC_CANCELLED = 4;
 	}
+	
+	int64 started_time = 1;
+	int64 finished_time = 2;
+	int64 max_running_time = 3;
+	int64 retention_time = 4;
+	
 	message ExecutionStateInfoProto {
 		ExecutionStateProto state = 1;
 		oneof optional_failure_cause {
 			ErrorProto failure_cause = 2;
 		}
 	}
-	oneof either {
-		ExecutionStateInfoProto exec_state_info = 1;
-		ErrorProto error = 2;
-	}
-}
-
-message ExecutionInfoProto {
-	int64 started_time = 1;
-	int64 finished_time = 2;
-	int64 max_running_time = 3;
-	int64 retention_time = 4;
+	ExecutionStateInfoProto exec_state_info = 5;
+	int32 current_exec_index = 6;
 }
 
 message SetExecutionInfoRequest {

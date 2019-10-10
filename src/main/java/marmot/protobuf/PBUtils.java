@@ -62,7 +62,7 @@ import marmot.proto.VoidProto;
 import marmot.proto.service.BoolResponse;
 import marmot.proto.service.DoubleResponse;
 import marmot.proto.service.ErrorProto;
-import marmot.proto.service.ExecutionStateResponse.ExecutionStateProto;
+import marmot.proto.service.ExecutionInfoProto.ExecutionStateProto;
 import marmot.proto.service.FloatResponse;
 import marmot.proto.service.LongResponse;
 import marmot.proto.service.MarmotErrorCode;

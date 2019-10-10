@@ -16,6 +16,7 @@ public abstract class MarmotAnalysis implements PBSerializable<MarmotAnalysisPro
 		MODULE,
 		COMPOSITE,
 		SYSTEM,
+		EXTERN,
 	}
 	
 	protected MarmotAnalysis(String id, Type type) {
@@ -41,6 +42,8 @@ public abstract class MarmotAnalysis implements PBSerializable<MarmotAnalysisPro
 				return CompositeAnalysis.fromProto(proto);
 			case SYSTEM_EXEC:
 				return SystemAnalysis.fromProto(proto);
+			case EXTERN_EXEC:
+				return ExternAnalysis.fromProto(proto);
 			default:
 				throw new AssertionError();
 		}

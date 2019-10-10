@@ -65,14 +65,6 @@ public interface MarmotExecution {
 	public Throwable getFailureCause() throws IllegalStateException;
 	
 	/**
-	 * 복합 연산의 경우 현재 수행 중인 원소 연산의 순번를 반환한다.
-	 * 복합 연산이 아닌 경우는 0을 ㅂ반환한다.
-	 * 
-	 * @return	연산 순서
-	 */
-	public int getWorkingExecutionIndex();
-	
-	/**
 	 * 연산 수행을 중단시킨다.
 	 * <p>
 	 * 메소드 호출은 연산이 완전히 중단되기 전에 반환될 수 있기 때문에, 본 메소드 호출한 결과로
