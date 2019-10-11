@@ -88,10 +88,11 @@ public class AggregateFunction {
 
     public static AggregateFunction fromProto(String proto) {
     	String[] parts = CSV.parseCsvAsArray(proto, '?', '\\');
-    	
     	String args = (parts.length > 1) ? parts[1] : null;
-    	String[] comps = CSV.parseCsvAsArray(parts[0], ',', '\\');
-    	if ( comps.length == 3 ) {
+    	
+    	CSV parser = CSV.get().withDelimiter(':').withQuote('"').withEscape('\\');
+    	String[] comps = parser.parse(parts[0]).toArray(String.class);
+    	if ( comps.length != 3 ) {
     		throw new IllegalArgumentException("invalid AggregateFunction: str=" + proto);
     	}
     	String aggrCol = comps[1].trim();
@@ -99,6 +100,9 @@ public class AggregateFunction {
     		aggrCol = null;
     	}
     	String outCol = comps[2].trim();
+    	if ( outCol.length() == 0 ) {
+    		outCol = null;
+    	}
 
         AggregateType type = AggregateType.valueOf(comps[0].toUpperCase());
         AggregateFunction func;

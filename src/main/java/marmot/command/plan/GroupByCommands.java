@@ -83,7 +83,7 @@ class GroupByCommands extends SubCommand {
 		public PlanBuilder addGroupByCommand(MarmotRuntime marmot, PlanBuilder builder,
 											Group group) throws Exception {
 			List<AggregateFunction> aggrs = FStream.from(m_aggrFuncs)
-												.map(this::parseAggrFunction)
+												.map(AggregateFunction::fromProto)
 												.toList();
 			return builder.aggregateByGroup(group, aggrs);
 		}

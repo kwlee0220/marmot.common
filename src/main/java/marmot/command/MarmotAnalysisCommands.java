@@ -2,6 +2,7 @@ package marmot.command;
 
 import java.io.FileReader;
 import java.io.Reader;
+import java.util.Map;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -9,12 +10,15 @@ import marmot.command.PicocliCommands.SubCommand;
 import marmot.exec.CompositeAnalysis;
 import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotExecution;
+import marmot.exec.ModuleAnalysis;
 import marmot.exec.PlanAnalysis;
 import marmot.exec.SystemAnalysis;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.KeyValue;
+import utils.stream.FStream;
 
 /**
  * 
@@ -100,7 +104,12 @@ public class MarmotAnalysisCommands {
 	}
 
 	@Command(name="add", description="add a MarmotAnalytics",
-			subcommands= { AddPlan.class, AddSystem.class, AddComposite.class })
+			subcommands= {
+				AddPlan.class,
+				AddSystem.class,
+				AddModule.class,
+				AddComposite.class
+			})
 	public static class Add extends SubCommand {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
@@ -153,6 +162,25 @@ public class MarmotAnalysisCommands {
 		@Override
 		protected void add(MarmotRuntime marmot, String id) throws Exception {
 			SystemAnalysis analysis = new SystemAnalysis(id, m_funcId, m_args);
+			marmot.addMarmotAnalysis(analysis);
+		}
+	}
+
+	@Command(name="module", description="add a module analysis")
+	public static class AddModule extends AddCommand {
+		@Parameters(paramLabel="module_id", index="1", description={"module id"})
+		private String m_moduleId;
+		
+		@Parameters(paramLabel="arguments", index="2..*",
+					description={"module arguments (key-value pairs)"})
+		private java.util.List<String> m_kvArgs;
+		
+		@Override
+		protected void add(MarmotRuntime marmot, String id) throws Exception {
+			Map<String,String> args = FStream.from(m_kvArgs)
+											.map(KeyValue::parse)
+											.toMap(KeyValue::key, KeyValue::value);
+			ModuleAnalysis analysis = new ModuleAnalysis(id, m_moduleId, args);
 			marmot.addMarmotAnalysis(analysis);
 		}
 	}

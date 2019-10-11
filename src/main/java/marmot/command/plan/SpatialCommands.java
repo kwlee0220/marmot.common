@@ -1,8 +1,13 @@
 package marmot.command.plan;
 
+import com.vividsolutions.jts.geom.Envelope;
+
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
+import marmot.geo.GeoClientUtils;
+import marmot.optor.geo.SpatialRelation;
 import marmot.plan.GeomOpOptions;
+import marmot.plan.PredicateOptions;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -12,9 +17,9 @@ import utils.UnitUtils;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class SpatialCommands {
+class SpatialCommands {
 	@Command(name="buffer", description="add a 'buffer' operator")
-	public static class AddBuffer extends AbstractAddOperatorCommand {
+	static class AddBuffer extends AbstractAddOperatorCommand {
 		@Parameters(paramLabel="geom_col", index="0",
 					description={"column name for the input geometry data"})
 		private String m_geomCol;
@@ -35,7 +40,7 @@ public class SpatialCommands {
 	}
 	
 	@Command(name="centroid", description="add a 'centroid' operator")
-	public static class AddCentroid extends AbstractAddOperatorCommand {
+	static class AddCentroid extends AbstractAddOperatorCommand {
 		@Parameters(paramLabel="geom_col", index="0",
 					description={"column name for the input geometry data"})
 		private String m_geomCol;
@@ -56,7 +61,7 @@ public class SpatialCommands {
 	}
 	
 	@Command(name="transform_crs", description="add a 'transform_crs' operator")
-	public static class AddTransformCrs extends AbstractAddOperatorCommand {
+	static class AddTransformCrs extends AbstractAddOperatorCommand {
 		@Parameters(paramLabel="geom_col", index="0",
 					description={"column name for the input geometry data"})
 		private String m_geomCol;
@@ -81,8 +86,70 @@ public class SpatialCommands {
 		}
 	}
 	
+	@Command(name="filter_spatially", description="add a 'filter_spatially' operator")
+	static class AddFilterSpatially extends AbstractAddOperatorCommand {
+		@Parameters(paramLabel="geom_col", index="0", arity="1..1",
+					description={"column name for the input geometry data"})
+		private String m_geomCol;
+		
+		@Option(names={"-key_dataset"}, paramLabel="dataset_id", description="key dataset id")
+		private String m_keyDsId;
+		
+		@Option(names={"-bounds"}, paramLabel="envelope_string", description="key bounds")
+		private String m_boundsStr;
+
+		@Option(names={"-relation"}, paramLabel="expr",
+				description={"spatial relation. (eg: within_distance(15))"})
+		private String m_relExpr;
+		
+		private PredicateOptions m_opts = PredicateOptions.DEFAULT;
+		
+		@Option(names={"-negated"}, description="negated search")
+		private void setNegated(boolean flag) {
+			m_opts = m_opts.negated(flag);
+		}
+
+		@Override
+		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
+			SpatialRelation rel = SpatialRelation.INTERSECTS;
+			if ( m_relExpr != null ) {
+				rel = SpatialRelation.parse(m_relExpr);
+			}
+			
+			if ( m_boundsStr != null ) {
+				Envelope bounds = GeoClientUtils.parseEnvelope(m_boundsStr).get();
+				return builder.filterSpatially(m_geomCol, rel, bounds, m_opts);
+			}
+			else if ( m_keyDsId != null ) {
+				return builder.filterSpatially(m_geomCol, rel, m_keyDsId, m_opts);
+			}
+			
+			throw new IllegalArgumentException("filter key is not defined");
+		}
+	}
+	
+	@Command(name="intersection", description="add a 'intersection' operator")
+	static class AddIntersection extends AbstractAddOperatorCommand {
+		@Parameters(paramLabel="geom_col", index="0",
+					description={"column name for the input geometry data"})
+		private String m_geomCol;
+		
+		@Option(names={"-column"}, paramLabel="name", required=true,
+				description="column name for second geometry")
+		private String m_geomCol2;
+		
+		@Option(names={"-output"}, paramLabel="column_name", required=true,
+				description="column name for output geometry")
+		private String m_output;
+
+		@Override
+		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
+			return builder.intersection(m_geomCol, m_geomCol2, m_output);
+		}
+	}
+	
 	@Command(name="arc_clip", description="add a 'arc_clip' operator")
-	public static class AddArcClip extends AbstractAddOperatorCommand {
+	static class AddArcClip extends AbstractAddOperatorCommand {
 		@Parameters(paramLabel="geom_col", index="0",
 					description={"column name for the input geometry data"})
 		private String m_geomCol;

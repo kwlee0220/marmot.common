@@ -13,10 +13,10 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class NormalizeParameters {
-	private static final String INPUT_DATASET = "input_dataset";
-	private static final String OUTPUT_DATASET = "output_dataset";
-	private static final String INPUT_FEATURE_COLUMNS = "input_features";
-	private static final String OUTPUT_COLUMNS = "output_features";
+	public static final String INPUT_DATASET = "input_dataset";
+	public static final String OUTPUT_DATASET = "output_dataset";
+	public static final String INPUT_FEATURE_COLUMNS = "input_features";
+	public static final String OUTPUT_COLUMNS = "output_features";
 	
 	private final Map<String,String> m_params;
 	

@@ -35,7 +35,7 @@ public class ModuleAnalysis extends MarmotAnalysis {
 	@Override
 	public String toString() {
 		StringBuilder builder = new  StringBuilder();
-		builder.append(String.format("%s[%s]:", getType(), getId()));
+		builder.append(String.format("%s[%s]: %s%n", getType(), getId(), getModuleId()));
 		for ( Map.Entry<String, String> ent: m_args.entrySet() ) {
 			builder.append(String.format("   %10s: %s%n", ent.getKey(), ent.getValue()));
 		}

@@ -3,6 +3,8 @@ package marmot.exec;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Lists;
+
 import marmot.geo.command.ClusterDataSetOptions;
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
@@ -40,7 +42,14 @@ public class SystemAnalysis extends MarmotAnalysis {
 		super(id, Type.SYSTEM);
 		
 		m_funcId = funcId;
-		m_args = args;
+		m_args = Lists.newArrayList(args);
+	}
+	
+	public SystemAnalysis(String id, String funcId, String... args) {
+		super(id, Type.SYSTEM);
+		
+		m_funcId = funcId;
+		m_args = Lists.newArrayList(args);
 	}
 	
 	public String getFunctionId() {

@@ -11,7 +11,6 @@ import marmot.PlanBuilder;
 import marmot.StoreDataSetOptions;
 import marmot.command.PicocliCommands.SubCommand;
 import marmot.command.plan.BuildPlanCommand.AddAggregate;
-import marmot.command.plan.BuildPlanCommand.AddAssignUid;
 import marmot.command.plan.BuildPlanCommand.AddDefineColumn;
 import marmot.command.plan.BuildPlanCommand.AddExpand;
 import marmot.command.plan.BuildPlanCommand.AddFilter;
@@ -21,13 +20,15 @@ import marmot.command.plan.BuildPlanCommand.AddShard;
 import marmot.command.plan.BuildPlanCommand.AddStore;
 import marmot.command.plan.BuildPlanCommand.AddUpdate;
 import marmot.command.plan.BuildPlanCommand.Create;
-import marmot.command.plan.GroupByCommands.AddAggregateByGroup;
+import marmot.command.plan.HashJoinCommands.AddHashJoin;
+import marmot.command.plan.HashJoinCommands.AddLoadHashJoin;
 import marmot.command.plan.SpatialCommands.AddArcClip;
 import marmot.command.plan.SpatialCommands.AddBuffer;
 import marmot.command.plan.SpatialCommands.AddCentroid;
+import marmot.command.plan.SpatialCommands.AddFilterSpatially;
+import marmot.command.plan.SpatialCommands.AddIntersection;
 import marmot.command.plan.SpatialCommands.AddTransformCrs;
 import marmot.optor.AggregateFunction;
-import marmot.plan.Group;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
@@ -41,14 +42,14 @@ import utils.func.Funcs;
 @Command(name="build",
 		subcommands = {
 			Create.class,
-			AddLoad.class, AddStore.class,
+			AddLoad.class, AddStore.class, AddQuery.class,
 			AddFilter.class, AddProject.class,
 			AddDefineColumn.class, AddUpdate.class, AddExpand.class,
 			GroupByCommands.class, AddAggregate.class,
 			AddLoadHashJoin.class, AddHashJoin.class,
-			AddAssignUid.class, AddShard.class,
-			AddBuffer.class, AddCentroid.class, AddTransformCrs.class,
-			AddSpatialJoin.class,
+			AssignCommands.class, AddShard.class,
+			AddBuffer.class, AddCentroid.class, AddTransformCrs.class, AddIntersection.class,
+			AddFilterSpatially.class, AddSpatialJoin.class,
 			AddArcClip.class,
 		},
 		description="add a operator into the plan")
@@ -222,49 +223,38 @@ public class BuildPlanCommand extends SubCommand {
 		}
 	}
 	
-	@Command(name="group",
-			subcommands = {
-				AddAggregateByGroup.class,
-			},
-			description="add a 'group-by' operators")
-	public abstract static class GroupByCommand extends AbstractAddOperatorCommand {
-		@Parameters(paramLabel="keys", index="0", arity="1..1",
-					description={"group key columns"})
-		private String m_keyCols;
-		
-		@Option(names={"-tags"}, paramLabel="columns", description="tag columns")
-		private String m_tagCols;
-		
-		@Option(names={"-order_by"}, paramLabel="columns", description="order-by columns")
-		private String m_orderByCols;
-		
-		abstract protected PlanBuilder addGroupByCommand(MarmotRuntime marmot,
-														PlanBuilder plan, Group group) throws Exception;
-
-		@Override
-		protected PlanBuilder add(MarmotRuntime marmot, PlanBuilder plan) throws Exception {
-			Group group = Group.ofKeys(m_keyCols);
-			if ( m_orderByCols != null ) {
-				group.orderBy(m_orderByCols);
-			}
-			if ( m_tagCols != null ) {
-				group.tags(m_tagCols);
-			}
-			
-			return addGroupByCommand(marmot, plan, group);
-		}
-	}
-	
-	@Command(name="assign_uid", description="add a 'assign_uid' operator")
-	public static class AddAssignUid extends AbstractAddOperatorCommand {
-		@Option(names={"-column"}, paramLabel="col_name", description={"output column name)"})
-		private String m_uidCol;
-
-		@Override
-		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
-			return builder.assignUid(m_uidCol);
-		}
-	}
+//	@Command(name="group",
+//			subcommands = {
+//				AddAggregateByGroup.class,
+//			},
+//			description="add a 'group-by' operators")
+//	public abstract static class GroupByCommand extends AbstractAddOperatorCommand {
+//		@Parameters(paramLabel="keys", index="0", arity="1..1",
+//					description={"group key columns"})
+//		private String m_keyCols;
+//		
+//		@Option(names={"-tags"}, paramLabel="columns", description="tag columns")
+//		private String m_tagCols;
+//		
+//		@Option(names={"-order_by"}, paramLabel="columns", description="order-by columns")
+//		private String m_orderByCols;
+//		
+//		abstract protected PlanBuilder addGroupByCommand(MarmotRuntime marmot,
+//														PlanBuilder plan, Group group) throws Exception;
+//
+//		@Override
+//		protected PlanBuilder add(MarmotRuntime marmot, PlanBuilder plan) throws Exception {
+//			Group group = Group.ofKeys(m_keyCols);
+//			if ( m_orderByCols != null ) {
+//				group.orderBy(m_orderByCols);
+//			}
+//			if ( m_tagCols != null ) {
+//				group.tags(m_tagCols);
+//			}
+//			
+//			return addGroupByCommand(marmot, plan, group);
+//		}
+//	}
 	
 	@Command(name="aggregate", description="add a 'aggregate' operator")
 	public static class AddAggregate extends AbstractAddOperatorCommand {
@@ -273,7 +263,7 @@ public class BuildPlanCommand extends SubCommand {
 
 		@Override
 		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
-			AggregateFunction[] aggrs = parseAggregate(m_aggrFuncs);
+			AggregateFunction[] aggrs = parseAggregates(m_aggrFuncs);
 			return builder.aggregate(aggrs);
 		}
 	}

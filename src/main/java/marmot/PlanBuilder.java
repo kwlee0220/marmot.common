@@ -1392,7 +1392,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder store(String dsId, StoreDataSetOptions opts) {
-		Utilities.checkNotNullArgument(dsId, "dataset id");
+		Utilities.checkNotNullArgument(dsId, "store: dataset id");
 
 		StoreDataSetProto store = StoreDataSetProto.newBuilder()
 													.setId(dsId)

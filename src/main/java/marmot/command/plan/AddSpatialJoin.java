@@ -37,7 +37,7 @@ class AddSpatialJoin extends AbstractAddOperatorCommand {
 	}
 
 	@Option(names={"-join_type"}, paramLabel="type",
-			description={"join type: inner|outer|semi|semi_negated|aggregate (default: inner)"})
+			description={"join type: inner|outer|semi|semi_negated|aggregate|difference (default: inner)"})
 	private String m_joinType = "inner";
 
 	@Option(names={"-aggregates"}, paramLabel="funcs", description={"aggregate functions)"})
@@ -47,28 +47,23 @@ class AddSpatialJoin extends AbstractAddOperatorCommand {
 	public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
 		switch ( m_joinType.toLowerCase() ) {
 			case "inner":
-				builder.spatialJoin(m_geomCol, m_paramDsId, m_opts);
-				break;
+				return builder.spatialJoin(m_geomCol, m_paramDsId, m_opts);
 			case "semi":
-				builder.spatialSemiJoin(m_geomCol, m_paramDsId, m_opts);
-				break;
+				return builder.spatialSemiJoin(m_geomCol, m_paramDsId, m_opts);
 			case "semi_negated":
-				builder.spatialSemiJoin(m_geomCol, m_paramDsId, m_opts);
-				break;
+				return builder.spatialSemiJoin(m_geomCol, m_paramDsId, m_opts);
 			case "outer":
-				builder.spatialOuterJoin(m_geomCol, m_paramDsId, m_opts);
-				break;
+				return builder.spatialOuterJoin(m_geomCol, m_paramDsId, m_opts);
+			case "difference":
+				return builder.differenceJoin(m_geomCol, m_paramDsId);
 			case "aggregate":
 				if ( m_aggrFuncs == null ) {
 					throw new IllegalArgumentException("aggregate functions are not provided");
 				}
-				AggregateFunction[] aggrs = parseAggregate(m_aggrFuncs);
-				builder.spatialAggregateJoin(m_geomCol, m_paramDsId, aggrs, m_opts);
-				break;
+				AggregateFunction[] aggrs = parseAggregates(m_aggrFuncs);
+				return builder.spatialAggregateJoin(m_geomCol, m_paramDsId, aggrs, m_opts);
 			default:
 				throw new IllegalArgumentException("invalid spatialjoin type: " + m_joinType);
 		}
-		
-		return builder;
 	}
 }
