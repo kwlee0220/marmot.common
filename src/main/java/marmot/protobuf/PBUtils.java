@@ -34,7 +34,6 @@ import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import marmot.Record;
 import marmot.RecordSchema;
-import marmot.exec.MarmotExecution.State;
 import marmot.exec.MarmotExecutionException;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.BoolProto;
@@ -62,7 +61,6 @@ import marmot.proto.VoidProto;
 import marmot.proto.service.BoolResponse;
 import marmot.proto.service.DoubleResponse;
 import marmot.proto.service.ErrorProto;
-import marmot.proto.service.ExecutionInfoProto.ExecutionStateProto;
 import marmot.proto.service.FloatResponse;
 import marmot.proto.service.LongResponse;
 import marmot.proto.service.MarmotErrorCode;
@@ -707,36 +705,6 @@ public class PBUtils {
 				return new TimeoutException(proto.getDetails());
 			default:
 				return PBUtils.toException(proto);
-		}
-	}
-	
-	public static ExecutionStateProto toExecutionStateProto(State state) {
-		switch ( state ) {
-			case RUNNING:
-				return ExecutionStateProto.EXEC_RUNNING;
-			case COMPLETED:
-				return ExecutionStateProto.EXEC_COMPLETED;
-			case CANCELLED:
-				return ExecutionStateProto.EXEC_CANCELLED;
-			case FAILED:
-				return ExecutionStateProto.EXEC_FAILED;
-			default:
-				throw new AssertionError();
-		}
-	}
-	
-	public static State fromExecutionStateProto(ExecutionStateProto proto) {
-		switch ( proto ) {
-			case EXEC_RUNNING:
-				return State.RUNNING;
-			case EXEC_COMPLETED:
-				return State.COMPLETED;
-			case EXEC_CANCELLED:
-				return State.CANCELLED;
-			case EXEC_FAILED:
-				return State.FAILED;
-			default:
-				throw new AssertionError();
 		}
 	}
 	

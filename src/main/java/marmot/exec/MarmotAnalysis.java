@@ -32,6 +32,24 @@ public abstract class MarmotAnalysis implements PBSerializable<MarmotAnalysisPro
 		return m_type;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if ( this == obj ) {
+			return true;
+		}
+		else if ( obj == null || !(obj instanceof MarmotAnalysis) ) {
+			return false;
+		}
+		
+		MarmotAnalysis other = (MarmotAnalysis)obj;
+		return m_id.equals(other.m_id);
+	}
+	
+	@Override
+	public int hashCode() {
+		return m_id.hashCode();
+	}
+	
 	public static MarmotAnalysis fromProto(MarmotAnalysisProto proto) {
 		switch ( proto.getMemberCase() ) {
 			case PLAN_EXEC:

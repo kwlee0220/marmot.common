@@ -7,6 +7,9 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import marmot.exec.AnalysisNotFoundException;
+import marmot.exec.CompositeAnalysis;
+import marmot.exec.ExecutionNotFoundException;
 import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotAnalysisExecution;
 import marmot.exec.MarmotExecution;
@@ -164,18 +167,23 @@ public interface MarmotRuntime {
 	 */
 	public void deleteDir(String folder);
 
-	public MarmotAnalysis getMarmotAnalysis(String id);
-	public List<MarmotAnalysis> getMarmotAnalysisAllInDir(String folder, boolean recursive);
-	public default List<MarmotAnalysis> getMarmotAnalysisAll() {
-		return getMarmotAnalysisAllInDir("/", true);
-	}
-	public void addMarmotAnalysis(MarmotAnalysis analysis);
-	public void deleteMarmotAnalysis(String id);
-	public void deleteMarmotAnalysisAll(String folder);
+	/**
+	 *  
+	 */
+	public MarmotAnalysis getAnalysis(String id) throws AnalysisNotFoundException;
+	public MarmotAnalysis findAnalysis(String id);
+	public CompositeAnalysis findParentAnalysis(String id);
+	public List<CompositeAnalysis> getAncestorAnalysisAll(String id);
+	public List<MarmotAnalysis> getDescendantAnalysisAll(String id);
+	public List<MarmotAnalysis> getAnalysisAll();
+	public void addAnalysis(MarmotAnalysis analysis);
+	public void deleteAnalysis(String id, boolean recursive);
+	public void deleteAnalysisAll();
 	
-	public MarmotAnalysisExecution start(MarmotAnalysis analysis) throws MarmotExecutionException;
-	public void execute(MarmotAnalysis analysis) throws MarmotExecutionException;
-	public MarmotExecution getMarmotExecution(String id);
+	public MarmotAnalysisExecution startAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
+	public void executeAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
+	public MarmotExecution getMarmotExecution(String id) throws ExecutionNotFoundException;
+	public List<MarmotExecution> getMarmotExecutionAll();
 	
 	/**
 	 * {@link Plan} 빌더 객체를 생성한다.
@@ -204,18 +212,16 @@ public interface MarmotRuntime {
 	
 	public default MarmotExecution start(Plan plan, ExecutePlanOptions opts)
 		throws MarmotExecutionException {
-		return start(new PlanAnalysis("unnamed", plan, opts));
+		return startAnalysis(new PlanAnalysis("unnamed", plan, opts));
 	}
 	public default MarmotExecution start(Plan plan) throws MarmotExecutionException {
-		return start(new PlanAnalysis("unnamed", plan));
+		return startAnalysis(new PlanAnalysis("unnamed", plan));
 	}
 	
-	public default void execute(Plan plan, ExecutePlanOptions opts)
-		throws MarmotExecutionException {
-		execute(new PlanAnalysis("unnamed", plan, opts));
-	}
+	public void execute(Plan plan, ExecutePlanOptions opts)
+		throws MarmotExecutionException;
 	public default void execute(Plan plan) throws MarmotExecutionException {
-		execute(new PlanAnalysis("unnamed", plan));
+		execute(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
 	/**
@@ -377,7 +383,6 @@ public interface MarmotRuntime {
 
 	public RecordSchema getProcessOutputRecordSchema(String processId, Map<String,String> params);
 	public void executeProcess(String processId, Map<String,String> params);
-	public void executeModule(String id);
 	
 	public void createKafkaTopic(String topic, boolean force);
 	
@@ -386,8 +391,4 @@ public interface MarmotRuntime {
 								FOption<Long> blockSize, FOption<String> codecName)
 		throws IOException;
 	public void deleteHdfsFile(String path) throws IOException;
-	
-	public void ping();
-	
-	public void shutdown();
 }

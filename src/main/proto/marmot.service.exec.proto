@@ -13,7 +13,7 @@ import public "marmot.optor.proto";
 
 service PlanExecutionService {
 	// ExecutePlanRequest
-	rpc start(ExecutePlanRequest) returns (StringResponse);
+	rpc start(ExecutePlanRequest) returns (ExecutionInfoResponse);
 	// ExecutePlanRequest
 	rpc execute(ExecutePlanRequest) returns (VoidResponse);
 	// ExecutePlanRequest -> Stream
@@ -31,18 +31,19 @@ service PlanExecutionService {
 	rpc executeProcess(ExecuteProcessRequest) returns (VoidResponse);
 	rpc getProcessRecordSchema(ExecuteProcessRequest) returns (RecordSchemaResponse);
 	
-	rpc executeModule(StringProto) returns (VoidResponse);
-	
-	rpc addMarmotAnalysis(MarmotAnalysisProto) returns (VoidResponse);
-	rpc deleteMarmotAnalysis(StringProto) returns (VoidResponse);
-	rpc deleteMarmotAnalysisAll(StringProto) returns (VoidResponse);
-	rpc getMarmotAnalysis(StringProto) returns (MarmotAnalysisResponse);
-	rpc getMarmotAnalysisAll(VoidProto) returns (stream MarmotAnalysisResponse);
-	rpc getMarmotAnalysisAllInDir(MarmotAnalysisTraverseRequest) returns (stream MarmotAnalysisResponse);
-	rpc startMarmotAnalysis(MarmotAnalysisProto) returns (StringResponse);
-	rpc executeMarmotAnalysis(MarmotAnalysisProto) returns (VoidResponse);
+	rpc findAnalysis(StringProto) returns (MarmotAnalysisResponse);
+	rpc findParentAnalysis(StringProto) returns (MarmotAnalysisResponse);
+	rpc getAncestorAnalysisAll(StringProto) returns (stream MarmotAnalysisResponse);
+	rpc getDescendantAnalysisAll(StringProto) returns (stream MarmotAnalysisResponse);
+	rpc getAnalysisAll(VoidProto) returns (stream MarmotAnalysisResponse);
+	rpc addAnalysis(MarmotAnalysisProto) returns (VoidResponse);
+	rpc deleteAnalysis(DeleteAnalysisRequest) returns (VoidResponse);
+	rpc deleteAnalysisAll(VoidProto) returns (VoidResponse);
+	rpc startAnalysis(MarmotAnalysisProto) returns (ExecutionInfoResponse);
+	rpc executeAnalysis(MarmotAnalysisProto) returns (VoidResponse);
 	
 	rpc getExecutionInfo(StringProto) returns (ExecutionInfoResponse);
+	rpc getExecutionInfoList(VoidProto) returns (ExecutionInfoListResponse);
 	rpc setExecutionInfo(SetExecutionInfoRequest) returns (ExecutionInfoResponse);
 	rpc cancelExecution(StringProto) returns (BoolResponse);
 	rpc waitForFinished(WaitForFinishedRequest) returns (ExecutionInfoResponse);
@@ -124,6 +125,11 @@ message MarmotAnalysisResponse {
 	}
 }
 
+message DeleteAnalysisRequest {
+	string id = 1;			// 검색 대상 시작 디렉토리 경로
+	bool recursive = 2;		// 하위 디렉토리 검색 여부.
+}
+
 message MarmotAnalysisTraverseRequest {
 	string directory = 1;	// 검색 대상 시작 디렉토리 경로
 	bool recursive = 2;		// 하위 디렉토리 검색 여부.
@@ -137,10 +143,11 @@ message ExecutionInfoProto {
 		EXEC_CANCELLED = 4;
 	}
 	
-	int64 started_time = 1;
-	int64 finished_time = 2;
-	int64 max_running_time = 3;
-	int64 retention_time = 4;
+	string id = 1;
+	int64 started_time = 2;
+	int64 finished_time = 3;
+	int64 max_running_time = 4;
+	int64 retention_time = 5;
 	
 	message ExecutionStateInfoProto {
 		ExecutionStateProto state = 1;
@@ -148,8 +155,11 @@ message ExecutionInfoProto {
 			ErrorProto failure_cause = 2;
 		}
 	}
-	ExecutionStateInfoProto exec_state_info = 5;
-	int32 current_exec_index = 6;
+	ExecutionStateInfoProto exec_state_info = 6;
+	int32 current_exec_index = 7;
+	oneof optional_analysis_id {
+		string analysis_id = 8;
+	}
 }
 
 message SetExecutionInfoRequest {
@@ -160,6 +170,17 @@ message SetExecutionInfoRequest {
 message ExecutionInfoResponse {
 	oneof either {
 		ExecutionInfoProto exec_info = 1;
+		ErrorProto error = 2;
+	}
+}
+
+message ExecutionInfoListResponse {
+	message ExecutionInfoListProto {
+		repeated ExecutionInfoProto exec_info = 1;
+	}
+	
+	oneof either {
+		ExecutionInfoListProto exec_info_list = 1;
 		ErrorProto error = 2;
 	}
 }

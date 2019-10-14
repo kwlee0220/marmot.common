@@ -25,7 +25,7 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class MarmotAnalysisCommands {
-	@Command(name="list", description="list MarmotAnalytics")
+	@Command(name="list", description="list MarmotAnalysis")
 	public static class List extends SubCommand {
 		@Parameters(paramLabel="path", arity = "0..*", description={"directory path to display from"})
 		private String m_start;
@@ -40,10 +40,10 @@ public class MarmotAnalysisCommands {
 		public void run(MarmotRuntime marmot) throws Exception {
 			java.util.List<MarmotAnalysis> analList;
 			if ( m_start != null ) {
-				analList = marmot.getMarmotAnalysisAllInDir(m_start, m_recursive);
+				analList = marmot.getDescendantAnalysisAll(m_start);
 			}
 			else {
-				analList = marmot.getMarmotAnalysisAll();
+				analList = marmot.getAnalysisAll();
 			}
 			
 			for ( MarmotAnalysis analysis: analList ) {
@@ -57,7 +57,7 @@ public class MarmotAnalysisCommands {
 		}
 	}
 
-	@Command(name="run", description="run MarmotAnalytics")
+	@Command(name="run", description="run MarmotAnalysis")
 	public static class Run extends SubCommand {
 		@Parameters(paramLabel="id", arity = "1..1", description={"analysis id"})
 		private String m_id;
@@ -67,27 +67,15 @@ public class MarmotAnalysisCommands {
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			MarmotAnalysis analysis = marmot.getMarmotAnalysis(m_id);
+			MarmotAnalysis analysis = marmot.getAnalysis(m_id);
 			
 			if ( m_async ) {
-				MarmotExecution exec = marmot.start(analysis);
+				MarmotExecution exec = marmot.startAnalysis(analysis);
 				System.out.println(exec.getId());
 			}
 			else {
-				marmot.execute(analysis);
+				marmot.executeAnalysis(analysis);
 			}
-		}
-	}
-
-	@Command(name="cancel", description="cancel running MarmotExecution")
-	public static class Cancel extends SubCommand {
-		@Parameters(paramLabel="id", arity = "1..1", description={"execution id"})
-		private String m_id;
-		
-		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			MarmotExecution exec = marmot.getMarmotExecution(m_id);
-			exec.cancel();
 		}
 	}
 
@@ -98,12 +86,12 @@ public class MarmotAnalysisCommands {
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			MarmotAnalysis anal = marmot.getMarmotAnalysis(m_id);
+			MarmotAnalysis anal = marmot.getAnalysis(m_id);
 			System.out.println(anal);
 		}
 	}
 
-	@Command(name="add", description="add a MarmotAnalytics",
+	@Command(name="add", description="add a MarmotAnalysis",
 			subcommands= {
 				AddPlan.class,
 				AddSystem.class,
@@ -129,7 +117,7 @@ public class MarmotAnalysisCommands {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			if ( m_force ) {
-				marmot.deleteMarmotAnalysis(m_id);
+				marmot.deleteAnalysis(m_id, false);
 			}
 			
 			add(marmot, m_id);
@@ -146,7 +134,7 @@ public class MarmotAnalysisCommands {
 		protected void add(MarmotRuntime marmot, String id) throws Exception {
 			try ( Reader reader = new FileReader(m_planFile) ) {
 				PlanAnalysis analysis = new PlanAnalysis(id, Plan.parseJson(reader));
-				marmot.addMarmotAnalysis(analysis);
+				marmot.addAnalysis(analysis);
 			}
 		}
 	}
@@ -162,7 +150,7 @@ public class MarmotAnalysisCommands {
 		@Override
 		protected void add(MarmotRuntime marmot, String id) throws Exception {
 			SystemAnalysis analysis = new SystemAnalysis(id, m_funcId, m_args);
-			marmot.addMarmotAnalysis(analysis);
+			marmot.addAnalysis(analysis);
 		}
 	}
 
@@ -181,7 +169,7 @@ public class MarmotAnalysisCommands {
 											.map(KeyValue::parse)
 											.toMap(KeyValue::key, KeyValue::value);
 			ModuleAnalysis analysis = new ModuleAnalysis(id, m_moduleId, args);
-			marmot.addMarmotAnalysis(analysis);
+			marmot.addAnalysis(analysis);
 		}
 	}
 
@@ -193,7 +181,7 @@ public class MarmotAnalysisCommands {
 		@Override
 		protected void add(MarmotRuntime marmot, String id) throws Exception {
 			CompositeAnalysis analysis = new CompositeAnalysis(id, componentsList);
-			marmot.addMarmotAnalysis(analysis);
+			marmot.addAnalysis(analysis);
 		}
 	}
 
@@ -201,20 +189,25 @@ public class MarmotAnalysisCommands {
 	public static class Delete extends SubCommand {
 		@Parameters(paramLabel="analysis_id (or directory-id)", arity = "1..1",
 					description={"analysis id to delete"})
-		private String m_target;
+		private String m_id;
 		
-		@Option(names={"-r"}, description="delete all analysis in subdirectories recursively")
+		@Option(names={"-r"}, description="delete all its descendant analyses")
 		private boolean m_recursive;
+		
+		@Option(names={"-f"}, description="delete analysis forcibly")
+		private boolean m_force;
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
+			if ( !m_force ) {
+				CompositeAnalysis parent = marmot.findParentAnalysis(m_id);
+				if ( parent != null ) {
+					throw new IllegalStateException("some analysises refer to this: " + parent);
+				}
+			}
+			
 			try {
-				if ( m_recursive ) {
-					marmot.deleteMarmotAnalysisAll(m_target);
-				}
-				else {
-					marmot.deleteMarmotAnalysis(m_target);
-				}
+				marmot.deleteAnalysis(m_id, m_recursive);
 			}
 			catch ( Exception e ) {
 				System.err.println(e);

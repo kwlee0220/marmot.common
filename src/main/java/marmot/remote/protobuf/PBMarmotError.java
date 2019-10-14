@@ -18,11 +18,15 @@ import marmot.MarmotInternalException;
 import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
 import marmot.ThumbnailNotFoundException;
+import marmot.exec.AnalysisExistsException;
+import marmot.exec.AnalysisNotFoundException;
 import marmot.exec.ExecutionNotFoundException;
+import marmot.exec.MarmotAnalysisException;
 import marmot.exec.MarmotExecutionException;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.io.MarmotFileExistsException;
 import marmot.io.MarmotFileNotFoundException;
+import marmot.proto.service.MarmotErrorCode;
 import marmot.support.PBException;
 import utils.Throwables;
 import utils.func.FOption;
@@ -47,6 +51,10 @@ public enum PBMarmotError {
 	COLUMN_NOT_FOUND(60, ColumnNotFoundException.class),
 	
 	INDEX_NOT_FOUND(70, IndexNotFoundException.class),
+	
+	ERROR_ANALYSIS(MarmotErrorCode.ERROR_ANALYSIS.getNumber(), MarmotAnalysisException.class),
+	ERROR_ANALYSIS_NOT_FOUND(MarmotErrorCode.ERROR_ANALYSIS_NOT_FOUND.getNumber(), AnalysisNotFoundException.class),
+	ERROR_ANALYSIS_EXISTS(MarmotErrorCode.ERROR_ANALYSIS_EXISTS.getNumber(), AnalysisExistsException.class),
 
 	EXEC_UNKNOWN_ID(101, ExecutionNotFoundException.class),
 	EXEC_INTERRUPTED(102, InterruptedException.class),

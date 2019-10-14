@@ -13,5 +13,7 @@ public interface MarmotAnalysisExecution extends MarmotExecution {
 	 * 
 	 * @return	연산 순서
 	 */
-	public int getCurrentExecutionIndex();
+	public default int getCurrentExecutionIndex() {
+		return 0;
+	}
 }
