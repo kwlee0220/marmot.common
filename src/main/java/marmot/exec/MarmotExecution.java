@@ -3,6 +3,8 @@ package marmot.exec;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
+import utils.func.FOption;
+
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
@@ -39,6 +41,27 @@ public interface MarmotExecution {
 	 * @return	MarmotExecution 식별자
 	 */
 	public String getId();
+	
+	/**
+	 * 연산 수행에 관련된 {@link MarmotAnalysis}를 반환한다.
+	 * 특정 분석의 수행으로 생성된 수행인 경우, 해당 분석 객체를 반환하고,
+	 * 그렇지 않은 경우는 {@link FOption#empty()}를 반환한다.
+	 * 
+	 * @return	분석의 수행인 경우는 {@link FOption#of(Object)},
+	 * 			그렇지 않은 경우는 {@link FOption#empty()}
+	 * 
+	 */
+	public FOption<MarmotAnalysis> getMarmotAnalysis();
+	
+	/**
+	 * 복합 분석으로 생성된 수행인 경우 현재 수행 중인 원소 연산의 순번를 반환한다.
+	 * 그렇지 않은 경우는 0을 ㅂ반환한다.
+	 * 
+	 * @return	연산 순서
+	 */
+	public default int getCurrentExecutionIndex() {
+		return 0;
+	}
 	
 	/**
 	 * 연산 수행 상태를 반환한다.

@@ -11,7 +11,6 @@ import marmot.exec.AnalysisNotFoundException;
 import marmot.exec.CompositeAnalysis;
 import marmot.exec.ExecutionNotFoundException;
 import marmot.exec.MarmotAnalysis;
-import marmot.exec.MarmotAnalysisExecution;
 import marmot.exec.MarmotExecution;
 import marmot.exec.MarmotExecutionException;
 import marmot.exec.PlanAnalysis;
@@ -180,7 +179,7 @@ public interface MarmotRuntime {
 	public void deleteAnalysis(String id, boolean recursive);
 	public void deleteAnalysisAll();
 	
-	public MarmotAnalysisExecution startAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
+	public MarmotExecution startAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
 	public void executeAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
 	public MarmotExecution getMarmotExecution(String id) throws ExecutionNotFoundException;
 	public List<MarmotExecution> getMarmotExecutionAll();
