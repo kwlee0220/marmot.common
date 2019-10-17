@@ -115,9 +115,6 @@ message StoreAsCsvProto {
 	}
 }
 
-message StoreIntoDataSetProto {
-	string id = 1;
-}
 message StoreDataSetProto {
 	string id = 1;
 	marmot.proto.service.StoreDataSetOptionsProto options = 2;
@@ -798,7 +795,6 @@ message OperatorProto {
 		
 		StoreAsHeapfileProto store_as_heapfile = 51;
 		StoreAsCsvProto store_as_csv = 52;
-		StoreIntoDataSetProto store_into_dataset = 53;
 		StoreIntoJdbcTableProto store_into_jdbc_table = 54;
 		StoreIntoKafkaTopicProto store_into_kafka_topic = 55;
 		TeeProto tee = 56;

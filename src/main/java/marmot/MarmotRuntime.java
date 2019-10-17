@@ -167,10 +167,29 @@ public interface MarmotRuntime {
 	public void deleteDir(String folder);
 
 	/**
+	 *  식별자에 해당하는 분석 모듈을 반환한다.
 	 *  
+	 *  @param id	분석 모듈 식별자.
+	 *  @return	분석 모듈
+	 *  @throws	AnalysisNotFoundException	식별자에 해당하는 분석 모듈이 존재하지 않는 경우
 	 */
 	public MarmotAnalysis getAnalysis(String id) throws AnalysisNotFoundException;
+
+	/**
+	 *  식별자에 해당하는 분석 모듈을 반환한다.
+	 *  식별자에 해당하는 분석 모듈이 없는 경우는 {@code null}을 반환한다.
+	 *  
+	 *  @param id	분석 모듈 식별자.
+	 *  @return	분석 모듈. 분석 모듈이 존재하지 않는 경우는  {@code null}
+	 */
 	public MarmotAnalysis findAnalysis(String id);
+	
+	/**
+	 * 주어진 분석을 구성요소를 사용하는 상위 분석 모듈을 반환한다.
+	 * 상위 분석 모듈이 없는 경우는 {@code null}을 반환한다.
+	 * 
+	 *  @param id	분석 모듈 식별자.	
+	 */
 	public CompositeAnalysis findParentAnalysis(String id);
 	public List<CompositeAnalysis> getAncestorAnalysisAll(String id);
 	public List<MarmotAnalysis> getDescendantAnalysisAll(String id);
@@ -178,9 +197,9 @@ public interface MarmotRuntime {
 	public void addAnalysis(MarmotAnalysis analysis);
 	public void deleteAnalysis(String id, boolean recursive);
 	public void deleteAnalysisAll();
-	
 	public MarmotExecution startAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
 	public void executeAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
+	
 	public MarmotExecution getMarmotExecution(String id) throws ExecutionNotFoundException;
 	public List<MarmotExecution> getMarmotExecutionAll();
 	

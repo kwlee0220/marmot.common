@@ -529,7 +529,7 @@ public class DatasetCommands {
 		}
 	}
 
-	@Command(name="shp", description="import shapefile(s) into the dataset")
+	@Command(name="shp", aliases={"shapefile"}, description="import shapefile(s) into the dataset")
 	public static class ImportShapefileCmd extends SubCommand {
 		@Mixin private ImportParameters m_params;
 		@Mixin private ShapefileParameters m_shpParams;

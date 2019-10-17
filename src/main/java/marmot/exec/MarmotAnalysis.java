@@ -12,10 +12,15 @@ public abstract class MarmotAnalysis implements PBSerializable<MarmotAnalysisPro
 	private final Type m_type;
 	
 	public enum Type {
+		/** 플랜 기반 분석 */
 		PLAN,
+		/** 모듈 기반 분석 */
 		MODULE,
+		/** 복합 분석 */
 		COMPOSITE,
+		/** 시스템 기능 */
 		SYSTEM,
+		/** 외부 프로그램 기반 분석 */
 		EXTERN,
 	}
 	
@@ -24,10 +29,20 @@ public abstract class MarmotAnalysis implements PBSerializable<MarmotAnalysisPro
 		m_type = type;
 	}
 	
+	/**
+	 * 분석 식별자를 반환한다.
+	 * 
+	 * @return	분석 식별자
+	 */
 	public String getId() {
 		return m_id;
 	}
 	
+	/**
+	 * 분석 타입을 반환한다.
+	 * 
+	 * @return	분석 타입
+	 */
 	public Type getType() {
 		return m_type;
 	}

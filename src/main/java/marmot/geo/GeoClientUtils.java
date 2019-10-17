@@ -17,6 +17,7 @@ import org.geotools.referencing.GeodeticCalculator;
 import org.opengis.geometry.BoundingBox;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -274,9 +275,12 @@ public class GeoClientUtils {
 	
 	public static Geometry makeValid(Geometry geom) {
 		if ( geom instanceof MultiPolygon ) {
-			return toMultiPolygon(flatten(geom, Polygon.class)
-									.flatMap(p -> FStream.from(JTS.makeValid(p, false))))
-						.buffer(0);
+			List<Polygon> validPolys = Lists.newArrayList();
+			for ( Polygon poly: flatten(geom, Polygon.class) ) {
+				validPolys.addAll(JTS.makeValid(poly, false));
+			}
+			
+			return toMultiPolygon(validPolys).buffer(0);
 		}
 		else if ( geom instanceof Polygon ) {
 			return toMultiPolygon(JTS.makeValid((Polygon)geom, false)).buffer(0);
@@ -301,25 +305,32 @@ public class GeoClientUtils {
 			return geom;
 		}
 		
+		List<Point> pts;
+		List<LineString> lines;
+		List<Polygon> polys;
 		switch ( dstType ) {
 			case MULTIPOLYGON:
-				return GEOM_FACT.createMultiPolygon(flatten(geom, Polygon.class)
-														.toArray(Polygon.class));
+				polys = flatten(geom, Polygon.class);
+				return GEOM_FACT.createMultiPolygon(polys.toArray(new Polygon[polys.size()]));
 			case POLYGON:
-				return flatten(geom, Polygon.class).next().getOrElse(EMPTY_POLYGON);
+				polys = flatten(geom, Polygon.class);
+				return polys.size() > 0 ? polys.get(0) : EMPTY_POLYGON;
 			case POINT:
-				return flatten(geom, Point.class).next().getOrElse(EMPTY_POINT);
+				pts = flatten(geom, Point.class);
+				return pts.size() > 0 ? pts.get(0) : EMPTY_POINT;
 			case MULTIPOINT:
-				return toMultiPoint(flatten(geom, Point.class)
-										.toArray(Point.class));
+				pts = flatten(geom, Point.class);
+				return toMultiPoint(pts.toArray(new Point[pts.size()]));
 			case LINESTRING:
-				return flatten(geom, LineString.class).next().getOrElse(EMPTY_LINESTRING);
+				lines = flatten(geom, LineString.class);
+				return lines.size() > 0 ? lines.get(0) : EMPTY_LINESTRING;
 			case MULTILINESTRING:
-				return GEOM_FACT.createMultiLineString(flatten(geom, LineString.class)
-														.toArray(LineString.class));
+				lines = flatten(geom, LineString.class);
+				return GEOM_FACT.createMultiLineString(lines.toArray(new LineString[lines.size()]));
 			case GEOMETRYCOLLECTION:
-				return GEOM_FACT.createGeometryCollection(flatten(geom)
-														.toArray(Geometry.class));
+				return (geom instanceof GeometryCollection)
+						? (GeometryCollection)geom
+						: GEOM_FACT.createGeometryCollection(new Geometry[] {geom});
 			default:
 				throw new AssertionError("unexpected target type: type=" + dstType);
 		}
@@ -333,31 +344,38 @@ public class GeoClientUtils {
 		if ( dstType.isInstance(geom) || dstType == Geometry.class ) {
 			return (T)geom;
 		}
-		
+
+		List<Point> pts;
+		List<LineString> lines;
+		List<Polygon> polys;
 		if ( MultiPolygon.class == dstType ) {
-			return (T)GEOM_FACT.createMultiPolygon(flatten(geom, Polygon.class)
-													.toArray(Polygon.class));
+			polys = flatten(geom, Polygon.class);
+			return (T)GEOM_FACT.createMultiPolygon(polys.toArray(new Polygon[polys.size()]));
 		}
 		else if ( Polygon.class == dstType ) {
-			return (T)flatten(geom, Polygon.class).next().getOrElse(EMPTY_POLYGON);
+			polys = flatten(geom, Polygon.class);
+			return polys.size() > 0 ? (T)polys.get(0) : (T)EMPTY_POLYGON;
 		}
 		else if ( Point.class == dstType ) {
-			return (T)flatten(geom, Point.class).next().getOrElse(EMPTY_POINT);
+			pts = flatten(geom, Point.class);
+			return pts.size() > 0 ? (T)pts.get(0) : (T)EMPTY_POINT;
 		}
 		else if ( MultiPoint.class == dstType ) {
-			return (T)toMultiPoint(flatten(geom, Point.class)
-													.toArray(Point.class));
+			pts = flatten(geom, Point.class);
+			return (T)toMultiPoint(pts.toArray(new Point[pts.size()]));
 		}
 		else if ( LineString.class == dstType ) {
-			return (T)flatten(geom, LineString.class).next().getOrElse(EMPTY_LINESTRING);
+			lines = flatten(geom, LineString.class);
+			return lines.size() > 0 ? (T)lines.get(0) : (T)EMPTY_LINESTRING;
 		}
 		else if ( MultiLineString.class == dstType ) {
-			return (T)GEOM_FACT.createMultiLineString(flatten(geom, LineString.class)
-													.toArray(LineString.class));
+			lines = flatten(geom, LineString.class);
+			return (T)GEOM_FACT.createMultiLineString(lines.toArray(new LineString[lines.size()]));
 		}
 		else if ( GeometryCollection.class == dstType ) {
-			return (T)GEOM_FACT.createGeometryCollection(flatten(geom)
-													.toArray(Geometry.class));
+			return (geom instanceof GeometryCollection)
+					? (T)geom
+					: (T)GEOM_FACT.createGeometryCollection(new Geometry[] {geom});
 		}
 		
 		throw new AssertionError("unexpected target type: type=" + dstType);
@@ -376,19 +394,59 @@ public class GeoClientUtils {
 		}
 	}
 	
-	public static FStream<Geometry> flatten(Geometry geom) {
+	public static List<Geometry> flatten(Geometry geom) {
 		if ( geom instanceof GeometryCollection ) {
-			return FStream.<Geometry>from(new GeometryIterator<>((GeometryCollection)geom))
-							.flatMap(GeoClientUtils::flatten);
+			GeometryCollection coll = (GeometryCollection)geom;
+			int ngeoms = coll.getNumGeometries();
+			
+			List<Geometry> geomList = Lists.newArrayListWithExpectedSize(ngeoms);
+			for ( int i =0; i < ngeoms; ++i ) {
+				geomList.add(coll.getGeometryN(i));
+			}
+			
+			return geomList;
 		}
 		else {
-			return FStream.of(geom);
+			return Lists.newArrayList(geom);
 		}
 	}
 	
-	public static <T extends Geometry> FStream<T> flatten(Geometry geom, Class<T> cls) {
-		return flatten(geom).castSafely(cls);
+	public static <T extends Geometry> List<T> flatten(Geometry geom, Class<T> cls) {
+		if ( geom instanceof GeometryCollection ) {
+			GeometryCollection coll = (GeometryCollection)geom;
+			int ngeoms = coll.getNumGeometries();
+			
+			List<T> geomList = Lists.newArrayList();
+			for ( int i =0; i < ngeoms; ++i ) {
+				Geometry elm = coll.getGeometryN(i);
+				if ( cls.isInstance(elm) ) {
+					geomList.add(cls.cast(elm));
+				}
+			}
+			
+			return geomList;
+		}
+		else if ( cls.isInstance(geom) ) {
+			return Lists.newArrayList(cls.cast(geom));
+		}
+		else {
+			return Lists.newArrayList();
+		}
 	}
+	
+//	public static FStream<Geometry> flatten(Geometry geom) {
+//		if ( geom instanceof GeometryCollection ) {
+//			return FStream.<Geometry>from(new GeometryIterator<>((GeometryCollection)geom))
+//							.flatMap(GeoClientUtils::flatten);
+//		}
+//		else {
+//			return FStream.of(geom);
+//		}
+//	}
+	
+//	public static <T extends Geometry> FStream<T> flatten(Geometry geom, Class<T> cls) {
+//		return flatten(geom).castSafely(cls);
+//	}
 	
 	public static MultiPoint toMultiPoint(Point... pts) {
 		return GEOM_FACT.createMultiPoint(pts);
