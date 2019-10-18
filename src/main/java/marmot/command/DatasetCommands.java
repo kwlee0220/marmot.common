@@ -746,7 +746,7 @@ public class DatasetCommands {
 
 	@Command(name="thumbnail",
 			subcommands= {
-				CreateThumbnail.class,
+				CreateThumbnail.class, DeleteThumbnail.class,
 			},
 			description="thumbnail related commands")
 	public static class Thumbnail extends SubCommand {
@@ -773,6 +773,19 @@ public class DatasetCommands {
 			
 			System.out.printf("nsmaples=%,d, elapsed time: %s%n",
 							m_sampleCount, watch.stopAndGetElpasedTimeString());
+		}
+	}
+
+	@Command(name="delete", description="delete a thumbnail for a dataset")
+	public static class DeleteThumbnail extends SubCommand {
+		@Parameters(paramLabel="dataset", index="0", arity="1..1",
+					description={"dataset id for thumbnail"})
+		private String m_dsId;
+
+		@Override
+		public void run(MarmotRuntime marmot) throws Exception {
+			DataSet ds = marmot.getDataSet(m_dsId);
+			ds.deleteThumbnail();
 		}
 	}
 }
