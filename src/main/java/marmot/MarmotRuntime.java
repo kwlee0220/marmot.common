@@ -194,7 +194,7 @@ public interface MarmotRuntime {
 	public List<CompositeAnalysis> getAncestorAnalysisAll(String id);
 	public List<MarmotAnalysis> getDescendantAnalysisAll(String id);
 	public List<MarmotAnalysis> getAnalysisAll();
-	public void addAnalysis(MarmotAnalysis analysis);
+	public void addAnalysis(MarmotAnalysis analysis, boolean force);
 	public void deleteAnalysis(String id, boolean recursive);
 	public void deleteAnalysisAll();
 	public MarmotExecution startAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;

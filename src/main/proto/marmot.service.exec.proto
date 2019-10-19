@@ -36,7 +36,7 @@ service PlanExecutionService {
 	rpc getAncestorAnalysisAll(StringProto) returns (stream MarmotAnalysisResponse);
 	rpc getDescendantAnalysisAll(StringProto) returns (stream MarmotAnalysisResponse);
 	rpc getAnalysisAll(VoidProto) returns (stream MarmotAnalysisResponse);
-	rpc addAnalysis(MarmotAnalysisProto) returns (VoidResponse);
+	rpc addAnalysis(AddAnalysisRequest) returns (VoidResponse);
 	rpc deleteAnalysis(DeleteAnalysisRequest) returns (VoidResponse);
 	rpc deleteAnalysisAll(VoidProto) returns (VoidResponse);
 	rpc startAnalysis(MarmotAnalysisProto) returns (ExecutionInfoResponse);
@@ -123,6 +123,11 @@ message MarmotAnalysisResponse {
 		MarmotAnalysisProto analysis = 1;
 		ErrorProto error = 2;
 	}
+}
+
+message AddAnalysisRequest {
+	MarmotAnalysisProto analysis = 1;
+	bool force = 2;
 }
 
 message DeleteAnalysisRequest {
