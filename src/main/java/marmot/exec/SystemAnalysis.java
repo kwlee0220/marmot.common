@@ -32,13 +32,30 @@ public class SystemAnalysis extends MarmotAnalysis {
 		return clusterDataSet(id, dsId, ClusterDataSetOptions.DEFAULT());
 	}
 	
+	public static SystemAnalysis deleteDataSet(String id, Iterable<String> dsIds) {
+		return new SystemAnalysis(id, "delete_dataset", dsIds);
+	}
+	
 	public static SystemAnalysis deleteDataSet(String id, String... dsIds) {
 		List<String> args = FStream.of(dsIds).toList();
 		
 		return new SystemAnalysis(id, "delete_dataset", args);
 	}
 	
-	public SystemAnalysis(String id, String funcId, List<String> args) {
+	public static SystemAnalysis moveDataSet(String id, String srcDsId, String tarDsId) {
+		List<String> args = FStream.of(srcDsId, tarDsId).toList();
+		
+		return new SystemAnalysis(id, "move_dataset", args);
+	}
+	
+	public static SystemAnalysis createThumbnail(String id, String dsId, int sampleCount) {
+		List<String> args = FStream.of(dsId).toList();
+		args.add("" + sampleCount);
+		
+		return new SystemAnalysis(id, "create_thumbnail", args);
+	}
+	
+	public SystemAnalysis(String id, String funcId, Iterable<String> args) {
 		super(id, Type.SYSTEM);
 		
 		m_funcId = funcId;
@@ -62,8 +79,8 @@ public class SystemAnalysis extends MarmotAnalysis {
 	
 	@Override
 	public String toString() {
-		String argStr = FStream.from(m_args).join(" ");
-		return String.format("%s[%s]: %s(%s)", getType(), getId(), getFunctionId(), getArguments());
+		String argStr = FStream.from(m_args).join(", ");
+		return String.format("%s[%s]: %s(%s)", getType(), getId(), getFunctionId(), argStr);
 	}
 	
 	public static SystemAnalysis fromProto(MarmotAnalysisProto proto) {

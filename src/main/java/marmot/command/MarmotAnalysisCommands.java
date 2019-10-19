@@ -1,6 +1,7 @@
 package marmot.command;
 
 import java.io.FileReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.Map;
 
@@ -9,6 +10,7 @@ import marmot.Plan;
 import marmot.command.PicocliCommands.SubCommand;
 import marmot.exec.CompositeAnalysis;
 import marmot.exec.MarmotAnalysis;
+import marmot.exec.MarmotAnalysis.Type;
 import marmot.exec.MarmotExecution;
 import marmot.exec.ModuleAnalysis;
 import marmot.exec.PlanAnalysis;
@@ -26,7 +28,7 @@ import utils.stream.FStream;
  */
 public class MarmotAnalysisCommands {
 	@Command(name="list", description="list MarmotAnalysis")
-	public static class List extends SubCommand {
+	public static class ListAnalysis extends SubCommand {
 		@Parameters(paramLabel="path", arity = "0..*", description={"directory path to display from"})
 		private String m_start;
 
@@ -87,7 +89,29 @@ public class MarmotAnalysisCommands {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			MarmotAnalysis anal = marmot.getAnalysis(m_id);
-			System.out.println(anal);
+			if ( anal.getType() != Type.COMPOSITE ) {
+				System.out.println(anal);
+			}
+			else {
+				CompositeAnalysis comp = (CompositeAnalysis)anal;
+				try ( PrintWriter pw = new PrintWriter(System.out) ) {
+					showComponents(marmot, pw, comp, "");
+				}
+			}
+		}
+		
+		private void showComponents(MarmotRuntime marmot, PrintWriter pw, CompositeAnalysis parent,
+									String indent) {
+			int index = 1;
+			for ( String compId: parent.getComponents() ) {
+				MarmotAnalysis comp = marmot.getAnalysis(compId);
+				
+				pw.print(String.format("%s%02d: %s, %s%n", indent, index, comp.getId(), comp.getType()));
+				if ( comp.getType() == Type.COMPOSITE ) {
+					showComponents(marmot, pw, (CompositeAnalysis)comp, indent + "    ");
+				}
+				++index;
+			}
 		}
 	}
 
@@ -112,15 +136,11 @@ public class MarmotAnalysisCommands {
 		@Option(names={"-f", "-force"}, description="force to add")
 		private boolean m_force;
 		
-		abstract protected void add(MarmotRuntime marmot, String id) throws Exception;
+		abstract protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception;
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			if ( m_force ) {
-				marmot.deleteAnalysis(m_id, false);
-			}
-			
-			add(marmot, m_id);
+			add(marmot, m_id, m_force);
 		}
 		
 	}
@@ -131,10 +151,10 @@ public class MarmotAnalysisCommands {
 		private String m_planFile;
 		
 		@Override
-		protected void add(MarmotRuntime marmot, String id) throws Exception {
+		protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception {
 			try ( Reader reader = new FileReader(m_planFile) ) {
 				PlanAnalysis analysis = new PlanAnalysis(id, Plan.parseJson(reader));
-				marmot.addAnalysis(analysis);
+				marmot.addAnalysis(analysis, force);
 			}
 		}
 	}
@@ -148,9 +168,9 @@ public class MarmotAnalysisCommands {
 		private java.util.List<String> m_args;
 		
 		@Override
-		protected void add(MarmotRuntime marmot, String id) throws Exception {
+		protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception {
 			SystemAnalysis analysis = new SystemAnalysis(id, m_funcId, m_args);
-			marmot.addAnalysis(analysis);
+			marmot.addAnalysis(analysis, force);
 		}
 	}
 
@@ -164,12 +184,12 @@ public class MarmotAnalysisCommands {
 		private java.util.List<String> m_kvArgs;
 		
 		@Override
-		protected void add(MarmotRuntime marmot, String id) throws Exception {
+		protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception {
 			Map<String,String> args = FStream.from(m_kvArgs)
 											.map(KeyValue::parse)
 											.toMap(KeyValue::key, KeyValue::value);
 			ModuleAnalysis analysis = new ModuleAnalysis(id, m_moduleId, args);
-			marmot.addAnalysis(analysis);
+			marmot.addAnalysis(analysis, force);
 		}
 	}
 
@@ -179,9 +199,9 @@ public class MarmotAnalysisCommands {
 		private java.util.List<String> componentsList;
 		
 		@Override
-		protected void add(MarmotRuntime marmot, String id) throws Exception {
+		protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception {
 			CompositeAnalysis analysis = new CompositeAnalysis(id, componentsList);
-			marmot.addAnalysis(analysis);
+			marmot.addAnalysis(analysis, force);
 		}
 	}
 
