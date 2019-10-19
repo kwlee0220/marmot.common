@@ -18,7 +18,7 @@ public class Catalogs {
 		if ( dsId.charAt(0) != ID_DELIM ) {
 			dsId = ID_DELIM + dsId;
 		}
-		if ( dsId.charAt(dsId.length()-1) == ID_DELIM ) {
+		if ( dsId.length() > 1 && dsId.charAt(dsId.length()-1) == ID_DELIM ) {
 			dsId = dsId.substring(0, dsId.length()-1);
 		}
 		
