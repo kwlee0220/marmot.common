@@ -36,6 +36,10 @@ public class SystemAnalysis extends MarmotAnalysis {
 		return new SystemAnalysis(id, "delete_dataset", dsIds);
 	}
 	
+	public static SystemAnalysis deleteDir(String id, String... dirs) {
+		return new SystemAnalysis(id, "delete_dir", dirs);
+	}
+	
 	public static SystemAnalysis deleteDataSet(String id, String... dsIds) {
 		List<String> args = FStream.of(dsIds).toList();
 		
