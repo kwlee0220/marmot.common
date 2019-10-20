@@ -60,6 +60,7 @@ import marmot.proto.optor.LISAWeightProto;
 import marmot.proto.optor.ListReducerProto;
 import marmot.proto.optor.LoadCustomTextFileProto;
 import marmot.proto.optor.LoadDataSetProto;
+import marmot.proto.optor.LoadGHdfsFileProto;
 import marmot.proto.optor.LoadGetisOrdGiProto;
 import marmot.proto.optor.LoadHashJoinProto;
 import marmot.proto.optor.LoadHexagonGridFileProto;
@@ -99,6 +100,7 @@ import marmot.proto.optor.SpatialSemiJoinProto;
 import marmot.proto.optor.SplitGeometryProto;
 import marmot.proto.optor.StoreAndReloadProto;
 import marmot.proto.optor.StoreAsCsvProto;
+import marmot.proto.optor.StoreAsGHdfsProto;
 import marmot.proto.optor.StoreAsHeapfileProto;
 import marmot.proto.optor.StoreDataSetProto;
 import marmot.proto.optor.StoreIntoJdbcTableProto;
@@ -339,6 +341,18 @@ public class PlanBuilder {
 								.setLoadJdbcTable(load)
 								.build());
 	}
+
+	public PlanBuilder loadGHdfsFile(String layerName) {
+		Utilities.checkNotNullArgument(layerName, "layerName is null");
+		
+		LoadGHdfsFileProto load = LoadGHdfsFileProto.newBuilder()
+													.setLayerName(layerName)
+													.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setLoadGhdfs(load)
+								.build());
+	}
 	
 //	/**
 //	 * JMS 인터페이스를 이용하여 주어진 위치의 큐에 저장된 레코드를 읽어
@@ -410,6 +424,20 @@ public class PlanBuilder {
 	}
 	public PlanBuilder storeAsCsv(String path) {
 		return storeAsCsv(path, StoreAsCsvOptions.DEFAULT());
+	}
+	
+	public PlanBuilder storeAsGhdfs(String layerName, GeometryColumnInfo gcInfo, boolean force) {
+		Utilities.checkNotNullArgument(layerName, "layer name is null");
+		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
+		
+		StoreAsGHdfsProto store = StoreAsGHdfsProto.newBuilder()
+												.setLayerName(layerName)
+												.setGeomColInfo(gcInfo.toProto())
+												.setForce(force)
+												.build();
+		return add(OperatorProto.newBuilder()
+								.setStoreAsGhdfs(store)
+								.build());
 	}
 	
 	/**
