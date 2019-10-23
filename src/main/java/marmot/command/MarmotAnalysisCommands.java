@@ -205,7 +205,7 @@ public class MarmotAnalysisCommands {
 		}
 	}
 
-	@Command(name="delete", description="delete analysis")
+	@Command(name="delete", aliases= {"remove"}, description="delete analysis")
 	public static class Delete extends SubCommand {
 		@Parameters(paramLabel="analysis_id (or directory-id)", arity = "1..1",
 					description={"analysis id to delete"})
