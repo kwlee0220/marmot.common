@@ -3,7 +3,11 @@ package marmot.command;
 import java.io.FileReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import com.google.common.collect.Sets;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -37,15 +41,28 @@ public class MarmotAnalysisCommands {
 
 		@Option(names={"-l"}, description="list in detail")
 		private boolean m_details;
+
+		@Option(names={"-t", "-top"}, description="list top-level analyses only")
+		private boolean m_topLevel;
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			java.util.List<MarmotAnalysis> analList;
+			List<MarmotAnalysis> analList;
 			if ( m_start != null ) {
 				analList = marmot.getDescendantAnalysisAll(m_start);
 			}
 			else {
 				analList = marmot.getAnalysisAll();
+			}
+			
+			if ( m_topLevel ) {
+				Set<String> compList = Sets.newHashSet();
+				FStream.from(analList)
+						.castSafely(CompositeAnalysis.class)
+						.forEach(c -> compList.addAll(c.getComponents()));
+				analList = FStream.from(analList)
+									.filter(a -> !compList.contains(a.getId()))
+									.toList();
 			}
 			
 			for ( MarmotAnalysis analysis: analList ) {
