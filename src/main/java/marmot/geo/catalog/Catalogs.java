@@ -15,7 +15,7 @@ public class Catalogs {
 		Utilities.checkNotNullArgument(dsId, "dataset is is null");
 		
 		dsId = dsId.trim();
-		if ( dsId.charAt(0) != ID_DELIM ) {
+		if ( dsId.length() == 0 || dsId.charAt(0) != ID_DELIM ) {
 			dsId = ID_DELIM + dsId;
 		}
 		if ( dsId.length() > 1 && dsId.charAt(dsId.length()-1) == ID_DELIM ) {
