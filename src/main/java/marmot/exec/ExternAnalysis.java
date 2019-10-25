@@ -28,6 +28,13 @@ public class ExternAnalysis extends MarmotAnalysis {
 		m_args = args;
 	}
 	
+	public ExternAnalysis(String id, String execPath, String... args) {
+		super(id, Type.EXTERN);
+		
+		m_execPath = execPath;
+		m_args = Arrays.asList(args);
+	}
+	
 	public String getExecPath() {
 		return m_execPath;
 	}
