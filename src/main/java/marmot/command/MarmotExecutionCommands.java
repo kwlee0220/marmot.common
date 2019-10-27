@@ -127,7 +127,10 @@ public class MarmotExecutionCommands {
 					System.out.printf("%03d: %s%n", index, exec);
 				}
 				else {
-					System.out.printf("%03d: %s%n", index, exec.getId());
+					System.out.printf("%03d: %10s%s%n", index, exec.getId(),
+										exec.getMarmotAnalysis()
+											.map(anal -> String.format(", %s", anal.getId()))
+											.getOrElse(""));
 				}
 				
 				++index;
