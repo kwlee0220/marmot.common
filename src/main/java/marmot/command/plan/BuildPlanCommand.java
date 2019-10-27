@@ -134,7 +134,7 @@ public class BuildPlanCommand extends SubCommand {
 		private String m_colDecl;
 
 		@Parameters(paramLabel="expr", index="1", arity="0..1",
-					description={"column expression"})
+					description={"column initialization expression"})
 		private String m_colInit;
 
 		@Override
