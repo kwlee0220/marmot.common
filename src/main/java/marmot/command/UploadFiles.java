@@ -83,9 +83,16 @@ public class UploadFiles {
 			return;
 		}
 		
+		StopWatch watch = StopWatch.start();
+		
 		String dest = m_dest + "/" + file.getName();
 		try ( InputStream is = new BufferedInputStream(new FileInputStream(file), BLOCK_SIZE) ) {
-			m_marmot.copyToHdfsFile(dest, is, m_blockSize, m_codecName);
+			long nbytes = m_marmot.copyToHdfsFile(dest, is, m_blockSize, m_codecName);
+			
+			watch.stop();
+			String velo = UnitUtils.toByteSizeString(Math.round(nbytes / watch.getElapsedInFloatingSeconds()));
+			s_logger.info("uploaded: src={}, tar={}, nbytes={}, elapsed={}, velo={}/s",
+					file, dest, UnitUtils.toByteSizeString(nbytes), watch.getElapsedSecondString(), velo);
 		}
 	}
 	
@@ -99,6 +106,8 @@ public class UploadFiles {
 		int prefixLen = prefix.length();
 		
 		for ( Path path: pathes ) {
+			StopWatch watch = StopWatch.start();
+			
 			String suffix = path.toAbsolutePath().toString().substring(prefixLen);
 			if ( suffix.charAt(0) == '/' ) {
 				suffix = suffix.substring(1);
@@ -106,7 +115,12 @@ public class UploadFiles {
 			String destPath = m_dest + "/" + suffix;
 			
 			try ( InputStream is = new BufferedInputStream(Files.newInputStream(path), BLOCK_SIZE) ) {
-				m_marmot.copyToHdfsFile(destPath, is, m_blockSize, m_codecName);
+				long nbytes = m_marmot.copyToHdfsFile(destPath, is, m_blockSize, m_codecName);
+				
+				watch.stop();
+				String velo = UnitUtils.toByteSizeString(Math.round(nbytes / watch.getElapsedInFloatingSeconds()));
+				s_logger.info("uploaded: src={}, tar={}, nbytes={}, elapsed={}, velo={}/s",
+						path, destPath, UnitUtils.toByteSizeString(nbytes), watch.getElapsedSecondString(), velo);
 			}
 		}
 	}
@@ -121,6 +135,6 @@ public class UploadFiles {
 			uploadDir(m_start);
 		}
 		
-		s_logger.info("uploaded: elapsed={}", watch.stopAndGetElpasedTimeString());
+		s_logger.info("uploaded: {}, elapsed={}", m_start, watch.getElapsedSecondString());
 	}
 }

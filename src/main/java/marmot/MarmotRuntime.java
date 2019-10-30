@@ -405,7 +405,7 @@ public interface MarmotRuntime {
 	public void createKafkaTopic(String topic, boolean force);
 	
 	public RecordSet readMarmotFile(String path) throws MarmotFileNotFoundException;
-	public void copyToHdfsFile(String path, InputStream stream,
+	public long copyToHdfsFile(String path, InputStream stream,
 								FOption<Long> blockSize, FOption<String> codecName)
 		throws IOException;
 	public void deleteHdfsFile(String path) throws IOException;
