@@ -26,6 +26,7 @@ import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
 import marmot.support.DataUtils;
 import marmot.type.DataType;
+import utils.StopWatch;
 import utils.Utilities;
 import utils.func.Try;
 import utils.stream.FStream;
@@ -47,6 +48,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 	private final Column[] m_columns;
 	private List<String> m_first;
 	private long m_lineNo = 0;
+	private StopWatch m_watch;
 	
 	static CsvRecordSet from(String key, InputStream is, CsvParameters opts) throws IOException {
 		Utilities.checkNotNullArgument(is, "is is null");
@@ -77,8 +79,9 @@ public class CsvRecordSet extends AbstractRecordSet {
 		m_options = opts;
 		setLogger(s_logger);
 		
-		m_nullValue = opts.nullValue().getOrNull();
+		m_watch = StopWatch.start();
 		
+		m_nullValue = opts.nullValue().getOrNull();
 		CSVFormat format = CSVFormat.DEFAULT.withDelimiter(opts.delimiter())
 									.withQuote(null);
 		format = opts.quote().transform(format, (f,q) -> f.withQuote(q));
@@ -132,6 +135,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 		checkNotClosed();
 		
 		if ( m_first != null ) {
+			
 			++m_lineNo;
 			set(output, m_first);
 			m_first = null;
@@ -141,6 +145,15 @@ public class CsvRecordSet extends AbstractRecordSet {
 		
 		try {
 			if ( !m_iter.hasNext() ) {
+				m_watch.stop();
+				
+				if ( getLogger().isInfoEnabled() ) {
+					double velo = m_lineNo / m_watch.getElapsedInFloatingSeconds();
+					String msg = String.format("loaded: file=%s, lines=%d, elapsed=%s, velo=%.1f/s",
+												m_key, m_lineNo, m_watch.getElapsedSecondString(), velo);
+					getLogger().info(msg);
+				}
+				
 				return false;
 			}
 			
