@@ -88,6 +88,7 @@ enum DataSetTypeProto {
 	LINK = 1;
 	TEXT = 2;
 	CLUSTER = 3;
+	GWAVE = 4;
 }
 
 message DataSetInfoProto {

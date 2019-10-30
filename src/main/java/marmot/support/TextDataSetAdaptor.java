@@ -54,6 +54,9 @@ public class TextDataSetAdaptor {
 											new GetRecordCount(stat), new GetBounds(stat));
 			}
 		}
+		else if ( ds.getType() == DataSetType.GWAVE ) {
+			return ds;
+		}
 		else {
 			throw new AssertionError("unsupported DataSet type: " + ds.getType());
 		}

@@ -79,8 +79,8 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 							.getOrElse(-1);
 	}
 	
-	public void setGeometryColumnInfo(String geomCol, String srid) {
-		setGeometryColumnInfo(FOption.of(new GeometryColumnInfo(geomCol, srid)));
+	public void setGeometryColumnInfo(GeometryColumnInfo gcInfo) {
+		setGeometryColumnInfo(FOption.of(gcInfo));
 	}
 	
 	public void setGeometryColumnInfo(FOption<GeometryColumnInfo> info) {

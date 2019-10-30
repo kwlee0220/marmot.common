@@ -446,6 +446,9 @@ public class DatasetCommands {
 					m_path = srcDs.getHdfsPath();
 					type = DataSetType.LINK;
 					break;
+				case "gwave":
+					type = DataSetType.GWAVE;
+					break;
 				default:
 					throw new IllegalArgumentException("invalid dataset type: " + m_type);
 			}

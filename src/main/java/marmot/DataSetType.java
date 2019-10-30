@@ -8,7 +8,8 @@ public enum DataSetType {
 	FILE,
 	LINK,
 	TEXT,
-	CLUSTER;
+	CLUSTER,
+	GWAVE;
 	
 	public String id() {
 		return name();
