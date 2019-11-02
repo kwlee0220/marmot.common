@@ -233,7 +233,8 @@ public class CsvParameters {
 		String headerFirst = m_headerFirst.filter(f -> f).map(f -> ",HF").getOrElse("");
 		String nullString = m_nullValue.map(v -> String.format(", null=\"%s\"", v))
 										.getOrElse("");
-		String csStr = charset().get().toString().toLowerCase();
+		String csStr = charset().getOrElse(() -> Charset.defaultCharset())
+								.toString().toLowerCase();
 		csStr = !csStr.equals("utf-8") ? String.format(",%s", csStr) : "";
 		String ptStr = pointColumns().map(xy -> String.format(", POINT(%s,%s)", xy._1, xy._2))
 									.getOrElse("");

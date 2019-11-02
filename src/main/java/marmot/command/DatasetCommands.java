@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.io.FileUtils;
+
 import marmot.BindDataSetOptions;
 import marmot.Column;
 import marmot.DataSet;
@@ -679,10 +681,18 @@ public class DatasetCommands {
 		private String m_output;
 
 		@Mixin private CsvParameters m_csvParams;
+		
+		@Option(names={"-f"}, description="delete the file if it exists already")
+		private boolean m_force;
 
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			m_csvParams.charset().ifAbsent(() -> m_csvParams.charset(DEFAULT_CHARSET));
+			
+			File outFile = new File(m_output);
+			if ( m_force && m_output != null && outFile.exists() ) {
+				FileUtils.forceDelete(outFile);
+			}
 			
 			FOption<String> output = FOption.ofNullable(m_output);
 			BufferedWriter writer = ExternIoUtils.toWriter(output, m_csvParams.charset().get());
