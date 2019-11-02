@@ -5,6 +5,7 @@ import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,7 @@ import utils.func.FOption;
  */
 public class DatasetCommands {
 	@Command(name="list", description="list datasets")
-	public static class List extends SubCommand {
+	public static class ListDataSet extends SubCommand {
 		@Parameters(paramLabel="path", index="0", arity="0..1", description={"dataset folder path"})
 		private String m_start;
 
@@ -67,9 +68,12 @@ public class DatasetCommands {
 
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			java.util.List<DataSet> dsList;
+			List<DataSet> dsList;
 			if ( m_start != null ) {
 				dsList = marmot.getDataSetAllInDir(m_start, m_recursive);
+				if ( dsList.isEmpty() ) {
+					dsList.add(marmot.getDataSet(m_start));
+				}
 			}
 			else {
 				dsList = marmot.getDataSetAll();
