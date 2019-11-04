@@ -20,7 +20,9 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	private GeometryColumnInfo m_geomCol;
 	private Envelope m_tileBounds = new Envelope();
 	private Envelope m_dataBounds = new Envelope();
+	private int m_clusterCount = -1;
 	private long m_count = -1;
+	private long m_nonDuplicatedCount = -1;
 	private String m_hdfsPath;
 	private long m_updatedMillis = -1;
 	
@@ -87,6 +89,14 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	public void setDataBounds(Envelope envl) {
 		m_dataBounds = envl;
 	}
+	
+	public int getClusterCount() {
+		return m_clusterCount;
+	}
+	
+	public void setClusterCount(int count) {
+		m_clusterCount = count;
+	}
 
 	/**
 	 * 공간 인덱스에 기록된 레코드의 수를 반환한다.
@@ -99,6 +109,14 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	
 	public void setRecordCount(long count) {
 		m_count = count;
+	}
+	
+	public long getNonDuplicatedRecordCount() {
+		return m_nonDuplicatedCount;
+	}
+	
+	public void setNonDuplicatedRecordCount(long count) {
+		m_nonDuplicatedCount = count;
 	}
 	
 	public long getUpdatedMillis() {
@@ -114,7 +132,9 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 		SpatialIndexInfo info = new SpatialIndexInfo(proto.getDataset(), geomCol);
 		info.setTileBounds(PBUtils.fromProto(proto.getTileBounds()));
 		info.setDataBounds(PBUtils.fromProto(proto.getDataBounds()));
+		info.setClusterCount(proto.getClusterCount());
 		info.setRecordCount(proto.getRecordCount());
+		info.setNonDuplicatedRecordCount(proto.getNonDuplicatedRecordCount());
 		info.setHdfsFilePath(proto.getHdfsPath());
 		info.setUpdatedMillis(proto.getUpdatedMillis());
 		
@@ -128,7 +148,9 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 									.setGeometryColumn(m_geomCol.toProto())
 									.setTileBounds(PBUtils.toProto(m_tileBounds))
 									.setDataBounds(PBUtils.toProto(m_dataBounds))
+									.setClusterCount(m_clusterCount)
 									.setRecordCount(m_count)
+									.setNonDuplicatedRecordCount(m_nonDuplicatedCount)
 									.setHdfsPath(m_hdfsPath)
 									.setUpdatedMillis(m_updatedMillis)
 									.build();
@@ -136,12 +158,8 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		
-		builder.append("INDEX")
-				.append("[" + m_dataset)
-				.append("[" + m_geomCol + "]");
-		return builder.append("]").toString();
+		return String.format("INDEX[%s, %s, nclusters=%d, nrecords=%d, ndistincts=%d]",
+							m_dataset, m_geomCol, m_clusterCount, m_count, m_nonDuplicatedCount);
 	}
 	
 	@Override

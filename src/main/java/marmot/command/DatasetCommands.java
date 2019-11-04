@@ -322,7 +322,11 @@ public class DatasetCommands {
 			}
 			
 			DataSet ds = marmot.getDataSet(m_dsId);
-			ds.cluster(options);
+			SpatialIndexInfo idxInfo = ds.cluster(options);
+			
+			System.out.printf("clustered: nclusters=%d nrecords=%d, non-duplicated=%d%n",
+							idxInfo.getClusterCount(), idxInfo.getRecordCount(),
+							idxInfo.getNonDuplicatedRecordCount());
 		}
 	}
 
