@@ -38,12 +38,12 @@ public class ExportShapefileParameters {
 	
 	@Option(names= {"-srid"}, paramLabel="EPSG-code", description="shapefile SRID")
 	public ExportShapefileParameters shpSrid(String srid) {
-		m_shpParams = m_shpParams.shpSrid(srid);
+		m_shpParams = m_shpParams.srid(srid);
 		return this;
 	}
 	
 	public FOption<String> shpSrid() {
-		return m_shpParams.shpSrid();
+		return m_shpParams.srid();
 	}
 	
 	public ExportShapefileParameters typeName(String name) {

@@ -81,7 +81,7 @@ public class ImportShapefile extends ImportIntoDataSet {
 	
 	private FOption<Plan> getPrePlan() {
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
-		FOption<String> oshpSrid = m_shpParams.shpSrid();
+		FOption<String> oshpSrid = m_shpParams.srid();
 		if ( oshpSrid.isPresent() ) {
 			String shpSrid = oshpSrid.get();
 			if ( !shpSrid.equals(info.srid()) ) {

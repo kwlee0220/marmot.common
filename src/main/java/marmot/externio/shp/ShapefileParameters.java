@@ -38,12 +38,12 @@ public class ShapefileParameters {
 	}
 	
 	@Option(names= {"-srid"}, paramLabel="EPSG-code", description="shapefile SRID")
-	public ShapefileParameters shpSrid(String srid) {
+	public ShapefileParameters srid(String srid) {
 		m_shpSrid = FOption.ofNullable(srid);
 		return this;
 	}
 	
-	public FOption<String> shpSrid() {
+	public FOption<String> srid() {
 		return m_shpSrid;
 	}
 	
