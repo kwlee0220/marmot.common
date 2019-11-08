@@ -5,7 +5,6 @@ import static marmot.optor.JoinOptions.FULL_OUTER_JOIN;
 
 import java.util.UUID;
 
-import io.vavr.CheckedConsumer;
 import marmot.DataSet;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
@@ -14,6 +13,7 @@ import marmot.command.UsageHelp;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.func.CheckedConsumer;
 
 /**
  * 

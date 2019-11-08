@@ -1,6 +1,5 @@
 package marmot.geo.command;
 
-import io.vavr.CheckedConsumer;
 import marmot.MarmotRuntime;
 import marmot.command.UsageHelp;
 import marmot.process.geo.arc.ArcSplitParameters;
@@ -9,6 +8,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import utils.DelayedSplitter;
 import utils.UnitUtils;
+import utils.func.CheckedConsumer;
 import utils.func.FOption;
 
 /**

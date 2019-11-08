@@ -4,7 +4,6 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import io.vavr.control.Either;
 import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.geo.GeoClientUtils;
@@ -17,6 +16,7 @@ import utils.KeyValue;
 import utils.Size2d;
 import utils.UnitUtils;
 import utils.Utilities;
+import utils.func.Either;
 
 /**
  * 

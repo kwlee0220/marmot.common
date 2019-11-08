@@ -2,12 +2,12 @@ package marmot.command;
 
 import java.io.File;
 
-import io.vavr.CheckedConsumer;
 import marmot.MarmotRuntime;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import utils.UnitUtils;
+import utils.func.CheckedConsumer;
 import utils.func.Funcs;
 
 /**

@@ -16,8 +16,8 @@ import org.stringtemplate.v4.STGroupFile;
 import com.google.common.collect.Maps;
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import io.vavr.Lazy;
 import marmot.Plan;
+import utils.func.Lazy;
 import utils.io.IOUtils;
 
 /**

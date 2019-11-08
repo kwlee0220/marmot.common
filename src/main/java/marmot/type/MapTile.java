@@ -16,8 +16,8 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
-import io.vavr.Lazy;
 import marmot.geo.GeoClientUtils;
+import utils.func.Lazy;
 
 /**
  * 

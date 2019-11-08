@@ -11,13 +11,13 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.LineString;
 import com.vividsolutions.jts.geom.Point;
 
-import io.vavr.Lazy;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.TrajectoryProto;
 import marmot.proto.TrajectoryProto.SampleProto;
 import marmot.support.PBSerializable;
 import utils.Utilities;
 import utils.func.FOption;
+import utils.func.Lazy;
 import utils.stream.FStream;
 
 /**
