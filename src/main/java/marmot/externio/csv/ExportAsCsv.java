@@ -5,7 +5,6 @@ import java.io.IOException;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
-import io.vavr.Tuple2;
 import marmot.DataSet;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
@@ -15,6 +14,7 @@ import marmot.type.DataType;
 import utils.Utilities;
 import utils.async.ProgressReporter;
 import utils.func.FOption;
+import utils.func.Tuple;
 
 
 /**
@@ -75,7 +75,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 				if ( geomType != DataType.POINT ) {
 					throw new IllegalArgumentException("geometry is not POINT type, but " + geomType);
 				}
-				Tuple2<String,String> pointCol = m_params.pointColumns().get();
+				Tuple<String,String> pointCol = m_params.pointColumns().get();
 				builder = builder.toXY(geomCol, pointCol._1, pointCol._2);
 			}
 			else if ( m_params.tiger() ) {

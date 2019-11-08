@@ -30,8 +30,6 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.vavr.CheckedRunnable;
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.exec.MarmotExecutionException;
@@ -88,6 +86,7 @@ import utils.Throwables;
 import utils.UnitUtils;
 import utils.func.CheckedSupplier;
 import utils.func.FOption;
+import utils.func.Tuple;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
@@ -894,7 +893,7 @@ public class PBUtils {
 		return builder.build();
 	}
 	
-	public static Tuple2<DataType,Object> fromProto(ValueProto proto) {
+	public static Tuple<DataType,Object> fromProto(ValueProto proto) {
 		switch ( proto.getValueCase() ) {
 			case BYTE_VALUE:
 				return Tuple.of(DataType.BYTE, (byte)proto.getByteValue());

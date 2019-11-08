@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import io.vavr.Tuple2;
 import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -18,6 +17,7 @@ import marmot.externio.ImportIntoDataSet;
 import marmot.support.MetaPlanLoader;
 import utils.Throwables;
 import utils.func.FOption;
+import utils.func.Tuple;
 
 
 /**
@@ -89,7 +89,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		PlanBuilder builder = new PlanBuilder("import_csv");
 		
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
-		Tuple2<String,String> ptCols = m_csvParams.pointColumns().get();
+		Tuple<String,String> ptCols = m_csvParams.pointColumns().get();
 		builder = builder.toPoint(ptCols._1, ptCols._2, info.name());
 		
 		String prjExpr = String.format("%s,*-{%s,%s,%s}", info.name(), info.name(),

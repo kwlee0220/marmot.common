@@ -7,8 +7,6 @@ import java.nio.charset.Charset;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
-import io.vavr.Tuple;
-import io.vavr.Tuple2;
 import marmot.MarmotInternalException;
 import marmot.optor.CsvOptions;
 import marmot.optor.StoreAsCsvOptions;
@@ -16,6 +14,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import utils.Utilities;
 import utils.func.FOption;
+import utils.func.Tuple;
 
 /**
  * 
@@ -148,7 +147,7 @@ public class CsvParameters {
 		return this;
 	}
 	
-	public FOption<Tuple2<String,String>> pointColumns() {
+	public FOption<Tuple<String,String>> pointColumns() {
 		return m_pointCols.map(cols -> {
 			try {
 				CSVFormat format = CSVFormat.DEFAULT.withDelimiter(delimiter());
