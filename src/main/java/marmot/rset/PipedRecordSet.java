@@ -18,9 +18,9 @@ import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
 import marmot.RecordSetTimeoutException;
 import net.jcip.annotations.GuardedBy;
-import utils.Guard;
 import utils.Throwables;
 import utils.Utilities;
+import utils.async.Guard;
 
 
 /**

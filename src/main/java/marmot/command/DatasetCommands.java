@@ -1,5 +1,7 @@
 package marmot.command;
 
+import static marmot.StoreDataSetOptions.FORCE;
+
 import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.charset.Charset;
@@ -41,6 +43,7 @@ import marmot.externio.shp.ShapefileParameters;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
 import marmot.optor.AggregateFunction;
+import marmot.optor.JoinOptions;
 import marmot.support.DefaultRecord;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -487,6 +490,59 @@ public class DatasetCommands {
 			else {
 				marmot.deleteDataSet(m_dsId);
 			}
+		}
+	}
+
+	@Command(name="attach_geometry", description="attach geometry data into the dataset")
+	public static class AttachGeometry extends SubCommand {
+		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
+		private String m_dsId;
+
+		@Parameters(paramLabel="geometry_dataset", index="1", arity="1..1",
+					description={"geometry dataset id"})
+		private String m_geomDsId;
+
+		@Parameters(paramLabel="output_dataset", index="2", arity="1..1",
+					description={"output dataset id"})
+		private String m_outDsId;
+		
+		@Option(names={"-ref_col"}, paramLabel="column name", required=true,
+				description={"reference column in the dataset"})
+		private String m_refCol;
+		
+		@Option(names={"-key_col"}, paramLabel="column name", required=true,
+				description={"key column in the geometry dataset"})
+		private String m_keyCol;
+		
+		@Option(names={"-geom_col"}, paramLabel="column name", required=false,
+				description={"output geometry column name"})
+		private String m_geomCol = null;
+		
+		@Option(names={"-workers"}, paramLabel="worker count", required=false,
+				description={"join worker count"})
+		private FOption<Integer> m_nworkers = FOption.empty();
+
+		@Override
+		public void run(MarmotRuntime marmot) throws Exception {
+			DataSet geomDs = marmot.getDataSet(m_geomDsId);
+			if ( !geomDs.hasGeometryColumn() ) {
+				System.err.println("Geometry dataset does not have default Geometry column: "
+									+ "id=" + m_geomDsId);
+				System.exit(-1);
+			}
+			GeometryColumnInfo gcInfo = geomDs.getGeometryColumnInfo();
+
+			String outputGeomCol = (m_geomCol != null) ? m_geomCol : gcInfo.name();
+			JoinOptions opts = JoinOptions.INNER_JOIN(m_nworkers);
+
+			GeometryColumnInfo outGcInfo = new GeometryColumnInfo(outputGeomCol, gcInfo.srid());
+			String outputCols = String.format("param.%s as %s,*", gcInfo.name(), outputGeomCol);
+			Plan plan = marmot.planBuilder("tag_geometry")
+									.load(m_dsId)
+									.hashJoin(m_refCol, m_geomDsId, m_keyCol, outputCols, opts)
+									.store(m_outDsId, FORCE(outGcInfo))
+									.build();
+			marmot.execute(plan);
 		}
 	}
 

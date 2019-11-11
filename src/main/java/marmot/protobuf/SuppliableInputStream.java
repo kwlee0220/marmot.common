@@ -15,9 +15,9 @@ import com.google.protobuf.ByteString;
 
 import marmot.remote.protobuf.PBStreamClosedException;
 import net.jcip.annotations.GuardedBy;
-import utils.Guard;
 import utils.Throwables;
 import utils.UnitUtils;
+import utils.async.Guard;
 
 
 /**
