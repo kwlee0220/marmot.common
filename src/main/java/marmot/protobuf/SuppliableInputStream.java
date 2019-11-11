@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+import javax.annotation.concurrent.GuardedBy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +16,6 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 
 import marmot.remote.protobuf.PBStreamClosedException;
-import net.jcip.annotations.GuardedBy;
 import utils.Throwables;
 import utils.UnitUtils;
 import utils.async.Guard;

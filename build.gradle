@@ -14,6 +14,8 @@ buildscript {
 	}
 	dependencies {
 		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.7'
+//		classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
+		classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.4'
 	}
 }
 
@@ -47,7 +49,6 @@ repositories {
 
 ext.grpc_version = '1.16.1'
 ext.protobuf_version = '3.5.1'
-ext.mvel2_version = '2.4.0.Final'
 ext.geotools_version = '17.2'
 ext.commons_csv_version = '1.5'
 ext.httpclient_version = '4.5.6'
@@ -58,8 +59,6 @@ ext.univocity_version = '2.8.1'
 dependencies {
 	compile project(':utils')
 //	compile "etri:utils:1.0"
-	
-	compile "org.mvel:mvel2:${mvel2_version}"
 
 	// GeoTools, JTS, Proj4J
 	compile	"org.geotools:gt-epsg-hsql:${geotools_version}"

@@ -1,10 +1,11 @@
 package marmot.protobuf;
 
+import javax.annotation.concurrent.GuardedBy;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.grpc.stub.StreamObserver;
-import net.jcip.annotations.GuardedBy;
 import utils.Throwables;
 import utils.async.Guard;
 import utils.func.Try;

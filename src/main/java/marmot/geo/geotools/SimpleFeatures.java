@@ -3,13 +3,19 @@ package marmot.geo.geotools;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import org.geotools.data.FeatureSource;
+import org.geotools.data.collection.ListFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureCollection;
+import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.feature.FeatureCollection;
 import org.geotools.feature.FeatureIterator;
+import org.geotools.feature.collection.BaseSimpleFeatureCollection;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
@@ -18,6 +24,7 @@ import org.opengis.referencing.FactoryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import marmot.DataSet;
@@ -27,6 +34,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import marmot.support.DefaultRecord;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
 import utils.Utilities;
@@ -144,23 +152,61 @@ public class SimpleFeatures {
 		return new ToSimpleFeture(typeName, srs, schema);
 	}
 	
-	public static SimpleFeatureCollection toFeatureCollection(String sfTypeName, DataSet ds) {
-		SimpleFeatureType sfType = toSimpleFeatureType(sfTypeName, ds);
-		return new MarmotFeatureCollection(sfType, () -> ds.read());
+	public static SimpleFeatureCollection toFeatureCollection(DataSet ds) {
+		final SimpleFeatureType sfType = SimpleFeatures.toSimpleFeatureType(ds.getId(), ds);
+		return new BaseSimpleFeatureCollection(sfType) {
+			@Override
+			public SimpleFeatureIterator features() {
+				return new MarmotFeatureIterator(getSchema(), ds.read());
+			}
+		};
+	}
+	
+	public static SimpleFeatureCollection toFeatureCollection(String sfTypeName, String srid,
+																RecordSet rset) {
+		final SimpleFeatureType sfType = toSimpleFeatureType("main", srid, rset.getRecordSchema());
+		return new ListFeatureCollection(sfType, toFeatureList("main", sfType, rset));
+	}
+	
+	public static SimpleFeatureCollection toFeatureCollection(SimpleFeatureType sfType,
+																Iterable<Record> records) {
+		return new ListFeatureCollection(sfType, toFeatureList("main", sfType, records));
 	}
 	
 	public static SimpleFeatureCollection toFeatureCollection(String sfTypeName,
-															MarmotRuntime marmot, Plan plan, String srid) {
+													MarmotRuntime marmot, Plan plan, String srid) {
 		RecordSchema schema = marmot.getOutputRecordSchema(plan);
-		SimpleFeatureType sfType = toSimpleFeatureType(sfTypeName, srid, schema);
-		return new MarmotFeatureCollection(sfType, () -> marmot.executeToRecordSet(plan));
+		return toFeatureCollection(sfTypeName, srid, schema, () -> marmot.executeToRecordSet(plan));
 	}
 	
-	public static SimpleFeatureCollection toFeatureCollection(String sfTypeName,
-													RecordSchema schema, String srid,
+	public static SimpleFeatureCollection toFeatureCollection(String sfTypeName, String srid,
+												RecordSchema schema, Supplier<RecordSet> supplier) {
+		final SimpleFeatureType sfType = SimpleFeatures.toSimpleFeatureType(sfTypeName, srid, schema);
+		return new BaseSimpleFeatureCollection(sfType) {
+			@Override
+			public SimpleFeatureIterator features() {
+				return new MarmotFeatureIterator(getSchema(), supplier.get());
+			}
+		};
+	}
+	
+	public static List<SimpleFeature> toFeatureList(String sfTypeName, SimpleFeatureType sfType,
+													RecordSet rset) {
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfType);
+		
+		List<SimpleFeature> features = Lists.newArrayList();
+		Record record = DefaultRecord.of(rset.getRecordSchema());
+		while ( rset.next(record) ) {
+			features.add(builder.buildFeature(null, record.getAll()));
+		}
+		
+		return features;
+	}
+	
+	public static List<SimpleFeature> toFeatureList(String sfTypeName, SimpleFeatureType sfType,
 													Iterable<Record> records) {
-		SimpleFeatureType sfType = toSimpleFeatureType(sfTypeName, srid, schema);
-		return new MarmotFeatureCollection(sfType, () -> RecordSet.from(records));
+		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfType);
+		return FStream.from(records).map(r -> builder.buildFeature(null, r.getAll())).toList();
 	}
 	
 	public static FStream<File> streamShapeFiles(File start) throws IOException {

@@ -8,7 +8,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.shapefile.ShapefileDumper;
 import org.geotools.data.simple.SimpleFeatureCollection;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.google.common.base.Preconditions;
 
@@ -16,7 +15,6 @@ import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import marmot.RecordSet;
 import marmot.RecordSets.CountingRecordSet;
-import marmot.geo.geotools.MarmotFeatureCollection;
 import marmot.geo.geotools.SimpleFeatures;
 import utils.StopWatch;
 import utils.Utilities;
@@ -109,9 +107,9 @@ class ExportAsShapefile {
 					dumper.setMaxShpSize(size);
 				});
 				
-				SimpleFeatureType sfType = SimpleFeatures.toSimpleFeatureType(m_sfTypeName, m_srid,
-																			rset.getRecordSchema());
-				SimpleFeatureCollection coll = new MarmotFeatureCollection(sfType, ()->rset);
+				
+				SimpleFeatureCollection coll = SimpleFeatures.toFeatureCollection(m_sfTypeName,
+																				m_srid, rset);
 				dumper.dump(coll);
 				
 				if ( isRunning() ) {
