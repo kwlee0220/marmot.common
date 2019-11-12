@@ -20,6 +20,9 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
+import com.google.protobuf.MessageOrBuilder;
+import com.google.protobuf.util.JsonFormat;
+import com.google.protobuf.util.JsonFormat.Printer;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -65,12 +68,9 @@ import marmot.proto.service.RecordResponse;
 import marmot.proto.service.StringResponse;
 import marmot.proto.service.VoidResponse;
 import marmot.remote.protobuf.PBMarmotError;
-import marmot.support.DateFunctions;
-import marmot.support.DateTimeFunctions;
 import marmot.support.DefaultRecord;
 import marmot.support.PBException;
 import marmot.support.PBSerializable;
-import marmot.support.TimeFunctions;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
 import marmot.type.GeometryDataType;
@@ -79,10 +79,14 @@ import marmot.type.Interval;
 import marmot.type.MapTile;
 import marmot.type.Trajectory;
 import marmot.type.TypeCode;
+import utils.LocalDateTimes;
+import utils.LocalDates;
+import utils.LocalTimes;
 import utils.Size2d;
 import utils.Size2i;
 import utils.Throwables;
 import utils.UnitUtils;
+import utils.Utilities;
 import utils.func.CheckedRunnable;
 import utils.func.CheckedSupplier;
 import utils.func.FOption;
@@ -101,6 +105,20 @@ public class PBUtils {
 																	.setVoid(VOID)
 																	.build();
 
+	public static String toJson(MessageOrBuilder proto, boolean omitWs) throws IOException {
+		Printer printer = JsonFormat.printer();
+		if ( omitWs ) {
+			printer = printer.omittingInsignificantWhitespace();
+		}
+		
+		return printer.print(proto);
+	}
+	
+	public static <T extends Message.Builder> T parseJson(String json, T builder) throws IOException {
+		JsonFormat.parser().merge(json, builder);
+		return builder;
+	}
+	
 	public static boolean isUnavailableException(Throwable cause) {
 		if ( cause instanceof StatusRuntimeException ) {
 			Status status = ((StatusRuntimeException)cause).getStatus();
@@ -842,13 +860,13 @@ public class PBUtils {
 				}
 				break;
 			case DATETIME:
-				builder.setDatetimeValue(DateTimeFunctions.DateTimeToMillis(obj));
+				builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
 				break;
 			case DATE:
-				builder.setDateValue(DateFunctions.DateToMillis(obj));
+				builder.setDatetimeValue(LocalDates.toUtcMillis((LocalDate)obj));
 				break;
 			case TIME:
-				builder.setTimeValue(TimeFunctions.TimeToString(obj));
+				builder.setTimeValue(LocalTimes.toString((LocalTime)obj));
 				break;
 			case INTERVAL:
 				builder.setIntervalValue(toProto((Interval)obj));
@@ -931,11 +949,11 @@ public class PBUtils {
 					throw new PBException(e);
 				}
 			case DATETIME_VALUE:
-				return Tuple.of(DataType.DATETIME, DateTimeFunctions.DateTimeFromMillis(proto.getDatetimeValue()));
+				return Tuple.of(DataType.DATETIME, LocalDateTimes.fromUtcMillis(proto.getDatetimeValue()));
 			case DATE_VALUE:
-				return Tuple.of(DataType.DATE, DateFunctions.DateFromMillis(proto.getDateValue()));
+				return Tuple.of(DataType.DATE, LocalDates.fromUtcMillis(proto.getDateValue()));
 			case TIME_VALUE:
-				return Tuple.of(DataType.TIME, TimeFunctions.TimeFromString(proto.getTimeValue()));
+				return Tuple.of(DataType.TIME, LocalTimes.fromString(proto.getTimeValue()));
 			case DURATION_VALUE:
 				throw new UnsupportedOperationException("duration type");
 			case INTERVAL_VALUE:
@@ -1012,13 +1030,14 @@ public class PBUtils {
 			builder.setFloatValue((float)obj);
 		}
 		else if ( obj instanceof LocalDateTime ) {
-			builder.setDatetimeValue(DateTimeFunctions.DateTimeToMillis(obj));
+			builder.setDatetimeValue(Utilities.toUTCEpocMillis((LocalDateTime)obj));
 		}
 		else if ( obj instanceof LocalDate ) {
-			builder.setDateValue(DateFunctions.DateToMillis(obj));
+			LocalDateTime ldt = ((LocalDate)obj).atStartOfDay();
+			builder.setDateValue(Utilities.toUTCEpocMillis(ldt));
 		}
 		else if ( obj instanceof LocalTime ) {
-			builder.setTimeValue(TimeFunctions.TimeToString(obj));
+			builder.setTimeValue(((LocalTime)obj).toString());
 		}
 		else if ( obj instanceof MapTile ) {
 			MapTile tile = (MapTile)obj;

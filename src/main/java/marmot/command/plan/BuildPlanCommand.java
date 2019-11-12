@@ -85,7 +85,7 @@ public class BuildPlanCommand extends SubCommand {
 			}
 			
 			try ( Writer w = writer ) {
-				writer.write(plan.toJson());
+				writer.write(plan.toJson(false));
 				writer.write("\n");
 			}
 		}

@@ -2,7 +2,6 @@ package marmot.type;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.List;
 
 import com.google.common.collect.ImmutableList;
@@ -156,7 +155,7 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 		}
 		
 		public LocalDateTime getTimestamp() {
-			return Utilities.fromUTCEpocMillis(m_ts, ZoneId.systemDefault());
+			return Utilities.fromUTCEpocMillis(m_ts).toLocalDateTime();
 		}
 		
 		public static Sample parse(String str) {

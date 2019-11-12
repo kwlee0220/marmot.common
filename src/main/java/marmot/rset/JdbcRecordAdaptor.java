@@ -1,9 +1,13 @@
 package marmot.rset;
 
+import static utils.Utilities.fromUTCEpocMillis;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 import com.vividsolutions.jts.geom.Geometry;
@@ -14,11 +18,9 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.geo.GeoClientUtils;
-import marmot.support.DateFunctions;
-import marmot.support.DateTimeFunctions;
 import marmot.support.DefaultRecord;
-import marmot.support.TimeFunctions;
 import marmot.type.DataType;
+import utils.Utilities;
 
 
 /**
@@ -70,13 +72,15 @@ public class JdbcRecordAdaptor {
 						record.set(i, rs.getFloat(colIdx));
 						break;
 					case DATETIME:
-						record.set(i, DateTimeFunctions.DateTimeFromMillis(rs.getLong(colIdx)));
+						LocalDateTime ldt = fromUTCEpocMillis(rs.getLong(colIdx)).toLocalDateTime();
+						record.set(i, ldt);
 						break;
 					case DATE:
-						record.set(i, DateFunctions.DateFromMillis(rs.getLong(colIdx)));
+						LocalDate date = fromUTCEpocMillis(rs.getLong(colIdx)).toLocalDate();
+						record.set(i, date);
 						break;
 					case TIME:
-						record.set(i, TimeFunctions.TimeFromString(rs.getString(colIdx)));
+						record.set(i, LocalTime.parse(rs.getString(colIdx)));
 						break;
 					case POLYGON:
 					case MULTI_POLYGON:
@@ -140,10 +144,12 @@ public class JdbcRecordAdaptor {
 						pstmt.setFloat(i+1, (Float)values[i]);
 						break;
 					case DATETIME:
-						pstmt.setLong(i+1, DateTimeFunctions.DateTimeToMillis(values[i]));
+						LocalDateTime ldt = (LocalDateTime)values[i];
+						pstmt.setLong(i+1, Utilities.toUTCEpocMillis(ldt));
 						break;
 					case DATE:
-						pstmt.setLong(i+1, DateFunctions.DateToMillis(values[i]));
+						LocalDate date = (LocalDate)values[i];
+						pstmt.setLong(i+1, Utilities.toUTCEpocMillis(date.atStartOfDay()));
 						break;
 					case TIME:
 						pstmt.setString(i+1, ((LocalTime)values[i]).toString());

@@ -14,7 +14,6 @@ import org.stringtemplate.v4.STGroup;
 import org.stringtemplate.v4.STGroupFile;
 
 import com.google.common.collect.Maps;
-import com.google.protobuf.InvalidProtocolBufferException;
 
 import marmot.Plan;
 import utils.func.Lazy;
@@ -73,7 +72,7 @@ public class STScriptPlanLoader {
 		return new ST(s_tmpltGroup.get(), script).render();
 	}
 	
-	public static Plan load(String script) throws InvalidProtocolBufferException {
+	public static Plan load(String script) throws IOException {
 		// MVEL template 엔진을 써서 1차 변환함. 
 		script = (String)TemplateRuntime.eval(script, VARS);
 		

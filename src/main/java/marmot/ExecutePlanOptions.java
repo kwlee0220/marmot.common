@@ -1,9 +1,9 @@
 package marmot;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-import com.google.protobuf.util.JsonFormat;
+import java.io.IOException;
 
 import marmot.proto.service.ExecutePlanOptionsProto;
+import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import utils.func.FOption;
 
@@ -46,10 +46,10 @@ public class ExecutePlanOptions implements PBSerializable<ExecutePlanOptionsProt
 		return m_mapOutputCompressCodec;
 	}
 	
-	public static ExecutePlanOptions parseJson(String json) throws InvalidProtocolBufferException {
-		ExecutePlanOptionsProto.Builder builder = ExecutePlanOptionsProto.newBuilder();
-		JsonFormat.parser().merge(json, builder);
-		return fromProto(builder.build());
+	public static ExecutePlanOptions parseJson(String json) throws IOException {
+		ExecutePlanOptionsProto proto = PBUtils.parseJson(json, ExecutePlanOptionsProto.newBuilder())
+												.build();
+		return fromProto(proto);
 	}
 	
 	public static ExecutePlanOptions fromProto(ExecutePlanOptionsProto proto) {

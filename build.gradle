@@ -1,4 +1,4 @@
-apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'com.google.protobuf'
  
 group = 'etri'
@@ -14,8 +14,6 @@ buildscript {
 	}
 	dependencies {
 		classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.7'
-//		classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.4'
-		classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.4'
 	}
 }
 
@@ -50,6 +48,7 @@ repositories {
 ext.grpc_version = '1.16.1'
 ext.protobuf_version = '3.5.1'
 ext.geotools_version = '17.2'
+ext.jts_version = '1.13'
 ext.commons_csv_version = '1.5'
 ext.httpclient_version = '4.5.6'
 ext.joda_time_version = '2.10'
@@ -57,39 +56,41 @@ ext.picocli_version = '3.9.6'
 ext.univocity_version = '2.8.1'
 
 dependencies {
-	compile project(':utils')
-//	compile "etri:utils:1.0"
+	api project(':utils')
+	
+	api "com.vividsolutions:jts:${jts_version}"
 
 	// GeoTools, JTS, Proj4J
-	compile	"org.geotools:gt-epsg-hsql:${geotools_version}"
-	compile "org.geotools:gt-shapefile:${geotools_version}"
-	compile	"org.geotools:gt-geojson:${geotools_version}"
-//	compile	"org.geotools:gt-cql:${geotools_version}"
+	api	"org.geotools:gt-opengis:${geotools_version}"
+	api	"org.geotools:gt-api:${geotools_version}"
+	api	"org.geotools:gt-epsg-hsql:${geotools_version}"
+	api "org.geotools:gt-shapefile:${geotools_version}"
+	api	"org.geotools:gt-geojson:${geotools_version}"
 
 	// Jackson
-	compile "com.fasterxml.jackson.core:jackson-databind:2.6.5"
+//	compile "com.fasterxml.jackson.core:jackson-databind:2.6.5"
 
 	// Misc
-	compile "org.apache.commons:commons-csv:${commons_csv_version}"
-	compile "org.apache.httpcomponents:httpclient:${httpclient_version}"
-	compile "com.univocity:univocity-parsers:${univocity_version}"
+	implementation "org.apache.commons:commons-csv:${commons_csv_version}"
+	api "org.apache.httpcomponents:httpclient:${httpclient_version}"
 	
 	// grpc
-	compile "io.grpc:grpc-netty-shaded:${grpc_version}"
-	compile "io.grpc:grpc-protobuf:${grpc_version}"
-	compile "io.grpc:grpc-stub:${grpc_version}"
-	compile "com.google.protobuf:protobuf-java-util:${protobuf_version}"
+	api "com.google.protobuf:protobuf-java:${protobuf_version}"
+	implementation "com.google.protobuf:protobuf-java-util:${protobuf_version}"
+	api "io.grpc:grpc-stub:${grpc_version}"
+	api "io.grpc:grpc-netty-shaded:${grpc_version}"
+	implementation "io.grpc:grpc-protobuf:${grpc_version}"
 	
 	// Joda-Time
-	compile "joda-time:joda-time:${joda_time_version}"
+	implementation "joda-time:joda-time:${joda_time_version}"
 	
 	// StringTemplate4
-	compile "org.antlr:ST4:4.0.8"
+	implementation "org.antlr:ST4:4.0.8"
 	
 	// command line parser
-	compile "info.picocli:picocli:${picocli_version}"
+	api "info.picocli:picocli:${picocli_version}"
 	
-	testCompile "junit:junit:4.12"
+	testImplementation "junit:junit:4.12"
 }
 
 task sourceJar(type: Jar) {
@@ -120,7 +121,8 @@ apply plugin: 'maven-publish'
 publishing {
 	publications {
 		main(MavenPublication) {
-			artifact jar
+			components.java
+			
 			artifact sourceJar
 			artifact javadocJar
 		}

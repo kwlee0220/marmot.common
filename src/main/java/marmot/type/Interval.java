@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
-import marmot.support.DateTimeFunctions;
+import utils.LocalDateTimes;
 import utils.stream.FStream;
 
 /**
@@ -22,8 +22,7 @@ public class Interval implements Serializable {
 	private transient final org.joda.time.Interval m_jodaInterval;
 	
 	public static Interval between(LocalDateTime start, LocalDateTime end) {
-		return between(DateTimeFunctions.DateTimeToMillis(start),
-						DateTimeFunctions.DateTimeToMillis(end));
+		return between(LocalDateTimes.toUtcMillis(start), LocalDateTimes.toUtcMillis(end));
 	}
 	
 	public static Interval between(long start, long end) {

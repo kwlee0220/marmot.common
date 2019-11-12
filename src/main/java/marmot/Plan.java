@@ -14,6 +14,7 @@ import com.google.protobuf.util.JsonFormat;
 
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.PlanProto;
+import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import utils.func.FOption;
 import utils.io.IOUtils;
@@ -80,7 +81,7 @@ public class Plan implements PBSerializable<PlanProto> {
 		}
 	}
 	
-	public static Plan parseJson(String json) throws InvalidProtocolBufferException {
+	public static Plan parseJson(String json) throws IOException {
 		PlanProto.Builder builder = PlanProto.newBuilder();
 		JsonFormat.parser().merge(json, builder);
 		return Plan.fromProto(builder.build());
@@ -102,8 +103,8 @@ public class Plan implements PBSerializable<PlanProto> {
 		return new PlanBuilder("plan");
 	}
 	
-	public String toJson() throws InvalidProtocolBufferException {
-		return JsonFormat.printer().print(m_proto);
+	public String toJson(boolean omitWhiteSpace) throws IOException {
+		return PBUtils.toJson(m_proto, omitWhiteSpace);
 	}
 	
 	public PlanBuilder toBuilder() {

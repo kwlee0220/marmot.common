@@ -1,20 +1,18 @@
 package marmot;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.mvel2.integration.VariableResolverFactory;
-import org.mvel2.integration.impl.MapVariableResolverFactory;
-
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import marmot.proto.optor.RecordScriptProto;
 import marmot.protobuf.PBUtils;
-import marmot.support.MVELScript;
-import marmot.support.MVELScript.ImportedClass;
 import marmot.support.PBSerializable;
 import utils.Utilities;
 import utils.func.FOption;
+import utils.script.MVELScript2.ImportClass;
 import utils.stream.FStream;
 
 /**
@@ -22,8 +20,9 @@ import utils.stream.FStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class RecordScript implements PBSerializable<RecordScriptProto> {
-	private final MVELScript m_script;
-	private FOption<MVELScript> m_initializer;
+	private final String m_script;
+	private final FOption<String> m_initializer;
+	private final List<ImportClass> m_importedClasses = Lists.newArrayList();
 	private final Map<String,Object> m_arguments = Maps.newHashMap();
 	
 	public static RecordScript of(String expr) {
@@ -34,35 +33,27 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		return new RecordScript(init, expr);
 	}
 
-	private RecordScript(String expr) {
-		Utilities.checkNotNullArgument(expr, "expr is null");
+	private RecordScript(String script) {
+		Utilities.checkNotNullArgument(script, "script is null");
 		
-		m_script = MVELScript.of(expr);
+		m_script = script;
 		m_initializer = FOption.empty();
 	}
 
-	private RecordScript(String init, String expr) {
-		Utilities.checkNotNullArgument(expr, "expr is null");
-		
-		m_script = MVELScript.of(expr);
-		m_initializer = FOption.ofNullable(init)
-								.map(MVELScript::of);
+	private RecordScript(String initScript, String script) {
+		Utilities.checkNotNullArgument(initScript, "initialization script is null");
+		Utilities.checkNotNullArgument(script, "script is null");
+
+		m_initializer = FOption.of(initScript);
+		m_script = script;
 	}
 	
-	public String getExpression() {
-		return m_script.getScript();
+	public String getScript() {
+		return m_script;
 	}
 	
 	public FOption<String> getInitializer() {
-		return m_initializer.map(MVELScript::getScript);
-	}
-	
-	public RecordScript setInitializer(String expr) {
-		m_initializer = FOption.ofNullable(expr).map(MVELScript::of);
-		m_initializer.ifPresent(init -> m_script.getImportedClasses()
-												.stream()
-												.forEach(init::importClass));
-		return this;
+		return m_initializer;
 	}
 	
 	public Map<String,Object> getArgumentAll() {
@@ -79,80 +70,69 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		return this;
 	}
 	
-	public List<ImportedClass> getImportedClassAll() {
-		return m_script.getImportedClasses();
+	public List<ImportClass> getImportedClassAll() {
+		return Collections.unmodifiableList(m_importedClasses);
 	}
 	
-	public RecordScript importClass(String clsName) {
-		ImportedClass ic = ImportedClass.parse(clsName);
-		m_script.importClass(ic);
-		m_initializer.ifPresent(script -> script.importClass(ic));
+	public RecordScript importClass(ImportClass ic) {
+		Utilities.checkNotNullArgument(ic, "ImportedClass is null");
 		
+		m_importedClasses.add(ic);
 		return this;
 	}
 	
 	public RecordScript importClass(Class<?> cls) {
-		m_script.importClass(cls);
-		m_initializer.ifPresent(script -> script.importClass(cls));
+		Utilities.checkNotNullArgument(cls, "ImportedClass is null");
 		
+		m_importedClasses.add(new ImportClass(cls));
 		return this;
 	}
 	
-	public RecordScript importFunctionAll(Class<?> funcCls) {
-		m_script.importFunctionAll(funcCls);
-		m_initializer.ifPresent(script -> script.importClass(funcCls));
+	public RecordScript importClass(Class<?> cls, String name) {
+		Utilities.checkNotNullArgument(cls, "ImportedClass is null");
 		
+		m_importedClasses.add(new ImportClass(cls, name));
 		return this;
-	}
-	
-	public void initialize(VariableResolverFactory resolverFact) {
-		m_initializer.ifPresent(init -> init.execute(resolverFact));
-	}
-	
-	public void initialize(Map<String,Object> variables) {
-		VariableResolverFactory fact = new MapVariableResolverFactory(variables);
-		m_initializer.ifPresent(init -> init.execute(fact));
-	}
-	
-	public Object execute(VariableResolverFactory resolverFact) {
-		return m_script.execute(resolverFact);
-	}
-	
-	public Object execute(Map<String,Object> variables) {
-		return m_script.execute(new MapVariableResolverFactory(variables));
 	}
 
 	public static RecordScript fromProto(RecordScriptProto proto) {
-		RecordScript expr = new RecordScript(proto.getExpr());
-		
+		RecordScript rscript = null;
 		switch ( proto.getOptionalInitializerCase() ) {
 			case INITIALIZER:
-				expr.setInitializer(proto.getInitializer());
+				rscript = RecordScript.of(proto.getInitializer(), proto.getExpr());
+				break;
+			case OPTIONALINITIALIZER_NOT_SET:
+				rscript = new RecordScript(proto.getExpr());
 				break;
 			default:
+				throw new AssertionError();
 		}
+		
+		RecordScript frscript = rscript;
 		switch ( proto.getOptionalArgumentsCase() ) {
 			case ARGUMENTS:
 				PBUtils.fromProto(proto.getArguments())
-						.forEach((k,v) -> expr.addArgument(k, v));
+						.forEach((k,v) -> frscript.addArgument(k, v));
 				break;
 			default:
 		}
 		
-		proto.getImportedClassList().forEach(expr::importClass);
+		FStream.from(proto.getImportedClassList())
+				.map(ImportClass::parse)
+				.forEach(frscript::importClass);
 		
-		return expr;
+		return frscript;
 	}
 
 	@Override
 	public RecordScriptProto toProto() {
 		List<String> importeds = FStream.from(getImportedClassAll())
-										.map(ImportedClass::toString)
+										.map(ImportClass::toString)
 										.toList();
 		RecordScriptProto.Builder builder = RecordScriptProto.newBuilder()
-														.setExpr(getExpression())
+														.setExpr(getScript())
 														.addAllImportedClass(importeds);
-		m_initializer.map(MVELScript::getScript).ifPresent(builder::setInitializer);
+		m_initializer.ifPresent(builder::setInitializer);
 		if ( !m_arguments.isEmpty() ) {
 			builder.setArguments(PBUtils.toKeyValueMapProto(m_arguments));
 		}
