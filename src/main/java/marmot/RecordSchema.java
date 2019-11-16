@@ -1,5 +1,8 @@
 package marmot;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -32,7 +35,9 @@ import utils.stream.KVFStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
+public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializable  {
+	private static final long serialVersionUID = 7190244143505308271L;
+
 	/** Empty RecordSchema */
 	public static final RecordSchema NULL = builder().build();
 	
@@ -45,7 +50,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 
 		int i = 0;
 		for ( Column col: builder.m_columns.values() ) {
-			m_colMap.put(col.columnName(), col);
+			m_colMap.put(col.ciName(), col);
 			m_columns[i++] = col;
 		}
 	}
@@ -167,7 +172,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 		
 		Set<CIString> names = FStream.from(key).map(CIString::of).toSet();
 		return FStream.of(m_columns)
-						.filter(c -> !names.contains(c.columnName()))
+						.filter(c -> !names.contains(c.ciName()))
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
 	}
@@ -222,6 +227,26 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	@Override
 	public int hashCode() {
 		return Utilities.hashCode(FStream.of(m_columns));
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private final String m_strRep;
+		
+		private SerializationProxy(RecordSchema schema) {
+			m_strRep = schema.toString();
+		}
+		
+		private Object readResolve() {
+			return RecordSchema.parse(m_strRep);
+		}
 	}
 	
 	public Builder toBuilder() {
@@ -305,6 +330,26 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 			}
 			else {
 				addColumn(name, type);
+			}
+			
+			return this;
+		}
+		
+		public Builder addOrReplaceColumn(Column col) {
+			Utilities.checkNotNullArgument(col, "column is null");
+			Utilities.checkArgument(col.name().indexOf(',') == -1,
+									() -> "column name should not have ',', column=" + col.name());
+			
+			Column prev = m_columns.get(col.ciName());
+			if ( prev != null ) {
+				LinkedHashMap<CIString, Column> old = m_columns;
+				m_columns = new LinkedHashMap<>(old.size());
+				FStream.from(old.values())
+						.map(c -> c == prev ? col : c)
+						.forEach(this::addColumn);
+			}
+			else {
+				addColumn(col);
 			}
 			
 			return this;
