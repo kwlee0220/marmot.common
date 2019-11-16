@@ -32,7 +32,7 @@ public class DefaultRecord implements Record {
 		return new DefaultRecord(schema);
 	}
 	
-	private DefaultRecord(RecordSchema schema) {
+	protected DefaultRecord(RecordSchema schema) {
 		m_schema = schema;
 		m_values = new Object[schema.getColumnCount()];
 	}
