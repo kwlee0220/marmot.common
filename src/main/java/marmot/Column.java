@@ -50,7 +50,7 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 		return m_name.get();
 	}
 	
-	CIString columnName() {
+	public CIString ciName() {
 		return m_name;
 	}
 	
