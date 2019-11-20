@@ -1,5 +1,9 @@
 package marmot.plan;
 
+import java.io.File;
+
+import javax.annotation.Nullable;
+
 import marmot.proto.optor.JdbcConnectOptionsProto;
 import marmot.support.PBSerializable;
 
@@ -13,8 +17,7 @@ public class JdbcConnectOptions implements PBSerializable<JdbcConnectOptionsProt
 	private final String m_passwd;
 	private final String m_driverClassName;
 	
-	public JdbcConnectOptions(String jdbcUrl, String user, String passwd,
-								String driverClassName) {
+	public JdbcConnectOptions(String jdbcUrl, String user, String passwd, String driverClassName) {
 		m_jdbcUrl = jdbcUrl;
 		m_user = user;
 		m_passwd = passwd;
@@ -22,7 +25,7 @@ public class JdbcConnectOptions implements PBSerializable<JdbcConnectOptionsProt
 	}
 	
 	public static JdbcConnectOptions POSTGRES_SQL(String host, int port, String dbName,
-													String user, String passwd) {
+													String user, String passwd, @Nullable File jarFile) {
 		String url = String.format("jdbc:postgresql://%s:%d/%s", host, port, dbName);
 		return new JdbcConnectOptions(url, user, passwd, "org.postgresql.Driver");
 	}

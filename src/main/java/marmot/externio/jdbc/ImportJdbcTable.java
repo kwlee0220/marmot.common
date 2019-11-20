@@ -1,8 +1,6 @@
 package marmot.externio.jdbc;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLClassLoader;
+import java.io.File;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -17,16 +15,14 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
-import marmot.rset.JdbcRecordAdaptor;
-import marmot.rset.JdbcRecordSet;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
 import utils.CSV;
-import utils.DelayedSplitter;
+import utils.LazySplitter;
 import utils.func.FOption;
+import utils.func.Funcs;
 import utils.func.KeyValue;
 import utils.jdbc.JdbcProcessor;
-import utils.stream.KVFStream;
 
 
 /**
@@ -35,41 +31,29 @@ import utils.stream.KVFStream;
  */
 public class ImportJdbcTable extends ImportIntoDataSet {
 	protected final String m_tableName;
-	protected final JdbcParameters m_jdbcParams;
+	protected final LoadJdbcParameters m_jdbcParams;
 	
-	public static ImportJdbcTable from(String tableName, JdbcParameters jdbcParams,
+	public static ImportJdbcTable from(String tableName, LoadJdbcParameters jdbcParams,
 										ImportParameters params) {
 		return new ImportJdbcTable(tableName, jdbcParams, params);
 	}
 
-	private ImportJdbcTable(String tableName, JdbcParameters jdbcParams, ImportParameters params) {
+	private ImportJdbcTable(String tableName, LoadJdbcParameters jdbcParams, ImportParameters params) {
 		super(params);
 		
 		m_tableName = tableName;
 		m_jdbcParams = jdbcParams.duplicate();
 	}
+	
 	@Override
 	protected RecordSet loadRecordSet(MarmotRuntime marmot) {
 		try {
 			JdbcProcessor jdbc = new JdbcProcessor(m_jdbcParams.jdbcUrl(), m_jdbcParams.user(),
 													m_jdbcParams.password(),
 													m_jdbcParams.jdbcDriverClassName());
-			if ( m_jdbcParams.jdbcJarPath().isPresent() ) {
-				String path = m_jdbcParams.jdbcJarPath().get();
-				
-				try {
-					URL url = new URL(String.format("jar:file:%s!/", path));
-					URLClassLoader cloader = new URLClassLoader(new URL[]{url});
-					jdbc.setClassLoader(cloader);
-				}
-				catch ( MalformedURLException e ) {
-					throw new RecordSetException("fails to create " + getClass()
-										+ ", invalid jar path=" + m_jdbcParams.jdbcJarPath());
-				}
-			}
-			
-			RecordSchema schema = calcRecordSchema(jdbc);
-			JdbcRecordAdaptor adaptor = new JdbcRecordAdaptor(schema);
+			m_jdbcParams.jdbcJarPath().map(File::new).ifPresent(jdbc::setJdbcJarFile);
+			RecordSchema schema = buildRecordSchema(jdbc);
+			JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(jdbc, schema);
 			
 			StringBuilder sqlBuilder = new StringBuilder("select ");
 			String colsExpr = m_jdbcParams.selectExpr()
@@ -104,44 +88,45 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 			});
 	}
 	
-	private RecordSchema calcRecordSchema(JdbcProcessor jdbc) throws SQLException {
-		if ( m_jdbcParams.selectExpr().isAbsent() && m_jdbcParams.wkbColumns().isAbsent() ) {
-			return KVFStream.from(jdbc.getColumns(m_tableName))
-							.mapValue((k,v) -> JdbcRecordAdaptor.fromSqlType(v.type(), v.typeName()))
-							.foldLeft(RecordSchema.builder(),
-										(b,kv) -> b.addColumn(kv.key(), kv.value()))
-							.build();
-		}
-		
-		String selectExpr = m_jdbcParams.selectExpr().getOrElse("*");
-		Map<String, DataType> wkbCols = m_jdbcParams.wkbColumns()
-											.fstream()
-											.flatMap(csv -> CSV.parseCsv(csv, ','))
-											.map(str -> DelayedSplitter.splitIntoTwo(str, ':'))
-											.map(arr -> KeyValue.of(arr[0], arr[1]))
-											.map(kv -> KeyValue.of(kv.key(), DataTypes.fromName(kv.value())))
-											.toMap(KeyValue::key, KeyValue::value);
-		String sql = String.format("select %s from %s limit 1", selectExpr, m_tableName);
+	private RecordSchema buildRecordSchemaFromSelectExpr(JdbcProcessor jdbc, String tblName,
+														String selectExpr) throws SQLException {
+		String sql = String.format("select %s from %s limit 1", selectExpr, tblName);
 		ResultSet rs = jdbc.executeQuery(sql);
 		ResultSetMetaData meta = rs.getMetaData();
 		
 		RecordSchema.Builder builder = RecordSchema.builder();
 		for ( int i =1; i <= meta.getColumnCount(); ++i ) {
-			String colName = meta.getColumnLabel(i);
 			DataType type = JdbcRecordAdaptor.fromSqlType(meta.getColumnType(i),
 														meta.getColumnName(i));
-			DataType geomType = wkbCols.get(colName);
-			if ( geomType != null ) {
-				if ( type != DataType.BINARY ) {
-					throw new IllegalArgumentException("invalid wtb column (not binary): name=" + colName);
-				}
-				builder.addColumn(colName, geomType);
-			}
-			else {
-				builder.addColumn(meta.getColumnLabel(i), type);
-			}
+			builder.addColumn(meta.getColumnLabel(i), type);
 		}
 		
 		return builder.build();
+	}
+	
+	private RecordSchema buildRecordSchema(JdbcProcessor jdbc) throws SQLException {
+		RecordSchema schema = m_jdbcParams.selectExpr()
+					.mapOrThrow(expr -> buildRecordSchemaFromSelectExpr(jdbc, m_tableName, expr))
+					.getOrElseThrow(() -> JdbcRecordAdaptor.buildRecordSchema(jdbc, m_tableName));
+		
+		return m_jdbcParams.wkbColumns()
+							.transform(schema, this::replaceWkbWithGeometryType);
+	}
+	
+	private RecordSchema replaceWkbWithGeometryType(RecordSchema schema, String wkbColumns) {
+		Map<String, DataType> wkbCols = m_jdbcParams.wkbColumns().fstream()
+													.flatMap(csv -> CSV.parseCsv(csv, ','))
+													.map(str -> LazySplitter.splitIntoKeyValue(str, ':'))
+													.toKeyValueStream(KeyValue::key, KeyValue::value)
+													.mapValue(DataTypes::fromName)
+													.toMap();
+		return schema.streamColumns()
+					.map(col -> {
+						DataType type = wkbCols.get(col.name());
+						type = Funcs.getIfNotNull(type,  col.type());
+						return new Column(col.name(), type);
+					})
+					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+					.build();
 	}
 }

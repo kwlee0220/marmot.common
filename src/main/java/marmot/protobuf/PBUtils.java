@@ -266,7 +266,7 @@ public class PBUtils {
 									.filter(kv -> kv.key().getName().equals(field))
 									.next()
 									.map(kv -> kv.value())
-									.getOrElseThrow(()
+									.getOrThrow(()
 										-> new PBException("unknown field: name=" + field
 																	+ ", msg=" + proto));
 		}

@@ -54,6 +54,8 @@ ext.httpclient_version = '4.5.6'
 ext.joda_time_version = '2.10'
 ext.picocli_version = '3.9.6'
 ext.univocity_version = '2.8.1'
+ext.postgresql_version = '42.0.0'
+ext.postgis_jdbc_version = '2.1.0'
 
 dependencies {
 	api project(':utils')
@@ -80,6 +82,10 @@ dependencies {
 	api "io.grpc:grpc-stub:${grpc_version}"
 	api "io.grpc:grpc-netty-shaded:${grpc_version}"
 	implementation "io.grpc:grpc-protobuf:${grpc_version}"
+	
+	// PostSQL
+//	compile "org.postgresql:postgresql:${postgresql_version}"
+//	compile "org.postgis:postgis-jdbc:${postgis_jdbc_version}"
 	
 	// Joda-Time
 	implementation "joda-time:joda-time:${joda_time_version}"

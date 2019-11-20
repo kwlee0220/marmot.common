@@ -33,8 +33,10 @@ import marmot.externio.csv.ImportCsv;
 import marmot.externio.geojson.ExportAsGeoJson;
 import marmot.externio.geojson.GeoJsonParameters;
 import marmot.externio.geojson.ImportGeoJson;
+import marmot.externio.jdbc.ExportIntoJdbcTable;
 import marmot.externio.jdbc.ImportJdbcTable;
-import marmot.externio.jdbc.JdbcParameters;
+import marmot.externio.jdbc.LoadJdbcParameters;
+import marmot.externio.jdbc.StoreJdbcParameters;
 import marmot.externio.shp.ExportDataSetAsShapefile;
 import marmot.externio.shp.ExportRecordSetAsShapefile;
 import marmot.externio.shp.ExportShapefileParameters;
@@ -682,7 +684,7 @@ public class DatasetCommands {
 
 	@Command(name="jdbc", description="import a JDBC-connected table into a dataset")
 	public static class ImportJdbcCmd extends SubCommand {
-		@Mixin private JdbcParameters m_jdbcParams;
+		@Mixin private LoadJdbcParameters m_jdbcParams;
 		@Mixin private ImportParameters m_importParams;
 
 		@Parameters(paramLabel="table_name", index="0", arity="1..1",
@@ -721,6 +723,7 @@ public class DatasetCommands {
 				ExportCsv.class,
 				ExportShapefile.class,
 				ExportGeoJson.class,
+				ExportJdbcTable.class,
 			},
 			description="export a dataset")
 	public static class Export extends SubCommand {
@@ -816,6 +819,27 @@ public class DatasetCommands {
 			FOption<String> output = FOption.ofNullable(m_output);
 			BufferedWriter writer = ExternIoUtils.toWriter(output, m_gjsonParams.charset());
 			long count = export.run(marmot, writer);
+			
+			System.out.printf("done: %d records%n", count);
+		}
+	}
+
+	@Command(name="jdbc", description="export a dataset into JDBC table")
+	public static class ExportJdbcTable extends SubCommand {
+		@Mixin private StoreJdbcParameters m_jdbcParams;
+		
+		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
+					description={"dataset id to export"})
+		private String m_dsId;
+
+		@Parameters(paramLabel="table_name", index="1", arity="1..1",
+					description={"JDBC table name"})
+		private String m_tblName;
+
+		@Override
+		public void run(MarmotRuntime marmot) throws Exception {
+			ExportIntoJdbcTable export = new ExportIntoJdbcTable(m_dsId, m_tblName, m_jdbcParams);
+			long count = export.run(marmot);
 			
 			System.out.printf("done: %d records%n", count);
 		}

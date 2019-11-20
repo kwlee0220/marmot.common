@@ -1,4 +1,4 @@
-package marmot.rset;
+package marmot.externio.jdbc;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
+import marmot.rset.AbstractRecordSet;
 import utils.Utilities;
 import utils.func.Try;
 import utils.io.IOUtils;
@@ -19,9 +20,9 @@ public class JdbcRecordSet extends AbstractRecordSet {
 	private ResultSet m_rs;
 	
 	public JdbcRecordSet(JdbcRecordAdaptor adaptor, ResultSet rs) {
-		Utilities.checkNotNullArgument(adaptor, "adaptor is null");
+		Utilities.checkNotNullArgument(adaptor, "JdbcRecordAdaptor is null");
 		Utilities.checkNotNullArgument(rs, "rs is null");
-		
+
 		m_adaptor = adaptor;
 		m_rs = rs;
 	}
@@ -53,6 +54,7 @@ public class JdbcRecordSet extends AbstractRecordSet {
 			}
 			
 			m_adaptor.loadRecord(m_rs, record);
+			
 			return true;
 		}
 		catch ( SQLException e ) {

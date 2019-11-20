@@ -71,7 +71,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>  {
 	 */
 	public Column getColumn(String name) {
 		return findColumn(name)
-				.getOrElseThrow(() -> new ColumnNotFoundException("name=" + name + ", schema=" + this));
+				.getOrThrow(() -> new ColumnNotFoundException("name=" + name + ", schema=" + this));
 	}
 	
 	/**

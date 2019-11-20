@@ -84,7 +84,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 		return Shapefile.traverse(start, charset)
 						.flatMapTry(shp -> Try.supply(shp::getRecordSchema))
 						.next()
-						.getOrElseThrow(() -> new IllegalArgumentException("no valid shapefile to read: path=" + start));
+						.getOrThrow(() -> new IllegalArgumentException("no valid shapefile to read: path=" + start));
 	}
 	
 //	class InnerRecordSet extends AbstractRecordSet {

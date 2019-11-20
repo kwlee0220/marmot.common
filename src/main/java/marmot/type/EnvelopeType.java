@@ -29,7 +29,7 @@ public class EnvelopeType extends DataType {
 	@Override
 	public Envelope parseInstance(String str) {
 		return GeoClientUtils.parseEnvelope(str)
-							.getOrElseThrow(() -> new IllegalArgumentException("envelope_string=" + str));
+							.getOrThrow(() -> new IllegalArgumentException("envelope_string=" + str));
 	}
 	
 	@Override

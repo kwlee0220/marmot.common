@@ -1,0 +1,309 @@
+package marmot.externio.jdbc;
+
+import static utils.Utilities.fromUTCEpocMillis;
+
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import com.google.common.collect.Maps;
+import com.vividsolutions.jts.geom.Geometry;
+
+import marmot.Column;
+import marmot.Record;
+import marmot.RecordSchema;
+import marmot.RecordSetException;
+import marmot.geo.GeoClientUtils;
+import marmot.support.DefaultRecord;
+import marmot.type.DataType;
+import utils.LocalDateTimes;
+import utils.LocalDates;
+import utils.LocalTimes;
+import utils.jdbc.JdbcProcessor;
+import utils.stream.KVFStream;
+
+
+/**
+ * 
+ * @author Kang-Woo Lee (ETRI)
+ */
+public class JdbcRecordAdaptor {
+	private final RecordSchema m_schema;
+	
+	public static JdbcRecordAdaptor createDefault(RecordSchema schema) {
+		return new JdbcRecordAdaptor(schema);
+	}
+	
+	public static JdbcRecordAdaptor create(JdbcProcessor jdbc, RecordSchema schema) {
+		String driverClsName = jdbc.getDriverClassName();
+		Class<? extends JdbcRecordAdaptor> procCls = getAdaptorClass(driverClsName);
+		
+		try {
+			Constructor<? extends JdbcRecordAdaptor> ctor = procCls.getConstructor(RecordSchema.class);
+			return ctor.newInstance(schema);
+		}
+		catch ( Exception e ) {
+			throw new IllegalArgumentException("fails to load JdbcRecordAdaptor, driver="
+												+ driverClsName + ", cause=" + e);
+		}
+	}
+	
+	protected JdbcRecordAdaptor(RecordSchema schema) {
+		m_schema = schema;
+	}
+	
+	public RecordSchema getRecordSchema() {
+		return m_schema;
+	}
+	
+	public static RecordSchema buildRecordSchema(JdbcProcessor jdbc, String tblName) throws SQLException {
+		return KVFStream.from(jdbc.getColumns(tblName))
+						.mapValue((k,v) -> fromSqlType(v.type(), v.typeName()))
+						.map(Column::new)
+						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.build();
+	}
+	
+	public void createTable(JdbcProcessor jdbc, String tblName, String... primaryKeys)
+		throws SQLException {
+		StringBuilder builder = new StringBuilder(String.format("create table %s (", tblName));
+		String prmKeyStr = "";
+		if ( primaryKeys.length > 0 ) {
+			prmKeyStr = Arrays.stream(primaryKeys)
+								.collect(Collectors.joining(",", ", primary key (", ")"));
+		}
+		String sqlStr = builder.append(m_schema.streamColumns()
+												.map(this::declareSQLColumn)
+												.join(","))
+								.append(prmKeyStr)
+								.append(")")
+								.toString();
+
+		try {
+			jdbc.execute(stmt -> stmt.executeUpdate(sqlStr));
+		}
+		catch ( ExecutionException e ) {
+			throw (SQLException)e.getCause();
+		}
+	}
+	
+	public Record toRecord(ResultSet rs) {
+		Record record = DefaultRecord.of(m_schema);
+		loadRecord(rs, record);
+		
+		return record;
+	}
+	
+	public void loadRecord(ResultSet rs, Record record) throws RecordSetException {
+		RecordSchema schema = record.getRecordSchema();
+		
+		for ( int i =0; i < schema.getColumnCount(); ++i ) {
+			Column col = schema.getColumnAt(i);
+			record.set(i, getColumn(col, rs, i+1));
+		}
+	}
+
+	public void storeRecord(Record record, PreparedStatement pstmt) throws RecordSetException {
+		RecordSchema schema = record.getRecordSchema();
+		Object[] values = record.getAll();
+
+		for ( int i =0; i < schema.getColumnCount(); ++i ) {
+			Column col = schema.getColumnAt(i);
+			setColumn(pstmt, i+1, col, values[i]);
+		}
+	}
+	
+	public static DataType fromSqlType(int type, String typeName) {
+		switch ( type ) {
+			case Types.VARCHAR:
+				return DataType.STRING;
+			case Types.INTEGER:
+				return DataType.INT;
+			case Types.DOUBLE:
+			case Types.NUMERIC:
+				return DataType.DOUBLE;
+			case Types.FLOAT:
+			case Types.REAL:
+				return DataType.FLOAT;
+			case Types.BINARY:
+			case Types.VARBINARY:
+				return DataType.BINARY;
+			case Types.BIGINT:
+				return DataType.LONG;
+			case Types.BOOLEAN:
+				return DataType.BOOLEAN;
+			case Types.SMALLINT:
+				return DataType.SHORT;
+			case Types.TINYINT:
+				return DataType.BYTE;
+			default:
+				throw new IllegalArgumentException("unsupported SqlTypes: type=" + typeName
+													+ ", code=" + type);
+		}
+	}
+	
+	protected String declareSQLColumn(Column col) {
+		switch ( col.type().getTypeCode() ) {
+			case STRING:
+			case ENVELOPE:
+				return String.format("%s varchar", col.name());
+			case INT:
+				return String.format("%s int", col.name());
+			case LONG:
+				return String.format("%s bigint", col.name());
+			case DOUBLE:
+				return String.format("%s double precision", col.name());
+			case DATETIME:
+				return String.format("%s bigint", col.name());
+			case DATE:
+				return String.format("%s bigint", col.name());
+			case TIME:
+				return String.format("%s varchar", col.name());
+			case POLYGON:
+			case MULTI_POLYGON:
+			case POINT:
+			case MULTI_POINT:
+			case LINESTRING:
+			case MULTI_LINESTRING:
+			case GEOM_COLLECTION:
+			case GEOMETRY:
+				return String.format("%s varbinary", col.name());
+			case BOOLEAN:
+				return String.format("%s boolean", col.name());
+			case BYTE:
+				return String.format("%s tinyint", col.name());
+			case FLOAT:
+				return String.format("%s float", col.name());
+			case SHORT:
+				return String.format("%s smallint", col.name());
+			case BINARY:
+			case TYPED:
+				return String.format("%s varbinary", col.name());
+			default:
+				throw new RecordSetException("unsupported DataType: " + col);
+		}
+	}
+	
+	private Object getColumn(Column col, ResultSet rs, int colIdx) throws RecordSetException {
+		try {
+			if ( col.type().isGeometryType() ) {
+				try ( InputStream is = rs.getBinaryStream(colIdx) ) {
+					return GeoClientUtils.fromWKB(is);
+				}
+			}
+			else {
+				switch ( col.type().getTypeCode() ) {
+					case STRING:
+						return rs.getString(colIdx);
+					case INT:
+						return rs.getInt(colIdx);
+					case LONG:
+						return rs.getLong(colIdx);
+					case DOUBLE:
+						return rs.getDouble(colIdx);
+					case BINARY:
+						return rs.getBytes(colIdx);
+					case FLOAT:
+						return rs.getFloat(colIdx);
+					case DATETIME:
+						return fromUTCEpocMillis(rs.getLong(colIdx)).toLocalDateTime();
+					case DATE:
+						return fromUTCEpocMillis(rs.getLong(colIdx)).toLocalDate();
+					case TIME:
+						return LocalTime.parse(rs.getString(colIdx));
+					case BOOLEAN:
+						return rs.getBoolean(colIdx);
+					default:
+						throw new RecordSetException("unexpected DataType: " + col.type());
+				}
+			}
+		}
+		catch ( Exception e ) {
+			throw new RecordSetException("fails to load column: column=" + col + ", cause=" + e);
+		}
+	}
+	
+	private void setColumn(PreparedStatement pstmt, int idx, Column col, Object value)
+		throws RecordSetException {
+		try {
+			if ( col.type().isGeometryType() ) {
+				byte[] wkb = GeoClientUtils.toWKB((Geometry)value);
+				pstmt.setBytes(idx, wkb);
+			}
+			else {
+				switch ( col.type().getTypeCode() ) {
+					case STRING:
+						// PostgreSQL의 경우 문자열에 '0x00'가 포함되는 경우
+						// 오류를 발생시키기 때문에, 삽입전에 제거시킨다.
+						String str = (String)value;
+						if ( str != null ) {
+							str = str.replaceAll("\\x00","");
+						}
+						pstmt.setString(idx, str);
+						break;
+					case INT:
+						pstmt.setInt(idx, (Integer)value);
+						break;
+					case LONG:
+						pstmt.setLong(idx, (Long)value);
+						break;
+					case SHORT:
+						pstmt.setShort(idx, (Short)value);
+						break;
+					case DOUBLE:
+						pstmt.setDouble(idx, (Double)value);
+						break;
+					case FLOAT:
+						pstmt.setFloat(idx, (Float)value);
+						break;
+					case BINARY:
+						pstmt.setBytes(idx, (byte[])value);
+						break;
+					case DATETIME:
+						pstmt.setLong(idx, LocalDateTimes.toUtcMillis((LocalDateTime)value));
+						break;
+					case DATE:
+						pstmt.setLong(idx, LocalDates.toUtcMillis((LocalDate)value));
+						break;
+					case TIME:
+						pstmt.setString(idx, LocalTimes.toString((LocalTime)value));
+						break;
+					case BOOLEAN:
+						pstmt.setBoolean(idx, (Boolean)value);
+						break;
+					default:
+						throw new RecordSetException("unexpected DataType: " + col.type());
+				}
+			}
+		}
+		catch ( Exception e ) {
+			throw new RecordSetException("fails to load column: column=" + col + ", cause=" + e);
+		}
+	}
+	
+	private static Class<? extends JdbcRecordAdaptor> getAdaptorClass(String driverClassName) {
+		return KVFStream.from(JDBC_PROCESSORS)
+						.filter(kv -> kv.key().equals(driverClassName))
+						.next()
+						.map(kv -> kv.value())
+						.getOrThrow(() -> new IllegalArgumentException("unsupported Jdbc driver: " + driverClassName));
+
+	}
+	
+	private static final Map<String,Class<? extends JdbcRecordAdaptor>> JDBC_PROCESSORS;
+	static {
+		JDBC_PROCESSORS = Maps.newHashMap();
+		JDBC_PROCESSORS.put("org.postgresql.Driver", PostgreSQLRecordAdaptor.class);
+		JDBC_PROCESSORS.put("org.h2.Driver", JdbcRecordAdaptor.class);
+	}
+}
