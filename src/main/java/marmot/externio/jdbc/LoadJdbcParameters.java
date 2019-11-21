@@ -1,7 +1,14 @@
 package marmot.externio.jdbc;
 
+import java.util.Map;
+
+import marmot.type.DataType;
+import marmot.type.DataTypes;
 import picocli.CommandLine.Option;
+import utils.CSV;
+import utils.LazySplitter;
 import utils.func.FOption;
+import utils.func.KeyValue;
 
 
 /**
@@ -10,13 +17,14 @@ import utils.func.FOption;
  */
 public class LoadJdbcParameters extends JdbcParameters {
 	private FOption<String> m_selectExpr = FOption.empty();
-	private FOption<String> m_wkbCols = FOption.empty();
+	private FOption<Map<String,DataType>> m_geomCols = FOption.empty();
 	private FOption<String> m_srid = FOption.empty();
 	
 	public LoadJdbcParameters() { }
 	
-	public LoadJdbcParameters(String jdbcUrl, String user, String passwd, String driverClassName) {
-		super(jdbcUrl, user, passwd, driverClassName);
+	public LoadJdbcParameters(String system, String host, int port, String user, String passwd,
+								String dbName) {
+		super(system, host, port, user, passwd, dbName);
 	}
 	
 	public FOption<String> selectExpr() {
@@ -29,14 +37,20 @@ public class LoadJdbcParameters extends JdbcParameters {
 		return this;
 	}
 	
-	public FOption<String> wkbColumns() {
-		return m_wkbCols;
+	public FOption<Map<String,DataType>> geomColumns() {
+		return m_geomCols;
 	}
 
-	@Option(names={"-wkb_cols"}, paramLabel="wkb_columns",
-			description={"WKB column names for Geometry data"})
-	public void wkbColumns(String cols) {
-		m_wkbCols = FOption.ofNullable(cols);
+	@Option(names={"-geom_cols"}, paramLabel="column_names_csv",
+			description={"geometry column names for Geometry data (eg. 'col1:multi_polygon,col2:point'"})
+	public LoadJdbcParameters geomColumns(String cols) {
+		Map<String,DataType> geomCols = CSV.parseCsv(cols, ',')
+											.map(decl -> LazySplitter.parseKeyValue(decl, ':'))
+											.toKeyValueStream(KeyValue::key, KeyValue::value)
+											.mapValue(DataTypes::fromName)
+											.toMap();
+		m_geomCols = FOption.of(geomCols);
+		return this;
 	}
 	
 	public FOption<String> srid() {
@@ -50,12 +64,12 @@ public class LoadJdbcParameters extends JdbcParameters {
 	}
 	
 	public LoadJdbcParameters duplicate() {
-		LoadJdbcParameters dupl = new LoadJdbcParameters(jdbcUrl(), user(), password(),
-															jdbcDriverClassName());
+		LoadJdbcParameters dupl = new LoadJdbcParameters(system(), host(), port(), user(),
+															password(), database());
 		jdbcJarPath().ifPresent(dupl::jdbcJarPath);
 		
 		dupl.m_selectExpr = m_selectExpr;
-		dupl.m_wkbCols = m_wkbCols;
+		dupl.m_geomCols = m_geomCols;
 		dupl.m_srid = m_srid;
 		
 		return dupl;

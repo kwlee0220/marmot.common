@@ -29,11 +29,13 @@ public class JdbcRecordSetWriter implements RecordSetWriter {
 	
 	private final String m_tblName;
 	private final JdbcProcessor m_jdbc;
+	private final GeometryFormat m_geomFormat;
 	private int m_batchSize = DEFAULT_BATCH_SIZE;
 	
-	JdbcRecordSetWriter(String tblName, JdbcProcessor jdbc) {
+	JdbcRecordSetWriter(String tblName, JdbcProcessor jdbc, GeometryFormat format) {
 		m_tblName = tblName;
 		m_jdbc = jdbc;
+		m_geomFormat = format;
 	}
 
 	@Override
@@ -60,7 +62,7 @@ public class JdbcRecordSetWriter implements RecordSetWriter {
 		String valuesExpr = createDefaultInsertValueExpr(rset.getRecordSchema());
 		String insertStmtStr = String.format("insert into %s %s", m_tblName, valuesExpr);
 		
-		JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(m_jdbc, rset.getRecordSchema());
+		JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(m_jdbc, rset.getRecordSchema(), m_geomFormat);
 		
 		// create table
 		try {
@@ -68,8 +70,8 @@ public class JdbcRecordSetWriter implements RecordSetWriter {
 			adaptor.createTable(m_jdbc, m_tblName);
 		}
 		catch ( SQLException e1 ) {
-			throw new RecordSetException(String.format("fails to store output: jdbc=%s, table=%s",
-														m_jdbc, m_tblName), e1);
+			throw new RecordSetException(String.format("fails to store output: jdbc=%s, table=%s, cause=%s",
+														m_jdbc, m_tblName, e1));
 		}
 
 		AtomicInteger count = new AtomicInteger(0);

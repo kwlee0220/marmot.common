@@ -16,12 +16,8 @@ import marmot.RecordSetException;
 import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
 import marmot.type.DataType;
-import marmot.type.DataTypes;
-import utils.CSV;
-import utils.LazySplitter;
 import utils.func.FOption;
 import utils.func.Funcs;
-import utils.func.KeyValue;
 import utils.jdbc.JdbcProcessor;
 
 
@@ -48,12 +44,12 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 	@Override
 	protected RecordSet loadRecordSet(MarmotRuntime marmot) {
 		try {
-			JdbcProcessor jdbc = new JdbcProcessor(m_jdbcParams.jdbcUrl(), m_jdbcParams.user(),
-													m_jdbcParams.password(),
-													m_jdbcParams.jdbcDriverClassName());
+			JdbcProcessor jdbc = JdbcProcessor.create(m_jdbcParams.system(), m_jdbcParams.host(),
+													m_jdbcParams.port(), m_jdbcParams.user(),
+													m_jdbcParams.password(), m_jdbcParams.database());
 			m_jdbcParams.jdbcJarPath().map(File::new).ifPresent(jdbc::setJdbcJarFile);
 			RecordSchema schema = buildRecordSchema(jdbc);
-			JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(jdbc, schema);
+			JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(jdbc, schema, m_jdbcParams.geometryFormat());
 			
 			StringBuilder sqlBuilder = new StringBuilder("select ");
 			String colsExpr = m_jdbcParams.selectExpr()
@@ -109,24 +105,19 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 					.mapOrThrow(expr -> buildRecordSchemaFromSelectExpr(jdbc, m_tableName, expr))
 					.getOrElseThrow(() -> JdbcRecordAdaptor.buildRecordSchema(jdbc, m_tableName));
 		
-		return m_jdbcParams.wkbColumns()
+		return m_jdbcParams.geomColumns()
 							.transform(schema, this::replaceWkbWithGeometryType);
 	}
 	
-	private RecordSchema replaceWkbWithGeometryType(RecordSchema schema, String wkbColumns) {
-		Map<String, DataType> wkbCols = m_jdbcParams.wkbColumns().fstream()
-													.flatMap(csv -> CSV.parseCsv(csv, ','))
-													.map(str -> LazySplitter.splitIntoKeyValue(str, ':'))
-													.toKeyValueStream(KeyValue::key, KeyValue::value)
-													.mapValue(DataTypes::fromName)
-													.toMap();
+	private RecordSchema replaceWkbWithGeometryType(RecordSchema schema,
+													Map<String,DataType> geomCols) {
 		return schema.streamColumns()
-					.map(col -> {
-						DataType type = wkbCols.get(col.name());
-						type = Funcs.getIfNotNull(type,  col.type());
-						return new Column(col.name(), type);
-					})
-					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
-					.build();
+						.map(col -> {
+							DataType type = geomCols.get(col.name());
+							type = Funcs.getIfNotNull(type,  col.type());
+							return new Column(col.name(), type);
+						})
+						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.build();
 	}
 }

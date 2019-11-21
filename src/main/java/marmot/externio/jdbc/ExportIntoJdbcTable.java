@@ -47,13 +47,15 @@ public class ExportIntoJdbcTable implements ProgressReporter<Long> {
 	
 	public long run(MarmotRuntime marmot) throws IOException {
 		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
-		
-		JdbcProcessor jdbc = new JdbcProcessor(m_params.jdbcUrl(), m_params.user(), m_params.password(),
-												m_params.jdbcDriverClassName());
+
+		JdbcProcessor jdbc = JdbcProcessor.create(m_params.system(), m_params.host(),
+													m_params.port(), m_params.user(),
+													m_params.password(), m_params.database());
 		m_params.jdbcJarPath().map(File::new).ifPresent(jdbc::setJdbcJarFile);
 
 		try ( RecordSet rset = loadRecordSet(marmot);
-				JdbcRecordSetWriter writer = new JdbcRecordSetWriter(m_tableName, jdbc) ) {
+				JdbcRecordSetWriter writer = new JdbcRecordSetWriter(m_tableName, jdbc,
+																	m_params.geometryFormat()) ) {
 			return writer.write(rset);
 		}
 	}

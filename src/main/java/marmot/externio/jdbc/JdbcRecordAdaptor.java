@@ -2,6 +2,7 @@ package marmot.externio.jdbc;
 
 import static utils.Utilities.fromUTCEpocMillis;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.sql.PreparedStatement;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.io.ParseException;
 
 import marmot.Column;
 import marmot.Record;
@@ -37,33 +39,39 @@ import utils.stream.KVFStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class JdbcRecordAdaptor {
+public abstract class JdbcRecordAdaptor {
 	private final RecordSchema m_schema;
+	private final GeometryFormat m_geomFormat;
 	
-	public static JdbcRecordAdaptor createDefault(RecordSchema schema) {
-		return new JdbcRecordAdaptor(schema);
+	public static JdbcRecordAdaptor createDefault(RecordSchema schema, GeometryFormat format) {
+		return new DefaultRecordAdaptor(schema, format);
 	}
 	
-	public static JdbcRecordAdaptor create(JdbcProcessor jdbc, RecordSchema schema) {
-		String driverClsName = jdbc.getDriverClassName();
-		Class<? extends JdbcRecordAdaptor> procCls = getAdaptorClass(driverClsName);
+	public static JdbcRecordAdaptor create(JdbcProcessor jdbc, RecordSchema schema, GeometryFormat format) {
+		Class<? extends JdbcRecordAdaptor> procCls = getAdaptorClass(jdbc.getSystem());
 		
 		try {
-			Constructor<? extends JdbcRecordAdaptor> ctor = procCls.getConstructor(RecordSchema.class);
-			return ctor.newInstance(schema);
+			Constructor<? extends JdbcRecordAdaptor> ctor
+								= procCls.getConstructor(RecordSchema.class, GeometryFormat.class);
+			return ctor.newInstance(schema, format);
 		}
 		catch ( Exception e ) {
-			throw new IllegalArgumentException("fails to load JdbcRecordAdaptor, driver="
-												+ driverClsName + ", cause=" + e);
+			throw new IllegalArgumentException("fails to load JdbcRecordAdaptor, system="
+												+ jdbc.getSystem() + ", cause=" + e);
 		}
 	}
 	
-	protected JdbcRecordAdaptor(RecordSchema schema) {
+	protected JdbcRecordAdaptor(RecordSchema schema, GeometryFormat format) {
 		m_schema = schema;
+		m_geomFormat = format;
 	}
 	
 	public RecordSchema getRecordSchema() {
 		return m_schema;
+	}
+	
+	public GeometryFormat getGeometryFormat() {
+		return m_geomFormat;
 	}
 	
 	public static RecordSchema buildRecordSchema(JdbcProcessor jdbc, String tblName) throws SQLException {
@@ -146,6 +154,8 @@ public class JdbcRecordAdaptor {
 				return DataType.SHORT;
 			case Types.TINYINT:
 				return DataType.BYTE;
+			case Types.OTHER:
+				return DataType.NULL;
 			default:
 				throw new IllegalArgumentException("unsupported SqlTypes: type=" + typeName
 													+ ", code=" + type);
@@ -170,14 +180,21 @@ public class JdbcRecordAdaptor {
 			case TIME:
 				return String.format("%s varchar", col.name());
 			case POLYGON:
+				return String.format("%s geometry(Polygon)", col.name());
 			case MULTI_POLYGON:
+				return String.format("%s geometry(MultiPolygon)", col.name());
 			case POINT:
+				return String.format("%s geometry(Point)", col.name());
 			case MULTI_POINT:
+				return String.format("%s geometry(MultiPoint)", col.name());
 			case LINESTRING:
+				return String.format("%s geometry(LineString)", col.name());
 			case MULTI_LINESTRING:
+				return String.format("%s geometry(MultiLineString)", col.name());
 			case GEOM_COLLECTION:
+				return String.format("%s geometry(GeometryCollection)", col.name());
 			case GEOMETRY:
-				return String.format("%s varbinary", col.name());
+				return String.format("%s geometry", col.name());
 			case BOOLEAN:
 				return String.format("%s boolean", col.name());
 			case BYTE:
@@ -194,12 +211,45 @@ public class JdbcRecordAdaptor {
 		}
 	}
 	
+	protected Geometry getGeometryColumn(Column col, ResultSet rs, int colIdx)
+		throws SQLException, IOException {
+		try {
+			switch ( m_geomFormat ) {
+				case WKB:
+					try ( InputStream is = rs.getBinaryStream(colIdx) ) {
+						return GeoClientUtils.fromWKB(is);
+					}
+				case WKT:
+					return GeoClientUtils.fromWKT(rs.getString(colIdx));
+				default:
+					throw new IllegalStateException("unsupported GeometryFormat: " + m_geomFormat);
+			}
+		}
+		catch ( ParseException e ) {
+			throw new IOException("" + e);
+		}
+	}
+	
+	protected void setGeometryColumn(PreparedStatement pstmt, int idx, Column col, Geometry geom)
+		throws SQLException {
+		switch ( m_geomFormat ) {
+			case WKB:
+				byte[] wkb = GeoClientUtils.toWKB(geom);
+				pstmt.setBytes(idx, wkb);
+				break;
+			case WKT:
+				String wkt = GeoClientUtils.toWKT(geom);
+				pstmt.setString(idx, wkt);
+				break;
+			default:
+				throw new IllegalStateException("unsupported GeometryFormat: " + m_geomFormat);
+		}
+	}
+	
 	private Object getColumn(Column col, ResultSet rs, int colIdx) throws RecordSetException {
 		try {
 			if ( col.type().isGeometryType() ) {
-				try ( InputStream is = rs.getBinaryStream(colIdx) ) {
-					return GeoClientUtils.fromWKB(is);
-				}
+				return getGeometryColumn(col, rs, colIdx);
 			}
 			else {
 				switch ( col.type().getTypeCode() ) {
@@ -237,8 +287,7 @@ public class JdbcRecordAdaptor {
 		throws RecordSetException {
 		try {
 			if ( col.type().isGeometryType() ) {
-				byte[] wkb = GeoClientUtils.toWKB((Geometry)value);
-				pstmt.setBytes(idx, wkb);
+				setGeometryColumn(pstmt, idx, col, (Geometry)value);
 			}
 			else {
 				switch ( col.type().getTypeCode() ) {
@@ -291,19 +340,19 @@ public class JdbcRecordAdaptor {
 		}
 	}
 	
-	private static Class<? extends JdbcRecordAdaptor> getAdaptorClass(String driverClassName) {
+	private static Class<? extends JdbcRecordAdaptor> getAdaptorClass(String protocol) {
 		return KVFStream.from(JDBC_PROCESSORS)
-						.filter(kv -> kv.key().equals(driverClassName))
+						.filter(kv -> kv.key().equals(protocol))
 						.next()
 						.map(kv -> kv.value())
-						.getOrThrow(() -> new IllegalArgumentException("unsupported Jdbc driver: " + driverClassName));
+						.getOrThrow(() -> new IllegalArgumentException("unsupported Jdbc protocol: " + protocol));
 
 	}
 	
 	private static final Map<String,Class<? extends JdbcRecordAdaptor>> JDBC_PROCESSORS;
 	static {
 		JDBC_PROCESSORS = Maps.newHashMap();
-		JDBC_PROCESSORS.put("org.postgresql.Driver", PostgreSQLRecordAdaptor.class);
-		JDBC_PROCESSORS.put("org.h2.Driver", JdbcRecordAdaptor.class);
+		JDBC_PROCESSORS.put("postgresql", PostgreSQLRecordAdaptor.class);
+		JDBC_PROCESSORS.put("mysql", JdbcRecordAdaptor.class);
 	}
 }
