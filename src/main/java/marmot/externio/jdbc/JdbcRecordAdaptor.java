@@ -134,6 +134,7 @@ public abstract class JdbcRecordAdaptor {
 	public static DataType fromSqlType(int type, String typeName) {
 		switch ( type ) {
 			case Types.VARCHAR:
+			case Types.LONGVARCHAR:
 				return DataType.STRING;
 			case Types.INTEGER:
 				return DataType.INT;
@@ -145,6 +146,7 @@ public abstract class JdbcRecordAdaptor {
 				return DataType.FLOAT;
 			case Types.BINARY:
 			case Types.VARBINARY:
+			case Types.LONGVARBINARY:
 				return DataType.BINARY;
 			case Types.BIGINT:
 				return DataType.LONG;
@@ -166,7 +168,7 @@ public abstract class JdbcRecordAdaptor {
 		switch ( col.type().getTypeCode() ) {
 			case STRING:
 			case ENVELOPE:
-				return String.format("%s varchar", col.name());
+				return String.format("%s text", col.name());
 			case INT:
 				return String.format("%s int", col.name());
 			case LONG:
@@ -179,22 +181,6 @@ public abstract class JdbcRecordAdaptor {
 				return String.format("%s bigint", col.name());
 			case TIME:
 				return String.format("%s varchar", col.name());
-			case POLYGON:
-				return String.format("%s geometry(Polygon)", col.name());
-			case MULTI_POLYGON:
-				return String.format("%s geometry(MultiPolygon)", col.name());
-			case POINT:
-				return String.format("%s geometry(Point)", col.name());
-			case MULTI_POINT:
-				return String.format("%s geometry(MultiPoint)", col.name());
-			case LINESTRING:
-				return String.format("%s geometry(LineString)", col.name());
-			case MULTI_LINESTRING:
-				return String.format("%s geometry(MultiLineString)", col.name());
-			case GEOM_COLLECTION:
-				return String.format("%s geometry(GeometryCollection)", col.name());
-			case GEOMETRY:
-				return String.format("%s geometry", col.name());
 			case BOOLEAN:
 				return String.format("%s boolean", col.name());
 			case BYTE:
@@ -244,6 +230,10 @@ public abstract class JdbcRecordAdaptor {
 			default:
 				throw new IllegalStateException("unsupported GeometryFormat: " + m_geomFormat);
 		}
+	}
+	
+	public String getInsertValueExpr(Column col) {
+		return "?";
 	}
 	
 	private Object getColumn(Column col, ResultSet rs, int colIdx) throws RecordSetException {
@@ -353,6 +343,6 @@ public abstract class JdbcRecordAdaptor {
 	static {
 		JDBC_PROCESSORS = Maps.newHashMap();
 		JDBC_PROCESSORS.put("postgresql", PostgreSQLRecordAdaptor.class);
-		JDBC_PROCESSORS.put("mysql", JdbcRecordAdaptor.class);
+		JDBC_PROCESSORS.put("mysql", MySQLRecordAdaptor.class);
 	}
 }
