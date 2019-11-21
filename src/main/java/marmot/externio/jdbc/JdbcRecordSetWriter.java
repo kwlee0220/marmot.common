@@ -16,7 +16,6 @@ import marmot.RecordSetException;
 import marmot.externio.RecordSetWriter;
 import utils.Utilities;
 import utils.jdbc.JdbcProcessor;
-import utils.stream.FStream;
 
 /**
  * 
@@ -47,10 +46,12 @@ public class JdbcRecordSetWriter implements RecordSetWriter {
 		return this;
 	}
 	
-	private String createDefaultInsertValueExpr(RecordSchema schema) {
+	private String createInsertValueExpr(JdbcRecordAdaptor adaptor) {
+		RecordSchema schema = adaptor.getRecordSchema();
+		
 		String colListExpr = schema.streamColumns().map(Column::name).join(",", "(", ")");
-		String colValExpr = FStream.range(0, schema.getColumnCount())
-									.map(idx -> "?")
+		String colValExpr = schema.streamColumns()
+									.map(adaptor::getInsertValueExpr)
 									.join(",", "(", ")");
 		return colListExpr + " values " + colValExpr;
 	}
@@ -59,10 +60,11 @@ public class JdbcRecordSetWriter implements RecordSetWriter {
 	public long write(RecordSet rset) throws IOException {
 		Utilities.checkNotNullArgument(rset, "rset is null");
 		
-		String valuesExpr = createDefaultInsertValueExpr(rset.getRecordSchema());
-		String insertStmtStr = String.format("insert into %s %s", m_tblName, valuesExpr);
+		RecordSchema schema = rset.getRecordSchema();
+		JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(m_jdbc, schema, m_geomFormat);
 		
-		JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(m_jdbc, rset.getRecordSchema(), m_geomFormat);
+		String valuesExpr = createInsertValueExpr(adaptor);
+		String insertStmtStr = String.format("insert into %s %s", m_tblName, valuesExpr);
 		
 		// create table
 		try {
