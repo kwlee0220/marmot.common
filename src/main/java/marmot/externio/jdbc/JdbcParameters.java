@@ -15,7 +15,7 @@ public class JdbcParameters {
 	private String m_user;
 	private String m_passwd;
 	private String m_dbName;
-	private GeometryFormat m_geomFormat = GeometryFormat.NATIVE;
+	private GeometryFormat m_geomFormat = GeometryFormat.WKB;
 	private FOption<String> m_jdbcJarPath = FOption.empty();
 	
 	public JdbcParameters() { }
