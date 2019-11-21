@@ -11,7 +11,8 @@ public abstract class DataType {
 	private final String m_name;
 	private final TypeCode m_tc;
 	private final Class<?> m_instCls;
-	
+
+	public static final DataType NULL = NullType.get();
 	public static final DataType RESERVED = ReservedType.get();
 	public static final ByteType BYTE = ByteType.get();
 	public static final ShortType SHORT = ShortType.get();
