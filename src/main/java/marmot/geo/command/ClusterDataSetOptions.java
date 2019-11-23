@@ -180,6 +180,7 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 		m_sampleRatio.ifPresent(builder::setSampleRatio);
 		m_blockSize.ifPresent(builder::setBlockSize);
 		m_blockFillRatio.ifPresent(builder::setBlockFillRatio);
+		m_workerCount.ifPresent(builder::setWorkerCount);
 		
 		return builder.build();
 	}
