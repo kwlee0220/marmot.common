@@ -1,12 +1,16 @@
 package marmot.geo.query;
 
+import java.io.IOException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.DataSet;
+import marmot.InsufficientThumbnailException;
 import marmot.RecordSet;
+import marmot.ThumbnailNotFoundException;
 import utils.LoggerSettable;
 import utils.Utilities;
 
@@ -34,7 +38,7 @@ public class ThumbnailScan implements LoggerSettable {
 		m_logger = LoggerFactory.getLogger(ThumbnailScan.class);
 	}
 
-	public RecordSet run() {
+	public RecordSet run() throws ThumbnailNotFoundException, InsufficientThumbnailException, IOException {
 		return m_ds.readThumbnail(m_range, m_sampleCount);
 	}
 

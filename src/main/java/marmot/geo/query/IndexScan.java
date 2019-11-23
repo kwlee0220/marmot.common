@@ -80,7 +80,7 @@ public class IndexScan {
 		return this;
 	}
 	
-	public RecordSet run() {
+	public RecordSet run() throws Exception {
 		// 추정된 결과 레코드 수를 통해 샘플링 비율을 계산한다.
 		double ratio = (m_sampleCount > 0)
 						? (double)m_sampleCount / m_est.getTotalMatchCount() : 1d;

@@ -1,5 +1,6 @@
 package marmot;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.vividsolutions.jts.geom.Envelope;
@@ -171,7 +172,7 @@ public interface DataSet {
 	public RecordSet read();
 	
 	@Deprecated
-	public RecordSet queryRange(Envelope range, FOption<String> filterExpr);
+	public RecordSet queryRange(Envelope range, FOption<String> filterExpr) throws IOException;
 	
 	/**
 	 * 주어진 레코드 세트를 데이터세트에 추가한다.
@@ -241,7 +242,7 @@ public interface DataSet {
 	
 	public boolean hasThumbnail();
 	public RecordSet readThumbnail(Envelope bounds, int count)
-		throws ThumbnailNotFoundException, InsufficientThumbnailException;
+		throws ThumbnailNotFoundException, InsufficientThumbnailException, IOException;
 	public void createThumbnail(int sampleCount) throws IndexNotFoundException;
 	public boolean deleteThumbnail();
 	public float getThumbnailRatio() throws ThumbnailNotFoundException;

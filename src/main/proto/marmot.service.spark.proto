@@ -11,7 +11,18 @@ import public "marmot.service.dataset.proto";
 import public "marmot.service.exec.proto";
 import public "marmot.optor.proto";
 
+message ViewMappingProto {
+	string view_name = 1;
+	string ds_id = 2;
+}
+
+message RunSQLRequest {
+	string sql_statement = 1;
+	string output_ds_id = 2;
+	marmot.proto.service.StoreDataSetOptionsProto options = 3;
+}
 
 service MarmotSparkSessionService {
-	rpc execute(ExecutePlanRequest) returns (VoidResponse);
+	rpc createOrReplaceView(ViewMappingProto) returns (VoidResponse);
+	rpc runSql(RunSQLRequest) returns (VoidResponse);
 }
