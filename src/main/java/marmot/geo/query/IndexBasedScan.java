@@ -33,8 +33,8 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class IndexScan {
-	private static final Logger s_logger = LoggerFactory.getLogger(IndexScan.class);
+public class IndexBasedScan {
+	private static final Logger s_logger = LoggerFactory.getLogger(IndexBasedScan.class);
 
 	private static final int CACHE_COST = 1;
 	private static final int NETWORK_COST = 2;
@@ -42,7 +42,7 @@ public class IndexScan {
 	private final MarmotRuntime m_marmot;
 	private final DataSet m_ds;
 	private final String m_dsId;
-	private final RangedClusterEstimate m_est;
+	private final RangeQueryEstimate m_est;
 	private final Envelope m_range;
 	private final PreparedGeometry m_pkey;
 	private final long m_sampleCount;
@@ -50,12 +50,12 @@ public class IndexScan {
 	private final DataSetPartitionCache m_cache;
 	private volatile boolean m_usePrefetch = false;
 	
-	public static IndexScan on(DataSet ds, Envelope range, long sampleCount,
+	public static IndexBasedScan on(DataSet ds, Envelope range, long sampleCount,
 								DataSetPartitionCache cache, int maxLocalCacheCost) {
-		return new IndexScan(ds, range, sampleCount, cache, maxLocalCacheCost);
+		return new IndexBasedScan(ds, range, sampleCount, cache, maxLocalCacheCost);
 	}
 	
-	private IndexScan(DataSet ds, Envelope range, long sampleCount,
+	private IndexBasedScan(DataSet ds, Envelope range, long sampleCount,
 						DataSetPartitionCache cache, int maxLocalCacheCost) {
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		Utilities.checkNotNullArgument(range, "query ranage");
@@ -72,10 +72,10 @@ public class IndexScan {
 		m_pkey = PreparedGeometryFactory.prepare(key);
 
 		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
-		m_est = RangedClusterEstimate.about(m_ds, m_range);
+		m_est = RangeQueryEstimate.about(m_ds, m_range);
 	}
 	
-	public IndexScan usePrefetch(boolean flag) {
+	public IndexBasedScan usePrefetch(boolean flag) {
 		m_usePrefetch = flag;
 		return this;
 	}
@@ -83,10 +83,10 @@ public class IndexScan {
 	public RecordSet run() throws Exception {
 		// 추정된 결과 레코드 수를 통해 샘플링 비율을 계산한다.
 		double ratio = (m_sampleCount > 0)
-						? (double)m_sampleCount / m_est.getTotalMatchCount() : 1d;
+						? (double)m_sampleCount / m_est.getMatchCountEstimate() : 1d;
 		final double sampleRatio = Math.min(ratio, 1);
 		
-		double fullRatio = (sampleRatio * m_est.getTotalMatchCount()) / m_ds.getRecordCount();
+		double fullRatio = (sampleRatio * m_est.getMatchCountEstimate()) / m_ds.getRecordCount();
 		if ( fullRatio > 0.7 ) {
 			if ( m_ds.hasThumbnail() && m_sampleCount > 0 ) {
 				s_logger.info("too large for index-scan, use thumbnail-scan: id={}", m_dsId);
@@ -115,7 +115,7 @@ public class IndexScan {
 		
 		String msg = String.format("ds_id=%s, clusters=%d/%d, cost=%d/%d, guess_count=%d, ratio=%.3f",
 									m_dsId, cachedKeys.size(), nclusters, cost, m_maxLocalCacheCost,
-									m_est.getTotalMatchCount(), sampleRatio);
+									m_est.getMatchCountEstimate(), sampleRatio);
 		if ( cost > m_maxLocalCacheCost ) {
 			if ( m_usePrefetch ) {
 				StartableExecution<RecordSet> fg = AsyncExecutions.from(() -> runAtServer(sampleRatio, nclusters, msg));
@@ -193,7 +193,7 @@ public class IndexScan {
 		if ( sampleRatio < 1 ) {
 			// quadKey에 해당하는 파티션에 샘플링할 레코드 수를 계산하고
 			// 이 수만큼의 레코드만 추출하도록 연산을 추가한다.
-			int count = m_est.getMatchingRecordCount(quadKey);
+			int count = m_est.getMatchCountEstimate(quadKey);
 			int takeCount = (int)Math.max(1, Math.round(count * sampleRatio));
 			matcheds = matcheds.take(takeCount);
 //			long total = m_est.getRelevantRecordCount(quadKey);

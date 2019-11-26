@@ -121,9 +121,9 @@ public class RangeQuery {
 			else {
 				// 질의 영역과 겹치는 quad-key들과, 해당 결과 레코드의 수를 추정하여
 				// 그에 따른 질의처리를 시도한다.
-				return IndexScan.on(m_ds, m_range, m_sampleCount, m_cache, m_maxLocalCacheCost)
-								.usePrefetch(m_usePrefetch)
-								.run();
+				return IndexBasedScan.on(m_ds, m_range, m_sampleCount, m_cache, m_maxLocalCacheCost)
+									.usePrefetch(m_usePrefetch)
+									.run();
 			}
 		}
 		catch ( Throwable e ) {
