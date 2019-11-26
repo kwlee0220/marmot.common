@@ -23,6 +23,8 @@ message RunSQLRequest {
 }
 
 service MarmotSparkSessionService {
+	rpc execute(ExecutePlanRequest) returns (VoidResponse);
+	
 	rpc createOrReplaceView(ViewMappingProto) returns (VoidResponse);
 	rpc runSql(RunSQLRequest) returns (VoidResponse);
 }
