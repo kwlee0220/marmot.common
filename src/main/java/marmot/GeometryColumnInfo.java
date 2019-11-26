@@ -1,5 +1,6 @@
 package marmot;
 
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,7 +13,7 @@ import utils.Utilities;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public final class GeometryColumnInfo implements PBSerializable<GeometryColumnInfoProto> {
+public final class GeometryColumnInfo implements PBSerializable<GeometryColumnInfoProto>, Serializable {
 	private static final Pattern PATTERN = Pattern.compile("(\\S+)\\s*\\(\\s*(\\S+)\\s*\\)");
 	
 	private final String m_name;

@@ -1,5 +1,7 @@
 package marmot.optor;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import utils.CSV;
@@ -9,7 +11,9 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class AggregateFunction {
+public class AggregateFunction implements Serializable {
+	private static final long serialVersionUID = 1711190990856724887L;
+	
 	public AggregateType m_type;
 	@Nullable public String m_aggrColumn;		// nullable
 	public String m_resultColumn;
