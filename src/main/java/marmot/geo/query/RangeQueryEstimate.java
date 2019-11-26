@@ -18,17 +18,17 @@ import utils.stream.KVFStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class RangedClusterEstimate {
+public class RangeQueryEstimate {
 	private final DataSet m_ds;
-	private final Map<String,RangeMatch> m_matches;
+	private final Map<String,MatchedClusterEstimate> m_clusterEstimates;
 	private final Envelope m_range;
-	private final int m_totalGuess;
+	private final long m_totalMatchCount;
 	
-	public static RangedClusterEstimate about(DataSet ds, Envelope range) {
-		return new RangedClusterEstimate(ds, range);
+	public static RangeQueryEstimate about(DataSet ds, Envelope range) {
+		return new RangeQueryEstimate(ds, range);
 	}
 	
-	private RangedClusterEstimate(DataSet ds, Envelope range) {
+	private RangeQueryEstimate(DataSet ds, Envelope range) {
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		Utilities.checkNotNullArgument(range, "query ranage");
 		
@@ -36,59 +36,58 @@ public class RangedClusterEstimate {
 		m_range = range;
 		
 		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
-		m_matches = guessRelevants();
-		m_totalGuess = (int)KVFStream.from(m_matches)
+		m_clusterEstimates = estimate();
+		m_totalMatchCount = KVFStream.from(m_clusterEstimates)
 									.toValueStream()
 									.mapToInt(m -> m.m_matchCount)
 									.sum();
 	}
 	
-	public int getTotalMatchCount() {
-		return m_totalGuess;
+	public long getMatchCountEstimate() {
+		return m_totalMatchCount;
 	}
 	
 	public int getMatchingClusterCount() {
-		return m_matches.size();
+		return m_clusterEstimates.size();
 	}
 	
 	public Set<String> getMatchingClusterKeys() {
-		return m_matches.keySet();
+		return m_clusterEstimates.keySet();
 	}
 	
-	public SpatialClusterInfo getClusterInfo(String quadKey) {
-		return getMatch(quadKey)
+	public SpatialClusterInfo getMatchingClusterInfo(String quadKey) {
+		return getMatchingCluster(quadKey)
 				.map(m -> m.m_info)
 				.getOrNull();
 	}
 	
-	public int getMatchingRecordCount(String quadKey) {
-		return getMatch(quadKey)
+	public int getMatchCountEstimate(String quadKey) {
+		return getMatchingCluster(quadKey)
 				.map(m -> m.m_matchCount)
 				.getOrElse(0);
 	}
 	
 	@Override
 	public String toString() {
-		String matchStr = KVFStream.from(m_matches).toValueStream().join(",", "[", "]");
-		return String.format("%s:%d:%s", m_ds.getId(), m_totalGuess, matchStr);
+		String matchStr = KVFStream.from(m_clusterEstimates).toValueStream().join(",", "[", "]");
+		return String.format("%s:%d:%s", m_ds.getId(), m_totalMatchCount, matchStr);
 	}
 	
-	private FOption<RangeMatch> getMatch(String quadKey) {
-		return FOption.ofNullable(m_matches.get(quadKey));
+	private FOption<MatchedClusterEstimate> getMatchingCluster(String quadKey) {
+		return FOption.ofNullable(m_clusterEstimates.get(quadKey));
 	}
 	
-	private class RangeMatch {
+	private class MatchedClusterEstimate {
 		private final SpatialClusterInfo m_info;
-		private final Envelope m_matchRange;
 		private final double m_matchRatio;
 		private final int m_matchCount;
 		
-		private RangeMatch(SpatialClusterInfo info, Envelope range) {
+		private MatchedClusterEstimate(SpatialClusterInfo info, Envelope range) {
 			m_info = info;
 			
-			m_matchRange = info.getTileBounds().intersection(info.getDataBounds());
-			Envelope matchingArea = m_range.intersection(m_matchRange);
-			m_matchRatio = matchingArea.getArea() / m_matchRange.getArea();
+			Envelope clusterArea = info.getTileBounds().intersection(info.getDataBounds());
+			Envelope matchingArea = m_range.intersection(clusterArea);
+			m_matchRatio = matchingArea.getArea() / clusterArea.getArea();
 			m_matchCount = (int)Math.round(m_info.getOwnedRecordCount() * m_matchRatio);
 		}
 		
@@ -103,10 +102,10 @@ public class RangedClusterEstimate {
 		}
 	}
 	
-	private Map<String,RangeMatch> guessRelevants() {
+	private Map<String,MatchedClusterEstimate> estimate() {
 		List<SpatialClusterInfo> infos = m_ds.querySpatialClusterInfo(m_range);
 		return FStream.from(infos)
-						.map(info -> new RangeMatch(info, m_range))
+						.map(info -> new MatchedClusterEstimate(info, m_range))
 						.toMap(m -> m.m_info.getQuadKey());
 	}
 }
