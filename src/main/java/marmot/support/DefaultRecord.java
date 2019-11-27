@@ -33,9 +33,26 @@ public class DefaultRecord implements Record {
 		return new DefaultRecord(schema);
 	}
 	
+	public static DefaultRecord of(RecordSchema schema, List<Object> values) {
+		return new DefaultRecord(schema);
+	}
+	
 	protected DefaultRecord(RecordSchema schema) {
+		Utilities.checkNotNullArgument(schema, "schema is null");
+		
 		m_schema = schema;
 		m_values = Arrays.asList(new Object[schema.length()]); 
+	}
+	
+	protected DefaultRecord(RecordSchema schema, List<Object> values) {
+		Utilities.checkNotNullArgument(schema, "schema is null");
+		Utilities.checkNotNullArgument(values, "values is null");
+		Utilities.checkArgument(schema.length() == values.size(),
+								() -> String.format("imcompatible record values: %d <-> %d",
+													schema.length(), values.size()));
+		
+		m_schema = schema;
+		m_values = values;
 	}
 	
 	/**
