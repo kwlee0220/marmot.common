@@ -45,7 +45,7 @@ public class MarmotFeatureIterator implements SimpleFeatureIterator {
 			throw new NoSuchElementException();
 		}
 
-		SimpleFeature feature = m_featBuilder.buildFeature(null, m_record.getAll());
+		SimpleFeature feature = m_featBuilder.buildFeature(null, m_record.getValues().toArray());
 		
 		m_hasNext = m_rset.next(m_record);
 		if ( !m_hasNext ) {

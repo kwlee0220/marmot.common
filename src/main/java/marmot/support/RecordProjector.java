@@ -67,7 +67,7 @@ public class RecordProjector {
 			m_values[i] = input.get(m_colIdxes[i]);
 		}
 		
-		output.setAll(m_values);
+		output.setValues(Arrays.asList(m_values));
 	}
 	
 	@Override

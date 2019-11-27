@@ -197,7 +197,7 @@ public class SimpleFeatures {
 		List<SimpleFeature> features = Lists.newArrayList();
 		Record record = DefaultRecord.of(rset.getRecordSchema());
 		while ( rset.next(record) ) {
-			features.add(builder.buildFeature(null, record.getAll()));
+			features.add(builder.buildFeature(null, record.getValues().toArray()));
 		}
 		
 		return features;
@@ -206,7 +206,9 @@ public class SimpleFeatures {
 	public static List<SimpleFeature> toFeatureList(String sfTypeName, SimpleFeatureType sfType,
 													Iterable<Record> records) {
 		SimpleFeatureBuilder builder = new SimpleFeatureBuilder(sfType);
-		return FStream.from(records).map(r -> builder.buildFeature(null, r.getAll())).toList();
+		return FStream.from(records)
+						.map(r -> builder.buildFeature(null, r.getValues().toArray()))
+						.toList();
 	}
 	
 	public static FStream<File> streamShapeFiles(File start) throws IOException {

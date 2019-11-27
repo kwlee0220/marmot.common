@@ -30,7 +30,7 @@ class ToSimpleFeture implements Function<Record,SimpleFeature> {
 
 	@Override
 	public SimpleFeature apply(Record record) {
-		m_featBuilder.addAll(record.getAll());
+		m_featBuilder.addAll(record.getValues().toArray());
 		return m_featBuilder.buildFeature(m_idPrefix + (++m_count));
 	}
 }

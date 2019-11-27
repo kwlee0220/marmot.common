@@ -115,7 +115,7 @@ public abstract class JdbcRecordAdaptor {
 	public void loadRecord(ResultSet rs, Record record) throws RecordSetException {
 		RecordSchema schema = record.getRecordSchema();
 		
-		for ( int i =0; i < schema.getColumnCount(); ++i ) {
+		for ( int i =0; i < schema.length(); ++i ) {
 			Column col = schema.getColumnAt(i);
 			record.set(i, getColumn(col, rs, i+1));
 		}
@@ -123,11 +123,9 @@ public abstract class JdbcRecordAdaptor {
 
 	public void storeRecord(Record record, PreparedStatement pstmt) throws RecordSetException {
 		RecordSchema schema = record.getRecordSchema();
-		Object[] values = record.getAll();
-
-		for ( int i =0; i < schema.getColumnCount(); ++i ) {
+		for ( int i =0; i < schema.length(); ++i ) {
 			Column col = schema.getColumnAt(i);
-			setColumn(pstmt, i+1, col, values[i]);
+			setColumn(pstmt, i+1, col, record.get(i));
 		}
 	}
 	

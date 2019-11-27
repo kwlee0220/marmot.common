@@ -107,7 +107,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * 
 	 * @return	컬럼 개수
 	 */
-	public int getColumnCount() {
+	public int length() {
 		return m_columns.length;
 	}
 	

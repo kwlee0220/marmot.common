@@ -135,14 +135,14 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 		serializeGeometry(writer, record.getGeometry(geomColName));
 
 		RecordSchema schema = record.getRecordSchema();
-		if ( schema.getColumnCount() == 1 ) {
+		if ( schema.length() == 1 ) {
 			return;
 		}
 		
 		writer.name("properties");
 		writer.beginObject();
 		
-		for ( int i = 0; i < schema.getColumnCount(); ++i ) {
+		for ( int i = 0; i < schema.length(); ++i ) {
 			Column col = schema.getColumnAt(i);
 			if ( col.matches(geomColName) ) {
 				continue;

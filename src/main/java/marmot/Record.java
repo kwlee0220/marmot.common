@@ -36,8 +36,8 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 
 	 * @return	컬럼 수
 	 */
-	public default int getColumnCount() {
-		return getRecordSchema().getColumnCount();
+	public default int length() {
+		return getRecordSchema().length();
 	}
 	
 	/**
@@ -74,7 +74,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 
 	 * @return	컬럼 값 리스트.
 	 */
-	public Object[] getAll();
+	public List<Object> getValues();
 	
 	public default Map<String,Object> toMap() {
 		return new RecordMap(this);
@@ -87,7 +87,7 @@ public interface Record extends PBSerializable<RecordProto> {
 
 			@Override
 			public FOption<KeyValue<String, Object>> next() {
-				if ( m_idx >= m_schema.getColumnCount() ) {
+				if ( m_idx >= m_schema.length() ) {
 					return FOption.empty();
 				}
 				
@@ -140,7 +140,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * @param values 	설정할 값을 가진 맵 객체.
 	 * @return	갱신된 레코드 객체.
 	 */
-	public Record set(Map<String,Object> values);
+	public Record setValues(Map<String,Object> values);
 	
 	/**
 	 * 주어진 레코드의 모든 컬럼들을 복사해 온다.
@@ -149,7 +149,7 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 					컬럼 값의 순서는 레코드 스크마에 정의된 컬럼 순서와 같아야 한다.
 	 * @return	갱신된 레코드 객체.
 	 */
-	public Record setAll(Iterable<?> values);
+	public Record setValues(Iterable<?> values);
 	
 	/**
 	 * 주어진 레코드의 모든 컬럼들을 복사해 온다.
@@ -158,20 +158,21 @@ public interface Record extends PBSerializable<RecordProto> {
 	 * 					컬럼 값의 순서는 레코드 스크마에 정의된 컬럼 순서와 같아야 한다.
 	 * @return	갱신된 레코드 객체.
 	 */
-	public default Record setAll(Object... values) {
-		return setAll(Arrays.asList(values));
-	}
+//	public default Record setValues(Object... values) {
+//		return setValues(Arrays.asList(values));
+//	}
 	
-	public default Record setAll(int start, List<?> values) {
-		for ( int i = start; i < getColumnCount(); ++i ) {
-			set(i, values.get(i-start));
+	public default Record setValues(int start, Iterable<?> values) {
+		for ( Object v: values ) {
+			if ( start < length() ) {
+				set(start++, v);
+			}
 		}
-		
 		return this;
 	}
 	
-	public default Record setAll(int start, Object[] values) {
-		return setAll(start, Arrays.asList(values));
+	public default Record setValues(int start, Object[] values) {
+		return setValues(start, Arrays.asList(values));
 	}
 	
 	public void clear();
@@ -292,19 +293,17 @@ public interface Record extends PBSerializable<RecordProto> {
 		List<Object> values = FStream.from(proto.getColumnList())
 									.map(vp -> PBUtils.fromProto(vp)._2)
 									.toList();
-		setAll(values);
+		setValues(values);
 	}
 
 	public default RecordProto toProto() {
 		RecordProto.Builder builder = RecordProto.newBuilder();
 		
 		RecordSchema schema = getRecordSchema();
-		Object[] values = getAll();
-		
-		for ( int i =0; i < values.length; ++i ) {
+		for ( int i =0; i < length(); ++i ) {
 			Column col = schema.getColumnAt(i);
 			
-			ValueProto vproto = PBUtils.toValueProto(col.type().getTypeCode(), values[i]);
+			ValueProto vproto = PBUtils.toValueProto(col.type().getTypeCode(), get(i));
 			builder.addColumn(vproto);
 		}
 		

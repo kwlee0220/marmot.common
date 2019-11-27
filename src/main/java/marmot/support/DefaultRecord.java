@@ -1,6 +1,7 @@
 package marmot.support;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +27,7 @@ public class DefaultRecord implements Record {
 	private static final Object UNDEFINED = new Object();
 	
 	private final RecordSchema m_schema;
-	private final Object[] m_values;
+	private final List<Object> m_values;
 	
 	public static DefaultRecord of(RecordSchema schema) {
 		return new DefaultRecord(schema);
@@ -34,7 +35,7 @@ public class DefaultRecord implements Record {
 	
 	protected DefaultRecord(RecordSchema schema) {
 		m_schema = schema;
-		m_values = new Object[schema.getColumnCount()];
+		m_values = Arrays.asList(new Object[schema.length()]); 
 	}
 	
 	/**
@@ -56,11 +57,11 @@ public class DefaultRecord implements Record {
 	 */
 	@Override
 	public Object get(int index) {
-		if ( index < 0 || index >= m_values.length ) {
+		if ( index < 0 || index >= m_values.size() ) {
 			throw new ColumnNotFoundException("invalid column ordinal: " + index);
 		}
 		
-		return m_values[index];
+		return m_values.get(index);
 	}
 
 	/**
@@ -74,7 +75,7 @@ public class DefaultRecord implements Record {
 	public Object get(String name) {
 		Utilities.checkNotNullArgument(name, "column name");
 		
-		return m_values[m_schema.getColumn(name).ordinal()];
+		return m_values.get(m_schema.getColumn(name).ordinal());
 	}
 	
 	/**
@@ -84,7 +85,7 @@ public class DefaultRecord implements Record {
 	 * @return	컬럼 값 리스트.
 	 */
 	@Override
-	public Object[] getAll() {
+	public List<Object> getValues() {
 		return m_values;
 	}
 	
@@ -93,7 +94,7 @@ public class DefaultRecord implements Record {
 		Utilities.checkNotNullArgument(name, "column name");
 		
 		Column col = m_schema.getColumn(name);
-		m_values[col.ordinal()] = value;
+		m_values.set(col.ordinal(), value);
 		
 		return this;
 	}
@@ -108,11 +109,11 @@ public class DefaultRecord implements Record {
 	 */
 	@Override
 	public DefaultRecord set(int idx, Object value) {
-		if ( idx < 0 || idx >= m_values.length ) {
+		if ( idx < 0 || idx >= m_values.size() ) {
 			throw new ColumnNotFoundException("invalid column ordinal: " + idx);
 		}
 		
-		m_values[idx] = value;
+		m_values.set(idx, value);
 		return this;
 	}
 	
@@ -129,7 +130,7 @@ public class DefaultRecord implements Record {
 	@Override
 	public DefaultRecord set(Record src) {
 		if ( m_schema.equals(src.getRecordSchema()) ) {
-			setAll(src.getAll());
+			setValues(src.getValues());
 		}
 		else {
 			RecordSchema srcSchema = src.getRecordSchema();
@@ -138,7 +139,7 @@ public class DefaultRecord implements Record {
 					.forEach(col -> {
 						srcSchema.findColumn(col.name())
 								.map(srcCol -> src.get(srcCol.ordinal()))
-								.ifPresent(srcV -> m_values[col.ordinal()] = srcV);
+								.ifPresent(srcV -> m_values.set(col.ordinal(), srcV));
 					});
 		}
 		
@@ -152,13 +153,13 @@ public class DefaultRecord implements Record {
 	 * @param values 	설정할 값을 가진 맵 객체.
 	 */
 	@Override
-	public DefaultRecord set(Map<String,Object> values) {
-		for ( int i =0; i < m_schema.getColumnCount(); ++i ) {
+	public DefaultRecord setValues(Map<String,Object> values) {
+		for ( int i =0; i < m_schema.length(); ++i ) {
 			final Column col = m_schema.getColumnAt(i);
 			
 			Object value = values.getOrDefault(col.name(), UNDEFINED);
 			if ( value != UNDEFINED ) {
-				m_values[i] = DataUtils.cast(value, col.type());
+				m_values.set(i, DataUtils.cast(value, col.type()));
 			}
 		}
 		
@@ -173,10 +174,10 @@ public class DefaultRecord implements Record {
 	 * @return	갱신된 레코드 객체.
 	 */
 	@Override
-	public DefaultRecord setAll(Iterable<?> values) {
+	public DefaultRecord setValues(Iterable<?> values) {
 		Iterator<?> iter = values.iterator();
-		for ( int i =0; i < m_values.length && iter.hasNext(); ++i ) {
-			m_values[i] = iter.next();
+		for ( int i =0; i < m_values.size() && iter.hasNext(); ++i ) {
+			m_values.set(i, iter.next());
 		}
 		return this;
 	}
@@ -188,24 +189,28 @@ public class DefaultRecord implements Record {
 	 * 					컬럼 값의 순서는 레코드 스크마에 정의된 컬럼 순서와 같아야 한다.
 	 * @return	갱신된 레코드 객체.
 	 */
-	@Override
-	public DefaultRecord setAll(Object... values) {
-		System.arraycopy(values, 0, m_values, 0, Math.min(m_values.length, values.length));
-		return this;
-	}
+//	@Override
+//	public DefaultRecord setValues(Object... values) {
+//		for ( int i =0; i <  Math.min(m_values.size(), values.length); ++i ) {
+//			m_values.set(i, values[i]);
+//		}
+//		return this;
+//	}
 
 	@Override
-	public DefaultRecord setAll(int start, Object[] values) {
+	public DefaultRecord setValues(int start, Object[] values) {
 		Preconditions.checkArgument(start >= 0, "invalid start index");
 		
-		int count = Math.min(m_values.length - start, values.length);
-		System.arraycopy(values, 0, m_values, start, count);
+		int count = Math.min(m_values.size() - start, values.length);
+		for ( int i = 0; i < count; ++i ) {
+			m_values.set(i+start, values[i]);
+		}
 		return this;
 	}
 
 	@Override
 	public void clear() {
-		Arrays.fill(m_values, null);
+		Collections.fill(m_values, null);
 	}
 	
 	/**
@@ -230,7 +235,7 @@ public class DefaultRecord implements Record {
 		}
 		
 		DefaultRecord other = (DefaultRecord)obj;
-		return Arrays.equals(m_values, other.getAll());
+		return m_values.equals(other.m_values);
 	}
 	
 	@Override
@@ -255,7 +260,7 @@ public class DefaultRecord implements Record {
 		List<Object> columns = FStream.from(proto.getColumnList())
 									.map(vp -> PBUtils.fromProto(vp)._2)
 									.toList();
-		record.setAll(columns);
+		record.setValues(columns);
 		
 		return record;
 	}

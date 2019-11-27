@@ -156,7 +156,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 			feature = m_reader.next();
 		}
 		
-		for ( int i =0; i < getRecordSchema().getColumnCount(); ++i ) {
+		for ( int i =0; i < getRecordSchema().length(); ++i ) {
 			Object value = feature.getAttribute(i);
 			
 			value = DataUtils.cast(value, m_types[i]);

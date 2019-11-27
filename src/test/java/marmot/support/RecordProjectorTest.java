@@ -1,5 +1,7 @@
 package marmot.support;
 
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +29,7 @@ public class RecordProjectorTest {
 								.addColumn("CoL4", DataType.SHORT)
 								.build();
 		m_record = DefaultRecord.of(m_schema);
-		m_record.setAll("aaa", 15, 12.5d, 7);
+		m_record.setValues(Arrays.asList("aaa", 15, 12.5d, 7));
 		
 	}
 	
@@ -37,7 +39,7 @@ public class RecordProjectorTest {
 		Record output = DefaultRecord.of(proj.getOutputRecordSchema());
 		
 		proj.apply(m_record, output);
-		Assert.assertEquals(2, output.getColumnCount());
+		Assert.assertEquals(2, output.length());
 		Assert.assertEquals("aaa", output.getString(0));
 		Assert.assertEquals(7, output.getShort(1));
 	}
@@ -48,7 +50,7 @@ public class RecordProjectorTest {
 		Record output = DefaultRecord.of(proj.getOutputRecordSchema());
 		
 		proj.apply(m_record, output);
-		Assert.assertEquals(2, output.getColumnCount());
+		Assert.assertEquals(2, output.length());
 		Assert.assertEquals(12.5d, output.get(0));
 		Assert.assertEquals(15, output.get(1));
 	}
@@ -59,7 +61,7 @@ public class RecordProjectorTest {
 		Record output = DefaultRecord.of(proj.getOutputRecordSchema());
 		
 		proj.apply(m_record, output);
-		Assert.assertEquals(1, output.getColumnCount());
+		Assert.assertEquals(1, output.length());
 		Assert.assertEquals(15, output.get(0));
 	}
 	
@@ -69,7 +71,7 @@ public class RecordProjectorTest {
 		Record output = DefaultRecord.of(proj.getOutputRecordSchema());
 		
 		proj.apply(m_record, output);
-		Assert.assertEquals(0, output.getColumnCount());
+		Assert.assertEquals(0, output.length());
 	}
 	
 	@Test
@@ -78,7 +80,7 @@ public class RecordProjectorTest {
 		Record output = DefaultRecord.of(proj.getOutputRecordSchema());
 		
 		proj.apply(m_record, output);
-		Assert.assertEquals(4, output.getColumnCount());
+		Assert.assertEquals(4, output.length());
 		Assert.assertEquals(12.5d, output.get(0));
 		Assert.assertEquals("aaa", output.get(1));
 		Assert.assertEquals(7, output.get(2));
@@ -91,7 +93,7 @@ public class RecordProjectorTest {
 		Record output = DefaultRecord.of(proj.getOutputRecordSchema());
 		
 		proj.apply(m_record, output);
-		Assert.assertEquals(1, output.getColumnCount());
+		Assert.assertEquals(1, output.length());
 		Assert.assertEquals(12.5d, output.get(0));
 	}
 	

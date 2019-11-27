@@ -1,6 +1,5 @@
 package marmot.support;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -28,12 +27,12 @@ public class RecordMap implements Map<String,Object> {
 
 	@Override
 	public boolean isEmpty() {
-		return m_record.getColumnCount() == 0;
+		return m_record.length() == 0;
 	}
 	
 	@Override
     public int size() {
-        return m_record.getColumnCount();
+        return m_record.length();
     }
 	
 	@Override
@@ -102,7 +101,7 @@ public class RecordMap implements Map<String,Object> {
 
 	@Override
 	public Collection<Object> values() {
-		return Arrays.asList(m_record.getAll());
+		return m_record.getValues();
 	}
 	
 	@Override

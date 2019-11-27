@@ -27,7 +27,7 @@ public class RecordSchemaTest {
 	public void test01() throws Exception {
 		RecordSchema schema = RecordSchema.NULL;
 		
-		Assert.assertEquals(0, schema.getColumnCount());
+		Assert.assertEquals(0, schema.length());
 	}
 	
 	@Test
@@ -38,7 +38,7 @@ public class RecordSchemaTest {
 											.addColumn("Col3", DataType.DOUBLE)
 											.build();
 
-		Assert.assertEquals(3, schema.getColumnCount());
+		Assert.assertEquals(3, schema.length());
 		Assert.assertEquals(true, schema.existsColumn("col1"));
 		Assert.assertEquals(true, schema.existsColumn("Col1"));
 		Assert.assertEquals(true, schema.existsColumn("col2"));
@@ -52,7 +52,7 @@ public class RecordSchemaTest {
 		RecordSchema schema = RecordSchema.NULL;
 		RecordSchema schema2 = (RecordSchema)ProtoBufActivator.activate(schema.toProto());
 
-		Assert.assertEquals(0, schema2.getColumnCount());
+		Assert.assertEquals(0, schema2.length());
 	}
 	
 	@Test
@@ -85,7 +85,7 @@ public class RecordSchemaTest {
 										.addOrReplaceColumn("col2", DataType.SHORT)
 										.build();
 
-		Assert.assertEquals(3, schema2.getColumnCount());
+		Assert.assertEquals(3, schema2.length());
 		Assert.assertEquals(true, schema2.existsColumn("Col1"));
 		Assert.assertEquals(true, schema2.existsColumn("col2"));
 		Assert.assertEquals(true, schema2.existsColumn("Col3"));
@@ -95,7 +95,7 @@ public class RecordSchemaTest {
 										.addOrReplaceColumn("cOl4", DataType.SHORT)
 										.build();
 
-		Assert.assertEquals(4, schema3.getColumnCount());
+		Assert.assertEquals(4, schema3.length());
 		Assert.assertEquals(true, schema3.existsColumn("Col1"));
 		Assert.assertEquals(true, schema3.existsColumn("col2"));
 		Assert.assertEquals(true, schema3.existsColumn("Col3"));
@@ -128,7 +128,7 @@ public class RecordSchemaTest {
 		List<String> key = Arrays.asList("COL1", "col3");
 		
 		schema = schema.project(key);
-		Assert.assertEquals(2, schema.getColumnCount());
+		Assert.assertEquals(2, schema.length());
 		Assert.assertEquals("col1", schema.getColumnAt(0).name());
 		Assert.assertEquals("Col3", schema.getColumnAt(1).name());
 	}

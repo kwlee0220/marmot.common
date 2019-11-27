@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.stream.Collectors;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Iterators;
@@ -746,25 +747,25 @@ public class PBUtils {
 	}
 	
 	public static RecordProto toProto(Record record) {
-		return FStream.of(record.getAll())
+		return FStream.from(record.getValues())
 						.map(PBUtils::toValueProto)
 						.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
 						.build();
 	}
 	
 	public static void fromProto(Record output, RecordProto proto) {
-		Object[] values = proto.getColumnList().stream()
-								.map(PBUtils::fromProto)
-								.toArray();
-		output.setAll(values);
+		List<Object> values = proto.getColumnList().stream()
+									.map(PBUtils::fromProto)
+									.collect(Collectors.toList());
+		output.setValues(values);
 	}
 	
 	public static Record fromProto(RecordSchema schema, RecordProto proto) {
-		Object[] values = proto.getColumnList().stream()
-								.map(PBUtils::fromProto)
-								.toArray();
+		List<Object> values = proto.getColumnList().stream()
+									.map(PBUtils::fromProto)
+									.collect(Collectors.toList());
 		Record output = DefaultRecord.of(schema);
-		output.setAll(values);
+		output.setValues(values);
 		
 		return output;
 	}
