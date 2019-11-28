@@ -219,9 +219,13 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 					.build();
 	}
 	
+	public String toStringExpr() {
+		return FStream.of(m_columns).map(Column::toStringExpr).join(",");
+	}
+	
 	@Override
 	public String toString() {
-		return FStream.of(m_columns).map(Column::toString).join(",");
+		return toStringExpr();
 	}
 	
 	@Override
