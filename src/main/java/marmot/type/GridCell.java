@@ -1,5 +1,6 @@
 package marmot.type;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.vividsolutions.jts.geom.Coordinate;
@@ -13,7 +14,9 @@ import utils.Utilities;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class GridCell implements Comparable<GridCell> {
+public class GridCell implements Comparable<GridCell>, Serializable {
+	private static final long serialVersionUID = -6770906868922809119L;
+	
 	private final int m_x;
 	private final int m_y;
 	
