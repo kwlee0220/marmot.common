@@ -347,9 +347,9 @@ public interface RecordSet extends Closeable, Iterable<Record> {
 		}
 	}
 	
-	public default Record findFirst() {
+	public default FOption<Record> findFirst() {
 		try {
-			return nextCopy();
+			return FOption.ofNullable(nextCopy());
 		}
 		finally {
 			closeQuietly();
