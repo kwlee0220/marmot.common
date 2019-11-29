@@ -1,5 +1,7 @@
 package marmot;
 
+import java.io.IOException;
+
 import marmot.exec.MarmotExecutionException;
 
 /**
@@ -13,7 +15,7 @@ public interface MarmotSparkSession {
 		execute(plan, ExecutePlanOptions.DEFAULT);
 	}
 	
-	public void createOrReplaceView(String viewName, String dsId);
+	public void createOrReplaceView(String viewName, String dsId) throws IOException;
 	public void runSql(String sqlStmt, String outDsId, StoreDataSetOptions opts)
 		throws MarmotExecutionException;
 }
