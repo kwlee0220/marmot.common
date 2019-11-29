@@ -92,6 +92,7 @@ import utils.func.CheckedSupplier;
 import utils.func.FOption;
 import utils.func.Tuple;
 import utils.io.IOUtils;
+import utils.io.Lz4Compressions;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
 
@@ -795,7 +796,6 @@ public class PBUtils {
 							.build();
 	}
 	
-//	private static final int TOO_BIG = (int)UnitUtils.parseByteSize("25mb");
 	private static final int STRING_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("1mb");
 	private static final int BINARY_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("4mb");
 	public static ValueProto toValueProto(TypeCode tc, Object obj) {
@@ -835,11 +835,7 @@ public class PBUtils {
 				}
 				else {
 					try {
-						byte[] compressed = IOUtils.compress(str.getBytes());
-//						if ( compressed.length > TOO_BIG ) {
-//							throw new PBException("string value is too big: size="
-//												+ UnitUtils.toByteSizeString(compressed.length));
-//						}
+						byte[] compressed = Lz4Compressions.compress(str.getBytes());
 						builder.setCompressedStringValue(ByteString.copyFrom(compressed));
 					}
 					catch ( IOException e ) {
@@ -854,11 +850,7 @@ public class PBUtils {
 				}
 				else {
 					try {
-						byte[] compressed = IOUtils.compress(bytes);
-//						if ( compressed.length > TOO_BIG ) {
-//							throw new PBException("binary value is too big: size="
-//												+ UnitUtils.toByteSizeString(compressed.length));
-//						}
+						byte[] compressed = Lz4Compressions.compress(bytes);
 						builder.setCompressedBinaryValue(ByteString.copyFrom(compressed));
 					}
 					catch ( IOException e ) {
@@ -939,7 +931,7 @@ public class PBUtils {
 			case COMPRESSED_STRING_VALUE:
 				try {
 					byte[] bytes = proto.getCompressedStringValue().toByteArray();
-					bytes = IOUtils.decompress(bytes);
+					bytes = Lz4Compressions.decompress(bytes);
 					return Tuple.of(DataType.STRING, new String(bytes));
 				}
 				catch ( Exception e ) {
@@ -950,7 +942,7 @@ public class PBUtils {
 			case COMPRESSED_BINARY_VALUE:
 				try {
 					byte[] bytes = proto.getCompressedBinaryValue().toByteArray();
-					return Tuple.of(DataType.BINARY, IOUtils.decompress(bytes));
+					return Tuple.of(DataType.BINARY, Lz4Compressions.decompress(bytes));
 				}
 				catch ( Exception e ) {
 					throw new PBException(e);
