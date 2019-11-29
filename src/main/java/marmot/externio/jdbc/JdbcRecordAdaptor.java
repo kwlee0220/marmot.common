@@ -77,7 +77,7 @@ public abstract class JdbcRecordAdaptor {
 	public static RecordSchema buildRecordSchema(JdbcProcessor jdbc, String tblName) throws SQLException {
 		return KVFStream.from(jdbc.getColumns(tblName))
 						.mapValue((k,v) -> fromSqlType(v.type(), v.typeName()))
-						.map(Column::new)
+						.map((k,v) -> new Column(k,v))
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
 	}

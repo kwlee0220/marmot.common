@@ -745,6 +745,13 @@ public class PBUtils {
 							.build();
 	}
 	
+	public static RecordProto toProto(Object[] values) {
+		return FStream.of(values)
+						.map(PBUtils::toValueProto)
+						.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
+						.build();
+	}
+	
 	public static RecordProto toProto(Record record) {
 		return FStream.of(record.getAll())
 						.map(PBUtils::toValueProto)

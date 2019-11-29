@@ -32,7 +32,7 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 		m_ordinal = -1;
 	}
 	
-	Column(CIString name, DataType type, int ordinal) {
+	public Column(CIString name, DataType type, int ordinal) {
 		Utilities.checkNotNullArgument(name, "column name");
 		Utilities.checkNotNullArgument(type, "column type");
 		
@@ -81,6 +81,10 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 		String typeStr = parts[1].trim();
 		return new Column(parts[0].trim(),
 							typeStr.equals("?") ? null : DataTypes.fromName(typeStr));
+	}
+	
+	public String toStringExpr() {
+		return m_name.get() + ":" + ((m_type != null) ?m_type.getName() : "?");
 	}
 	
 	public boolean matches(String name) {
@@ -136,14 +140,18 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	private static class SerializationProxy implements Serializable {
 		private static final long serialVersionUID = 4661876959105417945L;
 		
-		private transient final String m_strRep;
+		private final CIString m_name;
+		private final DataType m_type;
+		private final short m_ordinal;
 		
-		private SerializationProxy(Column mcKey) {
-			m_strRep = mcKey.toString();
+		private SerializationProxy(Column col) {
+			m_name = col.m_name;
+			m_type = col.m_type;
+			m_ordinal = col.m_ordinal;
 		}
 		
 		private Object readResolve() {
-			return Column.parse(m_strRep);
+			return new Column(m_name, m_type, m_ordinal);
 		}
 	}
 }
