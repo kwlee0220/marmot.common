@@ -14,6 +14,9 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
@@ -92,7 +95,6 @@ import utils.func.CheckedSupplier;
 import utils.func.FOption;
 import utils.func.Tuple;
 import utils.io.IOUtils;
-import utils.io.Lz4Compressions;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
 
@@ -101,6 +103,8 @@ import utils.stream.KVFStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class PBUtils {
+	private static final Logger s_logger = LoggerFactory.getLogger(PBUtils.class);
+	
 	public static final VoidProto VOID = VoidProto.newBuilder().build();
 	private static final VoidResponse VOID_RESPONSE = VoidResponse.newBuilder()
 																	.setVoid(VOID)
@@ -829,34 +833,10 @@ public class PBUtils {
 				builder.setBoolValue((boolean)obj);
 				break;
 			case STRING:
-				String str = ((String)obj);
-				if ( str.length() < STRING_COMPRESS_THRESHOLD ) {
-					builder.setStringValue(str);
-				}
-				else {
-					try {
-						byte[] compressed = Lz4Compressions.compress(str.getBytes());
-						builder.setCompressedStringValue(ByteString.copyFrom(compressed));
-					}
-					catch ( IOException e ) {
-						throw new PBException(e);
-					}
-				}
+				builder.setStringValue((String)obj);
 				break;
 			case BINARY:
-				byte[] bytes = (byte[])obj;
-				if ( bytes.length < BINARY_COMPRESS_THRESHOLD ) {
-					builder.setBinaryValue(ByteString.copyFrom(bytes));
-				}
-				else {
-					try {
-						byte[] compressed = Lz4Compressions.compress(bytes);
-						builder.setCompressedBinaryValue(ByteString.copyFrom(compressed));
-					}
-					catch ( IOException e ) {
-						throw new PBException(e);
-					}
-				}
+				builder.setBinaryValue(ByteString.copyFrom((byte[])obj));
 				break;
 			case DATETIME:
 				builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
@@ -928,25 +908,8 @@ public class PBUtils {
 				return Tuple.of(DataType.BOOLEAN, proto.getBoolValue());
 			case STRING_VALUE:
 				return Tuple.of(DataType.STRING, proto.getStringValue());
-			case COMPRESSED_STRING_VALUE:
-				try {
-					byte[] bytes = proto.getCompressedStringValue().toByteArray();
-					bytes = Lz4Compressions.decompress(bytes);
-					return Tuple.of(DataType.STRING, new String(bytes));
-				}
-				catch ( Exception e ) {
-					throw new PBException(e);
-				}
 			case BINARY_VALUE:
 				return Tuple.of(DataType.BINARY, proto.getBinaryValue().toByteArray());
-			case COMPRESSED_BINARY_VALUE:
-				try {
-					byte[] bytes = proto.getCompressedBinaryValue().toByteArray();
-					return Tuple.of(DataType.BINARY, Lz4Compressions.decompress(bytes));
-				}
-				catch ( Exception e ) {
-					throw new PBException(e);
-				}
 			case DATETIME_VALUE:
 				return Tuple.of(DataType.DATETIME, LocalDateTimes.fromUtcMillis(proto.getDatetimeValue()));
 			case DATE_VALUE:
