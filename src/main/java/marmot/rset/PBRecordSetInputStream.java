@@ -14,6 +14,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import marmot.protobuf.PBRecordProtos;
 import marmot.support.DefaultRecord;
 import utils.Throwables;
 import utils.Utilities;
@@ -105,7 +106,7 @@ public class PBRecordSetInputStream extends InputStream {
 						return null;
 					}
 					
-					rec.toProto().writeDelimitedTo(m_os);
+					PBRecordProtos.toProto(rec).writeDelimitedTo(m_os);
 				}
 				getLogger().debug("END-OF-RSET");
 			}

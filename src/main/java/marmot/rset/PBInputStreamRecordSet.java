@@ -8,6 +8,7 @@ import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.proto.RecordProto;
 import marmot.proto.RecordSchemaProto;
+import marmot.protobuf.PBRecordProtos;
 import marmot.support.DefaultRecord;
 import utils.Throwables;
 import utils.Utilities;
@@ -53,7 +54,7 @@ public class PBInputStreamRecordSet extends AbstractRecordSet {
 		try {
 			RecordProto proto = RecordProto.parseDelimitedFrom(m_is);
 			if ( proto != null ) {
-				output.fromProto(proto);
+				PBRecordProtos.fromProto(proto, output);
 				return true;
 			}
 			else {
