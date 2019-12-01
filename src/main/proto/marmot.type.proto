@@ -138,6 +138,10 @@ message ValueProto {
 	}
 }
 
+message ValueArrayProto {
+	repeated ValueProto value = 1;
+}
+
 message PropertiesProto {
 	message PropertyProto {
 		string key = 1;

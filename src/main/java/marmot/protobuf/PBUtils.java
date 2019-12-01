@@ -4,9 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,30 +33,26 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import marmot.Record;
-import marmot.RecordSchema;
 import marmot.exec.MarmotExecutionException;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.BoolProto;
 import marmot.proto.CoordinateProto;
 import marmot.proto.EnvelopeProto;
 import marmot.proto.GeometryProto;
-import marmot.proto.GridCellProto;
 import marmot.proto.IntervalProto;
 import marmot.proto.JavaSerializedProto;
 import marmot.proto.KeyValueMapProto;
 import marmot.proto.KeyValueMapProto.KeyValueProto;
-import marmot.proto.MapTileProto;
 import marmot.proto.PointProto;
 import marmot.proto.PropertiesProto;
 import marmot.proto.PropertiesProto.PropertyProto;
 import marmot.proto.ProtoBufSerializedProto;
-import marmot.proto.RecordProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.Size2dProto;
 import marmot.proto.Size2iProto;
 import marmot.proto.StringProto;
 import marmot.proto.TypeCodeProto;
-import marmot.proto.ValueProto;
+import marmot.proto.ValueArrayProto;
 import marmot.proto.VoidProto;
 import marmot.proto.service.BoolResponse;
 import marmot.proto.service.DoubleResponse;
@@ -71,29 +64,18 @@ import marmot.proto.service.RecordResponse;
 import marmot.proto.service.StringResponse;
 import marmot.proto.service.VoidResponse;
 import marmot.remote.protobuf.PBMarmotError;
-import marmot.support.DefaultRecord;
 import marmot.support.PBException;
 import marmot.support.PBSerializable;
-import marmot.type.DataType;
 import marmot.type.DataTypes;
 import marmot.type.GeometryDataType;
-import marmot.type.GridCell;
 import marmot.type.Interval;
-import marmot.type.MapTile;
-import marmot.type.Trajectory;
 import marmot.type.TypeCode;
-import utils.LocalDateTimes;
-import utils.LocalDates;
-import utils.LocalTimes;
 import utils.Size2d;
 import utils.Size2i;
 import utils.Throwables;
-import utils.UnitUtils;
-import utils.Utilities;
 import utils.func.CheckedRunnable;
 import utils.func.CheckedSupplier;
 import utils.func.FOption;
-import utils.func.Tuple;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
@@ -362,7 +344,7 @@ public class PBUtils {
 	
 	public static RecordResponse toRecordResponse(Record value) {
 		return RecordResponse.newBuilder()
-							.setRecord(value.toProto())
+							.setRecord(PBRecordProtos.toProto(value))
 							.build();
 	}
 	
@@ -730,6 +712,28 @@ public class PBUtils {
 		}
 	}
 	
+	public static ValueArrayProto toValueArrayProto(Object[] values) {
+		return ValueArrayProto.newBuilder()
+								.addAllValue(FStream.of(values)
+													.map(PBValueProtos::toValueProto)
+													.toList())
+								.build();
+	}
+	
+	public static ValueArrayProto toValueArrayProto(List<Object> values) {
+		return ValueArrayProto.newBuilder()
+								.addAllValue(FStream.from(values)
+													.map(PBValueProtos::toValueProto)
+													.toList())
+								.build();
+	}
+	
+	public static List<Object> fromProto(ValueArrayProto proto) {
+		return FStream.from(proto.getValueList())
+						.map(PBValueProtos::fromProto)
+						.toList();
+	}
+	
 	public static Map<String,String> fromProto(PropertiesProto proto) {
 		return FStream.from(proto.getPropertyList())
 				.foldLeft(Maps.newHashMap(), (map,kv) -> {
@@ -750,279 +754,23 @@ public class PBUtils {
 							.build();
 	}
 	
-	public static RecordProto toProto(Object[] values) {
-		return FStream.of(values)
-						.map(PBUtils::toValueProto)
-						.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
-						.build();
-	}
-	
-	public static RecordProto toProto(Record record) {
-		return FStream.of(record.getAll())
-						.map(PBUtils::toValueProto)
-						.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
-						.build();
-	}
-	
-	public static void fromProto(Record output, RecordProto proto) {
-		Object[] values = proto.getColumnList().stream()
-								.map(PBUtils::fromProto)
-								.toArray();
-		output.setAll(values);
-	}
-	
-	public static Record fromProto(RecordSchema schema, RecordProto proto) {
-		Object[] values = proto.getColumnList().stream()
-								.map(PBUtils::fromProto)
-								.toArray();
-		Record output = DefaultRecord.of(schema);
-		output.setAll(values);
-		
-		return output;
-	}
-	
 	public static Map<String,Object> fromProto(KeyValueMapProto kvmProto) {
 		return FStream.from(kvmProto.getKeyValueList())
 					.toKeyValueStream(KeyValueProto::getKey, KeyValueProto::getValue)
-					.mapValue(vproto -> fromProto(vproto)._2)
+					.mapValue(vproto -> PBValueProtos.fromProto(vproto))
 					.toMap();
 	}
 	
 	public static KeyValueMapProto toKeyValueMapProto(Map<String,Object> keyValueMap) {
-		List<KeyValueProto> keyValues = KVFStream.from(keyValueMap)
-												.map(kv -> KeyValueProto.newBuilder()
-																	.setKey(kv.key())
-																	.setValue(toValueProto(kv.value()))
-																	.build())
-												.toList();
+		List<KeyValueProto> keyValues
+					= KVFStream.from(keyValueMap)
+								.map((k,v) -> KeyValueProto.newBuilder()
+															.setKey(k)
+															.setValue(PBValueProtos.toValueProto(v))
+															.build())
+								.toList();
 		return KeyValueMapProto.newBuilder()
 							.addAllKeyValue(keyValues)
 							.build();
-	}
-	
-	private static final int STRING_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("1mb");
-	private static final int BINARY_COMPRESS_THRESHOLD = (int)UnitUtils.parseByteSize("4mb");
-	public static ValueProto toValueProto(TypeCode tc, Object obj) {
-		if ( obj == null ) {
-			return ValueProto.newBuilder()
-							.setNullValue(TypeCodeProto.valueOf(tc.name()))
-							.build();
-		}
-		
-		ValueProto.Builder builder = ValueProto.newBuilder();
-		switch ( tc ) {
-			case BYTE:
-				builder.setByteValue((byte)obj);
-				break;
-			case SHORT:
-				builder.setShortValue((short)obj);
-				break;
-			case INT:
-				builder.setIntValue((int)obj);
-				break;
-			case LONG:
-				builder.setLongValue((long)obj);
-				break;
-			case FLOAT:
-				builder.setFloatValue((float)obj);
-				break;
-			case DOUBLE:
-				builder.setDoubleValue((double)obj);
-				break;
-			case BOOLEAN:
-				builder.setBoolValue((boolean)obj);
-				break;
-			case STRING:
-				builder.setStringValue((String)obj);
-				break;
-			case BINARY:
-				builder.setBinaryValue(ByteString.copyFrom((byte[])obj));
-				break;
-			case DATETIME:
-				builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
-				break;
-			case DATE:
-				builder.setDatetimeValue(LocalDates.toUtcMillis((LocalDate)obj));
-				break;
-			case TIME:
-				builder.setTimeValue(LocalTimes.toString((LocalTime)obj));
-				break;
-			case INTERVAL:
-				builder.setIntervalValue(toProto((Interval)obj));
-				break;
-			case ENVELOPE:
-				builder.setEnvelopeValue(PBUtils.toProto((Envelope)obj));
-				break;
-			case TILE:
-				MapTile tile = (MapTile)obj;
-				builder.setTileValue(MapTileProto.newBuilder()
-												.setX(tile.getX())
-												.setY(tile.getY())
-												.setZoom(tile.getZoom())
-												.build());
-				break;
-			case GRID_CELL:
-				GridCell cell = (GridCell)obj;
-				builder.setGridCellValue(GridCellProto.newBuilder()
-														.setX(cell.getX())
-														.setY(cell.getY())
-														.build());
-				break;
-			case POINT:
-				builder.setPointValue(PBUtils.toProto((Point)obj));
-				break;
-			case MULTI_POINT:
-			case LINESTRING:
-			case MULTI_LINESTRING:
-			case POLYGON:
-			case MULTI_POLYGON:
-			case GEOM_COLLECTION:
-			case GEOMETRY:
-				builder.setGeometryValue(PBUtils.toProto((Geometry)obj));
-				break;
-			case TRAJECTORY:
-				builder.setTrajectoryValue(((Trajectory)obj).toProto());
-				break;
-			default:
-				throw new AssertionError();
-		}
-		
-		return builder.build();
-	}
-	
-	public static Tuple<DataType,Object> fromProto(ValueProto proto) {
-		switch ( proto.getValueCase() ) {
-			case BYTE_VALUE:
-				return Tuple.of(DataType.BYTE, (byte)proto.getByteValue());
-			case SHORT_VALUE:
-				return Tuple.of(DataType.SHORT, (short)proto.getShortValue());
-			case INT_VALUE:
-				return Tuple.of(DataType.INT, (int)proto.getIntValue());
-			case LONG_VALUE:
-				return Tuple.of(DataType.LONG, proto.getLongValue());
-			case FLOAT_VALUE:
-				return Tuple.of(DataType.FLOAT, proto.getFloatValue());
-			case DOUBLE_VALUE:
-				return Tuple.of(DataType.DOUBLE, proto.getDoubleValue());
-			case BOOL_VALUE:
-				return Tuple.of(DataType.BOOLEAN, proto.getBoolValue());
-			case STRING_VALUE:
-				return Tuple.of(DataType.STRING, proto.getStringValue());
-			case BINARY_VALUE:
-				return Tuple.of(DataType.BINARY, proto.getBinaryValue().toByteArray());
-			case DATETIME_VALUE:
-				return Tuple.of(DataType.DATETIME, LocalDateTimes.fromUtcMillis(proto.getDatetimeValue()));
-			case DATE_VALUE:
-				return Tuple.of(DataType.DATE, LocalDates.fromUtcMillis(proto.getDateValue()));
-			case TIME_VALUE:
-				return Tuple.of(DataType.TIME, LocalTimes.fromString(proto.getTimeValue()));
-			case DURATION_VALUE:
-				throw new UnsupportedOperationException("duration type");
-			case INTERVAL_VALUE:
-				IntervalProto intvlProto = proto.getIntervalValue();
-				return Tuple.of(DataType.INTERVAL,
-							Interval.between(intvlProto.getStart(), intvlProto.getEnd()));
-			case ENVELOPE_VALUE:
-				return Tuple.of(DataType.ENVELOPE, PBUtils.fromProto(proto.getEnvelopeValue()));
-			case TILE_VALUE:
-				MapTileProto mtp = proto.getTileValue();
-				return Tuple.of(DataType.TILE, new MapTile(mtp.getZoom(), mtp.getX(), mtp.getY()));
-			case GRID_CELL_VALUE:
-				GridCellProto gcProto = proto.getGridCellValue();
-				return Tuple.of(DataType.GRID_CELL, new GridCell(gcProto.getX(), gcProto.getY()));
-			case POINT_VALUE:
-				return Tuple.of(DataType.POINT, PBUtils.fromProto(proto.getPointValue()));
-			case GEOMETRY_VALUE:
-				Geometry geom = PBUtils.fromProto(proto.getGeometryValue());
-				DataType type = GeometryDataType.fromGeometry(geom);
-				return Tuple.of(type, geom);
-			case TRAJECTORY_VALUE:
-				Trajectory trj = Trajectory.fromProto(proto.getTrajectoryValue());
-				return Tuple.of(DataType.TRAJECTORY, trj);
-			case NULL_VALUE:
-				TypeCode tc = TypeCode.valueOf(proto.getNullValue().name());
-				return Tuple.of(DataTypes.fromTypeCode(tc), null);
-			case VALUE_NOT_SET:
-				return Tuple.of(null, null);
-			default:
-				throw new AssertionError();
-		}
-	}
-	
-	public static ValueProto toValueProto(Object obj) {
-		if ( obj == null ) {
-			return ValueProto.newBuilder().build();
-		}
-		
-		ValueProto.Builder builder = ValueProto.newBuilder();
-		if ( obj instanceof String ) {
-			builder.setStringValue((String)obj);
-		}
-		else if ( obj instanceof Integer ) {
-			builder.setIntValue((int)obj);
-		}
-		else if ( obj instanceof Double ) {
-			builder.setDoubleValue((double)obj);
-		}
-		else if ( obj instanceof Long ) {
-			builder.setLongValue((long)obj);
-		}
-		else if ( obj instanceof Boolean ) {
-			builder.setBoolValue((boolean)obj);
-		}
-		else if ( obj instanceof Point ) {
-			builder.setPointValue(PBUtils.toProto((Point)obj));
-		}
-		else if ( obj instanceof Geometry ) {
-			builder.setGeometryValue(PBUtils.toProto((Geometry)obj));
-		}
-		else if ( obj instanceof Envelope ) {
-			builder.setEnvelopeValue(PBUtils.toProto((Envelope)obj));
-		}
-		else if ( obj instanceof Byte[] ) {
-			builder.setBinaryValue(ByteString.copyFrom((byte[])obj));
-		}
-		else if ( obj instanceof Byte ) {
-			builder.setByteValue((byte)obj);
-		}
-		else if ( obj instanceof Short ) {
-			builder.setShortValue((short)obj);
-		}
-		else if ( obj instanceof Float ) {
-			builder.setFloatValue((float)obj);
-		}
-		else if ( obj instanceof LocalDateTime ) {
-			builder.setDatetimeValue(Utilities.toUTCEpocMillis((LocalDateTime)obj));
-		}
-		else if ( obj instanceof LocalDate ) {
-			LocalDateTime ldt = ((LocalDate)obj).atStartOfDay();
-			builder.setDateValue(Utilities.toUTCEpocMillis(ldt));
-		}
-		else if ( obj instanceof LocalTime ) {
-			builder.setTimeValue(((LocalTime)obj).toString());
-		}
-		else if ( obj instanceof MapTile ) {
-			MapTile tile = (MapTile)obj;
-			builder.setTileValue(MapTileProto.newBuilder()
-											.setX(tile.getX())
-											.setY(tile.getY())
-											.setZoom(tile.getZoom())
-											.build());
-		}
-		else if ( obj instanceof GridCell ) {
-			GridCell cell = (GridCell)obj;
-			builder.setGridCellValue(GridCellProto.newBuilder()
-													.setX(cell.getX())
-													.setY(cell.getY())
-													.build());
-		}
-		else if ( obj instanceof Trajectory ) {
-			builder.setTrajectoryValue(((Trajectory)obj).toProto());
-		}
-		else {
-			throw new AssertionError();
-		}
-		
-		return builder.build();
 	}
 }
