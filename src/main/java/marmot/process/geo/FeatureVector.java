@@ -14,9 +14,8 @@ import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.geo.GeoClientUtils;
-import marmot.proto.RecordProto;
+import marmot.proto.ValueArrayProto;
 import marmot.protobuf.PBUtils;
-import utils.stream.FStream;
 
 /**
  * 
@@ -230,19 +229,14 @@ public class FeatureVector implements Serializable {
 	private static class SerializationProxy implements Serializable {
 		private static final long serialVersionUID = -3323143613452318584L;
 		
-		private final RecordProto m_proto;
+		private final ValueArrayProto m_proto;
 		
 		private SerializationProxy(FeatureVector keyValue) {
-			m_proto = FStream.of(keyValue.m_values)
-								.map(PBUtils::toValueProto)
-								.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
-								.build();
+			m_proto = PBUtils.toValueArrayProto(keyValue.m_values);
 		}
 		
 		private Object readResolve() {
-			Object[] values = m_proto.getColumnList().stream()
-									.map(PBUtils::fromProto)
-									.toArray();
+			Object[] values = PBUtils.fromProto(m_proto).toArray();
 			return new FeatureVector(values);
 		}
 	}
