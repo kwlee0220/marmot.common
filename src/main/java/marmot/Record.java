@@ -7,15 +7,10 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Geometry;
 
-import marmot.proto.RecordProto;
-import marmot.proto.ValueProto;
-import marmot.protobuf.PBUtils;
 import marmot.support.DataUtils;
-import marmot.support.PBSerializable;
 import marmot.support.RecordMap;
 import utils.func.FOption;
 import utils.func.KeyValue;
-import utils.stream.FStream;
 import utils.stream.KVFStream;
 
 
@@ -23,7 +18,7 @@ import utils.stream.KVFStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public interface Record extends PBSerializable<RecordProto> {
+public interface Record {
 	/**
 	 * 레코드의 스키마 객체를 반환한다.
 	 * 
@@ -286,28 +281,5 @@ public interface Record extends PBSerializable<RecordProto> {
 	public default LocalDateTime getDateTime(String name) {
 		Object v = get(name);
 		return v != null ? (LocalDateTime)v : null;
-	}
-	
-	public default void fromProto(RecordProto proto) {
-		List<Object> values = FStream.from(proto.getColumnList())
-									.map(vp -> PBUtils.fromProto(vp)._2)
-									.toList();
-		setAll(values);
-	}
-
-	public default RecordProto toProto() {
-		RecordProto.Builder builder = RecordProto.newBuilder();
-		
-		RecordSchema schema = getRecordSchema();
-		Object[] values = getAll();
-		
-		for ( int i =0; i < values.length; ++i ) {
-			Column col = schema.getColumnAt(i);
-			
-			ValueProto vproto = PBUtils.toValueProto(col.type().getTypeCode(), values[i]);
-			builder.addColumn(vproto);
-		}
-		
-		return builder.build();
 	}
 }
