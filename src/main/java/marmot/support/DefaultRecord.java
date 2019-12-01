@@ -2,7 +2,6 @@ package marmot.support;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
@@ -12,9 +11,8 @@ import marmot.ColumnNotFoundException;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.proto.RecordProto;
-import marmot.protobuf.PBUtils;
+import marmot.protobuf.PBRecordProtos;
 import utils.Utilities;
-import utils.stream.FStream;
 
 
 /**
@@ -252,11 +250,7 @@ public class DefaultRecord implements Record {
 	
 	public static DefaultRecord fromProto(RecordSchema schema, RecordProto proto) {
 		DefaultRecord record = DefaultRecord.of(schema);
-		List<Object> columns = FStream.from(proto.getColumnList())
-									.map(vp -> PBUtils.fromProto(vp)._2)
-									.toList();
-		record.setAll(columns);
-		
+		PBRecordProtos.fromProto(proto, schema, record.m_values);
 		return record;
 	}
 }
