@@ -7,7 +7,6 @@ package marmot.proto.service;
 
 import public "marmot.proto";
 import public "marmot.service.proto";
-import public "marmot.service.dataset.proto";
 import public "marmot.service.exec.proto";
 import public "marmot.optor.proto";
 
@@ -23,8 +22,6 @@ message RunSQLRequest {
 }
 
 service MarmotSparkSessionService {
-	rpc execute(ExecutePlanRequest) returns (VoidResponse);
-	
 	rpc createOrReplaceView(ViewMappingProto) returns (VoidResponse);
 	rpc runSql(RunSQLRequest) returns (VoidResponse);
 }

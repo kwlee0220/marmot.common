@@ -311,8 +311,7 @@ public class PBValueProtos {
 			case POINT_VALUE:
 				return PBUtils.fromProto(proto.getPointValue());
 			case GEOMETRY_VALUE:
-				Geometry geom = PBUtils.fromProto(proto.getGeometryValue());
-				return GeometryDataType.fromGeometry(geom);
+				return PBUtils.fromProto(proto.getGeometryValue());
 			case TRAJECTORY_VALUE:
 				return Trajectory.fromProto(proto.getTrajectoryValue());
 			case NULL_VALUE:
