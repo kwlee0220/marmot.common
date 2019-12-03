@@ -19,7 +19,7 @@ import utils.stream.KVFStream;
  * @author Kang-Woo Lee (ETRI)
  */
 public class RangeQueryEstimate {
-	private final DataSet m_ds;
+	private final String m_dsId;
 	private final Map<String,MatchedClusterEstimate> m_clusterEstimates;
 	private final Envelope m_range;
 	private final long m_totalMatchCount;
@@ -32,11 +32,11 @@ public class RangeQueryEstimate {
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		Utilities.checkNotNullArgument(range, "query ranage");
 		
-		m_ds = ds;
+		m_dsId = ds.getId();
 		m_range = range;
 		
 		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
-		m_clusterEstimates = estimate();
+		m_clusterEstimates = estimate(ds);
 		m_totalMatchCount = KVFStream.from(m_clusterEstimates)
 									.toValueStream()
 									.mapToInt(m -> m.m_matchCount)
@@ -69,8 +69,8 @@ public class RangeQueryEstimate {
 	
 	@Override
 	public String toString() {
-		String matchStr = KVFStream.from(m_clusterEstimates).toValueStream().join(",", "[", "]");
-		return String.format("%s:%d:%s", m_ds.getId(), m_totalMatchCount, matchStr);
+		String matchStr = KVFStream.from(m_clusterEstimates).toValueStream().join(",");
+		return String.format("%s: matches=%d, clusters=%s", m_dsId, m_totalMatchCount, matchStr);
 	}
 	
 	private FOption<MatchedClusterEstimate> getMatchingCluster(String quadKey) {
@@ -91,19 +91,15 @@ public class RangeQueryEstimate {
 			m_matchCount = (int)Math.round(m_info.getOwnedRecordCount() * m_matchRatio);
 		}
 		
-		private int getThumbnailRecordCount(double ratio) {
-			return (int)Math.round(m_matchCount * ratio);
-		}
-		
 		@Override
 		public String toString() {
-			return String.format("%s: %d(%.3f)", m_info.getQuadKey(),
-									m_info.getOwnedRecordCount(), m_matchRatio);
+			return String.format("%s[%d/%d]", m_info.getQuadKey(),
+									m_matchCount, m_info.getOwnedRecordCount());
 		}
 	}
 	
-	private Map<String,MatchedClusterEstimate> estimate() {
-		List<SpatialClusterInfo> infos = m_ds.querySpatialClusterInfo(m_range);
+	private Map<String,MatchedClusterEstimate> estimate(DataSet ds) {
+		List<SpatialClusterInfo> infos = ds.querySpatialClusterInfo(m_range);
 		return FStream.from(infos)
 						.map(info -> new MatchedClusterEstimate(info, m_range))
 						.toMap(m -> m.m_info.getQuadKey());
