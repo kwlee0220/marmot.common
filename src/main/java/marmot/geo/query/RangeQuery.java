@@ -94,7 +94,8 @@ public class RangeQuery {
 			// full scan을 사용한다.
 			//
 			if ( m_range.contains(m_ds.getBounds()) ) {
-				if ( m_ds.hasThumbnail() && m_sampleCount > 0 ) {
+				if ( m_ds.hasThumbnail() && m_sampleCount > 0
+					&& m_sampleCount < (m_ds.getThumbnailRatio() * m_ds.getRecordCount()) ) {
 					s_logger.info("RANGE > DS, use thumbnail scan: id={}", m_dsId);
 					return ThumbnailScan.on(m_ds, m_range, m_sampleCount).run();
 				}
