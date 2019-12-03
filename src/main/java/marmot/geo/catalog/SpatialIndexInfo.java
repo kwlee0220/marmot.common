@@ -1,5 +1,8 @@
 package marmot.geo.catalog;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Objects;
 
 import com.vividsolutions.jts.geom.Envelope;
@@ -15,7 +18,7 @@ import utils.Utilities;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
+public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto>, Serializable {
 	private String m_dataset;
 	private GeometryColumnInfo m_geomCol;
 	private Envelope m_tileBounds = new Envelope();
@@ -179,5 +182,27 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto> {
 	@Override
 	public int hashCode() {
 		return Objects.hash(m_dataset, m_geomCol);
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = -5230520733062001761L;
+		
+		private final SpatialIndexInfoProto m_proto;
+		
+		private SerializationProxy(SpatialIndexInfo info) {
+			m_proto = info.toProto();
+		}
+		
+		private Object readResolve() {
+			return SpatialIndexInfo.fromProto(m_proto);
+		}
 	}
 }

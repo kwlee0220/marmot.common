@@ -1,5 +1,9 @@
 package marmot;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Envelope;
 
@@ -14,10 +18,13 @@ import utils.Utilities;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProto> {
+public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProto>, Serializable {
+	private static final long serialVersionUID = -3304936292546908854L;
+	
 	private final String m_quadKey;
 	private final Envelope m_tileBounds;
 	private final Envelope m_dataBounds;
+	private final Envelope m_overlap;
 	private final int m_recordCount;
 	private final int m_ownedRecordCount;
 	private final long m_length;
@@ -34,6 +41,7 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 		m_quadKey = quadKey;
 		m_tileBounds = tileBounds;
 		m_dataBounds = dataBounds;
+		m_overlap = tileBounds.intersection(dataBounds);
 		m_recordCount = count;
 		m_ownedRecordCount = ownedCount;
 		m_length = length;
@@ -88,6 +96,10 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 	public long getByteLength() {
 		return m_length;
 	}
+	
+	public boolean intersects(Envelope range) {
+		return m_overlap.intersects(range);
+	}
 
 	public static SpatialClusterInfo fromProto(SpatialClusterInfoProto proto) {
 		Envelope tileBounds = PBUtils.fromProto(proto.getTileBounds());
@@ -115,5 +127,27 @@ public class SpatialClusterInfo implements PBSerializable<SpatialClusterInfoProt
 		return String.format("SpatialCluster[qkey=%s, count=%d(%d), size=%s]", m_quadKey,
 							m_recordCount, m_ownedRecordCount,
 							UnitUtils.toByteSizeString(m_length));
+	}
+
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 6194816506550906715L;
+		
+		private final SpatialClusterInfoProto m_proto;
+		
+		private SerializationProxy(SpatialClusterInfo info) {
+			m_proto = info.toProto();
+		}
+		
+		private Object readResolve() {
+			return SpatialClusterInfo.fromProto(m_proto);
+		}
 	}
 }

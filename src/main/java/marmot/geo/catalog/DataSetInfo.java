@@ -1,5 +1,9 @@
 package marmot.geo.catalog;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Envelope;
 
@@ -19,7 +23,9 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
+public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Serializable {
+	private static final long serialVersionUID = 9105958402931386433L;
+	
 	private String m_id;
 	private String m_dir;
 	private DataSetType m_type;
@@ -262,5 +268,27 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto> {
 		m_compressionCodecName.ifPresent(builder::setCompressionCodecName);
 		
 		return builder.build();
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 9179666253360824546L;
+		
+		private final DataSetInfoProto m_proto;
+		
+		private SerializationProxy(DataSetInfo info) {
+			m_proto = info.toProto();
+		}
+		
+		private Object readResolve() {
+			return DataSetInfo.fromProto(m_proto);
+		}
 	}
 }
