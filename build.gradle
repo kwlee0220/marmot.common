@@ -78,7 +78,7 @@ dependencies {
 	
 	// grpc
 	api "com.google.protobuf:protobuf-java:${protobuf_version}"
-	implementation "com.google.protobuf:protobuf-java-util:${protobuf_version}"
+	api "com.google.protobuf:protobuf-java-util:${protobuf_version}"
 	api "io.grpc:grpc-stub:${grpc_version}"
 	api "io.grpc:grpc-netty-shaded:${grpc_version}"
 	implementation "io.grpc:grpc-protobuf:${grpc_version}"
