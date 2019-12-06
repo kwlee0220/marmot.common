@@ -140,18 +140,14 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	private static class SerializationProxy implements Serializable {
 		private static final long serialVersionUID = 4661876959105417945L;
 		
-		private final CIString m_name;
-		private final DataType m_type;
-		private final short m_ordinal;
+		private final String m_expr;
 		
 		private SerializationProxy(Column col) {
-			m_name = col.m_name;
-			m_type = col.m_type;
-			m_ordinal = col.m_ordinal;
+			m_expr = col.toStringExpr();
 		}
 		
 		private Object readResolve() {
-			return new Column(m_name, m_type, m_ordinal);
+			return Column.parse(m_expr);
 		}
 	}
 }
