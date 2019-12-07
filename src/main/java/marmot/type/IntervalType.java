@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class IntervalType extends DataType {
+public class IntervalType extends DataType implements ComparableDataType {
 	private static final IntervalType TYPE = new IntervalType();
 	
 	public static IntervalType get() {

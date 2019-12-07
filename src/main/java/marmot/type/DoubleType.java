@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class DoubleType extends DataType {
+public class DoubleType extends DataType implements NumericDataType {
 	private static final DoubleType TYPE = new DoubleType();
 	
 	public static DoubleType get() {

@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class LongType extends DataType {
+public class LongType extends DataType implements IntegralDataType {
 	private static final LongType TYPE = new LongType();
 	
 	public static LongType get() {

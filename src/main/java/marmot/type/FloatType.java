@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class FloatType extends DataType {
+public class FloatType extends DataType implements NumericDataType {
 	private static final FloatType TYPE = new FloatType();
 	
 	public static FloatType get() {

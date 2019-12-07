@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class ShortType extends DataType {
+public class ShortType extends DataType implements IntegralDataType {
 	private static final ShortType TYPE = new ShortType();
 	
 	public static ShortType get() {

@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class ByteType extends DataType {
+public class ByteType extends DataType implements IntegralDataType {
 	private static final ByteType TYPE = new ByteType();
 	
 	public static ByteType get() {

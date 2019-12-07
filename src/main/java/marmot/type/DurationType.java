@@ -7,7 +7,7 @@ import java.time.Duration;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class DurationType extends DataType {
+public class DurationType extends DataType implements ComparableDataType {
 	private static final DurationType TYPE = new DurationType();
 	
 	public static DurationType get() {

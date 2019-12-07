@@ -27,16 +27,15 @@ public abstract class GeometryDataType extends DataType {
 	public final GeometryDataType pluralType() {
 		switch ( getTypeCode() ) {
 			case POINT:
+			case MULTI_POINT:
 				return DataType.MULTI_POINT;
 			case LINESTRING:
+			case MULTI_LINESTRING:
 				return DataType.MULTI_LINESTRING;
 			case POLYGON:
-				return DataType.MULTI_POLYGON;
-			case MULTI_POINT:
-			case MULTI_LINESTRING:
-			case GEOM_COLLECTION:
 			case MULTI_POLYGON:
-				return DataType.GEOM_COLLECTION;
+				return DataType.MULTI_POLYGON;
+			case GEOM_COLLECTION:
 			case GEOMETRY:
 				return DataType.GEOM_COLLECTION;
 			default:

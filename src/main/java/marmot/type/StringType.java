@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class StringType extends DataType {
+public class StringType extends DataType implements ComparableDataType {
 	private static final StringType TYPE = new StringType();
 	
 	public static StringType get() {

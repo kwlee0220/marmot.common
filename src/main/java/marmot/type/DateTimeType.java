@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class DateTimeType extends DataType {
+public class DateTimeType extends DataType implements ComparableDataType {
 	private static final DateTimeType TYPE = new DateTimeType();
 	
 	public static DateTimeType get() {

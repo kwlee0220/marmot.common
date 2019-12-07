@@ -4,7 +4,7 @@ package marmot.type;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class IntType extends DataType {
+public class IntType extends DataType implements IntegralDataType {
 	private static final IntType TYPE = new IntType();
 	
 	public static IntType get() {
