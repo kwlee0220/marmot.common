@@ -26,6 +26,7 @@ import marmot.exec.MarmotExecutionException;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.io.MarmotFileExistsException;
 import marmot.io.MarmotFileNotFoundException;
+import marmot.optor.RecordSetOperatorException;
 import marmot.proto.service.MarmotErrorCode;
 import marmot.support.PBException;
 import utils.Throwables;
@@ -61,6 +62,7 @@ public enum PBMarmotError {
 	EXEC_CANCELLED(103, CancellationException.class),
 	EXEC_FAILED(104, MarmotExecutionException.class),
 	EXEC_TIMED_OUT(105, TimeoutException.class),
+	ERROR_OPERATOR(110, RecordSetOperatorException.class),
 
 	NULL_POINTER(900, NullPointerException.class),
 	INVALID_ARGUMENT(901, IllegalArgumentException.class),
