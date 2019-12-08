@@ -52,9 +52,7 @@ service DataSetService {
 	//
 	// Visualization interface
 	//
-	// 주어진 사각 영역과 겹치는 공간 클러스터 (인덱스 블록)들의 등록정보를 반환
-	rpc querySpatialClusterInfo(QuerySpatialClusterInfoRequest)
-		returns (stream SpatialClusterInfoResponse);
+	rpc estimateRangeQuery(EstimateRangeQueryRequest) returns (RangeQueryEstimateResponse);
 	// 주어진 식별자에 해당하는 공간 클러스터에 포함된 레코드들을 반환 (ReadRawSpatialClusterRequest)
 	rpc readRawSpatialCluster(stream DownChunkResponse) returns (stream DownChunkRequest);
 	
@@ -220,9 +218,7 @@ message MoveDirRequest {
 message QueryRangeRequest {
 	string id = 1;				// 검색 대상 데이터세트 식별자
 	EnvelopeProto range = 2;	// 검색 대상 영역
-	oneof optional_filter_epxr {
-		string filter_expr = 3;	// 검색 조건
-	}
+	int32 sample_count = 3;		// 샘플수
 	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
 }
 
@@ -240,19 +236,27 @@ message QuerySpatialClusterInfoRequest {
 	string dataset_id = 1;		// 대상 데이터세트 식별
 	EnvelopeProto bounds = 2;	// 검색 영역 (MBR)
 }
-message SpatialClusterInfoResponse {
+message RangeQueryEstimateProto {
+	message ClusterEstimateProto {
+		string quad_key = 1;
+		int32 total_count = 2;
+		int32 match_count = 3;
+	};
+	
+	string ds_id = 1;
+	EnvelopeProto range = 2;
+	int64 match_count = 3;
+	repeated ClusterEstimateProto cluster_estimate = 4;
+}
+message EstimateRangeQueryRequest {
+	string dataset_id = 1;
+	EnvelopeProto range = 2;
+}
+message RangeQueryEstimateResponse {
 	oneof either {
-		SpatialClusterInfoProto spatial_cluster_info = 1;	// 공간 클러스터 등록정보
+		RangeQueryEstimateProto estimate = 1;	// 공간 질의 결과 예측치
 		ErrorProto error = 2;
 	}
-}
-message SpatialClusterInfoProto {
-	string quad_key = 1;			// 공간 클러스터 식별
-	EnvelopeProto tile_bounds = 2;	// 공간 클러스터 대상 영역
-	EnvelopeProto data_bounds = 3;	// 공간 클러스터에 저장된 데이터의 MBR
-	int32 record_count = 4;			// 공간 클러스터에 저장된 레코드 수
-	int32 owned_record_count = 5;	// 공간 클러스터 소유의 레코드 수
-	int64 byte_length = 6;			// 공간 클러스터 크기 (byte 단위)
 }
 message ReadRawSpatialClusterRequest {
 	string dataset_id = 1;			// 접근하려는 데이터세트 식별자.

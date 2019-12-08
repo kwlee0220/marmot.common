@@ -1,13 +1,13 @@
 package marmot;
 
 import java.io.IOException;
-import java.util.List;
 
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
+import marmot.geo.query.RangeQueryEstimate;
 import utils.func.FOption;
 
 /**
@@ -171,9 +171,6 @@ public interface DataSet {
 	 */
 	public RecordSet read();
 	
-	@Deprecated
-	public RecordSet queryRange(Envelope range, FOption<String> filterExpr) throws IOException;
-	
 	/**
 	 * 주어진 레코드 세트를 데이터세트에 추가한다.
 	 * <p>
@@ -224,13 +221,22 @@ public interface DataSet {
 	public void deleteSpatialCluster();
 	
 	/**
-	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 공간 파티션들의
-	 * 등록 정보를 반환한다.
+	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 레코드들의 수와
+	 * 공간 파티션별 레코드 수를 추정치를 반환한다.
 	 * 
-	 *  @param bounds	질의 영역
-	 *  @return	공간 파티션 등록 정보 리스트.
+	 *  @param range	질의 영역
+	 *  @return	질의 결과 추정치
 	 */
-	public List<SpatialClusterInfo> querySpatialClusterInfo(Envelope bounds);
+	public RangeQueryEstimate estimateRangeQuery(Envelope range) throws IOException;
+	
+	/**
+	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 레코드들 중에서
+	 * 무작위로 주어진 샘플수 만큼 선택해서 반환한다.
+	 * 
+	 * @param range		질의 영역
+	 * @param nsample	샘플수
+	 */
+	public RecordSet queryRange(Envelope range, int nsamples) throws IOException;
 	
 	/**
 	 * 주어진 공간 파티션 식별자에 해당하는 파티션에 저장된 모든 공간 데이터를 반환한다.

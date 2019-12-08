@@ -19,6 +19,7 @@ import marmot.Plan;
 import marmot.Record;
 import marmot.RecordSet;
 import marmot.geo.GeoClientUtils;
+import marmot.geo.query.RangeQueryEstimate.ClusterEstimate;
 import utils.StopWatch;
 import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
@@ -51,12 +52,12 @@ public class IndexBasedScan {
 	private volatile boolean m_usePrefetch = false;
 	
 	public static IndexBasedScan on(DataSet ds, Envelope range, long sampleCount,
-								DataSetPartitionCache cache, int maxLocalCacheCost) {
+								DataSetPartitionCache cache, int maxLocalCacheCost) throws IOException {
 		return new IndexBasedScan(ds, range, sampleCount, cache, maxLocalCacheCost);
 	}
 	
 	private IndexBasedScan(DataSet ds, Envelope range, long sampleCount,
-						DataSetPartitionCache cache, int maxLocalCacheCost) {
+						DataSetPartitionCache cache, int maxLocalCacheCost) throws IOException {
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		Utilities.checkNotNullArgument(range, "query ranage");
 		
@@ -72,7 +73,7 @@ public class IndexBasedScan {
 		m_pkey = PreparedGeometryFactory.prepare(key);
 
 		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
-		m_est = RangeQueryEstimate.about(m_ds, m_range);
+		m_est = m_ds.estimateRangeQuery(m_range);
 	}
 	
 	public IndexBasedScan usePrefetch(boolean flag) {
@@ -83,10 +84,10 @@ public class IndexBasedScan {
 	public RecordSet run() throws Exception {
 		// 추정된 결과 레코드 수를 통해 샘플링 비율을 계산한다.
 		double ratio = (m_sampleCount > 0)
-						? (double)m_sampleCount / m_est.getMatchCountEstimate() : 1d;
+						? (double)m_sampleCount / m_est.getMatchCount() : 1d;
 		final double sampleRatio = Math.min(ratio, 1);
 		
-		double fullRatio = (sampleRatio * m_est.getMatchCountEstimate()) / m_ds.getRecordCount();
+		double fullRatio = (sampleRatio * m_est.getMatchCount()) / m_ds.getRecordCount();
 		if ( fullRatio > 0.7 ) {
 			if ( m_ds.hasThumbnail() && m_sampleCount > 0 ) {
 				s_logger.info("too large for index-scan, use thumbnail-scan: id={}", m_dsId);
@@ -106,16 +107,18 @@ public class IndexBasedScan {
 		//
 		
 		// quad-key들 중에서 캐슁되지 않은 cluster들의 갯수를 구한다.
-		int nclusters = m_est.getMatchingClusterCount();
-		List<String> cachedKeys = FStream.from(m_est.getMatchingClusterKeys())
-										.filter(qkey -> m_cache.exists(m_dsId, qkey))
+		List<ClusterEstimate> clusters = m_est.getClusterEstimates();
+		int nclusters = clusters.size();
+		List<String> cachedKeys = FStream.from(clusters)
+										.map(ClusterEstimate::getQuadKey)
+										.filter(key -> m_cache.exists(m_dsId, key))
 										.toList();
 		int remoteIoCount = nclusters - cachedKeys.size();
 		int cost = (cachedKeys.size()*CACHE_COST) + (remoteIoCount * NETWORK_COST);
 		
 		String msg = String.format("ds_id=%s, clusters=%d/%d, cost=%d/%d, guess_count=%d, ratio=%.3f",
 									m_dsId, cachedKeys.size(), nclusters, cost, m_maxLocalCacheCost,
-									m_est.getMatchCountEstimate(), sampleRatio);
+									m_est.getMatchCount(), sampleRatio);
 		if ( cost > m_maxLocalCacheCost ) {
 			if ( m_usePrefetch ) {
 				StartableExecution<RecordSet> fg = AsyncExecutions.from(() -> runAtServer(sampleRatio, nclusters, msg));
@@ -144,7 +147,8 @@ public class IndexBasedScan {
 				try {
 					return ThumbnailScan.on(m_ds, m_range, m_sampleCount).run();
 				}
-				catch ( Exception ignored ) { }
+				catch ( Exception ignored ) {
+				}
 			}
 		}
 		
@@ -176,7 +180,8 @@ public class IndexBasedScan {
 		Function<String,FStream<Record>> loader
 							= Try.lift((String qk) -> readFromCache(qk, sampleRatio))
 									.andThen(d -> d.getOrElse(FStream.empty()));
-		FStream<Record> recStream = FStream.from(m_est.getMatchingClusterKeys())
+		FStream<Record> recStream = FStream.from(m_est.getClusterEstimates())
+											.map(ClusterEstimate::getQuadKey)
 											.flatMapParallel(loader, 3);
 		
 		return RecordSet.from(m_ds.getRecordSchema(), recStream);
@@ -193,11 +198,11 @@ public class IndexBasedScan {
 		if ( sampleRatio < 1 ) {
 			// quadKey에 해당하는 파티션에 샘플링할 레코드 수를 계산하고
 			// 이 수만큼의 레코드만 추출하도록 연산을 추가한다.
-			int count = m_est.getMatchCountEstimate(quadKey);
-			int takeCount = (int)Math.max(1, Math.round(count * sampleRatio));
+			int matchCount = FStream.from(m_est.getClusterEstimates())
+									.findFirst(est -> est.getQuadKey().equals(quadKey)).get()
+									.getMatchCount();
+			int takeCount = (int)Math.max(1, Math.round(matchCount * sampleRatio * 1.1));
 			matcheds = matcheds.take(takeCount);
-//			long total = m_est.getRelevantRecordCount(quadKey);
-//			matcheds = new AdaptableSamplingStream<>(matcheds, total, m_sampleRatio);
 		}
 		
 		return matcheds;
@@ -205,7 +210,8 @@ public class IndexBasedScan {
 	
 	private StartableExecution<Void> forkClusterPrefetcher() {
 		FStream<StartableExecution<?>> strm
-								= FStream.from(m_est.getMatchingClusterKeys())
+								= FStream.from(m_est.getClusterEstimates())
+										.map(ClusterEstimate::getQuadKey)
 										.filter(qkey -> !m_cache.exists(m_dsId, qkey))
 										.takeTopK(5, (k1,k2) -> k2.length() - k1.length())
 //										.sort((k1,k2) -> k2.length() - k1.length())

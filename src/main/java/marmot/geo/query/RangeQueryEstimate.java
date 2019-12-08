@@ -1,107 +1,104 @@
 package marmot.geo.query;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import marmot.DataSet;
-import marmot.SpatialClusterInfo;
-import utils.Utilities;
+import marmot.proto.service.RangeQueryEstimateProto;
+import marmot.proto.service.RangeQueryEstimateProto.ClusterEstimateProto;
+import marmot.protobuf.PBUtils;
+import marmot.support.PBSerializable;
 import utils.func.FOption;
 import utils.stream.FStream;
-import utils.stream.KVFStream;
-
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class RangeQueryEstimate {
+public class RangeQueryEstimate implements PBSerializable<RangeQueryEstimateProto> {
 	private final String m_dsId;
-	private final Map<String,MatchedClusterEstimate> m_clusterEstimates;
 	private final Envelope m_range;
-	private final long m_totalMatchCount;
+	private final List<ClusterEstimate> m_clusterEstimates;
+	private long m_matchCount;
 	
-	public static RangeQueryEstimate about(DataSet ds, Envelope range) {
-		return new RangeQueryEstimate(ds, range);
-	}
-	
-	private RangeQueryEstimate(DataSet ds, Envelope range) {
-		Utilities.checkNotNullArgument(ds, "DataSet");
-		Utilities.checkNotNullArgument(range, "query ranage");
-		
-		m_dsId = ds.getId();
+	public RangeQueryEstimate(String dsId, Envelope range, List<ClusterEstimate> clusterEstimates) {
+		m_dsId = dsId;
 		m_range = range;
-		
-		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
-		m_clusterEstimates = estimate(ds);
-		m_totalMatchCount = KVFStream.from(m_clusterEstimates)
-									.toValueStream()
-									.mapToInt(m -> m.m_matchCount)
-									.sum();
+		m_clusterEstimates = clusterEstimates;
+		m_matchCount = FStream.from(clusterEstimates)
+								.mapToLong(est -> (long)est.m_matchCount)
+								.sum();
 	}
 	
-	public long getMatchCountEstimate() {
-		return m_totalMatchCount;
+	public long getMatchCount() {
+		return m_matchCount;
 	}
 	
-	public int getMatchingClusterCount() {
-		return m_clusterEstimates.size();
+	public List<ClusterEstimate> getClusterEstimates() {
+		return m_clusterEstimates;
 	}
 	
-	public Set<String> getMatchingClusterKeys() {
-		return m_clusterEstimates.keySet();
+	public FOption<ClusterEstimate> getClusterEstimate(String quadKey) {
+		return FStream.from(m_clusterEstimates)
+						.findFirst(est -> est.getQuadKey().equals(quadKey));
 	}
 	
-	public SpatialClusterInfo getMatchingClusterInfo(String quadKey) {
-		return getMatchingCluster(quadKey)
-				.map(m -> m.m_info)
-				.getOrNull();
+	public static RangeQueryEstimate fromProto(RangeQueryEstimateProto proto) {
+		List<ClusterEstimate> clusterEstimates = FStream.from(proto.getClusterEstimateList())
+														.map(ClusterEstimate::fromProto)
+														.toList();
+		return new RangeQueryEstimate(proto.getDsId(), PBUtils.fromProto(proto.getRange()),
+										clusterEstimates);	
 	}
-	
-	public int getMatchCountEstimate(String quadKey) {
-		return getMatchingCluster(quadKey)
-				.map(m -> m.m_matchCount)
-				.getOrElse(0);
-	}
-	
+
 	@Override
-	public String toString() {
-		String matchStr = KVFStream.from(m_clusterEstimates).toValueStream().join(",");
-		return String.format("%s: matches=%d, clusters=%s", m_dsId, m_totalMatchCount, matchStr);
+	public RangeQueryEstimateProto toProto() {
+		return RangeQueryEstimateProto.newBuilder()
+										.setDsId(m_dsId)
+										.setRange(PBUtils.toProto(m_range))
+										.addAllClusterEstimate(FStream.from(m_clusterEstimates)
+																	.map(ClusterEstimate::toProto)
+																	.toList())
+										.build();
 	}
 	
-	private FOption<MatchedClusterEstimate> getMatchingCluster(String quadKey) {
-		return FOption.ofNullable(m_clusterEstimates.get(quadKey));
-	}
-	
-	private class MatchedClusterEstimate {
-		private final SpatialClusterInfo m_info;
-		private final double m_matchRatio;
+	public static class ClusterEstimate implements PBSerializable<ClusterEstimateProto> {
+		private final String m_quadKey;
+		private final int m_totalCount;
 		private final int m_matchCount;
 		
-		private MatchedClusterEstimate(SpatialClusterInfo info, Envelope range) {
-			m_info = info;
-			
-			Envelope clusterArea = info.getTileBounds().intersection(info.getDataBounds());
-			Envelope matchingArea = m_range.intersection(clusterArea);
-			m_matchRatio = matchingArea.getArea() / clusterArea.getArea();
-			m_matchCount = (int)Math.round(m_info.getOwnedRecordCount() * m_matchRatio);
+		public ClusterEstimate(String quadKey, int totalCount, int matchCount) {
+			m_quadKey = quadKey;
+			m_totalCount = totalCount;
+			m_matchCount = matchCount;
+		}
+		
+		public String getQuadKey() {
+			return m_quadKey;
+		}
+		
+		public int getMatchCount() {
+			return m_matchCount;
+		}
+		
+		public static ClusterEstimate fromProto(ClusterEstimateProto proto) {
+			return new ClusterEstimate(proto.getQuadKey(), proto.getTotalCount(),
+										proto.getMatchCount());
+		}
+
+		@Override
+		public ClusterEstimateProto toProto() {
+			return ClusterEstimateProto.newBuilder()
+										.setQuadKey(m_quadKey)
+										.setTotalCount(m_totalCount)
+										.setMatchCount(m_matchCount)
+										.build();
 		}
 		
 		@Override
 		public String toString() {
-			return String.format("%s[%d/%d]", m_info.getQuadKey(),
-									m_matchCount, m_info.getOwnedRecordCount());
+			return String.format("%s: %d/%d (%.2f)", m_quadKey, m_matchCount, m_totalCount,
+								(double)m_matchCount/m_totalCount);
 		}
-	}
-	
-	private Map<String,MatchedClusterEstimate> estimate(DataSet ds) {
-		List<SpatialClusterInfo> infos = ds.querySpatialClusterInfo(m_range);
-		return FStream.from(infos)
-						.map(info -> new MatchedClusterEstimate(info, m_range))
-						.toMap(m -> m.m_info.getQuadKey());
 	}
 }
