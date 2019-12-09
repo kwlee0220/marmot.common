@@ -20,8 +20,7 @@ import com.google.common.cache.RemovalNotification;
 import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.RecordSet;
-import marmot.protobuf.PBInputStreamRecordSet;
-import marmot.protobuf.PBRecordSetInputStream;
+import marmot.protobuf.PBRecordProtos;
 import utils.Utilities;
 import utils.fostore.FileObjectHandler;
 import utils.fostore.FileObjectStore;
@@ -77,7 +76,7 @@ public class DataSetPartitionCache {
 		}
 		
 		is = Lz4Compressions.decompress(is);
-		return PBInputStreamRecordSet.from(is);
+		return PBRecordProtos.readRecordSet(is);
 	}
 	
 	public void put(String dsId, String quadKey, RecordSet rset)
@@ -97,7 +96,7 @@ public class DataSetPartitionCache {
 		throws IOException {
 		rset = RecordSet.from(rset.getRecordSchema(), rset.fstream().shuffle());
 		
-		InputStream is = PBRecordSetInputStream.from(rset);
+		InputStream is = PBRecordProtos.toInputStream(rset); 
 		try {
 			is = Lz4Compressions.compress(is);
 			return m_partitionCache.insert(key, is);
