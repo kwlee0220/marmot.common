@@ -1,4 +1,4 @@
-package marmot.rset;
+package marmot.protobuf;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +8,7 @@ import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.proto.RecordProto;
 import marmot.proto.RecordSchemaProto;
-import marmot.protobuf.PBRecordProtos;
+import marmot.rset.AbstractRecordSet;
 import marmot.support.DefaultRecord;
 import utils.Throwables;
 import utils.Utilities;
