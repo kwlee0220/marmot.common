@@ -130,7 +130,7 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 					throw new RecordSetException(msg);
 			}
 			
-			CsvRecordSet rset = CsvRecordSet.from(file.getParent(), src, m_params);
+			CsvRecordSet rset = CsvRecordSet.from(file.getAbsolutePath(), src, m_params);
 			getLogger().info("loading: CSV[{}], {}", m_params, file);
 			
 			return rset;
