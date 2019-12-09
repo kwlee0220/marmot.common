@@ -10,8 +10,8 @@ import utils.func.FOption;
  */
 public class JdbcParameters {
 	private String m_system;
-	private String m_host;
-	private int m_port;
+	private String m_host = "localhost";
+	private int m_port = -1;
 	private String m_user;
 	private String m_passwd;
 	private String m_dbName;
@@ -44,7 +44,7 @@ public class JdbcParameters {
 		return m_host;
 	}
 
-	@Option(names={"-host"}, paramLabel="ip", required=true, description={"JDBC host name"})
+	@Option(names={"-host"}, paramLabel="ip", description={"JDBC host name"})
 	public JdbcParameters host(String host) {
 		m_host = host;
 		return this;
@@ -54,7 +54,7 @@ public class JdbcParameters {
 		return m_port;
 	}
 
-	@Option(names={"-port"}, paramLabel="port_no", required=true, description={"JDBC port number"})
+	@Option(names={"-port"}, paramLabel="port_no", description={"JDBC port number"})
 	public JdbcParameters port(int port) {
 		m_port = port;
 		return this;

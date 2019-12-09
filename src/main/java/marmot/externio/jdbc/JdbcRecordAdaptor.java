@@ -8,6 +8,7 @@ import java.lang.reflect.Constructor;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -156,6 +157,8 @@ public abstract class JdbcRecordAdaptor {
 				return DataType.SHORT;
 			case Types.TINYINT:
 				return DataType.BYTE;
+			case Types.TIMESTAMP:
+				return DataType.DATETIME;
 			case Types.OTHER:
 				return DataType.NULL;
 			default:
@@ -256,7 +259,7 @@ public abstract class JdbcRecordAdaptor {
 					case FLOAT:
 						return rs.getFloat(colIdx);
 					case DATETIME:
-						return fromUTCEpocMillis(rs.getLong(colIdx)).toLocalDateTime();
+						return fromUTCEpocMillis(rs.getTimestamp(colIdx).getTime()).toLocalDateTime();
 					case DATE:
 						return fromUTCEpocMillis(rs.getLong(colIdx)).toLocalDate();
 					case TIME:

@@ -15,6 +15,7 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
+import marmot.support.MetaPlanLoader;
 import marmot.type.DataType;
 import utils.func.FOption;
 import utils.func.Funcs;
@@ -48,7 +49,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 													m_jdbcParams.port(), m_jdbcParams.user(),
 													m_jdbcParams.password(), m_jdbcParams.database());
 			m_jdbcParams.jdbcJarPath().map(File::new).ifPresent(jdbc::setJdbcJarFile);
-			RecordSchema schema = buildRecordSchema(jdbc);
+			RecordSchema schema = buildRecordSchema(marmot, jdbc);
 			JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(jdbc, schema, m_jdbcParams.geometryFormat());
 			
 			StringBuilder sqlBuilder = new StringBuilder("select ");
@@ -70,7 +71,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 
 	@Override
 	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
-		return m_params.getGeometryColumnInfo().map(gcInfo -> {
+		FOption<Plan> toGeomPlan = m_params.getGeometryColumnInfo().map(gcInfo -> {
 				PlanBuilder builder = new PlanBuilder("import_jdbc_table");
 				
 				if ( m_jdbcParams.srid().isPresent() ) {
@@ -82,6 +83,19 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 				
 				return builder.build();
 			});
+		
+		// 추가 작업 플랜이 있는 경우, 이를 반영할 경우의 레코드 스키마를 계산한다.
+		FOption<Plan> importPlan = m_jdbcParams.plan()
+												.flatMapSneakily(file -> MetaPlanLoader.load(file));
+		if ( importPlan.isAbsent() ) {
+			return toGeomPlan;
+		}
+		else if ( toGeomPlan.isAbsent() ) {
+			return importPlan;
+		}
+		else {
+			return FOption.of(Plan.concat(toGeomPlan.get(), importPlan.get()));
+		}
 	}
 	
 	private RecordSchema buildRecordSchemaFromSelectExpr(JdbcProcessor jdbc, String tblName,
@@ -100,11 +114,13 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 		return builder.build();
 	}
 	
-	private RecordSchema buildRecordSchema(JdbcProcessor jdbc) throws SQLException {
+	private RecordSchema buildRecordSchema(MarmotRuntime marmot, JdbcProcessor jdbc)
+		throws SQLException {
 		RecordSchema schema = m_jdbcParams.selectExpr()
 					.mapOrThrow(expr -> buildRecordSchemaFromSelectExpr(jdbc, m_tableName, expr))
 					.getOrElseThrow(() -> JdbcRecordAdaptor.buildRecordSchema(jdbc, m_tableName));
 		
+		// 공간정보 관련 인자가 있는 경우, 공간 정보를 추가한다.
 		return m_jdbcParams.geomColumns()
 							.transform(schema, this::replaceWkbWithGeometryType);
 	}

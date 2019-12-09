@@ -1,5 +1,7 @@
 package marmot.externio.jdbc;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import marmot.type.DataType;
@@ -19,6 +21,7 @@ public class LoadJdbcParameters extends JdbcParameters {
 	private FOption<String> m_selectExpr = FOption.empty();
 	private FOption<Map<String,DataType>> m_geomCols = FOption.empty();
 	private FOption<String> m_srid = FOption.empty();
+	private FOption<File> m_importPlanFile = FOption.empty();
 	
 	public LoadJdbcParameters() { }
 	
@@ -62,6 +65,16 @@ public class LoadJdbcParameters extends JdbcParameters {
 		m_srid = FOption.ofNullable(srid);
 		return this;
 	}
+
+	@Option(names={"-plan"}, paramLabel="path", description="after-process plan file")
+	public LoadJdbcParameters plan(String planFile) throws IOException {
+		m_importPlanFile = FOption.of(new File(planFile));
+		return this;
+	}
+	
+	public FOption<File> plan() {
+		return m_importPlanFile;
+	}
 	
 	public LoadJdbcParameters duplicate() {
 		LoadJdbcParameters dupl = new LoadJdbcParameters(system(), host(), port(), user(),
@@ -71,6 +84,7 @@ public class LoadJdbcParameters extends JdbcParameters {
 		dupl.m_selectExpr = m_selectExpr;
 		dupl.m_geomCols = m_geomCols;
 		dupl.m_srid = m_srid;
+		dupl.m_importPlanFile = m_importPlanFile;
 		
 		return dupl;
 	}
