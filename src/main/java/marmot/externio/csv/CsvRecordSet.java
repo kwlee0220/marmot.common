@@ -159,17 +159,17 @@ public class CsvRecordSet extends AbstractRecordSet {
 			
 			++m_lineNo;
 			List<String> values = Lists.newArrayList(m_iter.next().iterator());
-			if ( values.size() != m_columns.length ) {
-				String msg = String.format("invalid CSV line: %s:%d, expected=%d, csv=%s",
-											m_key, m_lineNo, values.size(), m_columns.length, values);
-				throw new IOException(msg);
-			}
+//			if ( values.size() != m_columns.length ) {
+//				String msg = String.format("invalid CSV line: %s:%d, expected=%d, csv=%s",
+//											m_key, m_lineNo, values.size(), m_columns.length, values);
+//				throw new IOException(msg);
+//			}
 			set(output, values);
 			
 			return true;
 		}
 		catch ( Exception e ) {
-			throw new RecordSetException("" + e);
+			throw new RecordSetException("line=" + m_lineNo + ": " + e);
 		}
 	}
 	
@@ -179,7 +179,7 @@ public class CsvRecordSet extends AbstractRecordSet {
 	}
 	
 	private void set(Record output, List<String> values) {
-		for ( int i =0; i < values.size(); ++i ) {
+		for ( int i =0; i < Math.min(output.getColumnCount(), values.size()); ++i ) {
 			String value = values.get(i);
 
 			// 길이 0 문자열을 null로 간주한다.
