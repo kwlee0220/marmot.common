@@ -9,6 +9,7 @@ import marmot.type.DataTypes;
 import picocli.CommandLine.Option;
 import utils.CSV;
 import utils.LazySplitter;
+import utils.Utilities;
 import utils.func.FOption;
 import utils.func.KeyValue;
 
@@ -18,7 +19,10 @@ import utils.func.KeyValue;
  * @author Kang-Woo Lee (ETRI)
  */
 public class LoadJdbcParameters extends JdbcParameters {
+	private static final int DEF_FETCH_SIZE = 512;
+	
 	private FOption<String> m_selectExpr = FOption.empty();
+	private int m_fetchSize = DEF_FETCH_SIZE;
 	private FOption<Map<String,DataType>> m_geomCols = FOption.empty();
 	private FOption<String> m_srid = FOption.empty();
 	private FOption<File> m_importPlanFile = FOption.empty();
@@ -37,6 +41,18 @@ public class LoadJdbcParameters extends JdbcParameters {
 	@Option(names={"-select"}, paramLabel="select_expr", description={"column selection"})
 	public LoadJdbcParameters selectExpr(String expr) {
 		m_selectExpr = FOption.ofNullable(expr);
+		return this;
+	}
+
+	public int fetchSize() {
+		return m_fetchSize;
+	}
+
+	@Option(names={"-fetch"}, paramLabel="count", description={"fetch size (>0)"})
+	public LoadJdbcParameters fetchSize(int size) {
+		Utilities.checkArgument(size > 0, "invalid fetch-size: " + size);
+		
+		m_fetchSize = size;
 		return this;
 	}
 	
