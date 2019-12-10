@@ -247,4 +247,10 @@ public class PBRecordProtos {
 			record.set(i, PBValueProtos.fromProto(proto.getColumn(i)));
 		}
 	}
+	
+	public static Record fromProto(RecordProto proto, RecordSchema schema) {
+		Record record = DefaultRecord.of(schema);
+		fromProto(proto, record);
+		return record;
+	}
 }
