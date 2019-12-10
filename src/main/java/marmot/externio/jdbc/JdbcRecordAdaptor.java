@@ -1,14 +1,11 @@
 package marmot.externio.jdbc;
 
-import static utils.Utilities.fromUTCEpocMillis;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +24,6 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.geo.GeoClientUtils;
-import marmot.support.DefaultRecord;
 import marmot.type.DataType;
 import utils.LocalDateTimes;
 import utils.LocalDates;
@@ -106,18 +102,9 @@ public abstract class JdbcRecordAdaptor {
 		}
 	}
 	
-	public Record toRecord(ResultSet rs) {
-		Record record = DefaultRecord.of(m_schema);
-		loadRecord(rs, record);
-		
-		return record;
-	}
-	
 	public void loadRecord(ResultSet rs, Record record) throws RecordSetException {
-		RecordSchema schema = record.getRecordSchema();
-		
-		for ( int i =0; i < schema.getColumnCount(); ++i ) {
-			Column col = schema.getColumnAt(i);
+		for ( int i =0; i < m_schema.getColumnCount(); ++i ) {
+			Column col = m_schema.getColumnAt(i);
 			record.set(i, getColumn(col, rs, i+1));
 		}
 	}
@@ -259,13 +246,13 @@ public abstract class JdbcRecordAdaptor {
 					case FLOAT:
 						return rs.getFloat(colIdx);
 					case DATETIME:
-						return fromUTCEpocMillis(rs.getTimestamp(colIdx).getTime()).toLocalDateTime();
-					case DATE:
-						return fromUTCEpocMillis(rs.getLong(colIdx)).toLocalDate();
-					case TIME:
-						return LocalTime.parse(rs.getString(colIdx));
+						return rs.getTimestamp(colIdx).toLocalDateTime();
 					case BOOLEAN:
 						return rs.getBoolean(colIdx);
+					case DATE:
+						return rs.getDate(colIdx).toLocalDate();
+					case TIME:
+						return rs.getTime(colIdx).toLocalTime();
 					default:
 						throw new RecordSetException("unexpected DataType: " + col.type());
 				}
