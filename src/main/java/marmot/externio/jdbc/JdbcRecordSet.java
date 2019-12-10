@@ -7,7 +7,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
-import utils.Utilities;
+import static utils.Utilities.*;
 import utils.func.Try;
 import utils.io.IOUtils;
 
@@ -20,8 +20,8 @@ public class JdbcRecordSet extends AbstractRecordSet {
 	private ResultSet m_rs;
 	
 	public JdbcRecordSet(JdbcRecordAdaptor adaptor, ResultSet rs) {
-		Utilities.checkNotNullArgument(adaptor, "JdbcRecordAdaptor is null");
-		Utilities.checkNotNullArgument(rs, "rs is null");
+		checkNotNullArgument(adaptor, "JdbcRecordAdaptor is null");
+		checkNotNullArgument(rs, "rs is null");
 
 		m_adaptor = adaptor;
 		m_rs = rs;
@@ -58,7 +58,7 @@ public class JdbcRecordSet extends AbstractRecordSet {
 			return true;
 		}
 		catch ( SQLException e ) {
-			throw new RecordSetException(e);
+			throw new RecordSetException("" + e);
 		}
 	}
 	
