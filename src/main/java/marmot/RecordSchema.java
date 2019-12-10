@@ -221,7 +221,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	
 	@Override
 	public String toString() {
-		return FStream.of(m_columns).map(Column::toString).join(",");
+		return FStream.of(m_columns).map(Column::toStringExpr).join(",");
 	}
 	
 	@Override
