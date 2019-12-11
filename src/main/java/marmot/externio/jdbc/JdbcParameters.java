@@ -1,6 +1,12 @@
 package marmot.externio.jdbc;
 
+import static utils.Utilities.checkArgument;
+import static utils.Utilities.checkNotNullArgument;
+
+import java.util.List;
+
 import picocli.CommandLine.Option;
+import utils.CSV;
 import utils.func.FOption;
 
 
@@ -10,8 +16,8 @@ import utils.func.FOption;
  */
 public class JdbcParameters {
 	private String m_system;
-	private String m_host = "localhost";
-	private int m_port = -1;
+	private String m_host;
+	private int m_port;
 	private String m_user;
 	private String m_passwd;
 	private String m_dbName;
@@ -33,64 +39,44 @@ public class JdbcParameters {
 		return m_system;
 	}
 
-	@Option(names={"-system"}, paramLabel="name", required=true,
-			description={"JDBC driver system name (eg. postgresql, mysql, ...)"})
-	public JdbcParameters system(String system) {
-		m_system = system;
+	@Option(names={"-jdbc_loc"},
+			paramLabel="<system>:<jdbc_host>:<jdbc_port>:<user_id>:<passwd>:<db_name>",
+			required=true,
+			description={"JDBC locator, (eg. 'mysql:localhost:3306:sbdata:xxxyy:bigdata')"})
+	public JdbcParameters jdbcLoc(String loc) {
+		checkNotNullArgument(loc, "JDBC locator is null");
+		
+		List<String> parts = CSV.parseCsv(loc, ':').toList();
+		checkArgument(parts.size() == 6, "invalid JDBC locator: " + loc);
+		
+		m_system = parts.get(0);
+		m_host = parts.get(1);
+		m_port = Integer.parseInt(parts.get(2));
+		m_user = parts.get(3);
+		m_passwd = parts.get(4);
+		m_dbName = parts.get(5);
+		
 		return this;
 	}
 	
 	public String host() {
 		return m_host;
 	}
-
-	@Option(names={"-host"}, paramLabel="ip", description={"JDBC host name"})
-	public JdbcParameters host(String host) {
-		m_host = host;
-		return this;
-	}
 	
 	public int port() {
 		return m_port;
-	}
-
-	@Option(names={"-port"}, paramLabel="port_no", description={"JDBC port number"})
-	public JdbcParameters port(int port) {
-		m_port = port;
-		return this;
 	}
 	
 	public String user() {
 		return m_user;
 	}
-
-	@Option(names={"-user"}, paramLabel="user_id", required=true,
-			description={"JDBC database user id"})
-	public JdbcParameters user(String userId) {
-		m_user = userId;
-		return this;
-	}
 	
 	public String password() {
 		return m_passwd;
 	}
-
-	@Option(names={"-passwd"}, paramLabel="user_passwd", required=true,
-					description={"JDBC database user password"})
-	public JdbcParameters password(String passwd) {
-		m_passwd = passwd;
-		return this;
-	}
 	
 	public String database() {
 		return m_dbName;
-	}
-
-	@Option(names={"-database"}, paramLabel="name", required=true,
-			description={"JDBC database name"})
-	public JdbcParameters database(String name) {
-		m_dbName = name;
-		return this;
 	}
 	
 	public GeometryFormat geometryFormat() {

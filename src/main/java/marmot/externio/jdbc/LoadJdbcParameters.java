@@ -19,7 +19,7 @@ import utils.func.KeyValue;
  * @author Kang-Woo Lee (ETRI)
  */
 public class LoadJdbcParameters extends JdbcParameters {
-	private static final int DEF_FETCH_SIZE = 512;
+	private static final int DEF_FETCH_SIZE = 128;
 	
 	private FOption<String> m_selectExpr = FOption.empty();
 	private int m_fetchSize = DEF_FETCH_SIZE;
