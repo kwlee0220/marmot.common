@@ -147,7 +147,12 @@ public abstract class JdbcRecordAdaptor {
 			case Types.TIMESTAMP:
 				return DataType.DATETIME;
 			case Types.OTHER:
-				return DataType.NULL;
+				if ( typeName.equals("geometry") ) {
+					return DataType.GEOMETRY;
+				}
+				else {
+					return DataType.NULL;
+				}
 			default:
 				throw new IllegalArgumentException("unsupported SqlTypes: type=" + typeName
 													+ ", code=" + type);
