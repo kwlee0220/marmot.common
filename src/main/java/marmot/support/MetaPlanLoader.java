@@ -37,10 +37,11 @@ public class MetaPlanLoader {
 	private static FOption<Plan> tryToLoadTemplatePlan(File start) throws IOException {
 		File metaFile = getMetaPlanFile(start, ST_PLAN_SUFFIX);
 		if ( metaFile.exists() ) {
-			return FOption.of(STScriptPlanLoader.load(metaFile));
+			Plan plan = STScriptPlanLoader.load(metaFile);
+			s_logger.info("load import plan file=" + start);
+			return FOption.of(plan);
 		}
 		else {
-			s_logger.warn("fails to find StringTemplate plan file=" + start);
 			return FOption.empty();
 		}
 	}
