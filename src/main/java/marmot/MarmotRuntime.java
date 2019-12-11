@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.vividsolutions.jts.geom.Geometry;
 
@@ -16,6 +17,7 @@ import marmot.exec.MarmotExecutionException;
 import marmot.exec.PlanAnalysis;
 import marmot.io.MarmotFileNotFoundException;
 import utils.func.FOption;
+import utils.stream.FStream;
 
 /**
  * 
@@ -175,6 +177,24 @@ public interface MarmotRuntime {
 	 */
 	public MarmotAnalysis getAnalysis(String id) throws AnalysisNotFoundException;
 
+	public List<MarmotAnalysis> getAnalysisAll();
+	
+	/**
+	 * 등록된 모든 최상위 분석 모듈을 반환한다.
+	 * 
+	 * @return	최상위 분석 모듈 리스트
+	 */
+	public default List<MarmotAnalysis> getTopAnalysisAll() {
+		List<MarmotAnalysis> analList = getAnalysisAll();
+		Set<String> subCompList = FStream.from(analList)
+										.castSafely(CompositeAnalysis.class)
+										.flatMapIterable(c -> c.getComponents())
+										.toSet();
+		return FStream.from(analList)
+							.filter(a -> !subCompList.contains(a.getId()))
+							.toList();
+	}
+
 	/**
 	 *  식별자에 해당하는 분석 모듈을 반환한다.
 	 *  식별자에 해당하는 분석 모듈이 없는 경우는 {@code null}을 반환한다.
@@ -193,8 +213,22 @@ public interface MarmotRuntime {
 	public CompositeAnalysis findParentAnalysis(String id);
 	public List<CompositeAnalysis> getAncestorAnalysisAll(String id);
 	public List<MarmotAnalysis> getDescendantAnalysisAll(String id);
-	public List<MarmotAnalysis> getAnalysisAll();
+	
+	/**
+	 * 새 분석 모듈을 등록시킨다.
+	 * 
+	 * @param analysis	등록시킬 분석 모듈
+	 * @param force		동일 식별자의 분석 모듈이 존재하는 경우 overwrite 여부
+	 */
 	public void addAnalysis(MarmotAnalysis analysis, boolean force);
+	
+	/**
+	 * 주어진 식별자에 해당하는 분석 모듈을 삭제시킨다.
+	 * 
+	 * @param id	삭제할 분석 모듈의 식별자.
+	 * @param recursive	삭제 대상 분석 모듈이 {@link CompositeAnalysis}인 경우
+	 * 					하위 분석 모듈도 함께 삭제할지 여부
+	 */
 	public void deleteAnalysis(String id, boolean recursive);
 	public void deleteAnalysisAll();
 	public MarmotExecution startAnalysis(MarmotAnalysis analysis) throws MarmotExecutionException;
