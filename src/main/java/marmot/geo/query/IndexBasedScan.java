@@ -51,17 +51,17 @@ public class IndexBasedScan {
 	private final DataSetPartitionCache m_cache;
 	private volatile boolean m_usePrefetch = false;
 	
-	public static IndexBasedScan on(DataSet ds, Envelope range, long sampleCount,
+	public static IndexBasedScan on(MarmotRuntime marmot, DataSet ds, Envelope range, long sampleCount,
 								DataSetPartitionCache cache, int maxLocalCacheCost) throws IOException {
-		return new IndexBasedScan(ds, range, sampleCount, cache, maxLocalCacheCost);
+		return new IndexBasedScan(marmot, ds, range, sampleCount, cache, maxLocalCacheCost);
 	}
 	
-	private IndexBasedScan(DataSet ds, Envelope range, long sampleCount,
+	private IndexBasedScan(MarmotRuntime marmot, DataSet ds, Envelope range, long sampleCount,
 						DataSetPartitionCache cache, int maxLocalCacheCost) throws IOException {
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		Utilities.checkNotNullArgument(range, "query ranage");
 		
-		m_marmot = ds.getMarmotRuntime();
+		m_marmot = marmot;
 		m_ds = ds;
 		m_dsId = m_ds.getId();
 		m_range = range;
@@ -95,7 +95,7 @@ public class IndexBasedScan {
 			}
 			else {
 				s_logger.info("too large for index-scan, use full-scan: id={}", m_dsId);
-				return FullScan.on(m_ds)
+				return FullScan.on(m_marmot, m_ds)
 								.setRange(m_range)
 								.setSampleRatio(sampleRatio)
 								.run();

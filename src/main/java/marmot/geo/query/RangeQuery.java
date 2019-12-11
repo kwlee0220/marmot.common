@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.DataSet;
+import marmot.MarmotRuntime;
 import marmot.RecordSet;
 import utils.StopWatch;
 import utils.Throwables;
@@ -18,6 +19,7 @@ import utils.Utilities;
 public class RangeQuery {
 	private static final Logger s_logger = LoggerFactory.getLogger(RangeQuery.class);
 	
+	private final MarmotRuntime m_marmot;
 	private final String m_dsId;
 	private final DataSet m_ds;
 	private final Envelope m_range;
@@ -26,14 +28,16 @@ public class RangeQuery {
 	private final DataSetPartitionCache m_cache;
 	private boolean m_usePrefetch = false;
 	
-	RangeQuery(DataSet ds, Envelope range, long sampleCount, DataSetPartitionCache cache,
-				boolean usePrefetch, int maxLocalCacheCost) {
+	RangeQuery(MarmotRuntime marmot, DataSet ds, Envelope range, long sampleCount,
+				DataSetPartitionCache cache, boolean usePrefetch, int maxLocalCacheCost) {
+		Utilities.checkNotNullArgument(marmot, "MarmotRuntime");
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		Utilities.checkNotNullArgument(range, "query range");
 		Utilities.checkNotNullArgument(cache, "DataSetPartitionCache");
 		Utilities.checkArgument(sampleCount > 0, "SampleCount > 0, but " + sampleCount);
 		Utilities.checkArgument(maxLocalCacheCost > 0, "MaxLocalCacheCost > 0, but " + maxLocalCacheCost);
 		
+		m_marmot = marmot;
 		m_ds = ds;
 		m_dsId = ds.getId();
 		m_range = range;
@@ -102,7 +106,7 @@ public class RangeQuery {
 				else {
 					s_logger.info("RANGE > DS, use full scan: id={}, nsamples={}",
 									m_dsId, m_sampleCount);
-					return FullScan.on(m_ds).setSampleCount(m_sampleCount).run();
+					return FullScan.on(m_marmot, m_ds).setSampleCount(m_sampleCount).run();
 				}
 			}
 			
@@ -113,7 +117,7 @@ public class RangeQuery {
 					return ThumbnailScan.on(m_ds, m_range, m_sampleCount).run();
 				}
 				else {
-					return FullScan.on(m_ds)
+					return FullScan.on(m_marmot, m_ds)
 									.setRange(m_range)
 									.setSampleCount(m_sampleCount)
 									.run();
@@ -122,7 +126,8 @@ public class RangeQuery {
 			else {
 				// 질의 영역과 겹치는 quad-key들과, 해당 결과 레코드의 수를 추정하여
 				// 그에 따른 질의처리를 시도한다.
-				return IndexBasedScan.on(m_ds, m_range, m_sampleCount, m_cache, m_maxLocalCacheCost)
+				return IndexBasedScan.on(m_marmot, m_ds, m_range, m_sampleCount, m_cache,
+										m_maxLocalCacheCost)
 									.usePrefetch(m_usePrefetch)
 									.run();
 			}

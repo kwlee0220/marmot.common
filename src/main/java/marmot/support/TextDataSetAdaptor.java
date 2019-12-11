@@ -44,12 +44,13 @@ public class TextDataSetAdaptor {
 		else if ( ds.getType() == DataSetType.TEXT ) {
 			if ( ds.hasGeometryColumn() && ds.isSpatiallyClustered()) {
 				SpatialIndexInfo idxInfo = ds.getDefaultSpatialIndexInfo().get();
-				Statistics stat = new Statistics(idxInfo.getRecordCount(), idxInfo.getDataBounds());
+				Statistics stat = new Statistics(m_marmot, idxInfo.getRecordCount(),
+												idxInfo.getDataBounds());
 				return (DataSet)ProxyUtils.replaceAction(ds, EXTRA_INTFCS,
 											new GetRecordCount(stat), new GetBounds(stat));
 			}
 			else {
-				Statistics stat = new Statistics();
+				Statistics stat = new Statistics(m_marmot);
 				return (DataSet)ProxyUtils.replaceAction(ds, EXTRA_INTFCS,
 											new GetRecordCount(stat), new GetBounds(stat));
 			}
@@ -67,14 +68,16 @@ public class TextDataSetAdaptor {
 	}
 	
 	private static class Statistics {
+		private final MarmotRuntime m_marmot;
 		private long m_count;
 		private Envelope m_bounds;
 		
-		Statistics() {
-			this(-1, null);
+		Statistics(MarmotRuntime marmot) {
+			this(marmot, -1, null);
 		}
 		
-		Statistics(long count, Envelope bounds) {
+		Statistics(MarmotRuntime marmot, long count, Envelope bounds) {
+			m_marmot = marmot;
 			m_count = count;
 			m_bounds = bounds;
 		}
@@ -82,24 +85,23 @@ public class TextDataSetAdaptor {
 		void load(DataSet ds) {
 			s_logger.info("aggregating: dataset[{}] count and mbr......", ds.getId());
 			
-			MarmotRuntime marmot = ds.getMarmotRuntime();
 			if ( ds.hasGeometryColumn() ) {
 				GeometryColumnInfo gcInfo = ds.getGeometryColumnInfo();
 
-				Plan plan = marmot.planBuilder("aggregate")
+				Plan plan = m_marmot.planBuilder("aggregate")
 									.load(ds.getId())
 									.aggregate(COUNT(), ENVELOPE(gcInfo.name()))
 									.build();
-				Record result = marmot.executeToRecord(plan).get();
+				Record result = m_marmot.executeToRecord(plan).get();
 				m_count = result.getLong(0);
 				m_bounds = ((Polygon)result.get(1)).getEnvelopeInternal();
 			}
 			else {
-				Plan plan = marmot.planBuilder("aggregate")
+				Plan plan = m_marmot.planBuilder("aggregate")
 									.load(ds.getId())
 									.aggregate(COUNT())
 									.build();
-				Record result = marmot.executeToRecord(plan).get();
+				Record result = m_marmot.executeToRecord(plan).get();
 				m_count = result.getLong(0);
 				m_bounds = new Envelope();
 			}

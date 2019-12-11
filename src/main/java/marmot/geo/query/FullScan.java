@@ -38,17 +38,17 @@ public class FullScan implements LoggerSettable {
 	private DataSet m_rangedDataSet = null;
 	private Logger m_logger;
 	
-	private FullScan(DataSet ds) {
+	private FullScan(MarmotRuntime marmot, DataSet ds) {
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		
-		m_marmot = ds.getMarmotRuntime();
+		m_marmot = marmot;
 		m_ds = ds;
 		
 		m_logger = LoggerFactory.getLogger(FullScan.class);
 	}
 	
-	public static FullScan on(DataSet ds) {
-		return new FullScan(ds);
+	public static FullScan on(MarmotRuntime marmot, DataSet ds) {
+		return new FullScan(marmot, ds);
 	}
 	
 	public FullScan setRange(Envelope range) {

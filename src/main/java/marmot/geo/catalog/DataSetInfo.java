@@ -66,7 +66,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 		return m_dir;
 	}
 	
-	void setDirName(String dir) {
+	public void setDirName(String dir) {
 		m_dir = dir;
 	}
 	

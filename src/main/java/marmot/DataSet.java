@@ -16,13 +16,6 @@ import utils.func.FOption;
  */
 public interface DataSet {
 	/**
-	 * 본 데이터세트가 사용하는 Marmot 런타임 객체를 반환한다.
-	 * 
-	 * @return	Marmot 런타임 객체
-	 */
-	public MarmotRuntime getMarmotRuntime();
-	
-	/**
 	 * 데이터세트의 식별자(이름)을 반환한다.
 	 * 
 	 * @return 식별자.	
@@ -191,8 +184,6 @@ public interface DataSet {
 	 * @return	본 데이터 세트 객체.
 	 */
 	public long append(RecordSet rset, Plan plan);
-	
-//	public void appendPlanResult(Plan plan, ExecutePlanOptions execOpts);
 	
 	/**
 	 * 데이터세트의 기본 공간 컬럼을 기준으로 인덱스(클러스터)를 생성한다.

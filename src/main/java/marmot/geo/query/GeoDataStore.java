@@ -1,12 +1,9 @@
 package marmot.geo.query;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static marmot.optor.AggregateFunction.COUNT;
-import static marmot.optor.AggregateFunction.ENVELOPE;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -18,17 +15,11 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Polygon;
 
 import marmot.DataSet;
-import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.MarmotRuntimeException;
-import marmot.Plan;
-import marmot.Record;
 import marmot.support.TextDataSetAdaptor;
-import net.sf.cglib.proxy.MethodProxy;
-import utils.CallHandler;
 import utils.Utilities;
 import utils.stream.FStream;
 
@@ -147,7 +138,7 @@ public class GeoDataStore {
 		try {
 			DataSet ds = m_dsCache.getUnchecked(dsId);
 			
-			return new RangeQuery(ds, range, m_sampleCount, m_cache, m_usePrefetch,
+			return new RangeQuery(m_marmot, ds, range, m_sampleCount, m_cache, m_usePrefetch,
 									m_maxLocalCacheCost);
 		}
 		catch ( UncheckedExecutionException e ) {
@@ -223,75 +214,9 @@ public class GeoDataStore {
 			m_bounds = bounds;
 		}
 		
-		void load(DataSet ds) {
-			s_logger.info("aggregating: dataset[{}] count and mbr......", ds.getId());
-			
-			MarmotRuntime marmot = ds.getMarmotRuntime();
-			GeometryColumnInfo gcInfo = ds.getGeometryColumnInfo();
-			Plan plan = marmot.planBuilder("aggregate")
-								.load(ds.getId())
-								.aggregate(COUNT(), ENVELOPE(gcInfo.name()))
-								.build();
-			Record result = marmot.executeToRecord(plan).get();
-			m_count = result.getLong(0);
-			m_bounds = ((Polygon)result.get(1)).getEnvelopeInternal();
-			
-			s_logger.info("aggregated: {}", this);
-		}
-		
 		@Override
 		public String toString() {
 			return String.format("statistics: count=%d,  mbr=%s", m_count, m_bounds);
-		}
-	}
-	
-	private static class GetRecordCount implements CallHandler<DataSet> {
-		private final DataSet m_ds;
-		private final Statistics m_stat;
-		
-		GetRecordCount(DataSet ds, Statistics stat) {
-			m_ds = ds;
-			m_stat = stat;
-		}
-
-		@Override
-		public boolean test(Method method) {
-			return "getRecordCount".equals(method.getName());
-		}
-
-		@Override
-		public Object intercept(DataSet ds, Method method, Object[] args, MethodProxy proxy)
-			throws Throwable {
-			if ( m_stat.m_count < 0 ) {
-				m_stat.load(m_ds);
-			}
-			
-			return m_stat.m_count;
-		}
-	}
-	
-	private static class GetBounds implements CallHandler<DataSet> {
-		private final DataSet m_ds;
-		private final Statistics m_stat;
-		
-		GetBounds(DataSet ds, Statistics stat) {
-			m_ds = ds;
-			m_stat = stat;
-		}
-
-		@Override
-		public boolean test(Method method) {
-			return "getBounds".equals(method.getName());
-		}
-
-		@Override
-		public Object intercept(DataSet ds, Method method, Object[] args, MethodProxy proxy)
-			throws Throwable {
-			if ( m_stat.m_bounds == null ) {
-				m_stat.load(m_ds);
-			}
-			
-			return m_stat.m_bounds;
 		}
 	}
 }
