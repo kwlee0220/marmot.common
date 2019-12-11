@@ -11,6 +11,7 @@ import com.google.common.collect.Sets;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
+import marmot.analysis.system.SystemAnalysis;
 import marmot.command.PicocliCommands.SubCommand;
 import marmot.exec.CompositeAnalysis;
 import marmot.exec.MarmotAnalysis;
@@ -18,7 +19,6 @@ import marmot.exec.MarmotAnalysis.Type;
 import marmot.exec.MarmotExecution;
 import marmot.exec.ModuleAnalysis;
 import marmot.exec.PlanAnalysis;
-import marmot.exec.SystemAnalysis;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;

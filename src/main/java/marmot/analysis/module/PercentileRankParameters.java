@@ -1,6 +1,8 @@
-package marmot.process;
+package marmot.analysis.module;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,6 +16,10 @@ public class PercentileRankParameters {
 	private static final String OUTPUT_COLUMN = "output_column";
 	
 	private final Map<String,String> m_params;
+	
+	public static List<String> getParameterNameAll() {
+		return Arrays.asList(INPUT_DATASET, OUTPUT_DATASET, RANK_COLUMN, OUTPUT_COLUMN);
+	}
 	
 	public PercentileRankParameters() {
 		m_params = new HashMap<>();

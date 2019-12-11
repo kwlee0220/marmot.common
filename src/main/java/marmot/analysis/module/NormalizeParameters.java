@@ -1,4 +1,4 @@
-package marmot.process;
+package marmot.analysis.module;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,6 +19,10 @@ public class NormalizeParameters {
 	public static final String OUTPUT_COLUMNS = "output_features";
 	
 	private final Map<String,String> m_params;
+	
+	public static List<String> getParameterNameAll() {
+		return Arrays.asList(INPUT_DATASET, OUTPUT_DATASET, INPUT_FEATURE_COLUMNS, OUTPUT_COLUMNS);
+	}
 	
 	public NormalizeParameters() {
 		m_params = Maps.newHashMap();

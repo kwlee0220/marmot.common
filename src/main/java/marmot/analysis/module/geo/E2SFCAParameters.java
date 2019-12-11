@@ -1,5 +1,7 @@
-package marmot.process.geo;
+package marmot.analysis.module.geo;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.base.Preconditions;
@@ -24,6 +26,12 @@ public class E2SFCAParameters {
 	private static final String WEIGHT_FUNC = "weight_function";
 	
 	private final Map<String,String> m_params;
+	
+	public static List<String> getParameterNameAll() {
+		return Arrays.asList(CONSUMER_DATASET, PROVIDER_DATASET, OUTPUT_DATASET,
+							CONSUMER_FEATURE_COLUMNS, PROVIDER_FEATURE_COLUMNS, OUTPUT_COLUMNS,
+							SERIVCE_DISTANCE, WEIGHT_FUNC);
+	}
 	
 	public E2SFCAParameters() {
 		m_params = Maps.newHashMap();

@@ -31,6 +31,11 @@ service PlanExecutionService {
 	rpc executeProcess(ExecuteProcessRequest) returns (VoidResponse);
 	rpc getProcessRecordSchema(ExecuteProcessRequest) returns (RecordSchemaResponse);
 	
+	rpc getModuleAnalysisClassIdAll(VoidProto) returns (StringListResponse);
+	rpc getModuleAnalysisParameterNameAll(StringProto) returns (StringListResponse);
+	rpc getSystemAnalysisClassIdAll(VoidProto) returns (StringListResponse);
+	rpc getSystemAnalysisParameterNameAll(StringProto) returns (StringListResponse);
+	
 	rpc findAnalysis(StringProto) returns (MarmotAnalysisResponse);
 	rpc findParentAnalysis(StringProto) returns (MarmotAnalysisResponse);
 	rpc getAncestorAnalysisAll(StringProto) returns (stream MarmotAnalysisResponse);

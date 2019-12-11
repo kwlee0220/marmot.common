@@ -1,4 +1,4 @@
-package marmot.process.geo;
+package marmot.analysis.module.geo;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -29,6 +29,11 @@ public class KMeansParameters {
 	private static final String TERM_ITER = "termination_iteration";
 	
 	private final Map<String,String> m_params;
+	
+	public static List<String> getParameterNameAll() {
+		return Arrays.asList(INPUT_DATASET, OUTPUT_DATASET, FEATURE_COLUMNS, CLUSTER_COLUMN,
+							INIT_CENTROIDS, TERM_DIST, TERM_ITER);
+	}
 	
 	public KMeansParameters() {
 		m_params = Maps.newHashMap();

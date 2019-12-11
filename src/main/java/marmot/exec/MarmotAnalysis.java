@@ -1,5 +1,6 @@
 package marmot.exec;
 
+import marmot.analysis.system.SystemAnalysis;
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.support.PBSerializable;
 

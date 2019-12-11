@@ -1,5 +1,7 @@
-package marmot.process.geo;
+package marmot.analysis.module.geo;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -18,6 +20,11 @@ public class ServiceAreaAnaysisParameters {
 	private static final String INITIAL_RADIUS = "initial_radius";
 	
 	private final Map<String,String> m_params;
+	
+	public static List<String> getParameterNameAll() {
+		return Arrays.asList(INPUT_DATASET, NETWORK_DATASET, OUTPUT_DATASET, SERVICE_DISTANCE,
+							INITIAL_RADIUS);
+	}
 	
 	public ServiceAreaAnaysisParameters() {
 		m_params = Maps.newHashMap();

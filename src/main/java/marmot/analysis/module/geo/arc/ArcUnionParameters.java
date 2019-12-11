@@ -1,5 +1,7 @@
-package marmot.process.geo.arc;
+package marmot.analysis.module.geo.arc;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -26,6 +28,12 @@ public class ArcUnionParameters {
 	private static final String BLOCK_SIZE = "block_size";
 	
 	private final Map<String,String> m_params;
+	
+	public static List<String> getParameterNameAll() {
+		return Arrays.asList(LEFT_DATASET, LEFT_KEY_COLS, LEFT_PREFIX,
+							RIGHT_DATASET, RIGHT_KEY_COLS, RIGHT_PREFIX,
+							OUTPUT_DATASET, FORCE, COMPRESSION, BLOCK_SIZE);
+	}
 	
 	public ArcUnionParameters() {
 		m_params = Maps.newHashMap();

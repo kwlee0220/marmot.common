@@ -167,6 +167,36 @@ public interface MarmotRuntime {
 	 * @param folder	대상 폴더 이름.
 	 */
 	public void deleteDir(String folder);
+	
+	/**
+	 *  등록된 모든 모듈 분석 클래스들의 식별자를 반환한다.
+	 *  
+	 *  @return	모듈 분석 클래스 식별자 리스트
+	 */
+	public Set<String> getModuleAnalsisClassIdAll();
+	
+	/**
+	 * 주어진 모듈 분석 클래스에서 사용하는 인자 리스트를 반환한다.
+	 * 
+	 * @param classId	대상 모듈 분석 클래스 식별자
+	 * @return	인자 이름 리스트
+	 */
+	public List<String> getModuleAnalysisParameterNameAll(String classId);
+
+	/**
+	 *  등록된 모든 시스템 분석 클래스들의 식별자를 반환한다.
+	 *  
+	 *  @return	시스템 분석 클래스 식별자 리스트
+	 */
+	public Set<String> getSystemAnalsisClassIdAll();
+	
+	/**
+	 * 주어진 시스템 분석 클래스에서 사용하는 인자 리스트를 반환한다.
+	 * 
+	 * @param classId	대상 시스템 분석 클래스 식별자
+	 * @return	인자 이름 리스트
+	 */
+	public List<String> getSystemAnalysisParameterNameAll(String classId);
 
 	/**
 	 *  식별자에 해당하는 분석 모듈을 반환한다.

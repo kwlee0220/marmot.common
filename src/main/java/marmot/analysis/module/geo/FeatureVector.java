@@ -1,4 +1,4 @@
-package marmot.process.geo;
+package marmot.analysis.module.geo;
 
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;

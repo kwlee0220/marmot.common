@@ -61,6 +61,8 @@ import marmot.proto.service.FloatResponse;
 import marmot.proto.service.LongResponse;
 import marmot.proto.service.MarmotErrorCode;
 import marmot.proto.service.RecordResponse;
+import marmot.proto.service.StringListResponse;
+import marmot.proto.service.StringListResponse.ListProto;
 import marmot.proto.service.StringResponse;
 import marmot.proto.service.VoidResponse;
 import marmot.remote.protobuf.PBMarmotError;
@@ -284,6 +286,18 @@ public class PBUtils {
 							.build();
 	}
 	
+	public static StringListResponse toStringListResponse(Iterable<String> values) {
+		return StringListResponse.newBuilder()
+								.setList(ListProto.newBuilder().addAllValue(values).build())
+								.build();
+	}
+	
+	public static StringListResponse toStringListResponse(Throwable e) {
+		return StringListResponse.newBuilder()
+								.setError(toErrorProto(e))
+								.build();
+	}
+	
 	public static String getValue(StringResponse resp) {
 		switch ( resp.getEitherCase() ) {
 			case VALUE:
@@ -419,6 +433,17 @@ public class PBUtils {
 		switch ( resp.getEitherCase() ) {
 			case VALUE:
 				return resp.getValue();
+			case ERROR:
+				throw Throwables.toRuntimeException(toException(resp.getError()));
+			default:
+				throw new AssertionError();
+		}
+	}
+	
+	public static List<String> handle(StringListResponse resp) {
+		switch ( resp.getEitherCase() ) {
+			case LIST:
+				return resp.getList().getValueList();
 			case ERROR:
 				throw Throwables.toRuntimeException(toException(resp.getError()));
 			default:

@@ -1,8 +1,8 @@
 package marmot.geo.command;
 
 import marmot.MarmotRuntime;
+import marmot.analysis.module.geo.arc.ArcBufferParameters;
 import marmot.command.UsageHelp;
-import marmot.process.geo.arc.ArcBufferParameters;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

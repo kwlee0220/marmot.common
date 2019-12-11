@@ -1,5 +1,7 @@
-package marmot.process.geo;
+package marmot.analysis.module.geo;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.google.common.collect.Maps;
@@ -19,6 +21,10 @@ public class EstimateClusterQuadKeysParameters {
 	private static final String BLOCK_SIZE = "block_size";
 	
 	private final Map<String,String> m_params;
+	
+	public static List<String> getParameterNameAll() {
+		return Arrays.asList(INPUT_DATASET, OUTPUT_DATASET, SAMPLE_RATIO, BLOCK_FILL_RATIO, BLOCK_SIZE);
+	}
 	
 	public EstimateClusterQuadKeysParameters() {
 		m_params = Maps.newHashMap();
