@@ -60,8 +60,9 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 			sqlBuilder.append(colsExpr);
 			sqlBuilder.append(" from ").append(m_tableName);
 			String sql = sqlBuilder.toString();
-			ResultSet rs = jdbc.executeQuery(sql, stmt -> stmt.setFetchSize(m_jdbcParams.fetchSize()));
-
+			ResultSet rs = ( m_jdbcParams.fetchSize() > 0 )
+						? jdbc.executeQuery(sql, stmt -> stmt.setFetchSize(m_jdbcParams.fetchSize()))
+						: jdbc.executeQuery(sql);
 			return new JdbcRecordSet(adaptor, rs);
 			
 		}

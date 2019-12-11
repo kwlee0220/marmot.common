@@ -84,8 +84,8 @@ dependencies {
 	implementation "io.grpc:grpc-protobuf:${grpc_version}"
 	
 	// PostSQL
-	compile "org.postgresql:postgresql:${postgresql_version}"
-	compile "org.postgis:postgis-jdbc:${postgis_jdbc_version}"
+//	compile "org.postgresql:postgresql:${postgresql_version}"
+	implementation "org.postgis:postgis-jdbc:${postgis_jdbc_version}"
 	
 	// Joda-Time
 	implementation "joda-time:joda-time:${joda_time_version}"
