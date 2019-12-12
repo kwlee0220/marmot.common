@@ -272,9 +272,9 @@ public class PBValueProtos {
 	public static Object fromProto(ValueProto proto) {
 		switch ( proto.getValueCase() ) {
 			case BYTE_VALUE:
-				return proto.getByteValue();
+				return (byte)proto.getByteValue();
 			case SHORT_VALUE:
-				return proto.getShortValue();
+				return (short)proto.getShortValue();
 			case INT_VALUE:
 				return proto.getIntValue();
 			case LONG_VALUE:
