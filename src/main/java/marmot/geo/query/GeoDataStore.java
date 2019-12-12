@@ -32,7 +32,7 @@ public class GeoDataStore {
 	private static final int DEFAULT_DS_CACHE_EXPIRE_MINUTES = 60;
 	private static final int DEFAULT_SAMPLE_COUNT = 50000;
 	private static final boolean DEFAULT_USE_PREFETCH = false;
-	private static final int DEFAULT_LOCAL_CACHE_COST = 20;
+	private static final int DEFAULT_LOCAL_CACHE_COST = 15;
 	
 	private final MarmotRuntime m_marmot;
 	private final TextDataSetAdaptor m_dsAdaptor;

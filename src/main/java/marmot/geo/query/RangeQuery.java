@@ -35,12 +35,13 @@ import utils.stream.FStream;
 public class RangeQuery {
 	private static final Logger s_logger = LoggerFactory.getLogger(RangeQuery.class);
 
-	private static final int CACHE_COST = 1;
-	private static final int NETWORK_COST = 2;
+	private static final float CACHE_COST = 1f;
+	private static final float NETWORK_COST = 2.5f;
 	
 	private final DataSet m_ds;
 	private final String m_dsId;
 	private final Envelope m_range;
+	private final RangeQueryEstimate m_est;
 	private final PreparedGeometry m_pkey;
 	private final int m_sampleCount;
 	private final int m_maxLocalCacheCost;
@@ -64,6 +65,9 @@ public class RangeQuery {
 		
 		Geometry key = GeoClientUtils.toPolygon(m_range);
 		m_pkey = PreparedGeometryFactory.prepare(key);
+		
+		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
+		m_est = m_ds.estimateRangeQuery(m_range);
 	}
 	
 	public RangeQuery usePrefetch(boolean flag) {
@@ -72,31 +76,28 @@ public class RangeQuery {
 	}
 	
 	public RecordSet run() throws Exception {
-		// 질의 영역과 겹치는 quad-key들과, 추정되는 결과 레코드의 수를 계산한다.
-		RangeQueryEstimate est = m_ds.estimateRangeQuery(m_range);
-		
 		// 추정된 결과 레코드 수를 통해 샘플링 비율을 계산한다.
 		double ratio = (m_sampleCount > 0)
-						? (double)m_sampleCount / est.getMatchCount() : 1d;
+						? (double)m_sampleCount / m_est.getMatchCount() : 1d;
 		final double sampleRatio = Math.min(ratio, 1);
 		
 		// quad-key들 중에서 캐슁되지 않은 cluster들의 갯수를 구한다.
-		List<ClusterEstimate> clusters = est.getClusterEstimates();
+		List<ClusterEstimate> clusters = m_est.getClusterEstimates();
 		int nclusters = clusters.size();
 		List<String> cachedKeys = FStream.from(clusters)
 										.map(ClusterEstimate::getQuadKey)
 										.filter(key -> m_cache.exists(m_dsId, key))
 										.toList();
 		int remoteIoCount = nclusters - cachedKeys.size();
-		int cost = (cachedKeys.size()*CACHE_COST) + (remoteIoCount * NETWORK_COST);
+		int cost = Math.round((cachedKeys.size()*CACHE_COST) + (remoteIoCount * NETWORK_COST));
 		
 		String msg = String.format("ds_id=%s, clusters=%d/%d, cost=%d/%d, guess_count=%d, ratio=%.3f",
 									m_dsId, cachedKeys.size(), nclusters, cost, m_maxLocalCacheCost,
-									est.getMatchCount(), sampleRatio);
+									m_est.getMatchCount(), sampleRatio);
 		if ( cost > m_maxLocalCacheCost ) {
 			if ( m_usePrefetch ) {
 				StartableExecution<RecordSet> fg = AsyncExecutions.from(() -> queryAtServer(msg));
-				StartableExecution<?> bg = forkClusterPrefetcher(est);
+				StartableExecution<?> bg = forkClusterPrefetcher(m_est);
 				StartableExecution<RecordSet> exec = AsyncExecutions.backgrounded(fg, bg);
 				exec.start();
 				
@@ -107,7 +108,7 @@ public class RangeQuery {
 			}
 		}
 		else {
-			return runOnLocalCache(sampleRatio, est, msg);
+			return runOnLocalCache(sampleRatio, m_est, msg);
 		}
 	}
 	

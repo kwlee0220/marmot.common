@@ -18,6 +18,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalNotification;
 
 import marmot.MarmotRuntime;
+import marmot.Record;
 import marmot.RecordSet;
 import marmot.dataset.DataSet;
 import marmot.protobuf.PBRecordProtos;
@@ -94,8 +95,8 @@ public class DataSetPartitionCache {
 	
 	private File writeIntoCache(PartitionKey key, RecordSet rset)
 		throws IOException {
-		rset = RecordSet.from(rset.getRecordSchema(), rset.fstream().shuffle());
-		
+		rset = RecordSet.from(rset.getRecordSchema(), rset.fstream()
+						.shuffle());
 		InputStream is = PBRecordProtos.toInputStream(rset); 
 		try {
 			is = Lz4Compressions.compress(is);
