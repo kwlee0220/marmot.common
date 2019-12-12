@@ -3,6 +3,7 @@ package marmot;
 import java.io.IOException;
 
 import marmot.exec.MarmotExecutionException;
+import marmot.optor.StoreDataSetOptions;
 
 /**
  * 

@@ -1,7 +1,8 @@
-package marmot;
+package marmot.optor;
 
 import java.util.Map;
 
+import marmot.dataset.GeometryColumnInfo;
 import marmot.proto.service.StoreDataSetOptionsProto;
 import marmot.support.PBSerializable;
 import utils.UnitUtils;

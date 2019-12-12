@@ -1,6 +1,6 @@
 package marmot.command;
 
-import static marmot.StoreDataSetOptions.FORCE;
+import static marmot.optor.StoreDataSetOptions.FORCE;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,9 +15,6 @@ import org.apache.commons.io.FileUtils;
 
 import marmot.BindDataSetOptions;
 import marmot.Column;
-import marmot.DataSet;
-import marmot.DataSetType;
-import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
@@ -25,6 +22,9 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.command.PicocliCommands.SubCommand;
+import marmot.dataset.DataSet;
+import marmot.dataset.DataSetType;
+import marmot.dataset.GeometryColumnInfo;
 import marmot.externio.ExternIoUtils;
 import marmot.externio.ImportIntoDataSet;
 import marmot.externio.csv.CsvParameters;

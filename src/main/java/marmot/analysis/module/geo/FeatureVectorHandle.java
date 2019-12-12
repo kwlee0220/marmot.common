@@ -5,11 +5,11 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 
-import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.Record;
 import marmot.RecordSet;
+import marmot.dataset.DataSet;
 import marmot.support.DefaultRecord;
 import utils.stream.FStream;
 

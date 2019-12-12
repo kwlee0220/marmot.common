@@ -11,12 +11,12 @@ import org.slf4j.LoggerFactory;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Polygon;
 
-import marmot.DataSet;
-import marmot.DataSetType;
-import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.Record;
+import marmot.dataset.DataSet;
+import marmot.dataset.DataSetType;
+import marmot.dataset.GeometryColumnInfo;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.query.GeoDataStore;
 import net.sf.cglib.proxy.MethodProxy;

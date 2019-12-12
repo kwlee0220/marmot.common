@@ -3,10 +3,10 @@ package marmot.externio;
 import java.io.Closeable;
 import java.io.IOException;
 
-import marmot.DataSet;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import marmot.dataset.DataSet;
 import marmot.support.DefaultRecord;
 import utils.Utilities;
 

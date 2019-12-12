@@ -1,9 +1,10 @@
-package marmot;
-
-import java.io.IOException;
+package marmot.dataset;
 
 import com.vividsolutions.jts.geom.Envelope;
 
+import marmot.Plan;
+import marmot.RecordSchema;
+import marmot.RecordSet;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
@@ -35,13 +36,6 @@ public interface DataSet {
 	 * @return 타입.	
 	 */
 	public DataSetType getType();
-	
-	/**
-	 * 테이터세트가 저장된 디렉토리 이름을 반환한다.
-	 * 
-	 * @return 디렉토리 이름.	
-	 */
-	public String getDirName();
 	
 	/**
 	 * 기본 공간 컬럼 지정 여부를 반환한다.
@@ -218,7 +212,7 @@ public interface DataSet {
 	 *  @param range	질의 영역
 	 *  @return	질의 결과 추정치
 	 */
-	public RangeQueryEstimate estimateRangeQuery(Envelope range) throws IOException;
+	public RangeQueryEstimate estimateRangeQuery(Envelope range);
 	
 	/**
 	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 레코드들 중에서
@@ -227,7 +221,7 @@ public interface DataSet {
 	 * @param range		질의 영역
 	 * @param nsample	샘플수
 	 */
-	public RecordSet queryRange(Envelope range, int nsamples) throws IOException;
+	public RecordSet queryRange(Envelope range, int nsamples);
 	
 	/**
 	 * 주어진 공간 파티션 식별자에 해당하는 파티션에 저장된 모든 공간 데이터를 반환한다.
@@ -237,10 +231,16 @@ public interface DataSet {
 	 */
 	public RecordSet readSpatialCluster(String quadKey);
 	
-	public boolean hasThumbnail();
-	public RecordSet readThumbnail(Envelope bounds, int count)
-		throws ThumbnailNotFoundException, InsufficientThumbnailException, IOException;
+	/**
+	 * Thumbnail을 생성한다.
+	 * 
+	 * @param	샘플 수
+	 * @throws	IndexNotFoundException	공간 색인이 존재하지 않는 경우.
+	 */
 	public void createThumbnail(int sampleCount) throws IndexNotFoundException;
+	
+	/**
+	 * Thumbnail을 제거한다.
+	 */
 	public boolean deleteThumbnail();
-	public float getThumbnailRatio() throws ThumbnailNotFoundException;
 }

@@ -5,11 +5,11 @@ import java.io.IOException;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
-import marmot.DataSet;
-import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
+import marmot.dataset.DataSet;
+import marmot.dataset.GeometryColumnInfo;
 import marmot.type.DataType;
 import utils.Utilities;
 import utils.async.ProgressReporter;

@@ -5,10 +5,10 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
-import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
+import marmot.dataset.GeometryColumnInfo;
 import utils.Utilities;
 
 

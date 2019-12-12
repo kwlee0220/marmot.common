@@ -24,10 +24,10 @@ import com.vividsolutions.jts.geom.Point;
 import com.vividsolutions.jts.geom.Polygon;
 
 import marmot.Column;
-import marmot.DataSet;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import marmot.dataset.DataSet;
 import marmot.externio.RecordSetWriter;
 import marmot.support.DefaultRecord;
 import utils.UnitUtils;

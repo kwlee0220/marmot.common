@@ -1,5 +1,6 @@
-package marmot;
+package marmot.dataset;
 
+import marmot.MarmotRuntimeException;
 
 /**
  * 

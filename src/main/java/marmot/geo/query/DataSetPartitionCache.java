@@ -17,9 +17,9 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalNotification;
 
-import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.RecordSet;
+import marmot.dataset.DataSet;
 import marmot.protobuf.PBRecordProtos;
 import utils.Utilities;
 import utils.fostore.FileObjectHandler;

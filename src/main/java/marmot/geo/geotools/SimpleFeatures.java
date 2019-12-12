@@ -27,13 +27,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
+import marmot.dataset.DataSet;
 import marmot.support.DefaultRecord;
 import marmot.type.DataType;
 import marmot.type.DataTypes;

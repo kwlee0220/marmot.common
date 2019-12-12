@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.function.Supplier;
 
-import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
@@ -12,6 +11,7 @@ import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.command.ImportParameters;
+import marmot.dataset.GeometryColumnInfo;
 import marmot.externio.ImportIntoDataSet;
 import marmot.rset.SingleThreadSuppliedRecordSet;
 import marmot.support.MetaPlanLoader;

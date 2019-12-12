@@ -3,8 +3,8 @@ package marmot.externio;
 import java.io.Closeable;
 import java.io.IOException;
 
-import marmot.DataSet;
 import marmot.RecordSet;
+import marmot.dataset.DataSet;
 
 
 /**

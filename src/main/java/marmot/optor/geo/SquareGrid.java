@@ -4,8 +4,8 @@ import java.util.Map;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import marmot.DataSet;
 import marmot.MarmotRuntime;
+import marmot.dataset.DataSet;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.Size2dProto;
 import marmot.proto.optor.SquareGridProto;

@@ -1,5 +1,7 @@
 package marmot;
 
+import marmot.dataset.DataSetException;
+
 /**
  * 
  * @author Kang-Woo Lee (ETRI)

@@ -16,9 +16,9 @@ import com.google.common.io.Files;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import com.vividsolutions.jts.geom.Envelope;
 
-import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.MarmotRuntimeException;
+import marmot.dataset.DataSet;
 import marmot.support.TextDataSetAdaptor;
 import utils.Utilities;
 import utils.stream.FStream;
@@ -30,7 +30,7 @@ import utils.stream.FStream;
 public class GeoDataStore {
 	private static final Logger s_logger = LoggerFactory.getLogger(GeoDataStore.class);
 	private static final int DEFAULT_DS_CACHE_EXPIRE_MINUTES = 60;
-	private static final long DEFAULT_SAMPLE_COUNT = 50000;
+	private static final int DEFAULT_SAMPLE_COUNT = 50000;
 	private static final boolean DEFAULT_USE_PREFETCH = false;
 	private static final int DEFAULT_LOCAL_CACHE_COST = 20;
 	
@@ -38,7 +38,7 @@ public class GeoDataStore {
 	private final TextDataSetAdaptor m_dsAdaptor;
 	private final LoadingCache<String, DataSet> m_dsCache;
 	private final DataSetPartitionCache m_cache;
-	private long m_sampleCount = DEFAULT_SAMPLE_COUNT;
+	private int m_sampleCount = DEFAULT_SAMPLE_COUNT;
 	private boolean m_usePrefetch = DEFAULT_USE_PREFETCH;
 	private int m_maxLocalCacheCost = DEFAULT_LOCAL_CACHE_COST;
 	
@@ -137,8 +137,7 @@ public class GeoDataStore {
 	public RangeQuery createRangeQuery(String dsId, Envelope range) {
 		try {
 			DataSet ds = m_dsCache.getUnchecked(dsId);
-			
-			return new RangeQuery(m_marmot, ds, range, m_sampleCount, m_cache, m_usePrefetch,
+			return new RangeQuery(ds, range, m_sampleCount, m_cache, m_usePrefetch,
 									m_maxLocalCacheCost);
 		}
 		catch ( UncheckedExecutionException e ) {
@@ -157,7 +156,7 @@ public class GeoDataStore {
 	 * @param count	샘플 갯수
 	 * @return	공간 정보 저장소 객체 (Fluent Interface 구성용)
 	 */
-	public GeoDataStore setSampleCount(long count) {
+	public GeoDataStore setSampleCount(int count) {
 		Utilities.checkArgument(count > 0, "sample count must be larger than zero, but " + count);
 		
 		m_sampleCount = count;
@@ -194,29 +193,5 @@ public class GeoDataStore {
 		
 		m_maxLocalCacheCost = cost;
 		return this;
-	}
-	
-	private DataSet asAdapted(DataSet ds) {
-		DataSet cached = m_dsCache.getIfPresent(ds.getId());
-		return (cached != null) ? cached : m_dsAdaptor.adapt(ds);
-	}
-	
-	private static class Statistics {
-		private long m_count;
-		private Envelope m_bounds;
-		
-		Statistics() {
-			this(-1, null);
-		}
-		
-		Statistics(long count, Envelope bounds) {
-			m_count = count;
-			m_bounds = bounds;
-		}
-		
-		@Override
-		public String toString() {
-			return String.format("statistics: count=%d,  mbr=%s", m_count, m_bounds);
-		}
 	}
 }

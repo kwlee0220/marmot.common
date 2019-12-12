@@ -10,11 +10,13 @@ import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 
+import marmot.dataset.GeometryColumnInfo;
 import marmot.geo.GeoClientUtils;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
 import marmot.optor.ParseCsvOptions;
 import marmot.optor.StoreAsCsvOptions;
+import marmot.optor.StoreDataSetOptions;
 import marmot.optor.geo.SpatialRelation;
 import marmot.optor.geo.SquareGrid;
 import marmot.optor.geo.advanced.InterpolationMethod;

@@ -1,6 +1,6 @@
 package marmot.geo.catalog;
 
-import marmot.DataSetException;
+import marmot.dataset.DataSetException;
 
 /**
  * 

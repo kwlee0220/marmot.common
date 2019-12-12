@@ -1,8 +1,8 @@
 package marmot.command;
 
-import marmot.CreateDataSetOptions;
-import marmot.GeometryColumnInfo;
-import marmot.StoreDataSetOptions;
+import marmot.dataset.GeometryColumnInfo;
+import marmot.optor.CreateDataSetOptions;
+import marmot.optor.StoreDataSetOptions;
 import picocli.CommandLine.Option;
 import utils.UnitUtils;
 import utils.func.FOption;

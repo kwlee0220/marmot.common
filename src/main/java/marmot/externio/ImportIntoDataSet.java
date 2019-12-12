@@ -2,12 +2,12 @@ package marmot.externio;
 
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
-import marmot.DataSet;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.command.ImportParameters;
+import marmot.dataset.DataSet;
 import utils.Throwables;
 import utils.Utilities;
 import utils.async.ProgressReporter;

@@ -8,9 +8,9 @@ import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.Column;
-import marmot.DataSetType;
-import marmot.GeometryColumnInfo;
 import marmot.RecordSchema;
+import marmot.dataset.DataSetType;
+import marmot.dataset.GeometryColumnInfo;
 import marmot.proto.service.DataSetInfoProto;
 import marmot.proto.service.DataSetInfoProto.DataSetGeometryInfoProto;
 import marmot.proto.service.DataSetTypeProto;

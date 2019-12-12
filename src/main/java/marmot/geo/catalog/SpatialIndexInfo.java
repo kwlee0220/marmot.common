@@ -7,7 +7,7 @@ import java.util.Objects;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import marmot.GeometryColumnInfo;
+import marmot.dataset.GeometryColumnInfo;
 import marmot.proto.SpatialIndexInfoProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;

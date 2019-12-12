@@ -2,9 +2,9 @@ package marmot.externio.shp;
 
 import java.io.IOException;
 
-import marmot.DataSet;
-import marmot.GeometryColumnInfo;
 import marmot.MarmotRuntime;
+import marmot.dataset.DataSet;
+import marmot.dataset.GeometryColumnInfo;
 import utils.Utilities;
 import utils.async.ProgressiveExecution;
 

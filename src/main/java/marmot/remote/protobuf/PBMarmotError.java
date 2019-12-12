@@ -11,13 +11,13 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Maps;
 
 import marmot.ColumnNotFoundException;
-import marmot.DataSetExistsException;
-import marmot.DataSetNotFoundException;
-import marmot.InsufficientThumbnailException;
 import marmot.MarmotInternalException;
 import marmot.RecordSetClosedException;
 import marmot.RecordSetException;
-import marmot.ThumbnailNotFoundException;
+import marmot.dataset.DataSetExistsException;
+import marmot.dataset.DataSetNotFoundException;
+import marmot.dataset.InsufficientThumbnailException;
+import marmot.dataset.ThumbnailNotFoundException;
 import marmot.exec.AnalysisExistsException;
 import marmot.exec.AnalysisNotFoundException;
 import marmot.exec.ExecutionNotFoundException;

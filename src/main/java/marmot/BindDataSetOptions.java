@@ -1,5 +1,7 @@
 package marmot;
 
+import marmot.dataset.GeometryColumnInfo;
+import marmot.optor.StoreDataSetOptions;
 import marmot.proto.service.BindDataSetOptionsProto;
 import utils.func.FOption;
 

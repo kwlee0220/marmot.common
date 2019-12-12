@@ -8,6 +8,10 @@ import java.util.Set;
 
 import com.vividsolutions.jts.geom.Geometry;
 
+import marmot.dataset.DataSet;
+import marmot.dataset.DataSetExistsException;
+import marmot.dataset.DataSetNotFoundException;
+import marmot.dataset.DataSetType;
 import marmot.exec.AnalysisNotFoundException;
 import marmot.exec.CompositeAnalysis;
 import marmot.exec.ExecutionNotFoundException;
@@ -16,6 +20,7 @@ import marmot.exec.MarmotExecution;
 import marmot.exec.MarmotExecutionException;
 import marmot.exec.PlanAnalysis;
 import marmot.io.MarmotFileNotFoundException;
+import marmot.optor.CreateDataSetOptions;
 import utils.func.FOption;
 import utils.stream.FStream;
 
