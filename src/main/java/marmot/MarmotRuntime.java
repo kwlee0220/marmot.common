@@ -193,7 +193,7 @@ public interface MarmotRuntime {
 	 *  
 	 *  @return	시스템 분석 클래스 식별자 리스트
 	 */
-	public Set<String> getSystemAnalysisClassIdAll();
+	public Set<String> getSystemAnalsisClassIdAll();
 	
 	/**
 	 * 주어진 시스템 분석 클래스에서 사용하는 인자 리스트를 반환한다.
