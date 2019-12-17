@@ -38,6 +38,13 @@ public interface DataSet {
 	public DataSetType getType();
 	
 	/**
+	 * 데이터세트의 디렉토리 이름을 반환한다.
+	 * 
+	 * @return	디렉토리 이름
+	 */
+	public String getDirName();
+	
+	/**
 	 * 기본 공간 컬럼 지정 여부를 반환한다.
 	 * 
 	 * @return	공간 컬럼 지정 여부.
