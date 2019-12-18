@@ -193,7 +193,7 @@ public interface MarmotRuntime {
 	 *  
 	 *  @return	시스템 분석 클래스 식별자 리스트
 	 */
-	public Set<String> getSystemAnalsisClassIdAll();
+	public Set<String> getSystemAnalysisClassIdAll();
 	
 	/**
 	 * 주어진 시스템 분석 클래스에서 사용하는 인자 리스트를 반환한다.
@@ -271,14 +271,6 @@ public interface MarmotRuntime {
 	
 	public MarmotExecution getMarmotExecution(String id) throws ExecutionNotFoundException;
 	public List<MarmotExecution> getMarmotExecutionAll();
-	
-	/**
-	 * {@link Plan} 빌더 객체를 생성한다.
-	 * 
-	 * @param planName	생성될 Plan의 이름.
-	 * @return	Plan 객체.
-	 */
-	public PlanBuilder planBuilder(String planName);
 	
 	/**
 	 * 주어진 Plan의 수행결과로 생성되는 레코드세트의 스키마를 반환한다.
@@ -470,8 +462,6 @@ public interface MarmotRuntime {
 
 	public RecordSchema getProcessOutputRecordSchema(String processId, Map<String,String> params);
 	public void executeProcess(String processId, Map<String,String> params);
-	
-	public void createKafkaTopic(String topic, boolean force);
 	
 	public RecordSet readMarmotFile(String path) throws MarmotFileNotFoundException;
 	public long copyToHdfsFile(String path, InputStream stream,

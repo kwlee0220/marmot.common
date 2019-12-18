@@ -1141,7 +1141,7 @@ public class PlanBuilder {
 	 * 예를들어 64개의 reducer를 사용하여 left-outer 조인을 사용하기 위해서는
 	 * 다음과 같은 방법을 사용한다.
 	 * <pre>{@code
-	 * Plan plan = marmot.planBuilder()
+	 * Plan plan = Plan.builder()
 	 * 							.load(...)
 	 * 							.join("a", param, "b", "*,param.*",
 	 * 								new JoinOptions().joinType(JoinType.LEFT_OUTER_JOIN))

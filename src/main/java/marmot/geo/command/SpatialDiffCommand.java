@@ -84,7 +84,7 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 										m_params.m_keyCols);
 		
 		Plan plan;
-		plan = marmot.planBuilder("spatial diff")
+		plan = Plan.builder("spatial diff")
 					.loadHashJoin(ds1.getId(), m_params.m_keyCols,
 									ds2.getId(), m_params.m_keyCols,
 									outCols, FULL_OUTER_JOIN)
@@ -107,7 +107,7 @@ public class SpatialDiffCommand implements CheckedConsumer<MarmotRuntime> {
 		String outId = generateTempDataSetId();
 
 		Plan plan;
-		plan = marmot.planBuilder("summarize spatial information")
+		plan = Plan.builder("summarize spatial information")
 					.load(dsId)
 					.defineColumn("area:double", areaExpr)
 					.defineColumn("centroid:point", centerExpr)

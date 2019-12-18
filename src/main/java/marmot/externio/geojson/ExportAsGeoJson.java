@@ -6,6 +6,7 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import marmot.MarmotRuntime;
+import marmot.Plan;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
 import marmot.dataset.GeometryColumnInfo;
@@ -49,7 +50,7 @@ public class ExportAsGeoJson {
 	}
 	
 	private RecordSet locateRecordSet(MarmotRuntime marmot, GeometryColumnInfo info) {
-		PlanBuilder builder = marmot.planBuilder("export_geojson")
+		PlanBuilder builder = Plan.builder("export_geojson")
 										.load(m_dsId);
 		if ( m_gjsonSrid != null && !m_gjsonSrid.equals(info.srid()) ) {
 			builder.transformCrs(info.name(), info.srid(), m_gjsonSrid);

@@ -73,7 +73,7 @@ public class BuildPlanCommand extends SubCommand {
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			Plan plan = marmot.planBuilder(m_planName).build();
+			Plan plan = Plan.builder(m_planName).build();
 			String file = ((BuildPlanCommand)getParent()).m_file;
 			
 			Writer writer;

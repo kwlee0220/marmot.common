@@ -130,7 +130,7 @@ public class DatasetCommands {
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			PlanBuilder builder = marmot.planBuilder("list_records");
+			PlanBuilder builder = Plan.builder("list_records");
 			switch ( m_type.toLowerCase() ) {
 				case "dataset":
 					builder = builder.load(m_dsId);
@@ -269,7 +269,7 @@ public class DatasetCommands {
 
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			Plan plan = marmot.planBuilder("count records")
+			Plan plan = Plan.builder("count records")
 								.load(m_dsId)
 								.aggregate(AggregateFunction.COUNT())
 								.build();
@@ -357,7 +357,7 @@ public class DatasetCommands {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			Plan plan;
-			plan = marmot.planBuilder("list_spatial_clusters")
+			plan = Plan.builder("list_spatial_clusters")
 						.loadSpatialClusterIndexFile(m_dsId)
 						.project("*-{bounds,value_envelope}")
 						.build();
@@ -402,7 +402,7 @@ public class DatasetCommands {
 			String toGeom = (m_drawValue) ? "ST_GeomFromEnvelope(data_bounds)"
 											: "ST_GeomFromEnvelope(tile_bounds)";
 			
-			Plan plan = marmot.planBuilder("read_cluster_index")
+			Plan plan = Plan.builder("read_cluster_index")
 								.loadSpatialClusterIndexFile(m_dsId)
 								.defineColumn("the_geom:polygon", toGeom)
 								.project("the_geom,pack_id,quad_key,count,length")
@@ -539,7 +539,7 @@ public class DatasetCommands {
 
 			GeometryColumnInfo outGcInfo = new GeometryColumnInfo(outputGeomCol, gcInfo.srid());
 			String outputCols = String.format("param.%s as %s,*", gcInfo.name(), outputGeomCol);
-			Plan plan = marmot.planBuilder("tag_geometry")
+			Plan plan = Plan.builder("tag_geometry")
 									.load(m_dsId)
 									.hashJoin(m_refCol, m_geomDsId, m_keyCol, outputCols, opts)
 									.store(m_outDsId, FORCE(outGcInfo))

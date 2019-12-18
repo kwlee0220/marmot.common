@@ -60,7 +60,7 @@ public class FeatureVectorHandle {
 		
 		List<FeatureVector> centroids = Lists.newArrayList();
 
-		Plan plan = marmot.planBuilder("sample_init_centroids")
+		Plan plan = Plan.builder("sample_init_centroids")
 								.load(dsId)
 								.sample(sampleRatio)
 								.take(count)

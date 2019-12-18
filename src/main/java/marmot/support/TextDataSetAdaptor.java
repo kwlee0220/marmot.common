@@ -88,7 +88,7 @@ public class TextDataSetAdaptor {
 			if ( ds.hasGeometryColumn() ) {
 				GeometryColumnInfo gcInfo = ds.getGeometryColumnInfo();
 
-				Plan plan = m_marmot.planBuilder("aggregate")
+				Plan plan = Plan.builder("aggregate")
 									.load(ds.getId())
 									.aggregate(COUNT(), ENVELOPE(gcInfo.name()))
 									.build();
@@ -97,7 +97,7 @@ public class TextDataSetAdaptor {
 				m_bounds = ((Polygon)result.get(1)).getEnvelopeInternal();
 			}
 			else {
-				Plan plan = m_marmot.planBuilder("aggregate")
+				Plan plan = Plan.builder("aggregate")
 									.load(ds.getId())
 									.aggregate(COUNT())
 									.build();

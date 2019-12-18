@@ -6,6 +6,7 @@ import java.io.IOException;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import marmot.MarmotRuntime;
+import marmot.Plan;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
 import marmot.dataset.DataSet;
@@ -53,7 +54,7 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	}
 	
 	private RecordSet locateRecordSet(MarmotRuntime marmot) {
-		PlanBuilder builder = marmot.planBuilder("export_csv")
+		PlanBuilder builder = Plan.builder("export_csv")
 									.load(m_dsId);
 		
 		DataSet ds = marmot.getDataSet(m_dsId);

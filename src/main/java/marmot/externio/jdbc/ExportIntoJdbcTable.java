@@ -6,6 +6,7 @@ import java.io.IOException;
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import marmot.MarmotRuntime;
+import marmot.Plan;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
 import utils.Utilities;
@@ -61,7 +62,7 @@ public class ExportIntoJdbcTable implements ProgressReporter<Long> {
 	}
 	
 	private RecordSet loadRecordSet(MarmotRuntime marmot) {
-		PlanBuilder builder = marmot.planBuilder("load_for_jdbc_export")
+		PlanBuilder builder = Plan.builder("load_for_jdbc_export")
 									.load(m_dsId);
 		
 		RecordSet rset = marmot.executeLocally(builder.build());
