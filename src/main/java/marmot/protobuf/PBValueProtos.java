@@ -78,7 +78,7 @@ public class PBValueProtos {
 				builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
 				break;
 			case DATE:
-				builder.setDatetimeValue(LocalDates.toUtcMillis((LocalDate)obj));
+				builder.setDateValue(LocalDates.toUtcMillis((LocalDate)obj));
 				break;
 			case TIME:
 				builder.setTimeValue(LocalTimes.toString((LocalTime)obj));
