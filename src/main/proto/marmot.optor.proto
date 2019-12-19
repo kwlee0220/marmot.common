@@ -13,6 +13,9 @@ message LoadOptionsProto {
 	oneof optional_split_count_per_block {
 		int32 split_count_per_block = 1;
 	}
+	oneof optional_mapper_count {
+		int32 mapper_count = 2;
+	}
 }
 
 message LoadDataSetProto {
@@ -26,12 +29,6 @@ message LoadTextFileProto {
 message LoadMarmotFileProto {
 	LoadOptionsProto options = 1;
 	repeated string paths = 2;
-}
-message LoadWithFixedMapperProto {
-	string job_id = 1;
-	int32 mapper_count = 2;
-	repeated string paths = 3;
-	LoadOptionsProto options = 4;
 }
 message LoadWholeFileProto {
 	LoadOptionsProto options = 1;

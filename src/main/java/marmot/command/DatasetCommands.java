@@ -46,6 +46,7 @@ import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterDataSetOptions;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
+import marmot.plan.LoadOptions;
 import marmot.support.DefaultRecord;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -266,11 +267,16 @@ public class DatasetCommands {
 	public static class Count extends SubCommand {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
+		
+		@Option(names="-mapper_count", paramLabel="count", description="number of mappers")
+		private int m_mapperCount = -1;
 
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
+			LoadOptions opts = (m_mapperCount > 0)
+							? LoadOptions.FIXED_MAPPERS(m_mapperCount) : LoadOptions.DEFAULT;
 			Plan plan = Plan.builder("count records")
-								.load(m_dsId)
+								.load(m_dsId, opts)
 								.aggregate(AggregateFunction.COUNT())
 								.build();
 			System.out.println(marmot.executeToLong(plan).get());
