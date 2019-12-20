@@ -2,7 +2,7 @@ apply plugin: 'java-library'
 apply plugin: 'com.google.protobuf'
  
 group = 'etri'
-version = '5.12.02'
+version = '19.12.19'
 
 sourceCompatibility = JavaVersion.VERSION_1_8;
 [compileJava,compileTestJava]*.options*.encoding = 'UTF-8'
