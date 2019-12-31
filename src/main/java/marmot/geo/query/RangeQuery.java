@@ -179,8 +179,7 @@ public class RangeQuery {
 			}
 			catch ( Exception e ) {
 				m_cache.remove(m_dsId, m_quadKey);
-				s_logger.warn("fails to prefetch: ds=" + m_dsId + ", quadkey=" + m_quadKey
-								+ ", cause=" + e);
+				s_logger.warn("fails to prefetch: ds={}, quadkey={}, cause={}", m_dsId, m_quadKey, e);
 			}
 			return null;
 		}
