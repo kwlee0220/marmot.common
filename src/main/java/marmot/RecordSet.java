@@ -541,7 +541,7 @@ public interface RecordSet extends Closeable, Iterable<Record> {
 		return new AutoClosingRecordSet(this);
 	}
 	
-	public default RecordSet attachCloser(Consumer<? super RecordSet> closer) {
+	public default RecordSet onClose(Runnable closer) {
 		Utilities.checkNotNullArgument(closer, "Closer");
 		
 		return new CloserAttachedRecordSet(this, closer);

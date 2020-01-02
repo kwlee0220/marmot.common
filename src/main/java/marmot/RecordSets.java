@@ -364,9 +364,9 @@ public class RecordSets {
 	
 	static class CloserAttachedRecordSet extends AbstractRecordSet {
 		private final RecordSet m_rset;
-		private final Consumer<? super RecordSet> m_closer;
+		private final Runnable m_closer;
 		
-		CloserAttachedRecordSet(RecordSet rset, Consumer<? super RecordSet> closer) {
+		CloserAttachedRecordSet(RecordSet rset, Runnable closer) {
 			m_rset = rset;
 			m_closer = closer;
 		}
@@ -376,7 +376,7 @@ public class RecordSets {
 			m_rset.closeQuietly();
 			
 			synchronized ( this ) {
-				m_closer.accept(this);
+				m_closer.run();
 			}
 		}
 
