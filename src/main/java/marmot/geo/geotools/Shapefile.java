@@ -107,7 +107,7 @@ public class Shapefile {
 		}
 		finally {
 			if ( reader != null ) {
-				Unchecked.runSneakily(reader::close);
+				Unchecked.runOrThrowSneakily(reader::close);
 			}
 		}
 	}
