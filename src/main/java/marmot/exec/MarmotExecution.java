@@ -100,7 +100,6 @@ public interface MarmotExecution {
 	 * 작업 중단을 확인하기 위해서는 {@link #waitForDone()}이나 {@link #waitForDone(long, TimeUnit)}
 	 * 메소드를 사용하여 최종적으로 확인할 수 있다.
 	 * 
-	 * @param mayInterruptIfRunning	 이미 동적 중인 경우에도 cancel할지 여부
 	 * @return	중단 요청의 접수 여부.
 	 */
 	public boolean cancel();
