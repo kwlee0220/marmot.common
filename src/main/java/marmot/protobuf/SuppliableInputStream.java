@@ -150,16 +150,16 @@ public class SuppliableInputStream extends InputStream {
 	}
 	
 	public void endOfSupply() {
-		m_guard.run(() -> m_eos = true, true);
+		m_guard.runAndSignalAll(() -> m_eos = true);
 	}
 	
 	public void endOfSupply(Throwable cause) {
-		m_guard.run(() -> {
+		m_guard.runAndSignalAll(() -> {
 			if ( !m_eos ) {
 				m_eos = true;
 				m_cause = cause;
 			}
-		}, true);
+		});
 	}
 	
 	@Override
