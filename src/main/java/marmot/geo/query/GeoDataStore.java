@@ -1,6 +1,8 @@
 package marmot.geo.query;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static utils.Utilities.checkArgument;
+import static utils.Utilities.checkNotNullArgument;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +22,6 @@ import marmot.MarmotRuntime;
 import marmot.MarmotRuntimeException;
 import marmot.dataset.DataSet;
 import marmot.support.TextDataSetAdaptor;
-import utils.Utilities;
 import utils.stream.FStream;
 
 /**
@@ -29,6 +30,7 @@ import utils.stream.FStream;
  */
 public class GeoDataStore {
 	private static final Logger s_logger = LoggerFactory.getLogger(GeoDataStore.class);
+	private static final long DEFAULT_PARTITION_CACHE_EXPIRE_SECONDS = MINUTES.toSeconds(30);
 	private static final int DEFAULT_DS_CACHE_EXPIRE_MINUTES = 60;
 	private static final int DEFAULT_SAMPLE_COUNT = 50000;
 	private static final boolean DEFAULT_USE_PREFETCH = false;
@@ -37,18 +39,128 @@ public class GeoDataStore {
 	private final MarmotRuntime m_marmot;
 	private final TextDataSetAdaptor m_dsAdaptor;
 	private final LoadingCache<String, DataSet> m_dsCache;
-	private final DataSetPartitionCache m_cache;
-	private int m_sampleCount = DEFAULT_SAMPLE_COUNT;
-	private boolean m_usePrefetch = DEFAULT_USE_PREFETCH;
-	private int m_maxLocalCacheCost = DEFAULT_LOCAL_CACHE_COST;
+	private final PartitionCache m_cache;
+	private final int m_sampleCount;
+	private final boolean m_usePrefetch;
+	private final int m_maxLocalCacheCost;
 	
-	private GeoDataStore(MarmotRuntime marmot, File cacheDir) throws IOException {
-		m_marmot = marmot;
-		m_dsAdaptor = new TextDataSetAdaptor(marmot);
+	public static Builder builder() {
+		return new Builder();
+	}
+	
+	public static class Builder {
+		private MarmotRuntime m_marmot;
+		private File m_cacheDir;
+		private int m_dsCacheExpireMinutes = DEFAULT_DS_CACHE_EXPIRE_MINUTES;
+		private long m_partCacheExpireSecs = DEFAULT_PARTITION_CACHE_EXPIRE_SECONDS;
+		private int m_sampleCount = DEFAULT_SAMPLE_COUNT;
+		private boolean m_usePrefetch = DEFAULT_USE_PREFETCH;
+		private int m_maxLocalCacheCost = DEFAULT_LOCAL_CACHE_COST;
 		
-		m_cache = new DataSetPartitionCache(marmot, cacheDir);
+		private Builder() {
+			File parentDir = Files.createTempDir().getParentFile();
+			m_cacheDir = new File(parentDir, "marmot_geoserver_cache");
+		}
+
+		/**
+		 * Marmot 서버에서 관리하는 공간 데이터세트를 위한 원격 저장소 객체를 생성한다.
+		 * 
+		 *  @return	원격 공간 정보 저장소 객체
+		 *  @throws	IOException	클라이언트 캐쉬 생성시 오류가 발생된 경우.
+		 */
+		public GeoDataStore build() throws IOException {
+			return new GeoDataStore(this);
+		}
+		
+		public Builder setMarmotRuntime(MarmotRuntime marmot) {
+			checkNotNullArgument(marmot);
+			
+			m_marmot = marmot;
+			return this;
+		}
+		
+		/**
+		 * 공간 정보 저장소가 사용한 지역 캐쉬 저장소 디렉토리를 설정한다.
+		 * 
+		 * @param path	지역 캐쉬 저장소 디렉토리 경로명
+		 */
+		public Builder setCacheDir(File path) {
+			checkArgument(path.isDirectory(), "invalid cache directory: path=" + path);
+			
+			m_cacheDir = path;
+			return this;
+		}
+		
+		public Builder setDataSetCacheExpireMinutes(int minutes) {
+			checkArgument(minutes > 0, "invalid dataset cache expiration minutes: minutes=" + minutes);
+			
+			m_dsCacheExpireMinutes = minutes;
+			return this;
+		}
+		
+		public Builder setParitionCacheExpireSeconds(int seconds) {
+			checkArgument(seconds > 0, "invalid partition cache expiration minutes: seconds=" + seconds);
+			
+			m_partCacheExpireSecs = seconds;
+			return this;
+		}
+		
+		/**
+		 * 공간 정보 저장소 수준에서의 샘플 갯수를 설정한다.
+		 * <p>
+		 * 이후 {@link #createRangeQuery(String, Envelope)}를 통해 생성된 모든 질의 객체는
+		 * 기본적으로 이때 설정된 샘플 갯수를 갖게된다. 별도로 지정되지 않은 경우는
+		 * {@link #DEFAULT_SAMPLE_COUNT}이 설정된다.
+		 * 
+		 * @param count	샘플 갯수
+		 * @return	공간 정보 저장소 객체 (Fluent Interface 구성용)
+		 */
+		public Builder setSampleCount(int count) {
+			checkArgument(count > 0, "sample count must be larger than zero, but " + count);
+			
+			m_sampleCount = count;
+			return this;
+		}
+		
+		/**
+		 * 사전 데이터세트 적재 여부를 설정한다.
+		 * <p>
+		 * 이후 {@link #createRangeQuery(String, Envelope)}를 통해 생성된 모든 질의 객체는
+		 * 기본적으로 이때 설정된 적재 여부를 갖게된다. 별도로 지정되지 않은 경우는
+		 * {@link #DEFAULT_USE_PREFETCH}이 설정된다.
+		 * 
+		 * @param flag	사전 적재 여부
+		 * @return	공간 정보 저장소 객체 (Fluent Interface 구성용)
+		 */
+		public Builder setUsePrefetch(boolean flag) {
+			m_usePrefetch = flag;
+			return this;
+		}
+
+		/**
+		 * 공간 정보 저장소 수준에서의 지역 캐쉬 활용 비용 최대 값를 설정한다.
+		 * <p>
+		 * 이후 {@link #createRangeQuery(String, Envelope)}를 통해 생성된 모든 질의 객체는
+		 * 기본적으로 이때 설정된 비용 값을 갖게된다. 별도로 지정되지 않은 경우는
+		 * {@link #DEFAULT_LOCAL_CACHE_COST}이 설정된다.
+		 * 
+		 * @param cost	최대 비용
+		 * @return	공간 정보 저장소 객체 (Fluent Interface 구성용)
+		 */
+		public Builder setMaxLocalCacheCost(int cost) {
+			checkArgument(cost > 0, "MaxLocalCacheCost > 0, but " + cost);
+			
+			m_maxLocalCacheCost = cost;
+			return this;
+		}
+	}
+	
+	private GeoDataStore(Builder builder) throws IOException {
+		m_marmot = builder.m_marmot;
+		m_dsAdaptor = new TextDataSetAdaptor(m_marmot);
+		
 		m_dsCache = CacheBuilder.newBuilder()
-								.expireAfterAccess(DEFAULT_DS_CACHE_EXPIRE_MINUTES, MINUTES)
+								.expireAfterAccess(builder.m_dsCacheExpireMinutes, MINUTES)
 								.build(new CacheLoader<String,DataSet>() {
 									@Override
 									public DataSet load(String dsId) throws Exception {
@@ -57,37 +169,10 @@ public class GeoDataStore {
 										return m_dsAdaptor.adapt(ds);
 									}
 								});
-	}
-	
-	/**
-	 * Marmot 서버에서 관리하는 공간 데이터세트를 위한 원격 저장소 객체를 생성한다.
-	 * 
-	 *  @param marmot	Marmot 서버 객체.
-	 *  @param cacheDir	클라이언트 캐쉬 정보가 저장될 최상위 디렉토리 경로
-	 *  @return	원격 공간 정보 저장소 객체
-	 *  @throws	IOException	클라이언트 캐쉬 생성시 오류가 발생된 경우.
-	 */
-	public static GeoDataStore from(MarmotRuntime marmot, File cacheDir) throws IOException {
-		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
-		Utilities.checkNotNullArgument(cacheDir, "cacheDir is null");
-		
-		return new GeoDataStore(marmot, cacheDir);
-	}
-
-	/**
-	 * Marmot 서버에서 관리하는 공간 데이터세트를 위한 원격 저장소 객체를 생성한다.
-	 * <p>
-	 * 클라이언트 캐쉬는 default 위치({@link Files#createTempDir}의 parent directory에 생성된다.
-	 * 
-	 *  @param marmot	Marmot 서버 객체.
-	 *  @return	원격 공간 정보 저장소 객체
-	 *  @throws	IOException	클라이언트 캐쉬 생성시 오류가 발생된 경우.
-	 */
-	public static GeoDataStore from(MarmotRuntime marmot) throws IOException {
-		File parentDir = Files.createTempDir().getParentFile();
-		File cacheDir =  new File(parentDir, "marmot_geoserver_cache");
-		
-		return from(marmot, cacheDir);
+		m_cache = new PartitionCache(m_marmot, builder.m_cacheDir, builder.m_partCacheExpireSecs);
+		m_sampleCount = builder.m_sampleCount;
+		m_usePrefetch = builder.m_usePrefetch;
+		m_maxLocalCacheCost = builder.m_maxLocalCacheCost;
 	}
 	
 	/**
@@ -97,6 +182,10 @@ public class GeoDataStore {
 	 */
 	public MarmotRuntime getMarmotRuntime() {
 		return m_marmot;
+	}
+	
+	public PartitionCache getPartitionCache() {
+		return m_cache;
 	}
 	
 	/**
@@ -118,7 +207,7 @@ public class GeoDataStore {
 	 * @return	데이터세트 객체.
 	 */
 	public DataSet getGeoDataSet(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "dataset id");
+		checkNotNullArgument(dsId, "dataset id");
 		
 		return m_dsCache.getUnchecked(dsId);
 	}
@@ -144,54 +233,5 @@ public class GeoDataStore {
 			String msg = String.format("fails to locate DataSet: id=%s", dsId);
 			throw new MarmotRuntimeException(msg, e.getCause());
 		}
-	}
-	
-	/**
-	 * 공간 정보 저장소 수준에서의 샘플 갯수를 설정한다.
-	 * <p>
-	 * 이후 {@link #createRangeQuery(String, Envelope)}를 통해 생성된 모든 질의 객체는
-	 * 기본적으로 이때 설정된 샘플 갯수를 갖게된다. 별도로 지정되지 않은 경우는
-	 * {@link #DEFAULT_SAMPLE_COUNT}이 설정된다.
-	 * 
-	 * @param count	샘플 갯수
-	 * @return	공간 정보 저장소 객체 (Fluent Interface 구성용)
-	 */
-	public GeoDataStore setSampleCount(int count) {
-		Utilities.checkArgument(count > 0, "sample count must be larger than zero, but " + count);
-		
-		m_sampleCount = count;
-		return this;
-	}
-	
-	/**
-	 * 사전 데이터세트 적재 여부를 설정한다.
-	 * <p>
-	 * 이후 {@link #createRangeQuery(String, Envelope)}를 통해 생성된 모든 질의 객체는
-	 * 기본적으로 이때 설정된 적재 여부를 갖게된다. 별도로 지정되지 않은 경우는
-	 * {@link #DEFAULT_USE_PREFETCH}이 설정된다.
-	 * 
-	 * @param flag	사전 적재 여부
-	 * @return	공간 정보 저장소 객체 (Fluent Interface 구성용)
-	 */
-	public GeoDataStore setUsePrefetch(boolean flag) {
-		m_usePrefetch = flag;
-		return this;
-	}
-
-	/**
-	 * 공간 정보 저장소 수준에서의 지역 캐쉬 활용 비용 최대 값를 설정한다.
-	 * <p>
-	 * 이후 {@link #createRangeQuery(String, Envelope)}를 통해 생성된 모든 질의 객체는
-	 * 기본적으로 이때 설정된 비용 값을 갖게된다. 별도로 지정되지 않은 경우는
-	 * {@link #DEFAULT_LOCAL_CACHE_COST}이 설정된다.
-	 * 
-	 * @param cost	최대 비용
-	 * @return	공간 정보 저장소 객체 (Fluent Interface 구성용)
-	 */
-	public GeoDataStore setMaxLocalCacheCost(int cost) {
-		Utilities.checkArgument(cost > 0, "MaxLocalCacheCost > 0, but " + cost);
-		
-		m_maxLocalCacheCost = cost;
-		return this;
 	}
 }

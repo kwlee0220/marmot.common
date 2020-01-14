@@ -45,10 +45,10 @@ public class RangeQuery {
 	private final PreparedGeometry m_pkey;
 	private final int m_sampleCount;
 	private final int m_maxLocalCacheCost;
-	private final DataSetPartitionCache m_cache;
+	private final PartitionCache m_cache;
 	private volatile boolean m_usePrefetch = false;
 	
-	RangeQuery(DataSet ds, Envelope range, int sampleCount, DataSetPartitionCache cache,
+	RangeQuery(DataSet ds, Envelope range, int sampleCount, PartitionCache cache,
 				boolean usePrefetch, int maxLocalCacheCost) {
 		Utilities.checkNotNullArgument(ds, "DataSet");
 		Utilities.checkNotNullArgument(range, "query ranage");
