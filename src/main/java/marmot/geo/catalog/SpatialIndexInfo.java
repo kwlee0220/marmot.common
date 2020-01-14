@@ -19,6 +19,8 @@ import utils.Utilities;
  * @author Kang-Woo Lee (ETRI)
  */
 public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto>, Serializable {
+	private static final long serialVersionUID = 707886010251863982L;
+	
 	private String m_dataset;
 	private GeometryColumnInfo m_geomCol;
 	private Envelope m_tileBounds = new Envelope();
