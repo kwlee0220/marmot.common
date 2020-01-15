@@ -17,11 +17,7 @@ import utils.func.FOption;
  */
 public class ArcUnionParameters {
 	private static final String LEFT_DATASET = "left_dataset";
-	private static final String LEFT_KEY_COLS = "left_key_cols";
-	private static final String LEFT_PREFIX = "left_prefix";
 	private static final String RIGHT_DATASET = "right_dataset";
-	private static final String RIGHT_KEY_COLS = "right_key_cols";
-	private static final String RIGHT_PREFIX = "right_prefix";
 	private static final String OUTPUT_DATASET = "output_dataset";
 	private static final String FORCE = "force";
 	private static final String COMPRESSION = "compression";
@@ -30,9 +26,8 @@ public class ArcUnionParameters {
 	private final Map<String,String> m_params;
 	
 	public static List<String> getParameterNameAll() {
-		return Arrays.asList(LEFT_DATASET, LEFT_KEY_COLS, LEFT_PREFIX,
-							RIGHT_DATASET, RIGHT_KEY_COLS, RIGHT_PREFIX,
-							OUTPUT_DATASET, FORCE, COMPRESSION, BLOCK_SIZE);
+		return Arrays.asList(LEFT_DATASET, RIGHT_DATASET, OUTPUT_DATASET, FORCE,
+							COMPRESSION, BLOCK_SIZE);
 	}
 	
 	public ArcUnionParameters() {
@@ -54,24 +49,6 @@ public class ArcUnionParameters {
 		m_params.put(LEFT_DATASET, dsId);
 	}
 	
-	public String getLeftKeyColumns() {
-		return m_params.get(LEFT_KEY_COLS);
-	}
-	public void setLeftKeyColumns(String keyCols) {
-		Utilities.checkNotNullArgument(keyCols, "left key columns");
-		
-		m_params.put(LEFT_KEY_COLS, keyCols);
-	}
-	
-	public FOption<String> getLeftPrefix() {
-		return FOption.ofNullable(m_params.get(LEFT_PREFIX));
-	}
-	public void setLeftPrefix(String prefix) {
-		Utilities.checkNotNullArgument(prefix, "left prefix is null");
-		
-		m_params.put(LEFT_PREFIX, prefix);
-	}
-	
 	public String getRightDataSet() {
 		return m_params.get(RIGHT_DATASET);
 	}
@@ -79,24 +56,6 @@ public class ArcUnionParameters {
 		Utilities.checkNotNullArgument(dsId, "right dataset id");
 		
 		m_params.put(RIGHT_DATASET, dsId);
-	}
-	
-	public String getRightKeyColumns() {
-		return m_params.get(RIGHT_KEY_COLS);
-	}
-	public void setRightKeyColumns(String keyCols) {
-		Utilities.checkNotNullArgument(keyCols, "right key columns");
-		
-		m_params.put(RIGHT_KEY_COLS, keyCols);
-	}
-	
-	public FOption<String> getRightPrefix() {
-		return FOption.ofNullable(m_params.get(RIGHT_PREFIX));
-	}
-	public void setRightPrefix(String prefix) {
-		Utilities.checkNotNullArgument(prefix, "right prefix is null");
-		
-		m_params.put(RIGHT_PREFIX, prefix);
 	}
 	
 	public String getOutputDataset() {
@@ -148,9 +107,7 @@ public class ArcUnionParameters {
 	
 	public void checkValidity() {
 		checkValidity(LEFT_DATASET);
-		checkValidity(LEFT_KEY_COLS);
 		checkValidity(RIGHT_DATASET);
-		checkValidity(RIGHT_KEY_COLS);
 		checkValidity(OUTPUT_DATASET);
 	}
 	
