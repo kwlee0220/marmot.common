@@ -131,6 +131,8 @@ public class DatasetCommands {
 		
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
+			marmot.getDataSet(m_dsId);
+			
 			PlanBuilder builder = Plan.builder("list_records");
 			switch ( m_type.toLowerCase() ) {
 				case "dataset":
