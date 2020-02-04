@@ -47,10 +47,12 @@ repositories {
 
 ext.grpc_version = '1.16.1'
 ext.protobuf_version = '3.5.1'
-ext.geotools_version = '17.2'
+//ext.geotools_version = '17.2'
+ext.geotools_version = '19.3'
 ext.jts_version = '1.13'
 ext.commons_csv_version = '1.5'
 ext.httpclient_version = '4.5.6'
+//ext.httpclient_version = '4.1.2'	// 포도와 jar conflict를 막기위한 version 선택
 ext.joda_time_version = '2.10'
 ext.picocli_version = '3.9.6'
 ext.univocity_version = '2.8.1'
@@ -64,7 +66,9 @@ dependencies {
 
 	// GeoTools, JTS, Proj4J
 	api	"org.geotools:gt-opengis:${geotools_version}"
-	api	"org.geotools:gt-api:${geotools_version}"
+	api	("org.geotools:gt-api:${geotools_version}") {
+		exclude group: "org.apache.httpcomponents", module: "httpclient"
+	}
 	api	"org.geotools:gt-epsg-hsql:${geotools_version}"
 	api "org.geotools:gt-shapefile:${geotools_version}"
 	api	"org.geotools:gt-geojson:${geotools_version}"
