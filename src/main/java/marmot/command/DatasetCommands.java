@@ -219,8 +219,10 @@ public class DatasetCommands {
 			System.out.println("HDFS PATH    : " + info.getHdfsPath());
 			System.out.println("COMPRESSION  : " + info.getCompressionCodecName().getOrElse("none"));
 			SpatialIndexInfo idxInfo = info.getDefaultSpatialIndexInfo().getOrNull();
-			System.out.printf("SPATIAL INDEX: %s%n", (idxInfo != null)
+			System.out.printf ("SPATIAL INDEX: %s%n", (idxInfo != null)
 														? idxInfo.getHdfsFilePath() : "none");
+			System.out.println("THUMBNAIL    : " + info.hasThumbnail());
+			
 			System.out.println("COLUMNS      :");
 			info.getRecordSchema().getColumns()
 					.stream()
@@ -843,12 +845,18 @@ public class DatasetCommands {
 		@Parameters(paramLabel="table_name", index="1", arity="1..1",
 					description={"JDBC table name"})
 		private String m_tblName;
+		
+		@Option(names={"-report_interval"}, paramLabel="record count",
+				description="progress report interval")
+		private int m_interval = -1;
 
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			ExportIntoJdbcTable export = new ExportIntoJdbcTable(m_dsId, m_tblName, m_jdbcParams);
-			long count = export.run(marmot);
+			FOption.when(m_interval > 0, m_interval)
+					.ifPresent(export::reportInterval);
 			
+			long count = export.run(marmot);
 			System.out.printf("done: %d records%n", count);
 		}
 	}

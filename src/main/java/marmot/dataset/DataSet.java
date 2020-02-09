@@ -250,4 +250,10 @@ public interface DataSet {
 	 * Thumbnail을 제거한다.
 	 */
 	public boolean deleteThumbnail();
+	
+	public default boolean hasThumbnail() {
+		return getThumbnailRatio().isPresent();
+	}
+	
+	public FOption<Float> getThumbnailRatio();
 }
