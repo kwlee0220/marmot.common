@@ -124,14 +124,9 @@ task javadocJar(type: Jar) {
 	from javadoc.destinationDir
 }
 
-artifacts {
-	archives sourceJar
-	archives javadocJar
-}
-
 publishing {
 	publications {
-		main(MavenPublication) {
+		marmotCommon(MavenPublication) {
 			from components.java
 			
 			artifact sourceJar
