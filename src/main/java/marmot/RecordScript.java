@@ -12,8 +12,8 @@ import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import utils.Utilities;
 import utils.func.FOption;
-import utils.script.MVELScript.ImportClass;
 import utils.stream.FStream;
+
 
 /**
  * 
@@ -22,7 +22,7 @@ import utils.stream.FStream;
 public class RecordScript implements PBSerializable<RecordScriptProto> {
 	private final String m_script;
 	private final FOption<String> m_initializer;
-	private final List<ImportClass> m_importedClasses = Lists.newArrayList();
+	private final List<ImportInfo> m_importedClasses = Lists.newArrayList();
 	private final Map<String,Object> m_arguments = Maps.newHashMap();
 	
 	public static RecordScript of(String expr) {
@@ -70,11 +70,11 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		return this;
 	}
 	
-	public List<ImportClass> getImportedClassAll() {
+	public List<ImportInfo> getImportedClassInfoAll() {
 		return Collections.unmodifiableList(m_importedClasses);
 	}
 	
-	public RecordScript importClass(ImportClass ic) {
+	public RecordScript importClass(ImportInfo ic) {
 		Utilities.checkNotNullArgument(ic, "ImportedClass is null");
 		
 		m_importedClasses.add(ic);
@@ -84,14 +84,14 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 	public RecordScript importClass(Class<?> cls) {
 		Utilities.checkNotNullArgument(cls, "ImportedClass is null");
 		
-		m_importedClasses.add(new ImportClass(cls));
+		m_importedClasses.add(new ImportInfo(cls));
 		return this;
 	}
 	
 	public RecordScript importClass(Class<?> cls, String name) {
 		Utilities.checkNotNullArgument(cls, "ImportedClass is null");
 		
-		m_importedClasses.add(new ImportClass(cls, name));
+		m_importedClasses.add(new ImportInfo(cls, name));
 		return this;
 	}
 
@@ -118,7 +118,7 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		}
 		
 		FStream.from(proto.getImportedClassList())
-				.map(ImportClass::parse)
+				.map(ImportInfo::parse)
 				.forEach(frscript::importClass);
 		
 		return frscript;
@@ -126,8 +126,8 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 
 	@Override
 	public RecordScriptProto toProto() {
-		List<String> importeds = FStream.from(getImportedClassAll())
-										.map(ImportClass::toString)
+		List<String> importeds = FStream.from(getImportedClassInfoAll())
+										.map(ImportInfo::toString)
 										.toList();
 		RecordScriptProto.Builder builder = RecordScriptProto.newBuilder()
 														.setExpr(getScript())
@@ -143,5 +143,53 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 	@Override
 	public String toString() {
 		return m_script.toString();
+	}
+	
+	public static class ImportInfo {
+		private final Class<?> m_class;
+		private final FOption<String> m_name;
+		
+		public ImportInfo(Class<?> cls, String name) {
+			m_class = cls;
+			m_name = FOption.of(name);
+		}
+		
+		public ImportInfo(Class<?> cls) {
+			m_class = cls;
+			m_name = FOption.empty();
+		}
+		
+		public Class<?> getImportClass() {
+			return m_class;
+		}
+		
+		public FOption<String> getImportName() {
+			return m_name;
+		}
+		
+		public static ImportInfo parse(String str) {
+			String[] parts = str.split(":");
+			
+			try {
+				Class<?> cls = Class.forName(parts[0]);
+				if ( parts.length == 2 ) {
+					String name = parts[1].trim();
+					return new ImportInfo(cls, name);
+				}
+				else {
+					return new ImportInfo(cls);
+				}
+			}
+			catch ( ClassNotFoundException e ) {
+				throw new IllegalArgumentException(""+e);
+			}
+		}
+		
+		@Override
+		public String toString() {
+			String clsName = m_class.getName();
+			return m_name.map(name -> String.format("%s:%s", clsName, name))
+						.getOrElse(() -> "" + clsName);
+		}
 	}
 }
