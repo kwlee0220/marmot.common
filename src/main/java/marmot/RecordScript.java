@@ -12,7 +12,7 @@ import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
 import utils.Utilities;
 import utils.func.FOption;
-import utils.script.MVELScript2.ImportClass;
+import utils.script.MVELScript.ImportClass;
 import utils.stream.FStream;
 
 /**
