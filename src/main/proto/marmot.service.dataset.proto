@@ -183,20 +183,17 @@ message BindDataSetRequest {
 }
 
 message ClusterDataSetOptionsProto {
-	oneof optional_quad_key_file {
-		string quad_key_file = 2;
-	}
 	oneof optional_sample_ratio {
-		double sample_ratio = 3;
+		double sample_ratio = 2;
+	}
+	oneof optional_cluster_size {
+		int64 cluster_size = 3;
 	}
 	oneof optional_block_size {
 		int64 block_size = 4;	// 생성될 클러스터 파일의 블럭 크기.
 	}
-	oneof optional_block_fill_ratio {
-		double block_fill_ratio = 5;
-	}
 	oneof optional_worker_count {
-		int32 worker_count = 6;	// 클러스터 생성 reducer 갯수
+		int32 worker_count = 5;	// 클러스터 생성 reducer 갯수
 	}
 }
 

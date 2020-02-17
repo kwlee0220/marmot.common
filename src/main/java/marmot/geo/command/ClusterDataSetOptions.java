@@ -15,24 +15,20 @@ import utils.func.FOption;
  */
 public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptionsProto> {
 	private static final ClusterDataSetOptions EMPTY
-						= new ClusterDataSetOptions(FOption.empty(), FOption.empty(),
-													FOption.empty(), FOption.empty(),
-													FOption.empty());
+									= new ClusterDataSetOptions(FOption.empty(), FOption.empty(),
+																FOption.empty(), FOption.empty());
 	
-	private final FOption<String> m_quadKeyFilePath;
 	private final FOption<Double> m_sampleRatio;
-	private final FOption<Double> m_blockFillRatio;
+	private final FOption<Long> m_clusterSize;
 	private final FOption<Long> m_blockSize;
 	private final FOption<Integer> m_workerCount;
 	
-	private ClusterDataSetOptions(FOption<String> path, FOption<Double> sample,
-								FOption<Double> blockFill, FOption<Long> blkSz,
-								FOption<Integer> cnt) {
-		m_quadKeyFilePath = path;
-		m_sampleRatio = sample;
-		m_blockFillRatio = blockFill;
-		m_blockSize = blkSz;
-		m_workerCount = cnt;
+	private ClusterDataSetOptions(FOption<Double> sampleRatio, FOption<Long> clusterSize,
+									FOption<Long> blockSize, FOption<Integer> workerCount) {
+		m_sampleRatio = sampleRatio;
+		m_clusterSize = clusterSize;
+		m_blockSize = blockSize;
+		m_workerCount = workerCount;
 	}
 	
 	public static ClusterDataSetOptions DEFAULT() {
@@ -42,17 +38,8 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 	public static ClusterDataSetOptions WORKER_COUNT(int count) {
 		Utilities.checkArgument(count > 0, "count > 0");
 		
-		return new ClusterDataSetOptions(FOption.empty(), FOption.empty(),
+		return new ClusterDataSetOptions(FOption.empty(),
 									FOption.empty(), FOption.empty(), FOption.of(count));
-	}
-	
-	public FOption<String> quadKeyFilePath() {
-		return m_quadKeyFilePath;
-	}
-	
-	public ClusterDataSetOptions quadKeyFilePath(String path) {
-		return new ClusterDataSetOptions(FOption.of(path), m_sampleRatio, m_blockFillRatio,
-										m_blockSize, m_workerCount);
 	}
 	
 	public FOption<Double> sampleRatio() {
@@ -62,30 +49,28 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 	public ClusterDataSetOptions sampleRatio(double ratio) {
 		Preconditions.checkArgument(ratio > 0, "invalid sample_ratio: value=" + ratio);
 		
-		return new ClusterDataSetOptions(m_quadKeyFilePath, FOption.of(ratio),
-										m_blockFillRatio, m_blockSize, m_workerCount);
+		return new ClusterDataSetOptions(FOption.of(ratio), m_clusterSize, m_blockSize, m_workerCount);
 	}
 	
-	public FOption<Double> blockFillRatio() {
-		return m_blockFillRatio;
+	public FOption<Long> clusterSize() {
+		return m_clusterSize;
 	}
 	
-	public ClusterDataSetOptions blockFillRatio(double ratio) {
-		Preconditions.checkArgument(ratio > 0, "invalid block_fill_ratio: value=" + ratio);
+	public ClusterDataSetOptions clusterSize(long size) {
+		Preconditions.checkArgument(size > 0, "invalid cluster_size=" + size);
 		
-		return new ClusterDataSetOptions(m_quadKeyFilePath, m_sampleRatio, FOption.of(ratio),
-										m_blockSize, m_workerCount);
+		return new ClusterDataSetOptions(m_sampleRatio, FOption.of(size), m_blockSize, m_workerCount);
 	}
 	
 	public FOption<Long> blockSize() {
 		return m_blockSize;
 	}
 	
-	public ClusterDataSetOptions blockSize(long blkSize) {
-		Preconditions.checkArgument(blkSize > 0, "invalid block_size=" + blkSize);
+	public ClusterDataSetOptions blockSize(long blockSize) {
+		Preconditions.checkArgument(blockSize > 0, "invalid block_size=" + blockSize);
 		
-		return new ClusterDataSetOptions(m_quadKeyFilePath, m_sampleRatio,
-										m_blockFillRatio, FOption.of(blkSize), m_workerCount);
+		return new ClusterDataSetOptions(m_sampleRatio, m_clusterSize, FOption.of(blockSize),
+											m_workerCount);
 	}
 	
 	public FOption<Integer> workerCount() {
@@ -95,17 +80,16 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 	public ClusterDataSetOptions workerCount(int count) {
 		Preconditions.checkArgument(count > 0, "invalid worker_count=" + count);
 		
-		return new ClusterDataSetOptions(m_quadKeyFilePath, m_sampleRatio,
-										m_blockFillRatio, m_blockSize, FOption.of(count));
+		return new ClusterDataSetOptions(m_sampleRatio, m_clusterSize, m_blockSize, FOption.of(count));
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
 		
-		m_quadKeyFilePath.ifPresent(path -> builder.append(String.format("quad_keys=%s,", path)));
 		m_sampleRatio.ifPresent(ratio -> builder.append(String.format("sampling=%.1f%%,", ratio*100)));
-		m_blockFillRatio.ifPresent(ratio -> builder.append(String.format("fill_ratio=%.1f%%,", ratio*100)));
+		m_clusterSize.ifPresent(size -> builder.append(String.format("cluster_size=%s,",
+													UnitUtils.toByteSizeString(size, "mb", "%.0f"))));
 		m_blockSize.ifPresent(size -> builder.append(String.format("block=%s,",
 													UnitUtils.toByteSizeString(size, "mb", "%.0f"))));
 		m_workerCount.ifPresent(count -> builder.append(String.format("workers=%d,", count)));
@@ -120,16 +104,6 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 	public static ClusterDataSetOptions fromProto(ClusterDataSetOptionsProto proto) {
 		ClusterDataSetOptions opts = ClusterDataSetOptions.DEFAULT();
 		
-		switch ( proto.getOptionalQuadKeyFileCase() ) {
-			case QUAD_KEY_FILE:
-				opts = opts.quadKeyFilePath(proto.getQuadKeyFile());
-				break;
-			case OPTIONALQUADKEYFILE_NOT_SET:
-				break;
-			default:
-				throw new AssertionError();
-		}
-		
 		switch ( proto.getOptionalSampleRatioCase() ) {
 			case SAMPLE_RATIO:
 				opts = opts.sampleRatio(proto.getSampleRatio());
@@ -140,21 +114,21 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 				throw new AssertionError();
 		}
 		
-		switch ( proto.getOptionalBlockSizeCase() ) {
-			case BLOCK_SIZE:
-				opts = opts.blockSize(proto.getBlockSize());
+		switch ( proto.getOptionalClusterSizeCase() ) {
+			case CLUSTER_SIZE:
+				opts = opts.clusterSize(proto.getClusterSize());
 				break;
-			case OPTIONALBLOCKSIZE_NOT_SET:
+			case OPTIONALCLUSTERSIZE_NOT_SET:
 				break;
 			default:
 				throw new AssertionError();
 		}
 		
-		switch ( proto.getOptionalBlockFillRatioCase() ) {
-			case BLOCK_FILL_RATIO:
-				opts = opts.blockFillRatio(proto.getBlockFillRatio());
+		switch ( proto.getOptionalBlockSizeCase() ) {
+			case BLOCK_SIZE:
+				opts = opts.blockSize(proto.getBlockSize());
 				break;
-			case OPTIONALBLOCKFILLRATIO_NOT_SET:
+			case OPTIONALBLOCKSIZE_NOT_SET:
 				break;
 			default:
 				throw new AssertionError();
@@ -176,10 +150,9 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 	@Override
 	public ClusterDataSetOptionsProto toProto() {
 		ClusterDataSetOptionsProto.Builder builder = ClusterDataSetOptionsProto.newBuilder();
-		m_quadKeyFilePath.ifPresent(builder::setQuadKeyFile);
 		m_sampleRatio.ifPresent(builder::setSampleRatio);
+		m_clusterSize.ifPresent(builder::setClusterSize);
 		m_blockSize.ifPresent(builder::setBlockSize);
-		m_blockFillRatio.ifPresent(builder::setBlockFillRatio);
 		m_workerCount.ifPresent(builder::setWorkerCount);
 		
 		return builder.build();

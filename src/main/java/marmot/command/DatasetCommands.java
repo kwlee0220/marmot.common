@@ -307,11 +307,14 @@ public class DatasetCommands {
 		
 		@Option(names="-sample_ratio", paramLabel="ratio", description="sampling ratio (0:1]")
 		private double m_sampleRatio;
-		
-		@Option(names="-fill_ratio", paramLabel="ratio", description="max block-fill ratio")
-		private double m_fillRatio;
 
-		@Option(names= {"-b", "-block_size"}, paramLabel="nbytes", description="cluster size (eg: '64mb')")
+		@Option(names= {"-c", "-cluster_size"}, paramLabel="nbytes", description="cluster size (eg: '64mb')")
+		private void setClusterSize(String sizeStr) {
+			m_clusterSize = UnitUtils.parseByteSize(sizeStr);
+		}
+		private long m_clusterSize = -1;
+
+		@Option(names= {"-b", "-block_size"}, paramLabel="nbytes", description="block size (eg: '64mb')")
 		private void setBlockSize(String blkSizeStr) {
 			m_blkSize = UnitUtils.parseByteSize(blkSizeStr);
 		}
@@ -323,8 +326,8 @@ public class DatasetCommands {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			ClusterDataSetOptions options = ClusterDataSetOptions.DEFAULT();
-			if ( m_fillRatio > 0 ) {
-				options = options.blockFillRatio(m_fillRatio);
+			if ( m_clusterSize > 0 ) {
+				options = options.clusterSize(m_clusterSize);
 			}
 			if ( m_sampleRatio > 0 ) {
 				options = options.sampleRatio(m_sampleRatio);
