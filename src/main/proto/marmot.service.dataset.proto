@@ -31,8 +31,8 @@ service DataSetService {
 //	rpc appendPlanResult(AppendPlanResultRequest) returns (DataSetInfoResponse);
 	rpc deleteDataSet(marmot.proto.StringProto) returns (BoolResponse);
 	rpc moveDataSet(MoveDataSetRequest) returns (VoidResponse);
-	rpc clusterDataSet(ClusterDataSetRequest) returns (SpatialIndexInfoResponse);
-	rpc deleteSpatialCluster(marmot.proto.StringProto) returns (VoidResponse);
+	rpc createSpatialIndex(CreateSpatialIndexRequest) returns (SpatialIndexInfoResponse);
+	rpc deleteSpatialIndex(marmot.proto.StringProto) returns (VoidResponse);
 	
 	rpc getDataSetInfoAll(marmot.proto.VoidProto) returns (stream DataSetInfoResponse);
 	rpc getDataSetInfo(marmot.proto.StringProto) returns (DataSetInfoResponse);
@@ -182,12 +182,9 @@ message BindDataSetRequest {
 	BindDataSetOptionsProto options = 4;
 }
 
-message ClusterDataSetOptionsProto {
+message CreateSpatialIndexOptionsProto {
 	oneof optional_sample_ratio {
 		double sample_ratio = 2;
-	}
-	oneof optional_cluster_size {
-		int64 cluster_size = 3;
 	}
 	oneof optional_block_size {
 		int64 block_size = 4;	// 생성될 클러스터 파일의 블럭 크기.
@@ -197,9 +194,9 @@ message ClusterDataSetOptionsProto {
 	}
 }
 
-message ClusterDataSetRequest {
+message CreateSpatialIndexRequest {
 	string id = 1;		// 클러스터링 대상 데이터세트 식별자.
-	ClusterDataSetOptionsProto options = 2;
+	CreateSpatialIndexOptionsProto options = 2;
 }
 
 message MoveDataSetRequest {

@@ -43,7 +43,7 @@ import marmot.externio.shp.ExportShapefileParameters;
 import marmot.externio.shp.ImportShapefile;
 import marmot.externio.shp.ShapefileParameters;
 import marmot.geo.catalog.SpatialIndexInfo;
-import marmot.geo.command.ClusterDataSetOptions;
+import marmot.geo.command.CreateSpatialIndexOptions;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
 import marmot.plan.LoadOptions;
@@ -325,7 +325,7 @@ public class DatasetCommands {
 
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			ClusterDataSetOptions options = ClusterDataSetOptions.DEFAULT();
+			CreateSpatialIndexOptions options = CreateSpatialIndexOptions.DEFAULT();
 			if ( m_clusterSize > 0 ) {
 				options = options.clusterSize(m_clusterSize);
 			}

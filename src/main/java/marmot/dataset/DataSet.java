@@ -7,7 +7,7 @@ import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
-import marmot.geo.command.ClusterDataSetOptions;
+import marmot.geo.command.CreateSpatialIndexOptions;
 import marmot.geo.query.RangeQueryEstimate;
 import utils.func.FOption;
 
@@ -194,7 +194,7 @@ public interface DataSet {
 	 * @return	생성된 인덱스의 등록정보.
 	 */
 	public default SpatialIndexInfo cluster() {
-		return cluster(ClusterDataSetOptions.DEFAULT());
+		return cluster(CreateSpatialIndexOptions.DEFAULT());
 	}
 	
 	/**
@@ -205,7 +205,7 @@ public interface DataSet {
 	 * @param opts	공간 인덱스 생성 관련 인자.
 	 * @return	생성된 인덱스의 등록정보.
 	 */
-	public SpatialIndexInfo cluster(ClusterDataSetOptions opts);
+	public SpatialIndexInfo cluster(CreateSpatialIndexOptions opts);
 	
 	/**
 	 * 본 데이터 세트에 생성된 공간 인덱스(클러스터)를 삭제한다.

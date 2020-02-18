@@ -2,7 +2,7 @@ package marmot.geo.command;
 
 import com.google.common.base.Preconditions;
 
-import marmot.proto.service.ClusterDataSetOptionsProto;
+import marmot.proto.service.CreateSpatialIndexOptionsProto;
 import marmot.support.PBSerializable;
 import utils.UnitUtils;
 import utils.Utilities;
@@ -13,9 +13,9 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptionsProto> {
-	private static final ClusterDataSetOptions EMPTY
-									= new ClusterDataSetOptions(FOption.empty(), FOption.empty(),
+public class CreateSpatialIndexOptions implements PBSerializable<CreateSpatialIndexOptionsProto> {
+	private static final CreateSpatialIndexOptions EMPTY
+									= new CreateSpatialIndexOptions(FOption.empty(), FOption.empty(),
 																FOption.empty(), FOption.empty());
 	
 	private final FOption<Double> m_sampleRatio;
@@ -23,7 +23,7 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 	private final FOption<Long> m_blockSize;
 	private final FOption<Integer> m_workerCount;
 	
-	private ClusterDataSetOptions(FOption<Double> sampleRatio, FOption<Long> clusterSize,
+	private CreateSpatialIndexOptions(FOption<Double> sampleRatio, FOption<Long> clusterSize,
 									FOption<Long> blockSize, FOption<Integer> workerCount) {
 		m_sampleRatio = sampleRatio;
 		m_clusterSize = clusterSize;
@@ -31,14 +31,14 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 		m_workerCount = workerCount;
 	}
 	
-	public static ClusterDataSetOptions DEFAULT() {
+	public static CreateSpatialIndexOptions DEFAULT() {
 		return EMPTY;
 	}
 	
-	public static ClusterDataSetOptions WORKER_COUNT(int count) {
+	public static CreateSpatialIndexOptions WORKER_COUNT(int count) {
 		Utilities.checkArgument(count > 0, "count > 0");
 		
-		return new ClusterDataSetOptions(FOption.empty(),
+		return new CreateSpatialIndexOptions(FOption.empty(),
 									FOption.empty(), FOption.empty(), FOption.of(count));
 	}
 	
@@ -46,30 +46,30 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 		return m_sampleRatio;
 	}
 	
-	public ClusterDataSetOptions sampleRatio(double ratio) {
+	public CreateSpatialIndexOptions sampleRatio(double ratio) {
 		Preconditions.checkArgument(ratio > 0, "invalid sample_ratio: value=" + ratio);
 		
-		return new ClusterDataSetOptions(FOption.of(ratio), m_clusterSize, m_blockSize, m_workerCount);
+		return new CreateSpatialIndexOptions(FOption.of(ratio), m_clusterSize, m_blockSize, m_workerCount);
 	}
 	
 	public FOption<Long> clusterSize() {
 		return m_clusterSize;
 	}
 	
-	public ClusterDataSetOptions clusterSize(long size) {
+	public CreateSpatialIndexOptions clusterSize(long size) {
 		Preconditions.checkArgument(size > 0, "invalid cluster_size=" + size);
 		
-		return new ClusterDataSetOptions(m_sampleRatio, FOption.of(size), m_blockSize, m_workerCount);
+		return new CreateSpatialIndexOptions(m_sampleRatio, FOption.of(size), m_blockSize, m_workerCount);
 	}
 	
 	public FOption<Long> blockSize() {
 		return m_blockSize;
 	}
 	
-	public ClusterDataSetOptions blockSize(long blockSize) {
+	public CreateSpatialIndexOptions blockSize(long blockSize) {
 		Preconditions.checkArgument(blockSize > 0, "invalid block_size=" + blockSize);
 		
-		return new ClusterDataSetOptions(m_sampleRatio, m_clusterSize, FOption.of(blockSize),
+		return new CreateSpatialIndexOptions(m_sampleRatio, m_clusterSize, FOption.of(blockSize),
 											m_workerCount);
 	}
 	
@@ -77,10 +77,10 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 		return m_workerCount;
 	}
 	
-	public ClusterDataSetOptions workerCount(int count) {
+	public CreateSpatialIndexOptions workerCount(int count) {
 		Preconditions.checkArgument(count > 0, "invalid worker_count=" + count);
 		
-		return new ClusterDataSetOptions(m_sampleRatio, m_clusterSize, m_blockSize, FOption.of(count));
+		return new CreateSpatialIndexOptions(m_sampleRatio, m_clusterSize, m_blockSize, FOption.of(count));
 	}
 	
 	@Override
@@ -101,24 +101,14 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 		return builder.toString();
 	}
 	
-	public static ClusterDataSetOptions fromProto(ClusterDataSetOptionsProto proto) {
-		ClusterDataSetOptions opts = ClusterDataSetOptions.DEFAULT();
+	public static CreateSpatialIndexOptions fromProto(CreateSpatialIndexOptionsProto proto) {
+		CreateSpatialIndexOptions opts = CreateSpatialIndexOptions.DEFAULT();
 		
 		switch ( proto.getOptionalSampleRatioCase() ) {
 			case SAMPLE_RATIO:
 				opts = opts.sampleRatio(proto.getSampleRatio());
 				break;
 			case OPTIONALSAMPLERATIO_NOT_SET:
-				break;
-			default:
-				throw new AssertionError();
-		}
-		
-		switch ( proto.getOptionalClusterSizeCase() ) {
-			case CLUSTER_SIZE:
-				opts = opts.clusterSize(proto.getClusterSize());
-				break;
-			case OPTIONALCLUSTERSIZE_NOT_SET:
 				break;
 			default:
 				throw new AssertionError();
@@ -148,10 +138,9 @@ public class ClusterDataSetOptions implements PBSerializable<ClusterDataSetOptio
 	}
 
 	@Override
-	public ClusterDataSetOptionsProto toProto() {
-		ClusterDataSetOptionsProto.Builder builder = ClusterDataSetOptionsProto.newBuilder();
+	public CreateSpatialIndexOptionsProto toProto() {
+		CreateSpatialIndexOptionsProto.Builder builder = CreateSpatialIndexOptionsProto.newBuilder();
 		m_sampleRatio.ifPresent(builder::setSampleRatio);
-		m_clusterSize.ifPresent(builder::setClusterSize);
 		m_blockSize.ifPresent(builder::setBlockSize);
 		m_workerCount.ifPresent(builder::setWorkerCount);
 		

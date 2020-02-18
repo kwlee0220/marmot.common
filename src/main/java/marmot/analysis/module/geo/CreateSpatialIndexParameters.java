@@ -13,20 +13,19 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class ClusterDataSetParameters {
+public class CreateSpatialIndexParameters {
 	private static final String INPUT_DATASET = "input_dataset";
 	private static final String SAMPLE_RATIO = "sample_ratio";
-	private static final String CLUSTER_SIZE = "cluster_size";
 	private static final String BLOCK_SIZE = "block_size";
 	private static final String WORKER_COUNT = "worker_count";
 	
 	private final Map<String,String> m_params;
 	
 	public static List<String> getParameterNameAll() {
-		return Arrays.asList(INPUT_DATASET, SAMPLE_RATIO, CLUSTER_SIZE, BLOCK_SIZE, WORKER_COUNT);
+		return Arrays.asList(INPUT_DATASET, SAMPLE_RATIO, BLOCK_SIZE, WORKER_COUNT);
 	}
 	
-	public ClusterDataSetParameters() {
+	public CreateSpatialIndexParameters() {
 		m_params = Maps.newHashMap();
 	}
 	
@@ -34,14 +33,14 @@ public class ClusterDataSetParameters {
 		return "cluster_dataset";
 	}
 	
-	public ClusterDataSetParameters(Map<String,String> paramsMap) {
+	public CreateSpatialIndexParameters(Map<String,String> paramsMap) {
 		this();
 		
 		m_params.putAll(paramsMap);
 	}
 	
-	public static ClusterDataSetParameters fromMap(Map<String,String> paramsMap) {
-		return new ClusterDataSetParameters(paramsMap);
+	public static CreateSpatialIndexParameters fromMap(Map<String,String> paramsMap) {
+		return new CreateSpatialIndexParameters(paramsMap);
 	}
 	
 	public Map<String,String> toMap() {
@@ -65,21 +64,6 @@ public class ClusterDataSetParameters {
 	public void sampleRatio(FOption<Double> ratio) {
 		ratio.ifAbsent(() -> m_params.remove(SAMPLE_RATIO))
 			.ifPresent(this::sampleRatio);
-	}
-	
-	public FOption<Long> clusterSize() {
-		return FOption.ofNullable(m_params.get(CLUSTER_SIZE))
-					.map(Long::parseLong);
-	}
-	public void clusterSize(long nbytes) {
-		m_params.put(CLUSTER_SIZE, ""+nbytes);
-	}
-	public void clusterSize(String nbytesStr) {
-		clusterSize(UnitUtils.parseByteSize(nbytesStr));
-	}
-	public void clusterSize(FOption<Long> nbytes) {
-		nbytes.ifAbsent(() -> m_params.remove(CLUSTER_SIZE))
-			.ifPresent(this::clusterSize);
 	}
 	
 	public FOption<Long> blockSize() {
