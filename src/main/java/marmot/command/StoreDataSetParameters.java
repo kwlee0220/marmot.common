@@ -13,7 +13,7 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class StoreDataSetParameters {
-	private StoreDataSetOptions m_options = StoreDataSetOptions.EMPTY;
+	private StoreDataSetOptions m_options = StoreDataSetOptions.DEFAULT;
 	private FOption<Integer> m_reportInterval = FOption.empty();
 	
 	public StoreDataSetParameters() {
@@ -41,7 +41,7 @@ public class StoreDataSetParameters {
 	}
 	
 	public boolean getForce() {
-		return m_options.force().getOrElse(false);
+		return m_options.force();
 	}
 
 	@Option(names={"-f", "-force"}, description="force to create a new dataset")

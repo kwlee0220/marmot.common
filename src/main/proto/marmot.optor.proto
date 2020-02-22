@@ -7,6 +7,7 @@ package marmot.proto.optor;
 
 import public "marmot.proto";
 import public "marmot.service.proto";
+import public "marmot.service.dataset.proto";
 
 
 message LoadOptionsProto {
@@ -88,10 +89,7 @@ message LoadJdbcTableProto {
 
 message StoreAsHeapfileProto {
 	string path = 1;
-	oneof optional_block_size {
-		int64 block_size = 2;
-	}
-	PropertiesProto metadata = 3;
+	MarmotFileWriteOptionsProto write_options = 2;
 }
 
 message TeeProto {
@@ -677,6 +675,12 @@ message AttachGeoHashProto {
 		int32 hash_length = 4;
 	}
 }
+message EstimateQuadKeysProto {
+	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
+	double sample_ratio = 2;
+	int32 max_quadkey_length = 3;
+	int64 max_cluster_size = 4;
+}
 message AttachQuadKeyProto {
 	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
 	string quad_key_source = 2;
@@ -876,6 +880,7 @@ message OperatorProto {
 		CascadeGeometryProto cascade_geometry = 527;
 		AttachQuadKeyProto attach_quad_key = 528;
 		AttachGeoHashProto attach_geohash = 529;
+		EstimateQuadKeysProto estimate_quad_keys = 530;
 		
 		// advanced geometry operators
 		AssignSquareGridCellProto assign_square_grid_cell = 601;

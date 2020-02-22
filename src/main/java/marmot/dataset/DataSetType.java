@@ -9,7 +9,8 @@ public enum DataSetType {
 	LINK,
 	TEXT,
 	CLUSTER,
-	GWAVE;
+	GWAVE,
+	SPATIAL_CLUSTER;
 	
 	public String id() {
 		return name();

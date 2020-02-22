@@ -314,7 +314,13 @@ public class MapTile implements Comparable<MapTile>, Serializable {
 	}
 
 	private double toLon() {
-		return m_x / Math.pow(2.0, m_zoom) * 360.0 - 180;
+		double lon = m_x / Math.pow(2.0, m_zoom) * 360.0 - 180;
+		if ( lon < -180 ) {
+			return lon + 360d;
+		}
+		else {
+			return lon;
+		}
 	}
 	
 	private double toLat() {

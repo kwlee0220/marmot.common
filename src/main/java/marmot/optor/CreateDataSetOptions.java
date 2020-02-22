@@ -2,11 +2,12 @@ package marmot.optor;
 
 import java.util.Map;
 
+import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
+import marmot.io.MarmotFileWriteOptions;
 import marmot.proto.service.CreateDataSetOptionsProto;
-import marmot.protobuf.PBUtils;
+import marmot.proto.service.DataSetTypeProto;
 import marmot.support.PBSerializable;
-import utils.UnitUtils;
 import utils.func.FOption;
 
 /**
@@ -14,38 +15,44 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptionsProto> {
-	public static final CreateDataSetOptions EMPTY
-			= new CreateDataSetOptions(FOption.empty(), FOption.empty(), FOption.empty(),
-										FOption.empty(), FOption.empty());
+	public static final CreateDataSetOptions DEFAULT
+			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.DEFAULT);
 	public static final CreateDataSetOptions FORCE
-			= new CreateDataSetOptions(FOption.empty(), FOption.of(true), FOption.empty(),
-										FOption.empty(), FOption.empty());
+			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.FORCE);
 	
-	
+	private final DataSetType m_dsType;
 	private final FOption<GeometryColumnInfo> m_gcInfo;
-	private final FOption<Boolean> m_force;
-	private final FOption<Long> m_blockSize;
-	private final FOption<String> m_compressionCodecName;
-	private final FOption<Map<String,String>> m_metaData;
+	private final MarmotFileWriteOptions m_writeOpts;
 	
-	private CreateDataSetOptions(FOption<GeometryColumnInfo> gcInfo, FOption<Boolean> force,
-								FOption<Long> blockSize, FOption<String> compressionCodecName,
-								FOption<Map<String,String>> metadata) {
+	private CreateDataSetOptions(DataSetType dsType, FOption<GeometryColumnInfo> gcInfo,
+									MarmotFileWriteOptions writeOpts) {
+		m_dsType = dsType;
 		m_gcInfo = gcInfo;
-		m_force = force;
-		m_blockSize = blockSize;
-		m_compressionCodecName = compressionCodecName;
-		m_metaData = metadata;
+		m_writeOpts = writeOpts;
+	}
+	
+	private CreateDataSetOptions(FOption<GeometryColumnInfo> gcInfo, MarmotFileWriteOptions writeOpts) {
+		this(DataSetType.FILE, gcInfo, writeOpts);
 	}
 	
 	public static CreateDataSetOptions GEOMETRY(GeometryColumnInfo gcInfo) {
-		return new CreateDataSetOptions(FOption.of(gcInfo), FOption.empty(),
-										FOption.empty(), FOption.empty(), FOption.empty());
+		return new CreateDataSetOptions(FOption.of(gcInfo), MarmotFileWriteOptions.DEFAULT);
 	}
 	
 	public static CreateDataSetOptions FORCE(GeometryColumnInfo gcInfo) {
-		return new CreateDataSetOptions(FOption.of(gcInfo), FOption.of(true),
-										FOption.empty(), FOption.empty(), FOption.empty());
+		return new CreateDataSetOptions(FOption.of(gcInfo), MarmotFileWriteOptions.FORCE);
+	}
+	
+	public static CreateDataSetOptions FORCE(boolean flag) {
+		return new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.FORCE(flag));
+	}
+	
+	public DataSetType type() {
+		return m_dsType;
+	}
+	
+	public CreateDataSetOptions type(DataSetType type) {
+		return new CreateDataSetOptions(type, m_gcInfo, m_writeOpts);
 	}
 	
 	public FOption<GeometryColumnInfo> geometryColumnInfo() {
@@ -53,109 +60,92 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 	}
 	
 	public CreateDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		return new CreateDataSetOptions(FOption.of(gcInfo), m_force, m_blockSize,
-										m_compressionCodecName, m_metaData);
+		return new CreateDataSetOptions(FOption.of(gcInfo), m_writeOpts);
 	}
 	
-	public FOption<Boolean> force() {
-		return m_force;
+	public boolean force() {
+		return m_writeOpts.force();
 	}
 	
 	public CreateDataSetOptions force(Boolean flag) {
-		return new CreateDataSetOptions(m_gcInfo, FOption.of(flag), m_blockSize,
-										m_compressionCodecName, m_metaData);
+		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.force(flag));
 	}
 	
 	public FOption<Long> blockSize() {
-		return m_blockSize;
+		return m_writeOpts.blockSize();
 	}
 
+	public CreateDataSetOptions blockSize(FOption<Long> blkSize) {
+		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.blockSize(blkSize));
+	}
 	public CreateDataSetOptions blockSize(long blkSize) {
-		return new CreateDataSetOptions(m_gcInfo, m_force, FOption.of(blkSize),
-										m_compressionCodecName, m_metaData);
+		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.blockSize(blkSize));
 	}
 
 	public CreateDataSetOptions blockSize(String blkSizeStr) {
-		return blockSize(Long.parseLong(blkSizeStr));
+		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.blockSize(blkSizeStr));
 	}
 	
 	public FOption<String> compressionCodecName() {
-		return m_compressionCodecName;
+		return m_writeOpts.compressionCodecName();
 	}
-	
+	public CreateDataSetOptions compressionCodecName(FOption<String> name) {
+		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.compressionCodecName(name));
+	}
 	public CreateDataSetOptions compressionCodecName(String name) {
-		return new CreateDataSetOptions(m_gcInfo, m_force, m_blockSize,
-										FOption.ofNullable(name), m_metaData);
+		return compressionCodecName(FOption.ofNullable(name));
 	}
 	
 	public FOption<Map<String,String>> metaData() {
-		return m_metaData;
+		return m_writeOpts.metaData();
 	}
 
 	public CreateDataSetOptions metaData(Map<String,String> metaData) {
-		return new CreateDataSetOptions(m_gcInfo, m_force, m_blockSize,
-										m_compressionCodecName, FOption.of(metaData));
+		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.metaData(metaData));
+	}
+	
+	public MarmotFileWriteOptions writeOptions() {
+		return m_writeOpts;
 	}
 
 	public static CreateDataSetOptions fromProto(CreateDataSetOptionsProto proto) {
-		CreateDataSetOptions opts = CreateDataSetOptions.EMPTY;
+		DataSetType type = DataSetType.fromString(proto.getType().name());
 		
+		FOption<GeometryColumnInfo> gcInfo = FOption.empty();
 		switch ( proto.getOptionalGeomColInfoCase() ) {
 			case GEOM_COL_INFO:
-				opts = opts.geometryColumnInfo(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
-				break;
-			default:
-		}
-		switch ( proto.getOptionalForceCase() ) {
-			case FORCE:
-				opts = opts.force(proto.getForce());
-				break;
-			default:
-		}
-		switch ( proto.getOptionalBlockSizeCase() ) {
-			case BLOCK_SIZE:
-				opts = opts.blockSize(proto.getBlockSize());
-				break;
-			default:
-		}
-		switch ( proto.getOptionalCompressionCodecNameCase() ) {
-			case COMPRESSION_CODEC_NAME:
-				opts = opts.compressionCodecName(proto.getCompressionCodecName());
-				break;
-			default:
-		}
-		switch ( proto.getOptionalMetadataCase() ) {
-			case METADATA:
-				Map<String,String> metadata = PBUtils.fromProto(proto.getMetadata());
-				opts = opts.metaData(metadata);
+				gcInfo = FOption.of(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
 				break;
 			default:
 		}
 		
-		return opts;
+		MarmotFileWriteOptions writeOpts = MarmotFileWriteOptions.fromProto(proto.getWriteOptions());
+		
+		return new CreateDataSetOptions(type, gcInfo, writeOpts);
 	}
 	
 	@Override
 	public CreateDataSetOptionsProto toProto() {
-		CreateDataSetOptionsProto.Builder builder = CreateDataSetOptionsProto.newBuilder();
+		CreateDataSetOptionsProto.Builder builder
+							= CreateDataSetOptionsProto.newBuilder()
+														.setType(DataSetTypeProto.valueOf(m_dsType.id()))
+														.setWriteOptions(m_writeOpts.toProto());
 		m_gcInfo.map(GeometryColumnInfo::toProto).ifPresent(builder::setGeomColInfo);
-		m_force.map(builder::setForce);
-		m_blockSize.map(builder::setBlockSize);
-		m_compressionCodecName.map(builder::setCompressionCodecName);
-		m_metaData.map(PBUtils::toProto).ifPresent(builder::setMetadata);
 		
 		return builder.build();
 	}
 	
+	public String toOptionsString() {
+		String gcInfoStr = m_gcInfo.map(info -> String.format("gcinfo=%s", info)).getOrElse("");
+		String optStr = m_writeOpts.toString();
+		if ( optStr.length() > 0 ) {
+			optStr = "," + optStr;
+		}
+		return String.format("%s%s", gcInfoStr, optStr);
+	}
+	
 	@Override
 	public String toString() {
-		String gcInfoStr = m_gcInfo.map(info -> String.format(",gcinfo=%s", info)).getOrElse("");
-		String blkStr = m_blockSize.map(UnitUtils::toByteSizeString)
-									.map(str -> String.format(",blksz=%s", str))
-									.getOrElse("");
-		String forceStr = m_force.getOrElse(false) ? ",force" : "";
-		String compressStr = m_compressionCodecName.map(str -> String.format(",compress=%s", str))
-													.getOrElse("");
-		return String.format("store_options[%s%s%s%s]", gcInfoStr, compressStr, forceStr,blkStr);
+		return String.format("CreateDataSetOptions[%s]", toOptionsString());
 	}
 }

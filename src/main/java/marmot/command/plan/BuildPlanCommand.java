@@ -207,7 +207,7 @@ public class BuildPlanCommand extends SubCommand {
 
 		@Override
 		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
-			StoreDataSetOptions opts = StoreDataSetOptions.EMPTY;
+			StoreDataSetOptions opts = StoreDataSetOptions.DEFAULT;
 			if ( m_append ) {
 				opts = opts.append(true);
 			}

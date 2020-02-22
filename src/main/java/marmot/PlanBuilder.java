@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import marmot.dataset.GeometryColumnInfo;
 import marmot.geo.GeoClientUtils;
+import marmot.io.MarmotFileWriteOptions;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
 import marmot.optor.ParseCsvOptions;
@@ -28,7 +29,6 @@ import marmot.plan.LoadJdbcTableOptions;
 import marmot.plan.LoadOptions;
 import marmot.plan.PredicateOptions;
 import marmot.plan.SpatialJoinOptions;
-import marmot.proto.GeometryColumnInfoProto;
 import marmot.proto.SerializedProto;
 import marmot.proto.TypeCodeProto;
 import marmot.proto.optor.ArcClipProto;
@@ -52,6 +52,7 @@ import marmot.proto.optor.DropEmptyGeometryProto;
 import marmot.proto.optor.DropProto;
 import marmot.proto.optor.EstimateIDWProto;
 import marmot.proto.optor.EstimateKernelDensityProto;
+import marmot.proto.optor.EstimateQuadKeysProto;
 import marmot.proto.optor.ExpandProto;
 import marmot.proto.optor.FilterSpatiallyProto;
 import marmot.proto.optor.FlattenGeometryProto;
@@ -146,6 +147,15 @@ public class PlanBuilder {
 	public PlanBuilder add(PBSerializable<?> serializable) {
 		return add(OperatorProto.newBuilder()
 								.setSerialized(serializable.serialize())
+								.build());
+	}
+
+	public PlanBuilder reduce(PBSerializable<?> reducer) {
+		ReducerProto proto = ReducerProto.newBuilder()
+											.setReducer(PBUtils.serialize(reducer))
+											.build();
+		return add(OperatorProto.newBuilder()
+								.setReduce(proto)
 								.build());
 	}
 	
@@ -383,10 +393,15 @@ public class PlanBuilder {
 	 * @return 명령이 추가된 {@link PlanBuilder} 객체.
 	 */
 	public PlanBuilder storeMarmotFile(String path) {
+		return storeMarmotFile(path, MarmotFileWriteOptions.DEFAULT);
+	}
+	public PlanBuilder storeMarmotFile(String path, MarmotFileWriteOptions opts) {
 		Utilities.checkNotNullArgument(path, "path is null");
+		Utilities.checkNotNullArgument(opts, "MarmotFileWriteOptions is null");
 		
 		StoreAsHeapfileProto store = StoreAsHeapfileProto.newBuilder()
 														.setPath(path)
+														.setWriteOptions(opts.toProto())
 														.build();
 		return add(OperatorProto.newBuilder()
 								.setStoreAsHeapfile(store)
@@ -947,16 +962,16 @@ public class PlanBuilder {
 		return reduceByGroup(group, reducer);
 	}
 	
-	public PlanBuilder applyByGroup(Group group, PBSerializable<?> serializable) {
+	public PlanBuilder reduceByGroup(Group group, PBSerializable<?> serializable) {
 		SerializedProto proto = serializable.serialize();
 		return reduceByGroup(group, ReducerProto.newBuilder().setReducer(proto).build());
 	}
 
-	public PlanBuilder applyByGroup(Group group, Serializable serializable) {
-		return applyByGroup(group, PBUtils.serializeJava(serializable));
+	public PlanBuilder reduceByGroup(Group group, Serializable serializable) {
+		return reduceByGroup(group, PBUtils.serializeJava(serializable));
 	}
 	
-	private PlanBuilder reduceByGroup(Group group, ReducerProto reducer) {
+	public PlanBuilder reduceByGroup(Group group, ReducerProto reducer) {
 		TransformByGroupProto transform = TransformByGroupProto.newBuilder()
 															.setGrouper(group.toProto())
 															.setTransform(reducer)
@@ -1418,7 +1433,7 @@ public class PlanBuilder {
 	public PlanBuilder store(String dsId) {
 		Utilities.checkNotNullArgument(dsId, "dataset id");
 		
-		return store(dsId, StoreDataSetOptions.EMPTY);
+		return store(dsId, StoreDataSetOptions.DEFAULT);
 	}
 	
 	public PlanBuilder store(String dsId, StoreDataSetOptions opts) {
@@ -1639,23 +1654,38 @@ public class PlanBuilder {
 								.setAttachGeohash(attach)
 								.build());
 	}
-	public PlanBuilder attachQuadKey(String geomCol, String srid, List<String> quadKeys,
-									boolean bindOutlier, boolean bindOnce) {
-		Utilities.checkNotNullArgument(geomCol, "geometry column is null");
-		Utilities.checkNotNullArgument(srid, "geometry column's SRID is null");
+
+	public PlanBuilder estimateQueryKeys(GeometryColumnInfo gcInfo, double sampleRatio,
+											int maxQuadKeyLength, long maxClusterSize) {
+		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
+		Utilities.checkArgument(sampleRatio > 0 && sampleRatio <= 1,
+								"invalid sample-ratio: " + sampleRatio);
+		Utilities.checkArgument(maxQuadKeyLength > 0, "invalid maxQuadKeyLength: " + maxQuadKeyLength);
+		Utilities.checkArgument(maxClusterSize > 0, "invalid maxClusterSize: " + maxClusterSize);
+		
+		EstimateQuadKeysProto estimate = EstimateQuadKeysProto.newBuilder()
+														.setGeometryColumnInfo(gcInfo.toProto())
+														.setSampleRatio(sampleRatio)
+														.setMaxQuadkeyLength(maxQuadKeyLength)
+														.setMaxClusterSize(maxClusterSize)
+														.build();
+		return add(OperatorProto.newBuilder()
+								.setEstimateQuadKeys(estimate)
+								.build());
+	}
+	
+	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, List<String> quadKeys,
+									boolean bindOutlier, boolean bindOnlyToOwner) {
+		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
 		Utilities.checkNotNullArgument(quadKeys, "quadKeys");
 		
-		GeometryColumnInfoProto geomInfo = GeometryColumnInfoProto.newBuilder()
-																.setName(geomCol)
-																.setSrid(srid)
-																.build();
 		String qkSrc = "quad_keys:" + FStream.from(quadKeys).join(",");
 		
 		AttachQuadKeyProto attach = AttachQuadKeyProto.newBuilder()
-														.setGeometryColumnInfo(geomInfo)
+														.setGeometryColumnInfo(gcInfo.toProto())
 														.setQuadKeySource(qkSrc)
 														.setBindOutlier(bindOutlier)
-														.setBindOnce(bindOnce)
+														.setBindOnce(bindOnlyToOwner)
 														.build();
 		return add(OperatorProto.newBuilder()
 								.setAttachQuadKey(attach)

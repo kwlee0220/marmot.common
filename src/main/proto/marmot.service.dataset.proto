@@ -7,7 +7,7 @@ package marmot.proto.service;
 
 import public "marmot.proto";
 import public "marmot.service.proto";
-import public "marmot.optor.proto";
+//import public "marmot.optor.proto";
 //import public "marmot.service.exec.proto";
 
 message BindDataSetOptionsProto {
@@ -87,6 +87,7 @@ enum DataSetTypeProto {
 	TEXT = 2;
 	CLUSTER = 3;
 	GWAVE = 4;
+	SPATIAL_CLUSTER = 5;
 }
 
 message DataSetInfoProto {
@@ -118,6 +119,19 @@ message DataSetInfoResponse {
 	oneof either {
 		DataSetInfoProto dataset_info = 1;
 		marmot.proto.service.ErrorProto error = 2;
+	}
+}
+message CreateDataSetOptionsProto {
+	DataSetTypeProto type = 1;
+	oneof optional_geom_col_info {
+		marmot.proto.GeometryColumnInfoProto geom_col_info  = 2;
+	}
+	MarmotFileWriteOptionsProto write_options = 3;
+}
+message StoreDataSetOptionsProto {
+	CreateDataSetOptionsProto create_options = 1;
+	oneof optional_append {
+		bool append = 2;
 	}
 }
 
@@ -154,26 +168,27 @@ message AppendRecordSetRequest {
 	string rset_id = 2;			// 업로드할 레코드세트 식별자
 	oneof optional_plan {
 		// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
-		marmot.proto.optor.PlanProto plan = 3;
+		marmot.proto.SerializedProto plan = 3;
+//		marmot.proto.optor.PlanProto plan = 3;
 	}
 	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
 }
 
-message AppendRecordSetChunkProto {
-	message HeaderProto {
-		string dataset = 1;		// 업로드 대상 데이터세트 식별자
-		oneof optional_plan {
-			// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
-			marmot.proto.optor.PlanProto plan = 2;
-		}
-	}
-
-	oneof either {
-		HeaderProto header = 1;
-		int32 sync = 2;
-		bytes block = 3;
-	}
-}
+//message AppendRecordSetChunkProto {
+//	message HeaderProto {
+//		string dataset = 1;		// 업로드 대상 데이터세트 식별자
+//		oneof optional_plan {
+//			// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
+//			marmot.proto.optor.PlanProto plan = 2;
+//		}
+//	}
+//
+//	oneof either {
+//		HeaderProto header = 1;
+//		int32 sync = 2;
+//		bytes block = 3;
+//	}
+//}
 	
 message BindDataSetRequest {
 	string dataset = 1;

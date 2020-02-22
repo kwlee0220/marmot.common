@@ -42,6 +42,19 @@ message GroupKeyValueProto {
 	repeated ValueProto value = 1;
 }
 
+message MarmotFileWriteOptionsProto {
+	bool force = 1;
+	oneof optional_compression_codec_name {
+		string compression_codec_name = 2;
+	}
+	oneof optional_block_size {
+		int64 block_size = 3;
+	}
+	oneof optional_metadata {
+		PropertiesProto metadata = 4;
+	}
+}
+
 message SpatialIndexInfoProto {
 	string dataset = 1;
 	GeometryColumnInfoProto geometry_column = 2;

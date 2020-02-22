@@ -3,10 +3,10 @@ package marmot.optor;
 import java.util.Map;
 
 import marmot.dataset.GeometryColumnInfo;
+import marmot.io.MarmotFileWriteOptions;
 import marmot.proto.service.StoreDataSetOptionsProto;
 import marmot.support.PBSerializable;
 import utils.UnitUtils;
-import utils.Utilities;
 import utils.func.FOption;
 
 /**
@@ -14,18 +14,18 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsProto> {
-	public static final StoreDataSetOptions EMPTY
-			= new StoreDataSetOptions(CreateDataSetOptions.EMPTY, FOption.empty());
+	public static final StoreDataSetOptions DEFAULT
+			= new StoreDataSetOptions(CreateDataSetOptions.DEFAULT, FOption.empty());
 	public static final StoreDataSetOptions FORCE
 			= new StoreDataSetOptions(CreateDataSetOptions.FORCE, FOption.empty());
 	public static final StoreDataSetOptions APPEND
-			= new StoreDataSetOptions(CreateDataSetOptions.EMPTY, FOption.of(true));
+			= new StoreDataSetOptions(CreateDataSetOptions.DEFAULT, FOption.of(true));
 	
-	private final CreateDataSetOptions m_createOptions;
+	private final CreateDataSetOptions m_createOpts;
 	private final FOption<Boolean> m_append;
 	
 	private StoreDataSetOptions(CreateDataSetOptions createOpts, FOption<Boolean> append) {
-		m_createOptions = createOpts;
+		m_createOpts = createOpts;
 		m_append = append;
 	}
 	
@@ -37,20 +37,24 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		return new StoreDataSetOptions(CreateDataSetOptions.FORCE(gcInfo), FOption.empty());
 	}
 	
+	public static StoreDataSetOptions FORCE(boolean flag) {
+		return new StoreDataSetOptions(CreateDataSetOptions.FORCE(flag), FOption.empty());
+	}
+	
 	public FOption<GeometryColumnInfo> geometryColumnInfo() {
-		return m_createOptions.geometryColumnInfo();
+		return m_createOpts.geometryColumnInfo();
 	}
 	
 	public StoreDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(m_createOptions.geometryColumnInfo(gcInfo), m_append);
+		return new StoreDataSetOptions(m_createOpts.geometryColumnInfo(gcInfo), m_append);
 	}
 	
-	public FOption<Boolean> force() {
-		return m_createOptions.force();
+	public boolean force() {
+		return m_createOpts.force();
 	}
 	
 	public StoreDataSetOptions force(Boolean flag) {
-		return new StoreDataSetOptions(m_createOptions.force(flag), m_append);
+		return new StoreDataSetOptions(m_createOpts.force(flag), m_append);
 	}
 	
 	public FOption<Boolean> append() {
@@ -58,15 +62,18 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions append(Boolean flag) {
-		return new StoreDataSetOptions(m_createOptions, FOption.of(flag));
+		return new StoreDataSetOptions(m_createOpts, FOption.of(flag));
 	}
 	
 	public FOption<Long> blockSize() {
-		return m_createOptions.blockSize();
+		return m_createOpts.blockSize();
 	}
 
+	public StoreDataSetOptions blockSize(FOption<Long> blkSize) {
+		return new StoreDataSetOptions(m_createOpts.blockSize(blkSize), m_append);
+	}
 	public StoreDataSetOptions blockSize(long blkSize) {
-		return new StoreDataSetOptions(m_createOptions.blockSize(blkSize), m_append);
+		return new StoreDataSetOptions(m_createOpts.blockSize(blkSize), m_append);
 	}
 
 	public StoreDataSetOptions blockSize(String blkSizeStr) {
@@ -74,23 +81,30 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public FOption<String> compressionCodecName() {
-		return m_createOptions.compressionCodecName();
+		return m_createOpts.compressionCodecName();
 	}
-	
+
+	public StoreDataSetOptions compressionCodecName(FOption<String> name) {
+		return new StoreDataSetOptions(m_createOpts.compressionCodecName(name), m_append);
+	}
 	public StoreDataSetOptions compressionCodecName(String name) {
-		return new StoreDataSetOptions(m_createOptions.compressionCodecName(name), m_append);
+		return new StoreDataSetOptions(m_createOpts.compressionCodecName(name), m_append);
 	}
 	
 	public FOption<Map<String,String>> metaData() {
-		return m_createOptions.metaData();
+		return m_createOpts.metaData();
 	}
 
 	public StoreDataSetOptions metaData(Map<String,String> metaData) {
-		return new StoreDataSetOptions(m_createOptions.metaData(metaData), m_append);
+		return new StoreDataSetOptions(m_createOpts.metaData(metaData), m_append);
 	}
 	
 	public CreateDataSetOptions toCreateOptions() {
-		return m_createOptions;
+		return m_createOpts;
+	}
+	
+	public MarmotFileWriteOptions writeOptions() {
+		return m_createOpts.writeOptions();
 	}
 
 	public static StoreDataSetOptions fromProto(StoreDataSetOptionsProto proto) {
@@ -110,26 +124,19 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	@Override
 	public StoreDataSetOptionsProto toProto() {
 		StoreDataSetOptionsProto.Builder builder = StoreDataSetOptionsProto.newBuilder();
-		builder.setCreateOptions(m_createOptions.toProto());
+		builder.setCreateOptions(m_createOpts.toProto());
 		m_append.map(builder::setAppend);
 		
 		return builder.build();
 	}
 	
+	public String toOptionsString() {
+		String appendStr = m_append.getOrElse(false) ? ", append" : "";
+		return String.format("%s%s", m_createOpts.toOptionsString(), appendStr);
+	}
+	
 	@Override
 	public String toString() {
-		String gcInfoStr = m_createOptions.geometryColumnInfo()
-										.map(info -> String.format(",gcinfo=%s", info)).getOrElse("");
-		String blkStr = m_createOptions.blockSize()
-									.map(UnitUtils::toByteSizeString)
-									.map(str -> String.format(",blksz=%s", str))
-									.getOrElse("");
-		String forceStr = m_createOptions.force()
-										.getOrElse(false) ? ",force" : "";
-		String appendStr = m_append.getOrElse(false) ? ",append" : "";
-		String compressStr = m_createOptions.compressionCodecName()
-											.map(str -> String.format(",compress=%s", str))
-													.getOrElse("");
-		return String.format("store_options[%s%s%s%s%s]", gcInfoStr, compressStr, forceStr, appendStr,blkStr);
+		return String.format("StoreDataSetOptions[%s]", toOptionsString());
 	}
 }

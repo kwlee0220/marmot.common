@@ -50,7 +50,7 @@ public class BindDataSetOptions {
 	}
 	
 	public StoreDataSetOptions toStoreDataSetOptions() {
-		StoreDataSetOptions opts = StoreDataSetOptions.EMPTY;
+		StoreDataSetOptions opts = StoreDataSetOptions.DEFAULT;
 		opts = m_gcInfo.transform(opts, StoreDataSetOptions::geometryColumnInfo);
 		opts = m_force.transform(opts, StoreDataSetOptions::force);
 		

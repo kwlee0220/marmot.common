@@ -36,15 +36,18 @@ public class CRSUtils {
 	public static final CoordinateReferenceSystem WGS84;
 	
 	private static final Map<String,CoordinateReferenceSystem> CRSMap = Maps.newHashMap();
-	
 	static {
-		EPSG_4326 = toCRS("EPSG:4326");
-		EPSG_3857 = toCRS("EPSG:3857");
+		WGS84 = EPSG_4326 = toCRS("EPSG:4326");
+		CRSMap.put("EPSG:4326", EPSG_4326);
+		
+		GOOGLE_MAP = VWORLD = EPSG_3857 = toCRS("EPSG:3857");
+		CRSMap.put("EPSG:3857", EPSG_3857);
+		
 		EPSG_5179 = toCRS("EPSG:5179");
+		CRSMap.put("EPSG:5179", EPSG_5179);
+		
 		EPSG_5186 = toCRS("EPSG:5186");
-		GOOGLE_MAP = EPSG_3857;
-		VWORLD = EPSG_3857;
-		WGS84 = EPSG_4326;
+		CRSMap.put("EPSG:5186", EPSG_5186);
 		
 		loadPrjFiles();
 	}
