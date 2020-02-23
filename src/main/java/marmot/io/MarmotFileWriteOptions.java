@@ -17,7 +17,7 @@ public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOpt
 									= new MarmotFileWriteOptions(false, FOption.empty(),
 																FOption.empty(), FOption.empty());
 	public static final MarmotFileWriteOptions FORCE
-									= new MarmotFileWriteOptions(false, FOption.empty(),
+									= new MarmotFileWriteOptions(true, FOption.empty(),
 																FOption.empty(), FOption.empty());
 	
 	private final boolean m_force;
