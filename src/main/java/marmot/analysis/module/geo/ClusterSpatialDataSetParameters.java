@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 import marmot.analysis.module.StoreDataSetParameters;
+import utils.CSV;
 import utils.UnitUtils;
 import utils.func.FOption;
+import utils.stream.FStream;
 
 /**
  * 
@@ -14,6 +16,7 @@ import utils.func.FOption;
  */
 public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 	private static final String INPUT_DATASET = "input_dataset";
+	private static final String QUAD_KEY_LIST = "quad_key_list";
 	private static final String OUTPUT_DATASET = "output_dataset";
 	private static final String SAMPLE_RATIO = "sample_ratio";
 	private static final String MAX_QKEY_LEN = "max_qkey_length";
@@ -21,8 +24,8 @@ public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 	private static final String WORKER_COUNT = "worker_count";
 	
 	public static List<String> getParameterNameAll() {
-		return Arrays.asList(INPUT_DATASET, OUTPUT_DATASET, SAMPLE_RATIO, MAX_QKEY_LEN,
-								CLUSTER_SIZE, BLOCK_SIZE, WORKER_COUNT);
+		return Arrays.asList(INPUT_DATASET, QUAD_KEY_LIST, OUTPUT_DATASET, SAMPLE_RATIO,
+							MAX_QKEY_LEN, CLUSTER_SIZE, BLOCK_SIZE, WORKER_COUNT);
 	}
 	
 	public ClusterSpatialDataSetParameters() {
@@ -49,6 +52,18 @@ public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 	}
 	public void inputDataset(String dsId) {
 		m_params.put(INPUT_DATASET, dsId);
+	}
+	
+	public FOption<List<String>> quadKeyList() {
+		return FOption.ofNullable(m_params.get(QUAD_KEY_LIST))
+						.map(csv -> CSV.parseCsv(csv).toList());
+	}
+	public void quadKeyList(FOption<List<String>> quadKeyList) {
+		quadKeyList.ifAbsent(() -> m_params.remove(QUAD_KEY_LIST))
+					.ifPresent(this::quadKeyList);
+	}
+	public void quadKeyList(List<String> quadKeyList) {
+		m_params.put(QUAD_KEY_LIST, FStream.from(quadKeyList).join(','));
 	}
 	
 	public String outputDataset() {
