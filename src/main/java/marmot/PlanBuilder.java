@@ -18,6 +18,7 @@ import marmot.optor.JoinOptions;
 import marmot.optor.ParseCsvOptions;
 import marmot.optor.StoreAsCsvOptions;
 import marmot.optor.StoreDataSetOptions;
+import marmot.optor.geo.QueryRange;
 import marmot.optor.geo.SpatialRelation;
 import marmot.optor.geo.SquareGrid;
 import marmot.optor.geo.advanced.InterpolationMethod;
@@ -1234,11 +1235,11 @@ public class PlanBuilder {
 	public PlanBuilder query(String dsId, Geometry key, PredicateOptions opts) {
 		Utilities.checkNotNullArgument(dsId, "input dataset id");
 		Utilities.checkNotNullArgument(key, "key is null");
-				
+
+		QueryRange range = QueryRange.of(key).options(opts);
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
 													.setDsId(dsId)
-													.setKeyGeometry(PBUtils.toProto(key))
-													.setOptions(opts.toProto())
+													.setRange(range.toProto())
 													.build();
 		return add(OperatorProto.newBuilder()
 								.setQueryDataset(query)
@@ -1252,10 +1253,10 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(dsId, "input dataset id");
 		Utilities.checkNotNullArgument(bounds, "bounds is null");
 				
+		QueryRange range = QueryRange.of(bounds).options(opts);
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
 													.setDsId(dsId)
-													.setBounds(PBUtils.toProto(bounds))
-													.setOptions(opts.toProto())
+													.setRange(range.toProto())
 													.build();
 		return add(OperatorProto.newBuilder()
 								.setQueryDataset(query)
@@ -1268,11 +1269,11 @@ public class PlanBuilder {
 	public PlanBuilder query(String dsId, String keyDsId, PredicateOptions opts) {
 		Utilities.checkNotNullArgument(dsId, "input dataset id");
 		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
-				
+
+		QueryRange range = QueryRange.of(keyDsId).options(opts);
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
 													.setDsId(dsId)
-													.setKeyDataset(keyDsId)
-													.setOptions(opts.toProto())
+													.setRange(range.toProto())
 													.build();
 		
 		return add(OperatorProto.newBuilder()

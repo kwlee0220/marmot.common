@@ -31,6 +31,22 @@ message LoadMarmotFileProto {
 	LoadOptionsProto options = 1;
 	repeated string paths = 2;
 }
+message QueryRangeProto {
+	oneof either_key {
+		EnvelopeProto key_bounds = 1;
+		GeometryProto key_geometry = 2;
+		string key_dataset = 3;
+	}
+	PredicateOptionsProto options = 4;
+}
+
+message LoadSpatialClusterFileProto {
+	string path = 1;
+	oneof optional_query_range {
+		QueryRangeProto query_range = 2;
+	}
+	LoadOptionsProto options = 3;
+}
 message LoadWholeFileProto {
 	LoadOptionsProto options = 1;
 	repeated string paths = 2;
@@ -48,12 +64,7 @@ message LoadSpatialClusteredFileProto {
 
 message QueryDataSetProto {
 	string ds_id = 1;
-	oneof either_key {
-		EnvelopeProto bounds = 2;
-		GeometryProto key_geometry = 3;
-		string key_dataset = 4;
-	}
-	PredicateOptionsProto options = 5;
+	QueryRangeProto range = 2;
 }
 
 message FilterSpatiallyProto {
