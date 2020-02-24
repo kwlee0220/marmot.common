@@ -32,12 +32,11 @@ message LoadMarmotFileProto {
 	repeated string paths = 2;
 }
 message QueryRangeProto {
-	oneof either_key {
-		EnvelopeProto key_bounds = 1;
-		GeometryProto key_geometry = 2;
-		string key_dataset = 3;
+	oneof range {
+		EnvelopeProto bounds = 1;
+		string dataset = 2;
 	}
-	PredicateOptionsProto options = 4;
+	PredicateOptionsProto options = 3;
 }
 
 message LoadSpatialClusterFileProto {

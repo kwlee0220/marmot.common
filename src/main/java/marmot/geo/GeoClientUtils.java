@@ -179,8 +179,14 @@ public class GeoClientUtils {
 	public static Envelope toEnvelope(Coordinate tl, Coordinate br) {
 		return new Envelope(tl, br);
 	}
+	
+	public static Envelope toEnvelope(BoundingBox bbox) {
+		Coordinate topLeft = new Coordinate(bbox.getMinX(), bbox.getMinY());
+		Coordinate bottomRight = new Coordinate(bbox.getMaxX(), bbox.getMaxY());
+		return toEnvelope(topLeft, bottomRight);
+	}
 
-	public static Envelope toEnvelope(Point pt1, Point pt2) {
+	public static Envelope Envelope(Point pt1, Point pt2) {
 		return new Envelope(pt1.getCoordinate(), pt2.getCoordinate());
 	}
 

@@ -1228,26 +1228,10 @@ public class PlanBuilder {
 	 * 구성된 레코드 세트를 적재시키는 연산을 추가한다.
 	 * 
 	 * @param dsId	읽을 대상 데이터세트 이름.
-	 * @param key	조건 대상 공간 객체.
+	 * @param bounds	조건 대상 공간 객체.
 	 * @param opts	옵션 리스트
 	 * @return		작업이 추가된 {@link PlanBuilder} 객체.
 	 */
-	public PlanBuilder query(String dsId, Geometry key, PredicateOptions opts) {
-		Utilities.checkNotNullArgument(dsId, "input dataset id");
-		Utilities.checkNotNullArgument(key, "key is null");
-
-		QueryRange range = QueryRange.of(key).options(opts);
-		QueryDataSetProto query = QueryDataSetProto.newBuilder()
-													.setDsId(dsId)
-													.setRange(range.toProto())
-													.build();
-		return add(OperatorProto.newBuilder()
-								.setQueryDataset(query)
-								.build());
-	}
-	public PlanBuilder query(String dsId, Geometry key) {
-		return query(dsId, key, PredicateOptions.DEFAULT);
-	}
 	public PlanBuilder query(String dsId, Envelope bounds, PredicateOptions opts) {
 		Utilities.checkNotNullArgument(bounds, "key bounds");
 		Utilities.checkNotNullArgument(dsId, "input dataset id");
@@ -1270,7 +1254,7 @@ public class PlanBuilder {
 		Utilities.checkNotNullArgument(dsId, "input dataset id");
 		Utilities.checkNotNullArgument(keyDsId, "key dataset id");
 
-		QueryRange range = QueryRange.of(keyDsId).options(opts);
+		QueryRange range = QueryRange.fromDataSet(keyDsId).options(opts);
 		QueryDataSetProto query = QueryDataSetProto.newBuilder()
 													.setDsId(dsId)
 													.setRange(range.toProto())
@@ -1283,6 +1267,22 @@ public class PlanBuilder {
 	public PlanBuilder query(String dsId, String keyDsId) {
 		return query(dsId, keyDsId, PredicateOptions.DEFAULT);
 	}
+//	public PlanBuilder query(String dsId, Geometry key, PredicateOptions opts) {
+//		Utilities.checkNotNullArgument(dsId, "input dataset id");
+//		Utilities.checkNotNullArgument(key, "key is null");
+//
+//		QueryRange range = QueryRange.fromDataSet(key).options(opts);
+//		QueryDataSetProto query = QueryDataSetProto.newBuilder()
+//													.setDsId(dsId)
+//													.setRange(range.toProto())
+//													.build();
+//		return add(OperatorProto.newBuilder()
+//								.setQueryDataset(query)
+//								.build());
+//	}
+//	public PlanBuilder query(String dsId, Geometry key) {
+//		return query(dsId, key, PredicateOptions.DEFAULT);
+//	}
 
 	/**
 	 * 본 {@code PlanBuilder}에 입력 레코드 세트에 포함된 레코드들 중에서
@@ -1675,7 +1675,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, List<String> quadKeys,
+	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, Iterable<String> quadKeys,
 									boolean bindOutlier, boolean bindOnlyToOwner) {
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
 		Utilities.checkNotNullArgument(quadKeys, "quadKeys");
