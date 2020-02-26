@@ -15,22 +15,23 @@ import utils.func.FOption;
  */
 public class CreateSpatialIndexParameters {
 	private static final String INPUT_DATASET = "input_dataset";
-	private static final String SAMPLE_RATIO = "sample_ratio";
+	private static final String QUADKEY_DATASET = "quadkey_dataset";	// 기존 quadkey list를 사용하는 경우
+	private static final String SAMPLE_SIZE = "sample_size";			// quadkey list를 추정하는 경우
 	private static final String BLOCK_SIZE = "block_size";
 	private static final String WORKER_COUNT = "worker_count";
 	
 	private final Map<String,String> m_params;
 	
 	public static List<String> getParameterNameAll() {
-		return Arrays.asList(INPUT_DATASET, SAMPLE_RATIO, BLOCK_SIZE, WORKER_COUNT);
+		return Arrays.asList(INPUT_DATASET, QUADKEY_DATASET, SAMPLE_SIZE, BLOCK_SIZE, WORKER_COUNT);
 	}
 	
 	public CreateSpatialIndexParameters() {
 		m_params = Maps.newHashMap();
 	}
 	
-	public static String processName() {
-		return "cluster_dataset";
+	public static String moduleName() {
+		return "create_spatial_index";
 	}
 	
 	public CreateSpatialIndexParameters(Map<String,String> paramsMap) {
@@ -54,16 +55,30 @@ public class CreateSpatialIndexParameters {
 		m_params.put(INPUT_DATASET, dsId);
 	}
 	
-	public FOption<Double> sampleRatio() {
-		return FOption.ofNullable(m_params.get(SAMPLE_RATIO))
-					.map(Double::parseDouble);
+	public FOption<String> quadKeyDataSet() {
+		return FOption.ofNullable(m_params.get(QUADKEY_DATASET));
 	}
-	public void sampleRatio(double ratio) {
-		m_params.put(SAMPLE_RATIO, ""+ratio);
+	public void quadKeyDataSet(FOption<String> dsId) {
+		dsId.ifAbsent(() -> m_params.remove(QUADKEY_DATASET))
+			.ifPresent(this::quadKeyDataSet);
 	}
-	public void sampleRatio(FOption<Double> ratio) {
-		ratio.ifAbsent(() -> m_params.remove(SAMPLE_RATIO))
-			.ifPresent(this::sampleRatio);
+	public void quadKeyDataSet(String dsId) {
+		m_params.put(QUADKEY_DATASET, dsId);
+	}
+	
+	public FOption<Long> sampleSize() {
+		return FOption.ofNullable(m_params.get(SAMPLE_SIZE))
+						.map(Long::parseLong);
+	}
+	public void sampleSize(FOption<Long> nbytes) {
+		nbytes.ifAbsent(() -> m_params.remove(SAMPLE_SIZE))
+				.ifPresent(this::sampleSize);
+	}
+	public void sampleSize(long nbytes) {
+		m_params.put(SAMPLE_SIZE, ""+nbytes);
+	}
+	public void sampleSize(String sizeStr) {
+		sampleSize(Long.parseLong(sizeStr));
 	}
 	
 	public FOption<Long> blockSize() {

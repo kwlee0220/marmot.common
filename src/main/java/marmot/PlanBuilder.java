@@ -5,6 +5,7 @@ import static marmot.optor.geo.SpatialRelation.ALL;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
@@ -72,8 +73,8 @@ import marmot.proto.optor.LoadHexagonGridFileProto.GridBoundsProto;
 import marmot.proto.optor.LoadJdbcTableProto;
 import marmot.proto.optor.LoadLocalMoransIProto;
 import marmot.proto.optor.LoadMarmotFileProto;
-import marmot.proto.optor.LoadSpatialClusterIndexFileProto;
 import marmot.proto.optor.LoadSpatialClusteredFileProto;
+import marmot.proto.optor.LoadSpatialGlobalIndexProto;
 import marmot.proto.optor.LoadSpatialIndexJoinProto;
 import marmot.proto.optor.LoadSquareGridFileProto;
 import marmot.proto.optor.LoadTextFileProto;
@@ -1413,11 +1414,11 @@ public class PlanBuilder {
 	public PlanBuilder loadSpatialClusterIndexFile(String dsId) {
 		Utilities.checkNotNullArgument(dsId, "dataset id is null");
 		
-		LoadSpatialClusterIndexFileProto load = LoadSpatialClusterIndexFileProto.newBuilder()
-																			.setDataset(dsId)
-																			.build();
+		LoadSpatialGlobalIndexProto load = LoadSpatialGlobalIndexProto.newBuilder()
+																		.setDataset(dsId)
+																		.build();
 		return add(OperatorProto.newBuilder()
-				.setLoadSpatialClusterIndexFile(load)
+				.setLoadSpatialGlobalIndex(load)
 				.build());
 	}
 	
@@ -1675,16 +1676,16 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, Iterable<String> quadKeys,
+	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, Set<String> quadKeys,
 									boolean bindOutlier, boolean bindOnlyToOwner) {
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
 		Utilities.checkNotNullArgument(quadKeys, "quadKeys");
 		
-		String qkSrc = "quad_keys:" + FStream.from(quadKeys).join(",");
+		String qkSrc = FStream.from(quadKeys).join(",");
 		
 		AttachQuadKeyProto attach = AttachQuadKeyProto.newBuilder()
 														.setGeometryColumnInfo(gcInfo.toProto())
-														.setQuadKeySource(qkSrc)
+														.setQuadKeys(qkSrc)
 														.setBindOutlier(bindOutlier)
 														.setBindOnce(bindOnlyToOwner)
 														.build();

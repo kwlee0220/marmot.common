@@ -73,7 +73,7 @@ public class RangeQuery {
 	}
 	
 	public RecordSet run() throws Exception {
-		if ( !m_ds.isSpatiallyClustered() ) {
+		if ( !m_ds.hasSpatialIndex() ) {
 			if ( m_ds.getRecordCount() <= m_sampleCount ) {
 				return m_ds.read();
 			}

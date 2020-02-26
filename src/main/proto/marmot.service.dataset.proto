@@ -198,14 +198,14 @@ message BindDataSetRequest {
 }
 
 message CreateSpatialIndexOptionsProto {
-	oneof optional_sample_ratio {
-		double sample_ratio = 2;
+	oneof optional_sample_size {
+		int64 sample_size = 1;
 	}
 	oneof optional_block_size {
-		int64 block_size = 4;	// 생성될 클러스터 파일의 블럭 크기.
+		int64 block_size = 2;	// 생성될 클러스터 파일의 블럭 크기.
 	}
 	oneof optional_worker_count {
-		int32 worker_count = 5;	// 클러스터 생성 reducer 갯수
+		int32 worker_count = 3;	// 클러스터 생성 reducer 갯수
 	}
 }
 

@@ -93,7 +93,7 @@ public class DatasetCommands {
 					if ( ds.hasGeometryColumn() ) {
 						System.out.printf(" %s", ds.getGeometryColumnInfo());
 						
-						if ( ds.isSpatiallyClustered() ) {
+						if ( ds.hasSpatialIndex() ) {
 							System.out.printf("(clustered)");
 						}
 					}
@@ -214,7 +214,7 @@ public class DatasetCommands {
 			}
 			System.out.println("HDFS PATH    : " + info.getHdfsPath());
 			System.out.println("COMPRESSION  : " + info.getCompressionCodecName().getOrElse("none"));
-			SpatialIndexInfo idxInfo = info.getDefaultSpatialIndexInfo().getOrNull();
+			SpatialIndexInfo idxInfo = info.getSpatialIndexInfo().getOrNull();
 			System.out.printf ("SPATIAL INDEX: %s%n", (idxInfo != null)
 														? idxInfo.getHdfsFilePath() : "none");
 			System.out.println("THUMBNAIL    : " + info.hasThumbnail());

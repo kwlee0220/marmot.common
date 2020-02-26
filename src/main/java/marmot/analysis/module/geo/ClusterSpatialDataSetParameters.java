@@ -35,7 +35,7 @@ public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 		super(paramsMap);
 	}
 	
-	public static String processName() {
+	public static String moduleName() {
 		return "cluster_dataset";
 	}
 	

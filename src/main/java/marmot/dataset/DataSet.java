@@ -128,8 +128,8 @@ public interface DataSet {
 	 * 
 	 * @return 공간 클러스터 존재 유무
 	 */
-	public default boolean isSpatiallyClustered() {
-		return getDefaultSpatialIndexInfo().isPresent();
+	public default boolean hasSpatialIndex() {
+		return getSpatialIndexInfo().isPresent();
 	}
 	
 	/**
@@ -139,7 +139,7 @@ public interface DataSet {
 	 * 
 	 * @return	공간 인덱스 등록정보.
 	 */
-	public FOption<SpatialIndexInfo> getDefaultSpatialIndexInfo();
+	public FOption<SpatialIndexInfo> getSpatialIndexInfo();
 
 	/**
 	 * 데이터세트의 크기를 바이트 단위로 반환한다. 
@@ -193,8 +193,8 @@ public interface DataSet {
 	 * 
 	 * @return	생성된 인덱스의 등록정보.
 	 */
-	public default SpatialIndexInfo cluster() {
-		return cluster(CreateSpatialIndexOptions.DEFAULT());
+	public default SpatialIndexInfo createSpatialIndex() {
+		return createSpatialIndex(CreateSpatialIndexOptions.DEFAULT());
 	}
 	
 	/**
@@ -205,12 +205,12 @@ public interface DataSet {
 	 * @param opts	공간 인덱스 생성 관련 인자.
 	 * @return	생성된 인덱스의 등록정보.
 	 */
-	public SpatialIndexInfo cluster(CreateSpatialIndexOptions opts);
+	public SpatialIndexInfo createSpatialIndex(CreateSpatialIndexOptions opts);
 	
 	/**
 	 * 본 데이터 세트에 생성된 공간 인덱스(클러스터)를 삭제한다.
 	 */
-	public void deleteSpatialCluster();
+	public void deleteSpatialIndex();
 	
 	/**
 	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 레코드들의 수와

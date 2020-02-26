@@ -25,8 +25,8 @@ public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOpt
 	private final FOption<Long> m_blockSize;
 	private final FOption<Map<String,String>> m_metaData;
 	
-	private MarmotFileWriteOptions(boolean force, FOption<String> codecName,
-									FOption<Long> blockSize, FOption<Map<String,String>> metadata) {
+	private MarmotFileWriteOptions(boolean force, FOption<String> codecName, FOption<Long> blockSize,
+									FOption<Map<String,String>> metadata) {
 		m_force = force;
 		m_blockSize = blockSize;
 		m_compressionCodecName = codecName;

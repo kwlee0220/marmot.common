@@ -42,8 +42,8 @@ public class TextDataSetAdaptor {
 			return ds;
 		}
 		else if ( ds.getType() == DataSetType.TEXT ) {
-			if ( ds.hasGeometryColumn() && ds.isSpatiallyClustered()) {
-				SpatialIndexInfo idxInfo = ds.getDefaultSpatialIndexInfo().get();
+			if ( ds.hasGeometryColumn() && ds.hasSpatialIndex()) {
+				SpatialIndexInfo idxInfo = ds.getSpatialIndexInfo().get();
 				Statistics stat = new Statistics(m_marmot, idxInfo.getRecordCount(),
 												idxInfo.getDataBounds());
 				return (DataSet)ProxyUtils.replaceAction(ds, EXTRA_INTFCS,

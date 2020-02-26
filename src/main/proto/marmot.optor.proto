@@ -99,7 +99,8 @@ message LoadJdbcTableProto {
 
 message StoreAsHeapfileProto {
 	string path = 1;
-	MarmotFileWriteOptionsProto write_options = 2;
+	bool create_directory = 2;
+	MarmotFileWriteOptionsProto write_options = 3;
 }
 
 message TeeProto {
@@ -693,7 +694,7 @@ message EstimateQuadKeysProto {
 }
 message AttachQuadKeyProto {
 	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
-	string quad_key_source = 2;
+	string quad_keys = 2;
 	bool bind_outlier = 3;
 	bool bind_once = 4;
 }
@@ -714,7 +715,7 @@ message CascadeGeometryProto {
 
 
 
-message LoadSpatialClusterIndexFileProto {
+message LoadSpatialGlobalIndexProto {
 	string dataset = 1;
 }
 
@@ -918,7 +919,7 @@ message OperatorProto {
 		ArcSpatialJoinProto arc_spatial_join = 710;
 		ArcUnionPhase1Proto arc_union_phase1 = 711;
 		
-		LoadSpatialClusterIndexFileProto load_spatial_cluster_index_file = 771;
+		LoadSpatialGlobalIndexProto load_spatial_global_index = 771;
 		LoadSpatialIndexJoinProto load_spatial_index_join = 773;
 		
 		marmot.proto.SerializedProto serialized = 999;
