@@ -84,7 +84,7 @@ public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOpt
 	
 	@Override
 	public String toString() {
-		String forceStr = m_force ? ",force" : "";
+		String forceStr = m_force ? "force" : "";
 		String compressStr = m_compressionCodecName.map(str -> String.format(",compress=%s", str))
 													.getOrElse("");
 		String blkStr = m_blockSize.map(UnitUtils::toByteSizeString)
