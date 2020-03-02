@@ -1658,6 +1658,7 @@ public class PlanBuilder {
 	}
 
 	public PlanBuilder estimateQueryKeys(GeometryColumnInfo gcInfo, double sampleRatio,
+											FOption<Envelope> validBounds,
 											int maxQuadKeyLength, long maxClusterSize) {
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
 		Utilities.checkArgument(sampleRatio > 0 && sampleRatio <= 1,
@@ -1665,30 +1666,35 @@ public class PlanBuilder {
 		Utilities.checkArgument(maxQuadKeyLength > 0, "invalid maxQuadKeyLength: " + maxQuadKeyLength);
 		Utilities.checkArgument(maxClusterSize > 0, "invalid maxClusterSize: " + maxClusterSize);
 		
-		EstimateQuadKeysProto estimate = EstimateQuadKeysProto.newBuilder()
+		EstimateQuadKeysProto.Builder builder = EstimateQuadKeysProto.newBuilder()
 														.setGeometryColumnInfo(gcInfo.toProto())
 														.setSampleRatio(sampleRatio)
 														.setMaxQuadkeyLength(maxQuadKeyLength)
-														.setMaxClusterSize(maxClusterSize)
-														.build();
+														.setMaxClusterSize(maxClusterSize);
+		EstimateQuadKeysProto estimate = validBounds.map(PBUtils::toProto)
+													.transform(builder, (b,p) -> b.setValidBounds(p))
+													.build();
 		return add(OperatorProto.newBuilder()
 								.setEstimateQuadKeys(estimate)
 								.build());
 	}
 	
 	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, Set<String> quadKeys,
-									boolean bindOutlier, boolean bindOnlyToOwner) {
+									FOption<Envelope> validBounds, boolean bindOutlier,
+									boolean bindOnlyToOwner) {
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
 		Utilities.checkNotNullArgument(quadKeys, "quadKeys");
 		
 		String qkSrc = FStream.from(quadKeys).join(",");
 		
-		AttachQuadKeyProto attach = AttachQuadKeyProto.newBuilder()
+		AttachQuadKeyProto.Builder builder = AttachQuadKeyProto.newBuilder()
 														.setGeometryColumnInfo(gcInfo.toProto())
 														.setQuadKeys(qkSrc)
 														.setBindOutlier(bindOutlier)
-														.setBindOnce(bindOnlyToOwner)
-														.build();
+														.setBindOnce(bindOnlyToOwner);
+		AttachQuadKeyProto attach = validBounds.map(PBUtils::toProto)
+												.transform(builder, (b,p) -> b.setValidBounds(p))
+												.build();
 		return add(OperatorProto.newBuilder()
 								.setAttachQuadKey(attach)
 								.build());

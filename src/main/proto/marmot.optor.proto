@@ -689,14 +689,20 @@ message AttachGeoHashProto {
 message EstimateQuadKeysProto {
 	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
 	double sample_ratio = 2;
-	int32 max_quadkey_length = 3;
-	int64 max_cluster_size = 4;
+	oneof optional_valid_bounds {
+		EnvelopeProto valid_bounds = 3;
+	}
+	int32 max_quadkey_length = 4;
+	int64 max_cluster_size = 5;
 }
 message AttachQuadKeyProto {
 	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
 	string quad_keys = 2;
-	bool bind_outlier = 3;
-	bool bind_once = 4;
+	oneof optional_valid_bounds {
+		EnvelopeProto valid_bounds = 3;
+	}
+	bool bind_outlier = 4;
+	bool bind_once = 5;
 }
 message ReduceGeometryPrecisionProto {
 	string geometry_column = 1;

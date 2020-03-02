@@ -4,7 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
+
 import marmot.analysis.module.StoreDataSetParameters;
+import marmot.geo.GeoClientUtils;
 import utils.UnitUtils;
 import utils.func.FOption;
 
@@ -16,6 +20,7 @@ public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 	private static final String INPUT_DATASET = "input_dataset";
 	private static final String OUTPUT_DATASET = "output_dataset";
 	private static final String QUADKEY_DATASET = "quadkey_dataset";
+	private static final String VALID_BOUNDS = "valid_bounds";
 	private static final String SAMPLE_SIZE = "sample_size";		// estimation을 하는 경우
 	private static final String MAX_QKEY_LEN = "max_qkey_length";	// estimation을 하는 경우
 	private static final String CLUSTER_SIZE = "cluster_size";
@@ -23,7 +28,7 @@ public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 	
 	public static List<String> getParameterNameAll() {
 		return Arrays.asList(INPUT_DATASET, OUTPUT_DATASET, QUADKEY_DATASET,
-								SAMPLE_SIZE, MAX_QKEY_LEN,
+								SAMPLE_SIZE, VALID_BOUNDS, MAX_QKEY_LEN,
 								CLUSTER_SIZE, WORKER_COUNT,
 								FORCE, COMPRESS_CODEC, BLOCK_SIZE);
 	}
@@ -86,6 +91,19 @@ public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 	}
 	public void sampleSize(String sizeStr) {
 		sampleSize(Long.parseLong(sizeStr));
+	}
+	
+	public FOption<Envelope> validBounds() {
+		return FOption.ofNullable(m_params.get(VALID_BOUNDS))
+						.mapSneakily(GeoClientUtils::fromWKT)
+						.map(Geometry::getEnvelopeInternal);
+	}
+	public void validBounds(FOption<Envelope> dsId) {
+		dsId.ifAbsent(() -> m_params.remove(VALID_BOUNDS))
+			.ifPresent(this::validBounds);
+	}
+	public void validBounds(Envelope bounds) {
+		m_params.put(VALID_BOUNDS, GeoClientUtils.toWKT(GeoClientUtils.toPolygon(bounds)));
 	}
 	
 	public FOption<Integer> maxQuadKeyLength() {
