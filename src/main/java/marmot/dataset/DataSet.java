@@ -175,6 +175,8 @@ public interface DataSet {
 	 */
 	public long append(RecordSet rset);
 	
+	public long append(RecordSet rset, String partId);
+	
 	/**
 	 * 주어진 레코드 세트에 Plan을 적용시킨 결과를 데이터세트에 추가한다.
 	 * <p>

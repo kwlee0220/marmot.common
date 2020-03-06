@@ -133,6 +133,9 @@ message StoreDataSetOptionsProto {
 	oneof optional_append {
 		bool append = 2;
 	}
+	oneof optional_partition_id {
+		string partition_id = 3;
+	}
 }
 
 message UpdateGeometryColumnInfoRequest {
@@ -166,12 +169,15 @@ message ReadDataSetRequest {
 message AppendRecordSetRequest {  
 	string id = 1;				// 업로드 대상 데이터세트 식별자
 	string rset_id = 2;			// 업로드할 레코드세트 식별자
+	oneof optional_partition_id {
+		string partition_id = 3;
+	}
 	oneof optional_plan {
 		// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
-		marmot.proto.SerializedProto plan = 3;
-//		marmot.proto.optor.PlanProto plan = 3;
+		marmot.proto.SerializedProto plan = 4;
+//		marmot.proto.optor.PlanProto plan = 4;
 	}
-	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
+	bool use_compression = 5;	// 데이터 송수신할 때 압축사용 여부
 }
 
 //message AppendRecordSetChunkProto {

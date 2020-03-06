@@ -44,14 +44,15 @@ message GroupKeyValueProto {
 
 message MarmotFileWriteOptionsProto {
 	bool force = 1;
+	bool append_if_exists = 2;
 	oneof optional_compression_codec_name {
-		string compression_codec_name = 2;
+		string compression_codec_name = 3;
 	}
 	oneof optional_block_size {
-		int64 block_size = 3;
+		int64 block_size = 4;
 	}
 	oneof optional_metadata {
-		PropertiesProto metadata = 4;
+		PropertiesProto metadata = 5;
 	}
 }
 
