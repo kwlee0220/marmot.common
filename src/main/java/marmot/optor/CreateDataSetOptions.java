@@ -19,6 +19,8 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.DEFAULT);
 	public static final CreateDataSetOptions FORCE
 			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.FORCE);
+	public static final CreateDataSetOptions APPEND_IF_EXISTS
+			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.APPEND_IF_EXISTS);
 	
 	private final DataSetType m_dsType;
 	private final FOption<GeometryColumnInfo> m_gcInfo;

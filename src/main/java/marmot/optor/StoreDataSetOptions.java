@@ -15,30 +15,42 @@ import utils.func.FOption;
  */
 public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsProto> {
 	public static final StoreDataSetOptions DEFAULT
-			= new StoreDataSetOptions(CreateDataSetOptions.DEFAULT, FOption.empty());
+			= new StoreDataSetOptions(CreateDataSetOptions.DEFAULT, FOption.empty(), FOption.empty());
 	public static final StoreDataSetOptions FORCE
-			= new StoreDataSetOptions(CreateDataSetOptions.FORCE, FOption.empty());
+			= new StoreDataSetOptions(CreateDataSetOptions.FORCE, FOption.empty(), FOption.empty());
 	public static final StoreDataSetOptions APPEND
-			= new StoreDataSetOptions(CreateDataSetOptions.DEFAULT, FOption.of(true));
+			= new StoreDataSetOptions(CreateDataSetOptions.APPEND_IF_EXISTS,
+										FOption.of(true), FOption.empty());
 	
 	private final CreateDataSetOptions m_createOpts;
 	private final FOption<Boolean> m_append;
+	private final FOption<String> m_partitionId;
 	
-	private StoreDataSetOptions(CreateDataSetOptions createOpts, FOption<Boolean> append) {
+	private StoreDataSetOptions(CreateDataSetOptions createOpts, FOption<Boolean> append,
+								FOption<String> partitionId) {
 		m_createOpts = createOpts;
 		m_append = append;
+		m_partitionId = partitionId;
 	}
 	
 	public static StoreDataSetOptions GEOMETRY(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(CreateDataSetOptions.GEOMETRY(gcInfo), FOption.empty());
+		return new StoreDataSetOptions(CreateDataSetOptions.GEOMETRY(gcInfo), FOption.empty(),
+										FOption.empty());
 	}
 	
 	public static StoreDataSetOptions FORCE(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(CreateDataSetOptions.FORCE(gcInfo), FOption.empty());
+		return new StoreDataSetOptions(CreateDataSetOptions.FORCE(gcInfo), FOption.empty(),
+										FOption.empty());
 	}
 	
 	public static StoreDataSetOptions FORCE(boolean flag) {
-		return new StoreDataSetOptions(CreateDataSetOptions.FORCE(flag), FOption.empty());
+		return new StoreDataSetOptions(CreateDataSetOptions.FORCE(flag), FOption.empty(),
+										FOption.empty());
+	}
+	
+	public static StoreDataSetOptions APPEND(String partId) {
+		return new StoreDataSetOptions(CreateDataSetOptions.APPEND_IF_EXISTS, FOption.of(true),
+										FOption.of(partId));
 	}
 	
 	public FOption<GeometryColumnInfo> geometryColumnInfo() {
@@ -46,7 +58,7 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		return new StoreDataSetOptions(m_createOpts.geometryColumnInfo(gcInfo), m_append);
+		return new StoreDataSetOptions(m_createOpts.geometryColumnInfo(gcInfo), m_append, m_partitionId);
 	}
 	
 	public boolean force() {
@@ -54,7 +66,7 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions force(Boolean flag) {
-		return new StoreDataSetOptions(m_createOpts.force(flag), m_append);
+		return new StoreDataSetOptions(m_createOpts.force(flag), m_append, m_partitionId);
 	}
 	
 	public FOption<Boolean> append() {
@@ -62,20 +74,28 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	}
 	
 	public StoreDataSetOptions append(Boolean flag) {
-		return new StoreDataSetOptions(m_createOpts, FOption.of(flag));
+		return new StoreDataSetOptions(m_createOpts, FOption.of(flag), FOption.empty());
+	}
+	
+	public FOption<String> partitionId() {
+		return m_partitionId;
+	}
+	public StoreDataSetOptions partitionId(String partId) {
+		return new StoreDataSetOptions(m_createOpts, m_append, FOption.of(partId));
+	}
+	public StoreDataSetOptions partitionId(FOption<String> partId) {
+		return new StoreDataSetOptions(m_createOpts, m_append, partId);
 	}
 	
 	public FOption<Long> blockSize() {
 		return m_createOpts.blockSize();
 	}
-
 	public StoreDataSetOptions blockSize(FOption<Long> blkSize) {
-		return new StoreDataSetOptions(m_createOpts.blockSize(blkSize), m_append);
+		return new StoreDataSetOptions(m_createOpts.blockSize(blkSize), m_append, m_partitionId);
 	}
 	public StoreDataSetOptions blockSize(long blkSize) {
-		return new StoreDataSetOptions(m_createOpts.blockSize(blkSize), m_append);
+		return new StoreDataSetOptions(m_createOpts.blockSize(blkSize), m_append, m_partitionId);
 	}
-
 	public StoreDataSetOptions blockSize(String blkSizeStr) {
 		return blockSize(UnitUtils.parseByteSize(blkSizeStr));
 	}
@@ -83,20 +103,18 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	public FOption<String> compressionCodecName() {
 		return m_createOpts.compressionCodecName();
 	}
-
 	public StoreDataSetOptions compressionCodecName(FOption<String> name) {
-		return new StoreDataSetOptions(m_createOpts.compressionCodecName(name), m_append);
+		return new StoreDataSetOptions(m_createOpts.compressionCodecName(name), m_append, m_partitionId);
 	}
 	public StoreDataSetOptions compressionCodecName(String name) {
-		return new StoreDataSetOptions(m_createOpts.compressionCodecName(name), m_append);
+		return new StoreDataSetOptions(m_createOpts.compressionCodecName(name), m_append, m_partitionId);
 	}
 	
 	public FOption<Map<String,String>> metaData() {
 		return m_createOpts.metaData();
 	}
-
 	public StoreDataSetOptions metaData(Map<String,String> metaData) {
-		return new StoreDataSetOptions(m_createOpts.metaData(metaData), m_append);
+		return new StoreDataSetOptions(m_createOpts.metaData(metaData), m_append, m_partitionId);
 	}
 	
 	public CreateDataSetOptions toCreateOptions() {
@@ -109,11 +127,18 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 
 	public static StoreDataSetOptions fromProto(StoreDataSetOptionsProto proto) {
 		CreateDataSetOptions createOpts = CreateDataSetOptions.fromProto(proto.getCreateOptions());
-		StoreDataSetOptions opts = new StoreDataSetOptions(createOpts, FOption.empty());
+		StoreDataSetOptions opts = new StoreDataSetOptions(createOpts, FOption.empty(), FOption.empty());
 		
 		switch ( proto.getOptionalAppendCase()) {
 			case APPEND:
 				opts = opts.append(proto.getAppend());
+				break;
+			default:
+		}
+		
+		switch ( proto.getOptionalPartitionIdCase() ) {
+			case PARTITION_ID:
+				opts = opts.partitionId(proto.getPartitionId());
 				break;
 			default:
 		}
@@ -126,13 +151,15 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		StoreDataSetOptionsProto.Builder builder = StoreDataSetOptionsProto.newBuilder();
 		builder.setCreateOptions(m_createOpts.toProto());
 		m_append.map(builder::setAppend);
+		m_partitionId.map(builder::setPartitionId);
 		
 		return builder.build();
 	}
 	
 	public String toOptionsString() {
 		String appendStr = m_append.getOrElse(false) ? ", append" : "";
-		return String.format("%s%s", m_createOpts.toOptionsString(), appendStr);
+		String partIdStr = m_partitionId.map(id -> "(" + id + ")").getOrElse("");
+		return String.format("%s%s%s", m_createOpts.toOptionsString(), appendStr, partIdStr);
 	}
 	
 	@Override
