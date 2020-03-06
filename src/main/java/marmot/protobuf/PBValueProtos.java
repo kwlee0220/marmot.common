@@ -3,7 +3,10 @@ package marmot.protobuf;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 
+import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
@@ -12,7 +15,9 @@ import com.vividsolutions.jts.geom.Point;
 import marmot.proto.GridCellProto;
 import marmot.proto.IntervalProto;
 import marmot.proto.MapTileProto;
+import marmot.proto.PropertiesProto;
 import marmot.proto.TypeCodeProto;
+import marmot.proto.ValueArrayProto;
 import marmot.proto.ValueProto;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
@@ -27,6 +32,7 @@ import utils.LocalDates;
 import utils.LocalTimes;
 import utils.Utilities;
 import utils.func.Tuple;
+import utils.stream.FStream;
 
 /**
  * 
@@ -320,5 +326,35 @@ public class PBValueProtos {
 			default:
 				throw new AssertionError();
 		}
+	}
+
+	public static ValueArrayProto toValueArrayProto(Object[] values) {
+		return ValueArrayProto.newBuilder()
+								.addAllValue(FStream.of(values)
+													.map(PBValueProtos::toValueProto)
+													.toList())
+								.build();
+	}
+
+	public static ValueArrayProto toValueArrayProto(List<Object> values) {
+		return ValueArrayProto.newBuilder()
+								.addAllValue(FStream.from(values)
+													.map(PBValueProtos::toValueProto)
+													.toList())
+								.build();
+	}
+
+	public static List<Object> fromProto(ValueArrayProto proto) {
+		return FStream.from(proto.getValueList())
+						.map(PBValueProtos::fromProto)
+						.toList();
+	}
+
+	public static Map<String,String> fromProto(PropertiesProto proto) {
+		return FStream.from(proto.getPropertyList())
+				.foldLeft(Maps.newHashMap(), (map,kv) -> {
+					map.put(kv.getKey(), kv.getValue());
+					return map;
+				});
 	}
 }

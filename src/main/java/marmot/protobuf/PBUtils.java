@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Maps;
 import com.google.common.collect.PeekingIterator;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
@@ -52,7 +51,6 @@ import marmot.proto.Size2dProto;
 import marmot.proto.Size2iProto;
 import marmot.proto.StringProto;
 import marmot.proto.TypeCodeProto;
-import marmot.proto.ValueArrayProto;
 import marmot.proto.VoidProto;
 import marmot.proto.service.BoolResponse;
 import marmot.proto.service.DoubleResponse;
@@ -735,36 +733,6 @@ public class PBUtils {
 			default:
 				return PBUtils.toException(proto);
 		}
-	}
-	
-	public static ValueArrayProto toValueArrayProto(Object[] values) {
-		return ValueArrayProto.newBuilder()
-								.addAllValue(FStream.of(values)
-													.map(PBValueProtos::toValueProto)
-													.toList())
-								.build();
-	}
-	
-	public static ValueArrayProto toValueArrayProto(List<Object> values) {
-		return ValueArrayProto.newBuilder()
-								.addAllValue(FStream.from(values)
-													.map(PBValueProtos::toValueProto)
-													.toList())
-								.build();
-	}
-	
-	public static List<Object> fromProto(ValueArrayProto proto) {
-		return FStream.from(proto.getValueList())
-						.map(PBValueProtos::fromProto)
-						.toList();
-	}
-	
-	public static Map<String,String> fromProto(PropertiesProto proto) {
-		return FStream.from(proto.getPropertyList())
-				.foldLeft(Maps.newHashMap(), (map,kv) -> {
-					map.put(kv.getKey(), kv.getValue());
-					return map;
-				});
 	}
 	
 	public static PropertiesProto toProto(Map<String,String> metadata) {

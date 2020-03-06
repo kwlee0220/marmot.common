@@ -15,7 +15,7 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.geo.GeoClientUtils;
 import marmot.proto.ValueArrayProto;
-import marmot.protobuf.PBUtils;
+import marmot.protobuf.PBValueProtos;
 
 /**
  * 
@@ -232,11 +232,11 @@ public class FeatureVector implements Serializable {
 		private final ValueArrayProto m_proto;
 		
 		private SerializationProxy(FeatureVector keyValue) {
-			m_proto = PBUtils.toValueArrayProto(keyValue.m_values);
+			m_proto = PBValueProtos.toValueArrayProto(keyValue.m_values);
 		}
 		
 		private Object readResolve() {
-			Object[] values = PBUtils.fromProto(m_proto).toArray();
+			Object[] values = PBValueProtos.fromProto(m_proto).toArray();
 			return new FeatureVector(values);
 		}
 	}
