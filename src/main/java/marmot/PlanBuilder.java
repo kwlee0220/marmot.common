@@ -141,6 +141,17 @@ public class PlanBuilder {
 		m_builder.setName(name);
 	}
 	
+	public OperatorProto getOperatorProto(int index) {
+		return m_builder.getOperators(index);
+	}
+	
+	public OperatorProto getLastOperatorProto() {
+		int noptors = m_builder.getOperatorsCount();
+		Utilities.checkArgument(noptors > 0, "no operator in the PlanBuilder");
+		
+		return m_builder.getOperators(noptors-1);
+	}
+	
 	public PlanBuilder add(OperatorProto proto) {
 		m_builder.addOperators(proto);
 		return this;

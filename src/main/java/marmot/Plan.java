@@ -142,4 +142,21 @@ public class Plan implements PBSerializable<PlanProto> {
 		
 		return builder.build();
 	}
+	
+	public Plan removeLastStoreOperator() {
+		if ( length() == 0 ) {
+			return this;
+		}
+		
+		OperatorProto last = getLastOperator().getUnchecked();
+		switch ( last.getOperatorCase() ) {
+			case STORE_DATASET:
+				return FStream.from(toProto().getOperatorsList())
+							.dropLast(1)
+							.foldLeft(Plan.builder(getName()), (b,o) -> b.add(o))
+							.build();
+			default:
+				return this;
+		}
+	}
 }
