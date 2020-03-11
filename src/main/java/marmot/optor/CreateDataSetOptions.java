@@ -1,6 +1,9 @@
 package marmot.optor;
 
+import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.Lists;
 
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
@@ -8,7 +11,9 @@ import marmot.io.MarmotFileWriteOptions;
 import marmot.proto.service.CreateDataSetOptionsProto;
 import marmot.proto.service.DataSetTypeProto;
 import marmot.support.PBSerializable;
+import utils.UnitUtils;
 import utils.func.FOption;
+import utils.stream.FStream;
 
 /**
  * 
@@ -138,12 +143,20 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 	}
 	
 	public String toOptionsString() {
-		String gcInfoStr = m_gcInfo.map(info -> String.format("gcinfo=%s", info)).getOrElse("");
-		String optStr = m_writeOpts.toString();
-		if ( optStr.length() > 0 ) {
-			optStr = "," + optStr;
+		List<String> optStrList = Lists.newArrayList();
+		
+		m_gcInfo.map(info -> String.format("gcinfo=%s", info))
+				.ifPresent(optStrList::add);
+		if ( force() ) {
+			optStrList.add("force");
 		}
-		return String.format("%s%s", gcInfoStr, optStr);
+		compressionCodecName().map(codec -> String.format("compress=%s", codec))
+							.ifPresent(optStrList::add);
+		blockSize().map(UnitUtils::toByteSizeString)
+					.map(str -> String.format("blksz=%s", str))
+					.ifPresent(optStrList::add);
+		
+		return FStream.from(optStrList).join(',');
 	}
 	
 	@Override
