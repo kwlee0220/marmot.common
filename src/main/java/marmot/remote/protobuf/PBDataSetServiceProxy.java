@@ -218,8 +218,7 @@ public class PBDataSetServiceProxy {
 		return PBRecordProtos.readRecordSet(is);
 	}
 	
-	public long appendRecordSet(String dsId, RecordSet rset, FOption<String> partId,
-								FOption<Plan> plan) {
+	public long appendRecordSet(String dsId, RecordSet rset, FOption<String> partId) {
 		try {
 			InputStream is = PBRecordProtos.toInputStream(rset);
 			if ( m_marmot.useCompression() ) {
@@ -235,8 +234,6 @@ public class PBDataSetServiceProxy {
 															.setUseCompression(m_marmot.useCompression());
 					
 					builder = partId.transform(builder, (b,i) -> b.setPartitionId(i));
-					builder = plan.map(Plan::serialize)
-								.transform(builder, (b,p) -> b.setPlan(p)); 
 					AppendRecordSetRequest req = builder.build();
 					return req.toByteString();
 				}

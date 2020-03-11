@@ -3,8 +3,10 @@ package marmot.remote.protobuf;
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.Plan;
+import marmot.PlanBuilder;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import marmot.RecordSets.CountingRecordSet;
 import marmot.dataset.DataSet;
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
@@ -14,6 +16,7 @@ import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.CreateSpatialIndexOptions;
 import marmot.geo.query.RangeQueryEstimate;
+import marmot.optor.StoreDataSetOptions;
 import utils.Utilities;
 import utils.func.FOption;
 
@@ -126,7 +129,7 @@ public class PBDataSetProxy implements DataSet {
 	public long append(RecordSet rset) {
 		Utilities.checkNotNullArgument(rset, "RecordSet is null");
 		
-		long count = m_service.appendRecordSet(getId(), rset, FOption.empty(), FOption.empty());
+		long count = m_service.appendRecordSet(getId(), rset, FOption.empty());
 		m_info = m_service.getDataSet(getId()).m_info;
 		
 		return count;
@@ -136,30 +139,41 @@ public class PBDataSetProxy implements DataSet {
 	public long append(RecordSet rset, String partId) {
 		Utilities.checkNotNullArgument(rset, "RecordSet is null");
 		
-		long count = m_service.appendRecordSet(getId(), rset, FOption.of(partId), FOption.empty());
+		long count = m_service.appendRecordSet(getId(), rset, FOption.of(partId));
 		m_info = m_service.getDataSet(getId()).m_info;
 		
 		return count;
 	}
 
-	@Override
+	/**
+	 * 주어진 레코드 세트에 Plan을 적용시킨 결과를 데이터세트에 추가한다.
+	 * <p>
+	 * 본 데이터세트의 스키마와 인자로 주어진 Plan의 수행결과로 생성되는 레코드세트의 스키마는 동일해야 한다.
+	 * @param rset	Plan 수행시 사용할 입력 레코드세트.
+	 * @param plan	저장시킬 레코드를 생성할 Plan 객체.
+	 * 
+	 * @return	본 데이터 세트 객체.
+	 */
 	public long append(RecordSet rset, Plan plan) {
 		Utilities.checkNotNullArgument(rset, "RecordSet is null");
 		Utilities.checkNotNullArgument(plan, "Plan is null");
-		
-		long count = m_service.appendRecordSet(getId(), rset, FOption.empty(), FOption.of(plan));
-		m_info = m_service.getDataSet(getId()).m_info;
-		
-		return count;
-	}
 
-//	@Override
-//	public void appendPlanResult(Plan plan, ExecutePlanOptions execOpts) {
-//		Utilities.checkNotNullArgument(plan, "Plan is null");
-//		Utilities.checkNotNullArgument(execOpts, "ExecutePlanOptions is null");
-//		
-//		m_info = m_service.appendPlanResult(getId(), plan, execOpts).m_info;
-//	}
+		PlanBuilder builder = plan.toBuilder();
+		switch ( builder.getLastOperatorProto().getOperatorCase() ) {
+			case STORE_DATASET:
+				throw new IllegalArgumentException("plan should not be store operator: plan=" + plan);
+			default:
+		}
+
+		StoreDataSetOptions opts = StoreDataSetOptions.APPEND.blockSize(getBlockSize());
+		opts = getCompressionCodecName().transform(opts, StoreDataSetOptions::compressionCodecName);
+		Plan adjusted = builder.store(getId(), opts).build();
+		
+		try ( CountingRecordSet countingRSet = rset.asCountingRecordSet() ) {
+			m_service.getMarmotRuntime().executeLocally(adjusted, rset);
+			return countingRSet.getCount();
+		}
+	}
 
 	@Override
 	public SpatialIndexInfo createSpatialIndex(CreateSpatialIndexOptions opts) {

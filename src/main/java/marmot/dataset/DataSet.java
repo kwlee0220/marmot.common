@@ -178,17 +178,6 @@ public interface DataSet {
 	public long append(RecordSet rset, String partId);
 	
 	/**
-	 * 주어진 레코드 세트에 Plan을 적용시킨 결과를 데이터세트에 추가한다.
-	 * <p>
-	 * 본 데이터세트의 스키마와 인자로 주어진 Plan의 수행결과로 생성되는 레코드세트의 스키마는 동일해야 한다.
-	 * @param rset	Plan 수행시 사용할 입력 레코드세트.
-	 * @param plan	저장시킬 레코드를 생성할 Plan 객체.
-	 * 
-	 * @return	본 데이터 세트 객체.
-	 */
-	public long append(RecordSet rset, Plan plan);
-	
-	/**
 	 * 데이터세트의 기본 공간 컬럼을 기준으로 인덱스(클러스터)를 생성한다.
 	 * <p>
 	 * 공간 인덱스가 생성되어 있지 않은 경우는 오류가 발생된다.

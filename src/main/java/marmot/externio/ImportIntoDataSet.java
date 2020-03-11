@@ -1,13 +1,18 @@
 package marmot.externio;
 
+import static marmot.optor.StoreDataSetOptions.APPEND;
+
 import io.reactivex.Observable;
 import io.reactivex.subjects.BehaviorSubject;
 import marmot.MarmotRuntime;
 import marmot.Plan;
+import marmot.PlanBuilder;
 import marmot.RecordSchema;
 import marmot.RecordSet;
+import marmot.RecordSets.CountingRecordSet;
 import marmot.command.ImportParameters;
 import marmot.dataset.DataSet;
+import marmot.optor.StoreDataSetOptions;
 import utils.Throwables;
 import utils.Utilities;
 import utils.async.ProgressReporter;
@@ -62,8 +67,28 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				ds = marmot.createDataSet(dsId, outSchema, m_params.toCreateOptions());
 			}
 			
-			return importPlan.map(p -> ds.append(rset, p))
-							.getOrElse(() -> ds.append(rset));
+			if ( importPlan.isPresent() ) {
+				PlanBuilder builder = importPlan.getUnchecked().toBuilder();
+				switch ( builder.getLastOperatorProto().getOperatorCase() ) {
+					case STORE_DATASET:
+						throw new IllegalArgumentException("import-plan should not be "
+														+ "a store operator: plan=" + importPlan);
+					default:
+				}
+
+				StoreDataSetOptions opts = APPEND.blockSize(ds.getBlockSize());
+				opts = ds.getCompressionCodecName()
+							.transform(opts, StoreDataSetOptions::compressionCodecName);
+				Plan adjusted = builder.store(dsId, opts)
+										.build();	
+				try ( CountingRecordSet countingRSet = rset.asCountingRecordSet() ) {
+					marmot.executeLocally(adjusted, rset);
+					return countingRSet.getCount();
+				}
+			}
+			else {
+				return ds.append(rset);
+			}
 		}
 		catch ( Throwable e ) {
 			if ( !append ) {
@@ -73,19 +98,4 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 			throw Throwables.toRuntimeException(e);
 		}
 	}
-	
-//	private Plan adjustImportPlan(Plan plan) {
-//		OperatorProto last = plan.getLastOperator().get();
-//		switch ( last.getOperatorCase() ) {
-//			case STORE_INTO_DATASET:
-//				break;
-//			default:
-//				plan = plan.toBuilder()
-//							.store(m_params.getDataSetId())
-//							.build();
-//				break;
-//		}
-//		
-//		return plan;
-//	}
 }

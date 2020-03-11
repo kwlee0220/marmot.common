@@ -172,12 +172,7 @@ message AppendRecordSetRequest {
 	oneof optional_partition_id {
 		string partition_id = 3;
 	}
-	oneof optional_plan {
-		// 추가하는 레코드를 서버쪽에서 전처리할 필요한 경우 사용될 Plan
-		marmot.proto.SerializedProto plan = 4;
-//		marmot.proto.optor.PlanProto plan = 4;
-	}
-	bool use_compression = 5;	// 데이터 송수신할 때 압축사용 여부
+	bool use_compression = 4;	// 데이터 송수신할 때 압축사용 여부
 }
 
 //message AppendRecordSetChunkProto {
