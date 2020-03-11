@@ -1,6 +1,9 @@
 package marmot.io;
 
+import java.util.List;
 import java.util.Map;
+
+import com.google.common.collect.Lists;
 
 import marmot.proto.MarmotFileWriteOptionsProto;
 import marmot.protobuf.PBUtils;
@@ -8,6 +11,7 @@ import marmot.protobuf.PBValueProtos;
 import marmot.support.PBSerializable;
 import utils.UnitUtils;
 import utils.func.FOption;
+import utils.stream.FStream;
 
 /**
  * 
@@ -101,14 +105,17 @@ public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOpt
 	
 	@Override
 	public String toString() {
-		String forceStr = m_force ? ",force" : "";
-		String appendStr = m_appendIfExists ? ",append" : "";
-		String compressStr = m_compressionCodecName.map(str -> String.format(",compress=%s", str))
-													.getOrElse("");
-		String blkStr = m_blockSize.map(UnitUtils::toByteSizeString)
-									.map(str -> String.format(",blksz=%s", str))
-									.getOrElse("");
-		return String.format("%s%s%s%s", forceStr, appendStr, compressStr, blkStr).substring(1);
+		List<String> optStrList = Lists.newArrayList();
+
+		if ( m_force ) { optStrList.add("force"); }
+		if ( m_appendIfExists ) { optStrList.add("append"); }
+		compressionCodecName().map(codec -> String.format("compress=%s", codec))
+								.ifPresent(optStrList::add);
+		blockSize().map(UnitUtils::toByteSizeString)
+					.map(str -> String.format("blksz=%s", str))
+					.ifPresent(optStrList::add);
+		
+		return FStream.from(optStrList).join(',');
 	}
 
 	public static MarmotFileWriteOptions fromProto(MarmotFileWriteOptionsProto proto) {
