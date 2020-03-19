@@ -1,5 +1,8 @@
 package marmot.io;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +20,7 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOptionsProto> {
+public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOptionsProto>, Serializable {
 	public static final MarmotFileWriteOptions DEFAULT
 									= new MarmotFileWriteOptions(false, false, FOption.empty(),
 																FOption.empty(), FOption.empty());
@@ -151,5 +154,27 @@ public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOpt
 		m_metaData.map(PBUtils::toProto).ifPresent(builder::setMetadata);
 		
 		return builder.build();
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final MarmotFileWriteOptionsProto m_proto;
+		
+		private SerializationProxy(MarmotFileWriteOptions opts) {
+			m_proto = opts.toProto();
+		}
+		
+		private Object readResolve() {
+			return MarmotFileWriteOptions.fromProto(m_proto);
+		}
 	}
 }

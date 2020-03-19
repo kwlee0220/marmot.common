@@ -1,5 +1,8 @@
 package marmot.optor;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Map;
 
 import marmot.dataset.GeometryColumnInfo;
@@ -13,7 +16,7 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsProto> {
+public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsProto>, Serializable {
 	public static final StoreDataSetOptions DEFAULT
 			= new StoreDataSetOptions(CreateDataSetOptions.DEFAULT, FOption.empty(), FOption.empty());
 	public static final StoreDataSetOptions FORCE
@@ -124,6 +127,39 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 	public MarmotFileWriteOptions writeOptions() {
 		return m_createOpts.writeOptions();
 	}
+	
+	public String toOptionsString() {
+		String appendStr = m_append.getOrElse(false) ? ", append" : "";
+		String partIdStr = m_partitionId.map(id -> "(" + id + ")").getOrElse("");
+		return String.format("%s%s%s", m_createOpts.toOptionsString(), appendStr, partIdStr);
+	}
+	
+	@Override
+	public String toString() {
+		return String.format("StoreDataSetOptions[%s]", toOptionsString());
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final StoreDataSetOptionsProto m_proto;
+		
+		private SerializationProxy(StoreDataSetOptions opts) {
+			m_proto = opts.toProto();
+		}
+		
+		private Object readResolve() {
+			return StoreDataSetOptions.fromProto(m_proto);
+		}
+	}
 
 	public static StoreDataSetOptions fromProto(StoreDataSetOptionsProto proto) {
 		CreateDataSetOptions createOpts = CreateDataSetOptions.fromProto(proto.getCreateOptions());
@@ -154,16 +190,5 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		m_partitionId.map(builder::setPartitionId);
 		
 		return builder.build();
-	}
-	
-	public String toOptionsString() {
-		String appendStr = m_append.getOrElse(false) ? ", append" : "";
-		String partIdStr = m_partitionId.map(id -> "(" + id + ")").getOrElse("");
-		return String.format("%s%s%s", m_createOpts.toOptionsString(), appendStr, partIdStr);
-	}
-	
-	@Override
-	public String toString() {
-		return String.format("StoreDataSetOptions[%s]", toOptionsString());
 	}
 }

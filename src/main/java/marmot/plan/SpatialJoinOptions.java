@@ -1,5 +1,9 @@
 package marmot.plan;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 import marmot.optor.geo.SpatialRelation;
 import marmot.proto.optor.SpatialJoinOptionsProto;
 import marmot.support.PBSerializable;
@@ -10,7 +14,7 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProto> {
+public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProto>, Serializable {
 	public static final SpatialJoinOptions EMPTY
 							= new SpatialJoinOptions(FOption.empty(), FOption.empty(),
 													FOption.empty(), FOption.empty());
@@ -133,5 +137,27 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 		m_outputCols.ifPresent(builder::setOutputColumns);
 		
 		return builder.build();
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final SpatialJoinOptionsProto m_proto;
+		
+		private SerializationProxy(SpatialJoinOptions opts) {
+			m_proto = opts.toProto();
+		}
+		
+		private Object readResolve() {
+			return SpatialJoinOptions.fromProto(m_proto);
+		}
 	}
 }
