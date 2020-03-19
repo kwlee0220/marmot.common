@@ -22,6 +22,7 @@ import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
+import marmot.RecordSets.AsyncRecordSet;
 import marmot.RecordSets.AutoClosingRecordSet;
 import marmot.RecordSets.CloserAttachedRecordSet;
 import marmot.RecordSets.CountingRecordSet;
@@ -40,6 +41,7 @@ import marmot.support.DefaultRecord;
 import utils.LoggerSettable;
 import utils.Throwables;
 import utils.Utilities;
+import utils.async.AbstractThreadedExecution;
 import utils.func.FOption;
 import utils.func.Try;
 import utils.func.Try.Failure;
@@ -545,5 +547,10 @@ public interface RecordSet extends Closeable, Iterable<Record> {
 		Utilities.checkNotNullArgument(closer, "Closer");
 		
 		return new CloserAttachedRecordSet(this, closer);
+	}
+
+	public static <T> AsyncRecordSet<T> from(RecordSchema schema, AbstractThreadedExecution<T> exec,
+											Function<T,Record> toRecordFunc) {
+		return new AsyncRecordSet<>(schema, exec, toRecordFunc);
 	}
 }

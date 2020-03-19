@@ -3,14 +3,21 @@ package marmot;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
+
+import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
 
 import marmot.rset.AbstractRecordSet;
 import marmot.rset.PeekableRecordSet;
+import marmot.support.ProgressReportable;
+import utils.StopWatch;
+import utils.Throwables;
 import utils.Utilities;
+import utils.async.AbstractThreadedExecution;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 
@@ -393,7 +400,56 @@ public class RecordSets {
 		@Override
 		public Record nextCopy() {
 			return m_rset.nextCopy();
+		}	
+	}
+	
+	public static class AsyncRecordSet<T> extends AbstractRecordSet implements ProgressReportable {
+		private final RecordSchema m_schema;
+		private final AbstractThreadedExecution<T> m_exec;
+		private final Function<T,Record> m_toRecordFunc;
+		private volatile Record m_output = null;
+		
+		public AsyncRecordSet(RecordSchema schema, AbstractThreadedExecution<T> exec,
+								Function<T,Record> toRecordFunc) {
+			m_schema = schema;
+			m_exec = exec;
+			m_toRecordFunc = toRecordFunc;
+		}
+
+		@Override
+		protected void closeInGuard() throws Exception {
+			m_exec.cancel(true);
+		}
+
+		@Override
+		public RecordSchema getRecordSchema() {
+			return m_schema;
 		}
 		
+		@Override
+		public boolean next(Record output) {
+			if ( m_output != null ) {
+				return false;
+			}
+			
+			try {
+				m_output = m_toRecordFunc.apply(m_exec.run());
+				output.set(m_output);
+				
+				return true;
+			}
+			catch ( Exception e ) {
+				Throwable cause = Throwables.unwrapThrowable(e);
+				Throwables.throwIfInstanceOf(cause, RuntimeException.class);
+				throw Throwables.toRuntimeException(cause);
+			}
+		}
+		
+		@Override
+		public void reportProgress(Logger logger, StopWatch elapsed) {
+			if ( m_exec instanceof ProgressReportable ) {
+				((ProgressReportable)m_exec).reportProgress(logger, elapsed);
+			}
+		}
 	}
 }
