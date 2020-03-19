@@ -67,7 +67,7 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 	}
 	
 	public CreateDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		return new CreateDataSetOptions(FOption.of(gcInfo), m_writeOpts);
+		return new CreateDataSetOptions(m_dsType, FOption.of(gcInfo), m_writeOpts);
 	}
 	
 	public boolean force() {
@@ -75,7 +75,7 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 	}
 	
 	public CreateDataSetOptions force(Boolean flag) {
-		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.force(flag));
+		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.force(flag));
 	}
 	
 	public FOption<Long> blockSize() {
@@ -83,21 +83,21 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 	}
 
 	public CreateDataSetOptions blockSize(FOption<Long> blkSize) {
-		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.blockSize(blkSize));
+		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.blockSize(blkSize));
 	}
 	public CreateDataSetOptions blockSize(long blkSize) {
-		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.blockSize(blkSize));
+		return blockSize(FOption.of(blkSize));
 	}
 
 	public CreateDataSetOptions blockSize(String blkSizeStr) {
-		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.blockSize(blkSizeStr));
+		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.blockSize(blkSizeStr));
 	}
 	
 	public FOption<String> compressionCodecName() {
 		return m_writeOpts.compressionCodecName();
 	}
 	public CreateDataSetOptions compressionCodecName(FOption<String> name) {
-		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.compressionCodecName(name));
+		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.compressionCodecName(name));
 	}
 	public CreateDataSetOptions compressionCodecName(String name) {
 		return compressionCodecName(FOption.ofNullable(name));
@@ -108,11 +108,15 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 	}
 
 	public CreateDataSetOptions metaData(Map<String,String> metaData) {
-		return new CreateDataSetOptions(m_gcInfo, m_writeOpts.metaData(metaData));
+		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.metaData(metaData));
 	}
 	
 	public MarmotFileWriteOptions writeOptions() {
 		return m_writeOpts;
+	}
+	
+	public CreateDataSetOptions writeOptions(MarmotFileWriteOptions writeOpts) {
+		return new CreateDataSetOptions(m_dsType, m_gcInfo, writeOpts);
 	}
 
 	public static CreateDataSetOptions fromProto(CreateDataSetOptionsProto proto) {
