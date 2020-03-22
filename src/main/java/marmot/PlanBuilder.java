@@ -5,7 +5,6 @@ import static marmot.optor.geo.SpatialRelation.ALL;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
@@ -1678,10 +1677,10 @@ public class PlanBuilder {
 		Utilities.checkArgument(maxClusterSize > 0, "invalid maxClusterSize: " + maxClusterSize);
 		
 		EstimateQuadKeysProto.Builder builder = EstimateQuadKeysProto.newBuilder()
-														.setGeometryColumnInfo(gcInfo.toProto())
-														.setSampleRatio(sampleRatio)
-														.setMaxQuadkeyLength(maxQuadKeyLength)
-														.setMaxClusterSize(maxClusterSize);
+															.setGeometryColumnInfo(gcInfo.toProto())
+															.setSampleRatio(sampleRatio)
+															.setMaxQuadkeyLength(maxQuadKeyLength)
+															.setMaxClusterSize(maxClusterSize);
 		EstimateQuadKeysProto estimate = validBounds.map(PBUtils::toProto)
 													.transform(builder, (b,p) -> b.setValidBounds(p))
 													.build();
@@ -1690,7 +1689,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, Set<String> quadKeys,
+	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, List<String> quadKeys,
 									FOption<Envelope> validBounds, boolean bindOutlier,
 									boolean bindOnlyToOwner) {
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
