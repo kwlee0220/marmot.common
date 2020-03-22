@@ -22,6 +22,7 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 	private final String m_keys;
 	private FOption<String> m_tagCols = FOption.empty();
 	private FOption<String> m_orderBy = FOption.empty();
+	private FOption<String> m_partCol = FOption.empty();
 	private FOption<Integer> m_workerCount = FOption.empty();
 	
 	public static Group ofKeys(String keyCols) {
@@ -58,6 +59,15 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 		return this;
 	}
 	
+	public FOption<String> partitionColumn() {
+		return m_partCol;
+	}
+	
+	public Group partitionColumn(String colIdx) {
+		m_partCol = FOption.of(colIdx);
+		return this;
+	}
+	
 	public FOption<Integer> workerCount() {
 		return m_workerCount;
 	}
@@ -81,6 +91,7 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 		Group group = Group.ofKeys(keyCols);
 		Funcs.acceptIfPresent(kvMap, "tags", (k,v) -> group.tags(v));
 		Funcs.acceptIfPresent(kvMap, "orderBy", (k,v) -> group.orderBy(v));
+		Funcs.acceptIfPresent(kvMap, "partColumn", (k,v) -> group.partitionColumn(v));
 		Funcs.acceptIfPresent(kvMap, "workers", (k,v) -> group.workerCount(Integer.parseInt(v)));
 		
 		return group;
@@ -102,6 +113,7 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 		kvList.add(KeyValue.of("keys", m_keys));
 		m_tagCols.ifPresent(cols -> kvList.add(KeyValue.of("tags", cols)));
 		m_orderBy.ifPresent(cols -> kvList.add(KeyValue.of("orderBy", cols)));
+		m_partCol.ifPresent(col -> kvList.add(KeyValue.of("partColumn", col)));
 		m_workerCount.map(cnt -> "" + cnt)
 					.ifPresent(cnt -> kvList.add(KeyValue.of("workers", cnt)));
 		return FStream.from(kvList)
@@ -124,6 +136,12 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 				break;
 			default:
 		}
+		switch ( proto.getOptionalPartitionColumnCase() ) {
+			case PARTITION_COLUMN:
+				opts.partitionColumn(proto.getPartitionColumn());
+				break;
+			default:
+		}
 		switch ( proto.getOptionalGroupWorkerCountCase() ) {
 			case GROUP_WORKER_COUNT:
 				opts.orderBy(proto.getOrderColumns());
@@ -141,6 +159,7 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 		
 		m_tagCols.ifPresent(builder::setTagColumns);
 		m_orderBy.ifPresent(builder::setOrderColumns);
+		m_partCol.ifPresent(builder::setPartitionColumn);
 		m_workerCount.ifPresent(builder::setGroupWorkerCount);
 		
 		return builder.build();

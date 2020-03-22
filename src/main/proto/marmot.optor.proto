@@ -324,8 +324,11 @@ message GroupByKeyProto {
 	oneof optional_order_columns {
 		string order_columns = 3;
 	}
+	oneof optional_partition_column {
+		string partition_column = 4;
+	}
 	oneof optional_group_worker_count {
-		int32 group_worker_count = 4;
+		int32 group_worker_count = 5;
 	}
 }
 
