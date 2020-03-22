@@ -82,7 +82,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				Plan adjusted = builder.store(dsId, opts)
 										.build();	
 				try ( CountingRecordSet countingRSet = rset.asCountingRecordSet() ) {
-					marmot.executeLocally(adjusted, rset);
+					marmot.executeLocally(adjusted, countingRSet);
 					return countingRSet.getCount();
 				}
 			}
