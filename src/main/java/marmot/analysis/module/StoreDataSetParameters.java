@@ -16,8 +16,8 @@ import utils.func.FOption;
  */
 public class StoreDataSetParameters {
 	protected static final String FORCE = "force";
-	protected static final String COMPRESS_CODEC = "compress_codec";
-	protected static final String BLOCK_SIZE = "block_size";		// optional
+	protected static final String COMPRESS_CODEC = "compress_codec";	// optional
+	protected static final String BLOCK_SIZE = "block_size";			// optional
 	
 	protected final Map<String,String> m_params = Maps.newHashMap();
 	

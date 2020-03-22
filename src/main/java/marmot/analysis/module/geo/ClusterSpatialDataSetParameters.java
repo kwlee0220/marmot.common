@@ -19,17 +19,17 @@ import utils.func.FOption;
 public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 	private static final String INPUT_DATASET = "input_dataset";
 	private static final String OUTPUT_DATASET = "output_dataset";
-	private static final String QUADKEY_DATASET = "quadkey_dataset";
-	private static final String VALID_BOUNDS = "valid_bounds";
-	private static final String SAMPLE_SIZE = "sample_size";		// estimation을 하는 경우
-	private static final String MAX_QKEY_LEN = "max_qkey_length";	// estimation을 하는 경우
+	private static final String QUADKEY_DATASET = "quadkey_dataset";	// optional
+	private static final String VALID_BOUNDS = "valid_bounds";			// optional
+	private static final String SAMPLE_SIZE = "sample_size";			// optional: estimation을 하는 경우
+	private static final String MAX_QKEY_LEN = "max_qkey_length";		// optional: estimation을 하는 경우
 	private static final String CLUSTER_SIZE = "cluster_size";
-	private static final String WORKER_COUNT = "worker_count";
+	private static final String PARTITION_COUNT = "partition_count";
 	
 	public static List<String> getParameterNameAll() {
 		return Arrays.asList(INPUT_DATASET, OUTPUT_DATASET, QUADKEY_DATASET,
 								SAMPLE_SIZE, VALID_BOUNDS, MAX_QKEY_LEN,
-								CLUSTER_SIZE, WORKER_COUNT,
+								CLUSTER_SIZE, PARTITION_COUNT,
 								FORCE, COMPRESS_CODEC, BLOCK_SIZE);
 	}
 	
@@ -131,19 +131,19 @@ public class ClusterSpatialDataSetParameters extends StoreDataSetParameters {
 		clusterSize(nbytes);
 	}
 	
-	public FOption<Integer> workerCount() {
-		return FOption.ofNullable(m_params.get(WORKER_COUNT))
+	public FOption<Integer> partitionCount() {
+		return FOption.ofNullable(m_params.get(PARTITION_COUNT))
 					.map(Integer::parseInt);
 	}
-	public void workerCount(int count) {
-		m_params.put(WORKER_COUNT, ""+count);
+	public void partitionCount(int count) {
+		m_params.put(PARTITION_COUNT, ""+count);
 	}
-	public void workerCount(String nbytesStr) {
+	public void partitionCount(String nbytesStr) {
 		int count = (int)UnitUtils.parseByteSize(nbytesStr);
-		m_params.put(WORKER_COUNT, ""+count);
+		m_params.put(PARTITION_COUNT, ""+count);
 	}
-	public void workerCount(FOption<Integer> count) {
-		count.ifAbsent(() -> m_params.remove(WORKER_COUNT))
-			.ifPresent(this::workerCount);
+	public void partitionCount(FOption<Integer> count) {
+		count.ifAbsent(() -> m_params.remove(PARTITION_COUNT))
+			.ifPresent(this::partitionCount);
 	}
 }
