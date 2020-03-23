@@ -44,7 +44,8 @@ message LoadSpatialClusterFileProto {
 	oneof optional_query_range {
 		QueryRangeProto query_range = 2;
 	}
-	LoadOptionsProto options = 3;
+	bool owner_only = 3;
+	LoadOptionsProto options = 4;
 }
 message LoadWholeFileProto {
 	LoadOptionsProto options = 1;
