@@ -1,5 +1,7 @@
 package marmot.geo;
 
+import javax.annotation.Nullable;
+
 import org.geotools.geometry.jts.GeometryCoordinateSequenceTransformer;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
@@ -81,5 +83,9 @@ public class CoordinateTransform {
 		catch ( TransformException e ) {
 			throw new IllegalArgumentException("invalid coordinate: " + src, e);
 		}
+	}
+	
+	public static @Nullable CoordinateTransform getTransformToWgs84(String srid) {
+		return (srid.equals("EPSG:4326")) ? null : get(srid, "EPSG:4326");
 	}
 }
