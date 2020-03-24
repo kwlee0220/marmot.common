@@ -37,6 +37,12 @@ message ColumnProto {
 message RecordSchemaProto {
 	repeated ColumnProto columns = 1;
 }
+message GRecordSchemaProto {
+	oneof optional_gc_info {
+		GeometryColumnInfoProto gc_info = 1;
+	}
+	RecordSchemaProto schema = 2;
+}
 
 message GroupKeyValueProto {
 	repeated ValueProto value = 1;

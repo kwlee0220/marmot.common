@@ -2,7 +2,6 @@ package marmot.dataset;
 
 import com.vividsolutions.jts.geom.Envelope;
 
-import marmot.Plan;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.geo.catalog.IndexNotFoundException;

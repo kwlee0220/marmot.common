@@ -271,15 +271,28 @@ public class DatasetCommands {
 		@Option(names="-mapper_count", paramLabel="count", description="number of mappers")
 		private int m_mapperCount = -1;
 
+		@Option(names={"-v", "-verbose"}, description="verbose")
+		private boolean m_verbose = false;
+
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
+			StopWatch watch = StopWatch.start();
+			
 			LoadOptions opts = (m_mapperCount > 0)
 							? LoadOptions.FIXED_MAPPERS(m_mapperCount) : LoadOptions.DEFAULT;
 			Plan plan = Plan.builder("count records")
 								.load(m_dsId, opts)
 								.aggregate(AggregateFunction.COUNT())
 								.build();
-			System.out.println(marmot.executeToLong(plan).get());
+			long cnt = marmot.executeToLong(plan).get();
+			watch.stop();
+			
+			if ( m_verbose ) {
+				System.out.printf("count=%d, elapsed=%s%n", cnt, watch.getElapsedMillisString());
+			}
+			else {
+				System.out.println(cnt);
+			}
 		}
 	}
 
