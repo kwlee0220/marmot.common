@@ -49,15 +49,20 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 		return FOption.ofNullable(m_gcInfo);
 	}
 	
-	public Column getGeometryColumn() {
-		checkGeometryColumn();
+	public GeometryColumnInfo assertGeometryColumnInfo() {
+		if ( m_gcInfo == null ) {
+			throw new IllegalStateException("no GeometryColumnInfo: " + this);
+		}
 		
-		return m_schema.getColumn(m_gcInfo.name());
+		return m_gcInfo;
+	}
+	
+	public Column getGeometryColumn() {
+		return m_schema.getColumn(assertGeometryColumnInfo().name());
 	}
 	
 	public String getGeometryColumnName() {
-		checkGeometryColumn();
-		return m_gcInfo.name();
+		return assertGeometryColumnInfo().name();
 	}
 	
 	public int getGeometryColumnIdx() {
@@ -69,7 +74,7 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 	}
 	
 	public String getSrid() {
-		checkGeometryColumn();
+		assertGeometryColumnInfo();
 		return m_gcInfo.srid();
 	}
 	
@@ -143,12 +148,6 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 		
 		private Object readResolve() {
 			return GRecordSchema.fromProto(m_proto);
-		}
-	}
-	
-	private void checkGeometryColumn() {
-		if ( m_gcInfo == null ) {
-			throw new IllegalStateException("no GeometryColumnInfo: " + this);
 		}
 	}
 }
