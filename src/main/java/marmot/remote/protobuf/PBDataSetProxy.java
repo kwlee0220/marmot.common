@@ -1,5 +1,7 @@
 package marmot.remote.protobuf;
 
+import java.util.Set;
+
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.Plan;
@@ -14,7 +16,9 @@ import marmot.dataset.GeometryColumnNotExistsException;
 import marmot.geo.catalog.DataSetInfo;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
+import marmot.geo.command.ClusterSpatiallyOptions;
 import marmot.geo.command.CreateSpatialIndexOptions;
+import marmot.geo.command.EstimateQuadKeysOptions;
 import marmot.geo.query.RangeQueryEstimate;
 import marmot.optor.StoreDataSetOptions;
 import utils.Utilities;
@@ -177,7 +181,7 @@ public class PBDataSetProxy implements DataSet {
 
 	@Override
 	public SpatialIndexInfo createSpatialIndex(CreateSpatialIndexOptions opts) {
-		return m_service.clusterDataSet(getId(), opts);
+		return m_service.createSpatialIndex(getId(), opts);
 	}
 
 	@Override
@@ -188,6 +192,16 @@ public class PBDataSetProxy implements DataSet {
 	@Override
 	public RecordSet readSpatialCluster(String quadKey) {
 		return m_service.readSpatialCluster(getId(), quadKey);
+	}
+
+	@Override
+	public Set<String> estimateQuadKeys(EstimateQuadKeysOptions opts) {
+		return m_service.estimateQuadKeys(getId(), opts);
+	}
+
+	@Override
+	public void clusterSpatially(String outDsId, ClusterSpatiallyOptions opts) {
+		m_service.clusterSpatially(getId(), outDsId, opts);
 	}
 
 	@Override

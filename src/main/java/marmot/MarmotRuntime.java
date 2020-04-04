@@ -130,6 +130,9 @@ public interface MarmotRuntime {
 	public DataSet bindExternalDataSet(String dsId, String srcPath, DataSetType type,
 										BindDataSetOptions opts);
 	
+
+	public DataSet buildDataSet(String dsId, String path, String infoPath, BindDataSetOptions opts);
+	
 	/**
 	 * 시스템에 등록된 모든 폴더의 이름들을 반환한다.
 	 * 

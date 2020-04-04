@@ -88,4 +88,14 @@ public class CoordinateTransform {
 	public static @Nullable CoordinateTransform getTransformToWgs84(String srid) {
 		return (srid.equals("EPSG:4326")) ? null : get(srid, "EPSG:4326");
 	}
+	
+	public static Envelope transformToWgs84(Envelope envl, String srid) {
+		if ( envl != null ) {
+			CoordinateTransform trans = getTransformToWgs84(srid);
+			return trans != null ? trans.transform(envl) : envl;
+		}
+		else {
+			return envl;
+		}
+	}
 }

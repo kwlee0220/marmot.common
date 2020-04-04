@@ -11,7 +11,6 @@ import utils.CSV;
 import utils.LazySplitter;
 import utils.Utilities;
 import utils.func.FOption;
-import utils.func.KeyValue;
 
 
 /**
@@ -65,7 +64,8 @@ public class LoadJdbcParameters extends JdbcParameters {
 	public LoadJdbcParameters geomColumns(String cols) {
 		Map<String,DataType> geomCols = CSV.parseCsv(cols, ',')
 											.map(decl -> LazySplitter.parseKeyValue(decl, ':'))
-											.toKeyValueStream(KeyValue::key, KeyValue::value)
+											.toKeyValueStream(kv -> kv)
+//											.toKeyValueStream(KeyValue::key, KeyValue::value)
 											.mapValue(DataTypes::fromName)
 											.toMap();
 		m_geomCols = FOption.of(geomCols);

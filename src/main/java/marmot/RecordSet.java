@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
@@ -207,6 +208,10 @@ public interface RecordSet extends Closeable, Iterable<Record> {
 	public default FlatTransformedRecordSet flatMap(RecordSchema outSchema,
 													Function<? super Record,RecordSet> transform) {
 		return new FlatTransformedRecordSet(this, outSchema, transform);
+	}
+	
+	public default RecordSet project(Set<String> cols) {
+		return new RecordSets.ProjectedRecordSet(this, cols);
 	}
 	
 	public default <S> S foldLeft(S accum, S stopper,

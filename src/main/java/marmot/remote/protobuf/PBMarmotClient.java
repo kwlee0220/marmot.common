@@ -177,6 +177,12 @@ public class PBMarmotClient implements MarmotRuntime {
 	}
 
 	@Override
+	public DataSet buildDataSet(String dsId, String path, String infoPath,
+									BindDataSetOptions opts) {
+		return m_dsService.buildDataSet(dsId, path, infoPath, opts);
+	}
+
+	@Override
 	public boolean deleteDataSet(String id) {
 		return m_dsService.deleteDataSet(id);
 	}

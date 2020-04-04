@@ -14,14 +14,13 @@ message BindDataSetOptionsProto {
 	oneof optional_geom_col_info {
 		marmot.proto.GeometryColumnInfoProto geom_col_info  = 1;
 	}
-	oneof optional_force {
-		bool force = 2;
-	}
+	bool force = 2;
 }
 
 service DataSetService {
 	rpc createDataSet(CreateDataSetRequest) returns (DataSetInfoResponse);
 	rpc bindDataSet(BindDataSetRequest) returns (DataSetInfoResponse);
+	rpc buildDataSet(BuildDataSetRequest) returns (DataSetInfoResponse);
 	// ReadDataSetRequest
 	rpc readDataSet(stream DownChunkResponse) returns (stream DownChunkRequest);
 	// QueryRangeRequest
@@ -48,6 +47,9 @@ service DataSetService {
 	rpc getParentDir(StringProto) returns (StringResponse);
 	rpc moveDir(MoveDirRequest) returns (VoidResponse);
 	rpc deleteDir(StringProto) returns (VoidResponse);
+	
+	rpc estimateQuadKeys(EstimateQuadKeysRequest) returns (stream StringResponse);
+	rpc clusterSpatially(ClusterSpatiallyRequest) returns (VoidResponse);
 	
 	//
 	// Visualization interface
@@ -198,6 +200,13 @@ message BindDataSetRequest {
 	BindDataSetOptionsProto options = 4;
 }
 
+message BuildDataSetRequest {
+	string dataset = 1;
+	string file_path = 2;
+	string info_file_path = 3;
+	BindDataSetOptionsProto options = 4;
+}
+
 message CreateSpatialIndexOptionsProto {
 	oneof optional_sample_size {
 		int64 sample_size = 1;
@@ -207,6 +216,48 @@ message CreateSpatialIndexOptionsProto {
 	}
 	oneof optional_worker_count {
 		int32 worker_count = 3;	// 클러스터 생성 reducer 갯수
+	}
+}
+
+message EstimateQuadKeysOptionsProto {
+	oneof optional_mapper_count {
+		int32 mapper_count = 1;
+	}
+	oneof optional_valid_range {
+		EnvelopeProto valid_range = 2;
+	}
+	oneof optional_sample_size {
+		int64 sample_size = 3;
+	}
+	oneof optional_max_quad_key_length {
+		int32 max_quad_key_length = 4;
+	}
+	oneof optional_cluster_size {
+		int64 cluster_size = 5;
+	}
+}
+
+message ClusterSpatiallyOptionsProto {
+	bool force = 1;
+	oneof optional_mapper_count {
+		int32 mapper_count = 2;
+	}
+	oneof optional_valid_range {
+		EnvelopeProto valid_range = 3;
+	}
+	oneof either_quad_key_info {
+		string quad_key_list = 4;
+		string quad_key_ds_id = 5;
+		int64 sample_size = 6;
+	}
+	oneof optional_partition_count {
+		int32 partition_count = 7;	// 클러스터 생성 reducer 갯수
+	}
+	oneof optional_cluster_size {
+		int64 cluster_size = 8;
+	}
+	oneof optional_block_size {
+		int64 block_size = 9;	// 생성될 클러스터 파일의 블럭 크기.
 	}
 }
 
@@ -258,6 +309,17 @@ message RangeQueryEstimateProto {
 	int64 match_count = 3;
 	repeated ClusterEstimateProto cluster_estimate = 4;
 }
+
+message EstimateQuadKeysRequest {
+	string ds_id = 1;		// 데이터세트 식별자
+	EstimateQuadKeysOptionsProto options = 2;
+}
+message ClusterSpatiallyRequest {
+	string ds_id = 1;
+	string out_ds_id = 2;
+	ClusterSpatiallyOptionsProto options = 3;
+}
+
 message EstimateRangeQueryRequest {
 	string dataset_id = 1;
 	EnvelopeProto range = 2;

@@ -268,9 +268,12 @@ public class DatasetCommands {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 		
-		@Option(names="-mapper_count", paramLabel="count", description="number of mappers")
-		private int m_mapperCount = -1;
-
+		@Option(names="-mappers", paramLabel="count", description="number of mappers")
+		public void setMapperCount(int count) {
+			m_mapperCount = FOption.of(count);
+		}
+		private FOption<Integer> m_mapperCount = FOption.empty();
+		
 		@Option(names={"-v", "-verbose"}, description="verbose")
 		private boolean m_verbose = false;
 
@@ -278,8 +281,11 @@ public class DatasetCommands {
 		public void run(MarmotRuntime marmot) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
-			LoadOptions opts = (m_mapperCount > 0)
-							? LoadOptions.FIXED_MAPPERS(m_mapperCount) : LoadOptions.DEFAULT;
+			LoadOptions opts = LoadOptions.DEFAULT;
+			if ( m_mapperCount.isPresent() ) {
+				int cnt = m_mapperCount.getUnchecked();
+				opts = (cnt > 0) ? LoadOptions.FIXED_MAPPERS(cnt) :LoadOptions.FIXED_MAPPERS();
+			}
 			Plan plan = Plan.builder("count records")
 								.load(m_dsId, opts)
 								.aggregate(AggregateFunction.COUNT())

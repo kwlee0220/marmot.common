@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import marmot.proto.ColumnProto;
@@ -151,7 +152,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @param key	검색 컬럼 이름 리스트.
 	 * @return	키에 포함된 컬럼 이름으로 구성된 레코드 스키마.
 	 */
-	public RecordSchema project(List<String> key) {
+	public RecordSchema project(Iterable<String> key) {
 		Utilities.checkNotNullArgument(key, "name list is null");
 		
 		return FStream.from(key)
@@ -175,6 +176,9 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 						.filter(c -> !names.contains(c.ciName()))
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
+	}
+	public RecordSchema complement(String... cols) {
+		return complement(Lists.newArrayList(cols));
 	}
 
 	public static RecordSchema fromProto(RecordSchemaProto proto) {

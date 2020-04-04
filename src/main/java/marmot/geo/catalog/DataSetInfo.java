@@ -8,6 +8,7 @@ import com.google.common.base.Preconditions;
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.Column;
+import marmot.GRecordSchema;
 import marmot.RecordSchema;
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
@@ -72,6 +73,10 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 	
 	public RecordSchema getRecordSchema() {
 		return m_schema;
+	}
+	
+	public GRecordSchema getGRecordSchema() {
+		return new GRecordSchema(m_geomColInfo, m_schema);
 	}
 	
 	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {

@@ -2,6 +2,7 @@ package marmot;
 
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -13,6 +14,7 @@ import com.google.common.collect.Maps;
 
 import marmot.rset.AbstractRecordSet;
 import marmot.rset.PeekableRecordSet;
+import marmot.support.DefaultRecord;
 import marmot.support.ProgressReportable;
 import utils.StopWatch;
 import utils.Throwables;
@@ -58,7 +60,7 @@ public class RecordSets {
 		}
 	}
 	
-	static class FStreamRecordSet extends AbstractRecordSet {
+	static class FStreamRecordSet extends AbstractRecordSet implements ProgressReportable {
 		private final RecordSchema m_schema;
 		private final FStream<? extends Record> m_stream;
 		
@@ -83,9 +85,16 @@ public class RecordSets {
 			
 			return m_stream.next().getOrNull();
 		}
+
+		@Override
+		public void reportProgress(Logger logger, StopWatch elapsed) {
+			if ( m_stream instanceof ProgressReportable ) {
+				((ProgressReportable)m_stream).reportProgress(logger, elapsed);
+			}
+		}
 	}
 	
-	static class IteratorRecordSet extends AbstractRecordSet {
+	static class IteratorRecordSet extends AbstractRecordSet implements ProgressReportable {
 		private final RecordSchema m_schema;
 		private final Iterator<? extends Record> m_iter;
 		
@@ -109,6 +118,13 @@ public class RecordSets {
 			checkNotClosed();
 			
 			return (m_iter.hasNext()) ? m_iter.next() : null;
+		}
+
+		@Override
+		public void reportProgress(Logger logger, StopWatch elapsed) {
+			if ( m_iter instanceof ProgressReportable ) {
+				((ProgressReportable)m_iter).reportProgress(logger, elapsed);
+			}
 		}
 	}
 	
@@ -401,6 +417,56 @@ public class RecordSets {
 		public Record nextCopy() {
 			return m_rset.nextCopy();
 		}	
+	}
+	
+	static class ProjectedRecordSet extends AbstractRecordSet implements ProgressReportable {
+		private final RecordSet m_rset;
+		private final int[] m_cols;
+		
+		private final RecordSchema m_schema;
+		private final Record m_inputRecord;
+		
+		ProjectedRecordSet(RecordSet rset, Set<String> keyCols) {
+			m_rset = rset;
+			m_schema = rset.getRecordSchema().project(keyCols);
+			
+			m_cols = rset.getRecordSchema()
+						.streamColumns()
+						.filter(col -> keyCols.contains(col.name()))
+						.mapToInt(col -> col.ordinal())
+						.toArray();
+			m_inputRecord = DefaultRecord.of(rset.getRecordSchema());
+		}
+
+		@Override
+		protected void closeInGuard() throws Exception {
+			m_rset.close();
+		}
+
+		@Override
+		public RecordSchema getRecordSchema() {
+			return m_schema;
+		}
+		
+		@Override
+		public boolean next(Record output) {
+			if ( m_rset.next(m_inputRecord) ) {
+				for ( int i =0; i < m_schema.getColumnCount(); ++i ) {
+					output.set(i, m_inputRecord.get(m_cols[i]));
+				}
+				return true;
+			}
+			else {
+				return false;
+			}
+		}
+
+		@Override
+		public void reportProgress(Logger logger, StopWatch elapsed) {
+			if ( m_rset instanceof ProgressReportable ) {
+				((ProgressReportable)m_rset).reportProgress(logger, elapsed);
+			}
+		}
 	}
 	
 	public static class AsyncRecordSet<T> extends AbstractRecordSet implements ProgressReportable {

@@ -1,12 +1,16 @@
 package marmot.dataset;
 
+import java.util.Set;
+
 import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
+import marmot.geo.command.ClusterSpatiallyOptions;
 import marmot.geo.command.CreateSpatialIndexOptions;
+import marmot.geo.command.EstimateQuadKeysOptions;
 import marmot.geo.query.RangeQueryEstimate;
 import utils.func.FOption;
 
@@ -84,6 +88,10 @@ public interface DataSet {
 		return getRecordSchema().getColumn(getGeometryColumnInfo().name()).ordinal();
 	}
 	
+	public default String getSrid() {
+		return getGeometryColumnInfo().srid();
+	}
+	
 	/**
 	 * 모든 레코드의 기본 공간 컬럼에 기록된 공간 정보의 MBR을 반환한다.
 	 * <p>
@@ -121,24 +129,6 @@ public interface DataSet {
 	 * @return	반환 여부
 	 */
 	public FOption<String> getCompressionCodecName();
-	
-	/**
-	 * 본 데이터 세트가 공간 클러스터가 존재하는지 유무를 반환한다.
-	 * 
-	 * @return 공간 클러스터 존재 유무
-	 */
-	public default boolean hasSpatialIndex() {
-		return getSpatialIndexInfo().isPresent();
-	}
-	
-	/**
-	 * 기본 공간 컬럼에 부여된 인덱스 등록정보를 반환한다.
-	 * <p>
-	 * 공간 인덱스가 생성되어 있지 않은 경우는 {@link FOption#empty()}가 반환된다.
-	 * 
-	 * @return	공간 인덱스 등록정보.
-	 */
-	public FOption<SpatialIndexInfo> getSpatialIndexInfo();
 
 	/**
 	 * 데이터세트의 크기를 바이트 단위로 반환한다. 
@@ -177,6 +167,24 @@ public interface DataSet {
 	public long append(RecordSet rset, String partId);
 	
 	/**
+	 * 본 데이터 세트가 공간 클러스터가 존재하는지 유무를 반환한다.
+	 * 
+	 * @return 공간 클러스터 존재 유무
+	 */
+	public default boolean hasSpatialIndex() {
+		return getSpatialIndexInfo().isPresent();
+	}
+	
+	/**
+	 * 기본 공간 컬럼에 부여된 인덱스 등록정보를 반환한다.
+	 * <p>
+	 * 공간 인덱스가 생성되어 있지 않은 경우는 {@link FOption#empty()}가 반환된다.
+	 * 
+	 * @return	공간 인덱스 등록정보.
+	 */
+	public FOption<SpatialIndexInfo> getSpatialIndexInfo();
+	
+	/**
 	 * 데이터세트의 기본 공간 컬럼을 기준으로 인덱스(클러스터)를 생성한다.
 	 * <p>
 	 * 공간 인덱스가 생성되어 있지 않은 경우는 오류가 발생된다.
@@ -201,6 +209,9 @@ public interface DataSet {
 	 * 본 데이터 세트에 생성된 공간 인덱스(클러스터)를 삭제한다.
 	 */
 	public void deleteSpatialIndex();
+
+	public Set<String> estimateQuadKeys(EstimateQuadKeysOptions opts);
+	public void clusterSpatially(String outDsId, ClusterSpatiallyOptions opts);
 	
 	/**
 	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 레코드들의 수와

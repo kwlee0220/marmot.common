@@ -4,6 +4,7 @@ package marmot.remote.protobuf;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import com.google.protobuf.ByteString;
 import com.vividsolutions.jts.geom.Envelope;
@@ -21,7 +22,9 @@ import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.geo.catalog.DataSetInfo;
 import marmot.geo.catalog.SpatialIndexInfo;
+import marmot.geo.command.ClusterSpatiallyOptions;
 import marmot.geo.command.CreateSpatialIndexOptions;
+import marmot.geo.command.EstimateQuadKeysOptions;
 import marmot.geo.query.RangeQueryEstimate;
 import marmot.optor.CreateDataSetOptions;
 import marmot.optor.StoreDataSetOptions;
@@ -30,6 +33,8 @@ import marmot.proto.StringProto;
 import marmot.proto.service.AppendRecordSetRequest;
 import marmot.proto.service.BindDataSetRequest;
 import marmot.proto.service.BoolResponse;
+import marmot.proto.service.BuildDataSetRequest;
+import marmot.proto.service.ClusterSpatiallyRequest;
 import marmot.proto.service.CreateDataSetRequest;
 import marmot.proto.service.CreateKafkaTopicRequest;
 import marmot.proto.service.CreateSpatialIndexRequest;
@@ -41,6 +46,7 @@ import marmot.proto.service.DataSetServiceGrpc.DataSetServiceStub;
 import marmot.proto.service.DataSetTypeProto;
 import marmot.proto.service.DirectoryTraverseRequest;
 import marmot.proto.service.DownChunkResponse;
+import marmot.proto.service.EstimateQuadKeysRequest;
 import marmot.proto.service.EstimateRangeQueryRequest;
 import marmot.proto.service.FloatResponse;
 import marmot.proto.service.LongResponse;
@@ -112,6 +118,18 @@ public class PBDataSetServiceProxy {
 		BindDataSetRequest req = builder.build();
 		
 		return toDataSet(m_dsBlockingStub.bindDataSet(req));
+	}
+
+	public DataSet buildDataSet(String dsId, String path, String infoPath,
+									BindDataSetOptions opts) {
+		BuildDataSetRequest.Builder builder = BuildDataSetRequest.newBuilder()
+													.setDataset(dsId)
+													.setFilePath(path)
+													.setInfoFilePath(infoPath)
+													.setOptions(opts.toProto());
+		BuildDataSetRequest req = builder.build();
+		
+		return toDataSet(m_dsBlockingStub.buildDataSet(req));
 	}
 	
 	public PBDataSetProxy getDataSet(String id) {
@@ -281,7 +299,7 @@ public class PBDataSetServiceProxy {
 		return PBUtils.handle(m_dsBlockingStub.deleteDataSet(PBUtils.toStringProto(id)));
 	}
 
-	public SpatialIndexInfo clusterDataSet(String id, CreateSpatialIndexOptions opts) {
+	public SpatialIndexInfo createSpatialIndex(String id, CreateSpatialIndexOptions opts) {
 		CreateSpatialIndexRequest req = CreateSpatialIndexRequest.newBuilder()
 														.setId(id)
 														.setOptions(opts.toProto())
@@ -359,6 +377,25 @@ public class PBDataSetServiceProxy {
 															.setForce(force)
 															.build();
 		PBUtils.handle(m_dsBlockingStub.createKafkaTopic(req));
+	}
+
+	public Set<String> estimateQuadKeys(String dsId, EstimateQuadKeysOptions opts) {
+		EstimateQuadKeysRequest req = EstimateQuadKeysRequest.newBuilder()
+															.setDsId(dsId)
+															.setOptions(opts.toProto())
+															.build();
+		return FStream.from(m_dsBlockingStub.estimateQuadKeys(req))
+						.map(StringResponse::getValue)
+						.toSet();
+	}
+
+	public void clusterSpatially(String dsId, String outDsId, ClusterSpatiallyOptions opts) {
+		ClusterSpatiallyRequest req = ClusterSpatiallyRequest.newBuilder()
+															.setDsId(dsId)
+															.setOutDsId(outDsId)
+															.setOptions(opts.toProto())
+															.build();
+		PBUtils.handle(m_dsBlockingStub.clusterSpatially(req));
 	}
 	
 	public boolean hasThumbnail(String dsId) {

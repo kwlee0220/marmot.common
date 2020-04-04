@@ -76,6 +76,7 @@ import utils.Throwables;
 import utils.func.CheckedRunnable;
 import utils.func.CheckedSupplier;
 import utils.func.FOption;
+import utils.func.KeyValue;
 import utils.io.IOUtils;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
@@ -749,7 +750,7 @@ public class PBUtils {
 	
 	public static Map<String,Object> fromProto(KeyValueMapProto kvmProto) {
 		return FStream.from(kvmProto.getKeyValueList())
-					.toKeyValueStream(KeyValueProto::getKey, KeyValueProto::getValue)
+					.toKeyValueStream(proto -> KeyValue.of(proto.getKey(), proto.getValue()))
 					.mapValue(vproto -> PBValueProtos.fromProto(vproto))
 					.toMap();
 	}

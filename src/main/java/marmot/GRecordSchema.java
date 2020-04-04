@@ -7,6 +7,7 @@ import java.io.Serializable;
 import javax.annotation.Nullable;
 
 import marmot.dataset.GeometryColumnInfo;
+import marmot.dataset.GeometryColumnNotExistsException;
 import marmot.proto.GRecordSchemaProto;
 import marmot.support.PBSerializable;
 import utils.Utilities;
@@ -51,10 +52,19 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 	
 	public GeometryColumnInfo assertGeometryColumnInfo() {
 		if ( m_gcInfo == null ) {
-			throw new IllegalStateException("no GeometryColumnInfo: " + this);
+			throw new GeometryColumnNotExistsException();
 		}
 		
 		return m_gcInfo;
+	}
+	
+	public GeometryColumnInfo assertValidGeometryColumnInfo() {
+		if ( m_gcInfo == null ) {
+			throw new GeometryColumnNotExistsException();
+		}
+		
+		return m_schema.findColumn(m_gcInfo.name()).map(c -> m_gcInfo)
+						.getOrThrow(GeometryColumnNotExistsException::new);
 	}
 	
 	public Column getGeometryColumn() {
@@ -84,6 +94,10 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 	
 	public FOption<Column> findColumn(String name) {
 		return m_schema.findColumn(name);
+	}
+	
+	public Column getColumnAt(int idx) {
+		return m_schema.getColumnAt(idx);
 	}
 	
 	public GRecordSchema derive(RecordSchema schema) {

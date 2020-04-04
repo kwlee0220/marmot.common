@@ -41,8 +41,8 @@ message QueryRangeProto {
 
 message LoadSpatialClusterFileProto {
 	string path = 1;
-	oneof optional_query_range {
-		QueryRangeProto query_range = 2;
+	oneof optional_range {
+		EnvelopeProto range = 2;
 	}
 	LoadOptionsProto options = 3;
 }
@@ -105,10 +105,14 @@ message StoreAsHeapfileProto {
 
 message TeeProto {
 	string path = 1;
-	oneof optional_block_size {
-		int64 block_size = 2;
+	message GeometryInfoProto {
+		string info_path = 1;
+		marmot.proto.GeometryColumnInfoProto gc_info  = 2;
 	}
-	PropertiesProto metadata = 3;
+	oneof optional_geom_info {
+		GeometryInfoProto geom_info = 2;
+	}
+	MarmotFileWriteOptionsProto write_options = 3;
 }
 
 message StoreAsCsvProto {
@@ -694,23 +698,23 @@ message AttachGeoHashProto {
 		int32 hash_length = 4;
 	}
 }
-message EstimateQuadKeysProto {
-	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
-	double sample_ratio = 2;
-	oneof optional_valid_bounds {
-		EnvelopeProto valid_bounds = 3;
-	}
-	int32 max_quadkey_length = 4;
-	int64 max_cluster_size = 5;
-}
 message AttachQuadKeyProto {
 	marmot.proto.GeometryColumnInfoProto geometry_column_info = 1;
 	string quad_keys = 2;
-	oneof optional_valid_bounds {
-		EnvelopeProto valid_bounds = 3;
+	oneof optional_valid_range {
+		EnvelopeProto valid_range = 3;
 	}
 	bool bind_outlier = 4;
 	bool bind_once = 5;
+}
+message ClusterSpatiallyProto {
+	string out_ds_id = 1;
+	marmot.proto.GeometryColumnInfoProto geometry_column_info = 2;
+	oneof either_quad_key_info {
+		string quad_key_ds_id = 3;
+		string quad_key_list = 4;
+	}
+	marmot.proto.service.ClusterSpatiallyOptionsProto options = 5;
 }
 message ReduceGeometryPrecisionProto {
 	string geometry_column = 1;
@@ -905,7 +909,7 @@ message OperatorProto {
 		CascadeGeometryProto cascade_geometry = 527;
 		AttachQuadKeyProto attach_quad_key = 528;
 		AttachGeoHashProto attach_geohash = 529;
-		EstimateQuadKeysProto estimate_quad_keys = 530;
+		ClusterSpatiallyProto cluster_spatially = 531;
 		
 		// advanced geometry operators
 		AssignSquareGridCellProto assign_square_grid_cell = 601;

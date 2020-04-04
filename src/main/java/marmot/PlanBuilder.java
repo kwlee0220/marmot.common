@@ -12,6 +12,7 @@ import com.vividsolutions.jts.geom.Geometry;
 
 import marmot.dataset.GeometryColumnInfo;
 import marmot.geo.GeoClientUtils;
+import marmot.geo.command.ClusterSpatiallyOptions;
 import marmot.io.MarmotFileWriteOptions;
 import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
@@ -45,6 +46,7 @@ import marmot.proto.optor.BreakLineStringProto;
 import marmot.proto.optor.BufferTransformProto;
 import marmot.proto.optor.CentroidTransformProto;
 import marmot.proto.optor.ClusterChroniclesProto;
+import marmot.proto.optor.ClusterSpatiallyProto;
 import marmot.proto.optor.ConsumeByGroupProto;
 import marmot.proto.optor.DefineColumnProto;
 import marmot.proto.optor.DissolveProto;
@@ -53,7 +55,6 @@ import marmot.proto.optor.DropEmptyGeometryProto;
 import marmot.proto.optor.DropProto;
 import marmot.proto.optor.EstimateIDWProto;
 import marmot.proto.optor.EstimateKernelDensityProto;
-import marmot.proto.optor.EstimateQuadKeysProto;
 import marmot.proto.optor.ExpandProto;
 import marmot.proto.optor.FilterSpatiallyProto;
 import marmot.proto.optor.FlattenGeometryProto;
@@ -113,6 +114,7 @@ import marmot.proto.optor.StoreKeyedDataSetProto;
 import marmot.proto.optor.TakeProto;
 import marmot.proto.optor.TakeReducerProto;
 import marmot.proto.optor.TeeProto;
+import marmot.proto.optor.TeeProto.GeometryInfoProto;
 import marmot.proto.optor.ToGeometryPointProto;
 import marmot.proto.optor.ToXYCoordinatesProto;
 import marmot.proto.optor.TransformByGroupProto;
@@ -420,11 +422,30 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder tee(String path) {
+	public PlanBuilder tee(String path, MarmotFileWriteOptions opts) {
 		Utilities.checkNotNullArgument(path, "path is null");
 		
 		TeeProto tee = TeeProto.newBuilder()
 								.setPath(path)
+								.setWriteOptions(opts.toProto())
+								.build();
+		return add(OperatorProto.newBuilder()
+								.setTee(tee)
+								.build());
+	}
+	public PlanBuilder tee(String path, String infoPath, GeometryColumnInfo gcInfo,
+							MarmotFileWriteOptions opts) {
+		Utilities.checkNotNullArgument(path, "path is null");
+		
+		GeometryInfoProto geomInfo = GeometryInfoProto.newBuilder()
+													.setGcInfo(gcInfo.toProto())
+													.setInfoPath(infoPath)
+													.build();
+		
+		TeeProto tee = TeeProto.newBuilder()
+								.setPath(path)
+								.setGeomInfo(geomInfo)
+								.setWriteOptions(opts.toProto())
 								.build();
 		return add(OperatorProto.newBuilder()
 								.setTee(tee)
@@ -1667,44 +1688,60 @@ public class PlanBuilder {
 								.build());
 	}
 
-	public PlanBuilder estimateQueryKeys(GeometryColumnInfo gcInfo, double sampleRatio,
-											FOption<Envelope> validBounds,
-											int maxQuadKeyLength, long maxClusterSize) {
+	public PlanBuilder clusterSpatially(String outDsId, GeometryColumnInfo gcInfo,
+										Iterable<String> quadKeys, ClusterSpatiallyOptions opts) {
+		Utilities.checkNotNullArgument(outDsId, "Output dataset id");
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
-		Utilities.checkArgument(sampleRatio > 0 && sampleRatio <= 1,
-								"invalid sample-ratio: " + sampleRatio);
-		Utilities.checkArgument(maxQuadKeyLength > 0, "invalid maxQuadKeyLength: " + maxQuadKeyLength);
-		Utilities.checkArgument(maxClusterSize > 0, "invalid maxClusterSize: " + maxClusterSize);
+		Utilities.checkNotNullArgument(quadKeys, "quadKeys");
+		Utilities.checkNotNullArgument(opts, "ClusterSpatiallyOptions");
+
+		String qkCsv = FStream.from(quadKeys).join(',');
+		ClusterSpatiallyProto cluster = ClusterSpatiallyProto.newBuilder()
+														.setOutDsId(outDsId)
+														.setGeometryColumnInfo(gcInfo.toProto())
+														.setQuadKeyList(qkCsv)
+														.setOptions(opts.toProto())
+														.build();
 		
-		EstimateQuadKeysProto.Builder builder = EstimateQuadKeysProto.newBuilder()
-															.setGeometryColumnInfo(gcInfo.toProto())
-															.setSampleRatio(sampleRatio)
-															.setMaxQuadkeyLength(maxQuadKeyLength)
-															.setMaxClusterSize(maxClusterSize);
-		EstimateQuadKeysProto estimate = validBounds.map(PBUtils::toProto)
-													.transform(builder, (b,p) -> b.setValidBounds(p))
-													.build();
 		return add(OperatorProto.newBuilder()
-								.setEstimateQuadKeys(estimate)
+								.setClusterSpatially(cluster)
+								.build());
+	}
+
+	public PlanBuilder clusterSpatially(String outDsId, GeometryColumnInfo gcInfo,
+										String quadKeyDsId, ClusterSpatiallyOptions opts) {
+		Utilities.checkNotNullArgument(outDsId, "Output dataset id");
+		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
+		Utilities.checkNotNullArgument(quadKeyDsId, "quadKeys dataset id");
+		Utilities.checkNotNullArgument(opts, "ClusterSpatiallyOptions");
+		
+		ClusterSpatiallyProto cluster = ClusterSpatiallyProto.newBuilder()
+														.setOutDsId(outDsId)
+														.setGeometryColumnInfo(gcInfo.toProto())
+														.setQuadKeyDsId(quadKeyDsId)
+														.setOptions(opts.toProto())
+														.build();
+		
+		return add(OperatorProto.newBuilder()
+								.setClusterSpatially(cluster)
 								.build());
 	}
 	
 	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, List<String> quadKeys,
-									FOption<Envelope> validBounds, boolean bindOutlier,
+									FOption<Envelope> validRange, boolean bindOutlier,
 									boolean bindOnlyToOwner) {
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");
 		Utilities.checkNotNullArgument(quadKeys, "quadKeys");
 		
 		String qkSrc = FStream.from(quadKeys).join(",");
-		
+
 		AttachQuadKeyProto.Builder builder = AttachQuadKeyProto.newBuilder()
-														.setGeometryColumnInfo(gcInfo.toProto())
-														.setQuadKeys(qkSrc)
-														.setBindOutlier(bindOutlier)
-														.setBindOnce(bindOnlyToOwner);
-		AttachQuadKeyProto attach = validBounds.map(PBUtils::toProto)
-												.transform(builder, (b,p) -> b.setValidBounds(p))
-												.build();
+															.setQuadKeys(qkSrc)
+															.setGeometryColumnInfo(gcInfo.toProto())
+															.setBindOutlier(bindOutlier)
+															.setBindOnce(bindOnlyToOwner);
+		validRange.map(PBUtils::toProto).ifPresent(builder::setValidRange);
+		AttachQuadKeyProto attach = builder.build();
 		return add(OperatorProto.newBuilder()
 								.setAttachQuadKey(attach)
 								.build());
