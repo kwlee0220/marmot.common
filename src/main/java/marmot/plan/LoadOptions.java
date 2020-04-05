@@ -24,13 +24,13 @@ public class LoadOptions implements PBSerializable<LoadOptionsProto> {
 		return new LoadOptions(FOption.of(count), FOption.empty());
 	}
 	
-	public static LoadOptions FIXED_MAPPERS(int count) {
+	public static LoadOptions MAPPERS(int count) {
 		Utilities.checkArgument(count >= 0, "invalid mapper count: " + count);
 		
 		return new LoadOptions(FOption.empty(), FOption.of(count));
 	}
 	
-	public static LoadOptions MAPPERS() {
+	public static LoadOptions FIXED_MAPPERS() {
 		return new LoadOptions(FOption.empty(), FOption.of(0));
 	}
 	
