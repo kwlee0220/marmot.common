@@ -30,7 +30,7 @@ public class LoadOptions implements PBSerializable<LoadOptionsProto> {
 		return new LoadOptions(FOption.empty(), FOption.of(count));
 	}
 	
-	public static LoadOptions FIXED_MAPPERS() {
+	public static LoadOptions MAPPERS() {
 		return new LoadOptions(FOption.empty(), FOption.of(0));
 	}
 	

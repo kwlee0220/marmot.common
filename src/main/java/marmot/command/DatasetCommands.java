@@ -284,7 +284,7 @@ public class DatasetCommands {
 			LoadOptions opts = LoadOptions.DEFAULT;
 			if ( m_mapperCount.isPresent() ) {
 				int cnt = m_mapperCount.getUnchecked();
-				opts = (cnt > 0) ? LoadOptions.FIXED_MAPPERS(cnt) :LoadOptions.FIXED_MAPPERS();
+				opts = (cnt > 0) ? LoadOptions.FIXED_MAPPERS(cnt) :LoadOptions.MAPPERS();
 			}
 			Plan plan = Plan.builder("count records")
 								.load(m_dsId, opts)
