@@ -166,6 +166,8 @@ public interface DataSet {
 	
 	public long append(RecordSet rset, String partId);
 	
+	public Set<String> getClusterQuadKeyAll() throws NotSpatiallyClusteredException;
+	
 	/**
 	 * 본 데이터 세트가 공간 클러스터가 존재하는지 유무를 반환한다.
 	 * 

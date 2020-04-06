@@ -48,6 +48,7 @@ service DataSetService {
 	rpc moveDir(MoveDirRequest) returns (VoidResponse);
 	rpc deleteDir(StringProto) returns (VoidResponse);
 	
+	rpc getClusterQuadKeyAll(marmot.proto.StringProto) returns (stream StringResponse);
 	rpc estimateQuadKeys(EstimateQuadKeysRequest) returns (stream StringResponse);
 	rpc clusterSpatially(ClusterSpatiallyRequest) returns (VoidResponse);
 	

@@ -1727,7 +1727,7 @@ public class PlanBuilder {
 								.build());
 	}
 	
-	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, List<String> quadKeys,
+	public PlanBuilder attachQuadKey(GeometryColumnInfo gcInfo, Iterable<String> quadKeys,
 									FOption<Envelope> validRange, boolean bindOutlier,
 									boolean bindOnlyToOwner) {
 		Utilities.checkNotNullArgument(gcInfo, "GeometryColumnInfo is null");

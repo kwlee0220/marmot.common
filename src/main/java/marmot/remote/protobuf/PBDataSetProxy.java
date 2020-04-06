@@ -13,6 +13,7 @@ import marmot.dataset.DataSet;
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.dataset.GeometryColumnNotExistsException;
+import marmot.dataset.NotSpatiallyClusteredException;
 import marmot.geo.catalog.DataSetInfo;
 import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
@@ -192,6 +193,11 @@ public class PBDataSetProxy implements DataSet {
 	@Override
 	public RecordSet readSpatialCluster(String quadKey) {
 		return m_service.readSpatialCluster(getId(), quadKey);
+	}
+
+	@Override
+	public Set<String> getClusterQuadKeyAll() throws NotSpatiallyClusteredException {
+		return m_service.getClusterQuadKeyAll(getId());
 	}
 
 	@Override

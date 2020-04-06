@@ -20,6 +20,7 @@ import marmot.dataset.DataSetExistsException;
 import marmot.dataset.DataSetNotFoundException;
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
+import marmot.dataset.NotSpatiallyClusteredException;
 import marmot.geo.catalog.DataSetInfo;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterSpatiallyOptions;
@@ -297,6 +298,12 @@ public class PBDataSetServiceProxy {
 
 	public boolean deleteDataSet(String id) {
 		return PBUtils.handle(m_dsBlockingStub.deleteDataSet(PBUtils.toStringProto(id)));
+	}
+	
+	public Set<String> getClusterQuadKeyAll(String id) throws NotSpatiallyClusteredException {
+		return FStream.from(m_dsBlockingStub.getClusterQuadKeyAll(PBUtils.toStringProto(id)))
+						.map(StringResponse::getValue)
+						.toSet();
 	}
 
 	public SpatialIndexInfo createSpatialIndex(String id, CreateSpatialIndexOptions opts) {
