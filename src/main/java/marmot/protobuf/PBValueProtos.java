@@ -12,6 +12,8 @@ import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.Point;
 
+import marmot.proto.DoubleArrayProto;
+import marmot.proto.FloatArrayProto;
 import marmot.proto.GridCellProto;
 import marmot.proto.IntervalProto;
 import marmot.proto.MapTileProto;
@@ -32,7 +34,9 @@ import utils.LocalDates;
 import utils.LocalTimes;
 import utils.Utilities;
 import utils.func.Tuple;
+import utils.stream.DoubleFStream;
 import utils.stream.FStream;
+import utils.stream.FloatFStream;
 
 /**
  * 
@@ -124,6 +128,18 @@ public class PBValueProtos {
 				break;
 			case TRAJECTORY:
 				builder.setTrajectoryValue(((Trajectory)obj).toProto());
+				break;
+			case DOUBLE_ARRAY:
+				DoubleArrayProto darray = DoubleFStream.of((Double[])obj)
+									.foldLeft(DoubleArrayProto.newBuilder(), (b,v) -> b.addElement(v))
+									.build();
+				builder.setDoubleArray(darray);
+				break;
+			case FLOAT_ARRAY:
+				FloatArrayProto floatArray = FloatFStream.of((Float[])obj)
+									.foldLeft(FloatArrayProto.newBuilder(), (b,v) -> b.addElement(v))
+									.build();
+				builder.setFloatArray(floatArray);
 				break;
 			default:
 				throw new AssertionError();
@@ -320,6 +336,10 @@ public class PBValueProtos {
 				return PBUtils.fromProto(proto.getGeometryValue());
 			case TRAJECTORY_VALUE:
 				return Trajectory.fromProto(proto.getTrajectoryValue());
+			case DOUBLE_ARRAY:
+				return DoubleFStream.from(proto.getDoubleArray().getElementList()).toArray();
+			case FLOAT_ARRAY:
+				return FloatFStream.from(proto.getFloatArray().getElementList()).toArray();
 			case NULL_VALUE:
 			case VALUE_NOT_SET:
 				return null;

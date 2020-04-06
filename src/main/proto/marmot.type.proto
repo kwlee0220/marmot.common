@@ -110,6 +110,12 @@ message TrajectoryProto {
 	repeated SampleProto sample = 1;
 }
 
+message FloatArrayProto {
+	repeated float element = 1;
+}
+message DoubleArrayProto {
+	repeated double element = 1;
+}
 message ValueProto {
 	oneof value {
 		sint32 byte_value = 1; 
@@ -120,7 +126,9 @@ message ValueProto {
 		double double_value = 6; 
 		bool bool_value = 7; 
 		string string_value = 8; 
-		bytes binary_value = 9; 
+		bytes binary_value = 9;
+		FloatArrayProto float_array = 11;
+		DoubleArrayProto double_array = 12;
 		sint64 datetime_value = 21; 		// epcho time
 		sint64 date_value = 22; 			// epcho time
 		string time_value = 23; 			// ISO-8601 format 문자열

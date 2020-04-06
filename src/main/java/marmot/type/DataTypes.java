@@ -6,9 +6,11 @@ import static marmot.type.DataType.BYTE;
 import static marmot.type.DataType.DATE;
 import static marmot.type.DataType.DATETIME;
 import static marmot.type.DataType.DOUBLE;
+import static marmot.type.DataType.DOUBLE_ARRAY;
 import static marmot.type.DataType.DURATION;
 import static marmot.type.DataType.ENVELOPE;
 import static marmot.type.DataType.FLOAT;
+import static marmot.type.DataType.FLOAT_ARRAY;
 import static marmot.type.DataType.GEOMETRY;
 import static marmot.type.DataType.GEOM_COLLECTION;
 import static marmot.type.DataType.GRID_CELL;
@@ -44,7 +46,7 @@ public class DataTypes {
 		RESERVED,
 		BYTE, SHORT, INT, LONG, FLOAT,
 		DOUBLE, BOOLEAN, STRING, BINARY, TYPED,
-		RESERVED, RESERVED, RESERVED, RESERVED, RESERVED,
+		FLOAT_ARRAY, DOUBLE_ARRAY, RESERVED, RESERVED, RESERVED,
 		DATETIME, DATE, TIME, DURATION, INTERVAL,
 		RESERVED, RESERVED, RESERVED, RESERVED, RESERVED,
 		ENVELOPE, TILE, GRID_CELL,

@@ -19,7 +19,9 @@ public abstract class DataType {
 	public static final IntType INT = IntType.get();
 	public static final LongType LONG = LongType.get();
 	public static final FloatType FLOAT = FloatType.get();
+	public static final FloatArrayType FLOAT_ARRAY = FloatArrayType.get();
 	public static final DoubleType DOUBLE = DoubleType.get();
+	public static final DoubleArrayType DOUBLE_ARRAY = DoubleArrayType.get();
 	public static final BooleanType BOOLEAN = BooleanType.get();
 	public static final StringType STRING = StringType.get();
 	public static final BinaryType BINARY = BinaryType.get();

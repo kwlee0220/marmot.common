@@ -38,6 +38,13 @@ defineColumn(colDecl, colInit=[], globalInit=[]) ::= <<
   }
 }
 >>
+collectToArrayColumn(colDecl, selectExpr) ::= <<
+{ "collectToArrayColumn": {
+    "columnDecl": "<colDecl>",
+    "selector": { "expr": "<selectExpr>" }
+  }
+}
+>>
 
 expand(colDecls, colInit=[], init=[]) ::= <<
 { "expand": {

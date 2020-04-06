@@ -208,6 +208,10 @@ message DefineColumnProto {
 		RecordScriptProto column_initializer = 2;
 	}
 }
+message CollectToArrayColumnProto {
+	string column_decl = 1;
+	RecordScriptProto selector = 2;
+}
 
 message CsvOptionsProto {
 	string delimiter = 1;
@@ -872,8 +876,9 @@ message OperatorProto {
 		UpdateProto update = 153;
 		ExpandProto expand = 154;
 		DefineColumnProto define_column = 155;
-		ParseCsvProto parse_csv = 156;
-		ParseGObjectProto parse_gobject = 157;
+		CollectToArrayColumnProto collect_to_array_column = 156;
+		ParseCsvProto parse_csv = 171;
+		ParseGObjectProto parse_gobject = 172;
 		
 		DistinctProto distinct = 201;
 		ReducerProto reduce = 202;

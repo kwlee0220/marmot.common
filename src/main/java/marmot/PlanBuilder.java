@@ -47,6 +47,7 @@ import marmot.proto.optor.BufferTransformProto;
 import marmot.proto.optor.CentroidTransformProto;
 import marmot.proto.optor.ClusterChroniclesProto;
 import marmot.proto.optor.ClusterSpatiallyProto;
+import marmot.proto.optor.CollectToArrayColumnProto;
 import marmot.proto.optor.ConsumeByGroupProto;
 import marmot.proto.optor.DefineColumnProto;
 import marmot.proto.optor.DissolveProto;
@@ -679,6 +680,20 @@ public class PlanBuilder {
 		DefineColumnProto op = bldr.build();
 		return add(OperatorProto.newBuilder()
 								.setDefineColumn(op)
+								.build());
+	}
+	
+	public PlanBuilder collectToArrayColumn(String colDecl, String selectExpr) {
+		Utilities.checkNotNullArgument(colDecl, "colDecl is null");
+		Utilities.checkNotNullArgument(selectExpr, "selectExpr is null");
+
+		CollectToArrayColumnProto collect
+			= CollectToArrayColumnProto.newBuilder()
+										.setColumnDecl(colDecl)
+										.setSelector(RecordScript.of(selectExpr).toProto())
+										.build();
+		return add(OperatorProto.newBuilder()
+								.setCollectToArrayColumn(collect)
 								.build());
 	}
 

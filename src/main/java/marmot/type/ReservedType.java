@@ -8,7 +8,7 @@ public class ReservedType extends DataType {
 	private static final ReservedType TYPE = new ReservedType();
 	
 	private ReservedType() {
-		super("reserved", TypeCode.RESERVED11, Byte.class);
+		super("reserved", TypeCode.RESERVED15, Byte.class);
 	}
 	
 	public static ReservedType get() {
