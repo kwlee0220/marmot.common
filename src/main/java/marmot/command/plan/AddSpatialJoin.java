@@ -22,7 +22,7 @@ class AddSpatialJoin extends AbstractAddOperatorCommand {
 				description={"dataset id for parameter dataset"})
 	private String m_paramDsId;
 	
-	private SpatialJoinOptions m_opts = SpatialJoinOptions.EMPTY;
+	private SpatialJoinOptions m_opts = SpatialJoinOptions.DEFAULT;
 
 	@Option(names={"-o", "-output"}, paramLabel="column_expr",
 			description="the result output columns")

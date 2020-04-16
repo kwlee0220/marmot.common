@@ -7,7 +7,7 @@ import java.io.Serializable;
 import javax.annotation.Nullable;
 
 import marmot.dataset.GeometryColumnInfo;
-import marmot.dataset.GeometryColumnNotExistsException;
+import marmot.dataset.NoGeometryColumnException;
 import marmot.proto.GRecordSchemaProto;
 import marmot.support.PBSerializable;
 import utils.Utilities;
@@ -37,34 +37,30 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 		m_schema = schema;
 		m_gcInfo = null;
 	}
-	
-	public boolean hasValidGeometry() {
-		if ( m_gcInfo == null ) {
-			return false;
-		}
-		
-		return m_schema.findColumn(m_gcInfo.name()).isPresent();
+
+	public boolean hasGeometryColumn() {
+		return (m_gcInfo != null);
 	}
 	
 	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {
 		return FOption.ofNullable(m_gcInfo);
 	}
 	
-	public GeometryColumnInfo assertGeometryColumnInfo() {
+	public GeometryColumnInfo assertGeometryColumnInfo() throws NoGeometryColumnException {
 		if ( m_gcInfo == null ) {
-			throw new GeometryColumnNotExistsException();
+			throw new NoGeometryColumnException();
 		}
 		
 		return m_gcInfo;
 	}
 	
-	public GeometryColumnInfo assertValidGeometryColumnInfo() {
+	public GeometryColumnInfo assertValidGeometryColumnInfo() throws NoGeometryColumnException {
 		if ( m_gcInfo == null ) {
-			throw new GeometryColumnNotExistsException();
+			throw new NoGeometryColumnException();
 		}
 		
 		return m_schema.findColumn(m_gcInfo.name()).map(c -> m_gcInfo)
-						.getOrThrow(GeometryColumnNotExistsException::new);
+						.getOrThrow(NoGeometryColumnException::new);
 	}
 	
 	public Column getGeometryColumn() {
@@ -92,6 +88,14 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 		return m_schema;
 	}
 	
+	public Column getColumn(String name) {
+		return m_schema.getColumn(name);
+	}
+	
+	public int getColumnCount() {
+		return m_schema.getColumnCount();
+	}
+	
 	public FOption<Column> findColumn(String name) {
 		return m_schema.findColumn(name);
 	}
@@ -101,15 +105,12 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 	}
 	
 	public GRecordSchema derive(RecordSchema schema) {
-		if ( m_gcInfo == null ) {
+		if ( m_gcInfo != null && schema.existsColumn(m_gcInfo.name()) ) {
+			return new GRecordSchema(m_gcInfo, schema);
+		}
+		else {
 			return new GRecordSchema(schema);
 		}
-		
-		Column prevCol = m_schema.getColumn(m_gcInfo.name());
-		GeometryColumnInfo gcInfo = schema.findColumn(m_gcInfo.name())
-											.map(col -> prevCol.equals(col) ? m_gcInfo : null)
-											.getOrNull();
-		return new GRecordSchema(gcInfo, schema);
 	}
 	
 	@Override

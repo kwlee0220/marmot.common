@@ -25,7 +25,7 @@ import utils.CSV;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-abstract class AbstractAddOperatorCommand extends SubCommand {
+abstract class AbstractAddOperatorCommand extends SubCommand<MarmotRuntime> {
 	@Override
 	public void run(MarmotRuntime marmot) throws Exception {
 		Plan plan = loadPlan(marmot);

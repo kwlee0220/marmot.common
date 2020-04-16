@@ -62,7 +62,7 @@ import utils.func.FOption;
  */
 public class DatasetCommands {
 	@Command(name="list", description="list datasets")
-	public static class ListDataSet extends SubCommand {
+	public static class ListDataSet extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="path", index="0", arity="0..1", description={"dataset folder path"})
 		private String m_start;
 
@@ -104,7 +104,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="show", description="print records of the dataset")
-	public static class Show extends SubCommand {
+	public static class Show extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id to print"})
 		private String m_dsId;
 
@@ -192,42 +192,48 @@ public class DatasetCommands {
 	}
 
 	@Command(name="schema", description="print the RecordSchema of the dataset")
-	public static class Schema extends SubCommand {
+	public static class Schema extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
-			DataSet info = marmot.getDataSet(m_dsId);
+			DataSet ds = marmot.getDataSet(m_dsId);
 
-			System.out.println("TYPE         : " + info.getType());
-			if ( info.getRecordCount() > 0 ) {
-				System.out.println("COUNT        : " + info.getRecordCount());
+			System.out.println("TYPE         : " + ds.getType());
+			if ( ds.getRecordCount() > 0 ) {
+				System.out.println("COUNT        : " + ds.getRecordCount());
 			}
 			else {
 				System.out.println("COUNT        : unknown");
 			}
-			System.out.println("SIZE         : " + UnitUtils.toByteSizeString(info.length()));
-			if ( info.hasGeometryColumn() ) {
-				System.out.println("GEOMETRY     : " + info.getGeometryColumnInfo().name());
-				System.out.println("SRID         : " + info.getGeometryColumnInfo().srid());
+			System.out.println("SIZE         : " + UnitUtils.toByteSizeString(ds.length()));
+			if ( ds.hasGeometryColumn() ) {
+				System.out.println("GEOMETRY     : " + ds.getGeometryColumnInfo().name());
+				System.out.println("SRID         : " + ds.getGeometryColumnInfo().srid());
 			}
-			System.out.println("HDFS PATH    : " + info.getHdfsPath());
-			System.out.println("COMPRESSION  : " + info.getCompressionCodecName().getOrElse("none"));
-			SpatialIndexInfo idxInfo = info.getSpatialIndexInfo().getOrNull();
+			System.out.println("HDFS PATH    : " + ds.getHdfsPath());
+			System.out.println("COMPRESSION  : " + ds.getCompressionCodecName().getOrElse("none"));
+
+			if ( ds.isSpatiallyClustered() ) {
+				System.out.println("SPATIAL CLUSTERS: " + ds.getClusterQuadKeyAll().size());
+			}
+			System.out.println("BLOCK_SIZE   : " + UnitUtils.toByteSizeString(ds.getBlockSize()));
+			
+			SpatialIndexInfo idxInfo = ds.getSpatialIndexInfo().getOrNull();
 			System.out.printf ("SPATIAL INDEX: %s%n", (idxInfo != null)
 														? idxInfo.getHdfsFilePath() : "none");
-			System.out.println("THUMBNAIL    : " + info.hasThumbnail());
+			System.out.println("THUMBNAIL    : " + ds.hasThumbnail());
 			
 			System.out.println("COLUMNS      :");
-			info.getRecordSchema().getColumns()
+			ds.getRecordSchema().getColumns()
 					.stream()
 					.forEach(c -> System.out.println("\t" + c));
 		}
 	}
 
 	@Command(name="move", description="move a dataset to another directory")
-	public static class Move extends SubCommand {
+	public static class Move extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"id for the source dataset"})
 		private String m_src;
 		
@@ -242,7 +248,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="set_geometry", description="set Geometry column info for a dataset")
-	public static class SetGcInfo extends SubCommand {
+	public static class SetGcInfo extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 		
@@ -264,12 +270,12 @@ public class DatasetCommands {
 	}
 
 	@Command(name="count", description="count records of the dataset")
-	public static class Count extends SubCommand {
+	public static class Count extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
-		
-		@Option(names="-mappers", paramLabel="count", description="number of mappers")
-		public void setMapperCount(int count) {
+
+		@Option(names="-mappers", paramLabel="count", description="mapper count")
+		private void setMapperCount(int count) {
 			m_mapperCount = FOption.of(count);
 		}
 		private FOption<Integer> m_mapperCount = FOption.empty();
@@ -284,7 +290,7 @@ public class DatasetCommands {
 			LoadOptions opts = LoadOptions.DEFAULT;
 			if ( m_mapperCount.isPresent() ) {
 				int cnt = m_mapperCount.getUnchecked();
-				opts = (cnt > 0) ? LoadOptions.MAPPERS(cnt) :LoadOptions.FIXED_MAPPERS();
+				opts = (cnt > 0) ? LoadOptions.MAPPERS(cnt) :LoadOptions.FIXED_MAPPERS;
 			}
 			Plan plan = Plan.builder("count records")
 								.load(m_dsId, opts)
@@ -303,7 +309,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="bind", description="bind the existing file(s) as a dataset")
-	public static class Bind extends SubCommand {
+	public static class Bind extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="path", index="0", arity="1..1",
 					description={"source file-path (or source dataset-id) to bind"})
 		private String m_path;
@@ -360,7 +366,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="delete", description="delete the dataset(s)")
-	public static class Delete extends SubCommand {
+	public static class Delete extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 
@@ -379,7 +385,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="attach_geometry", description="attach geometry data into the dataset")
-	public static class AttachGeometry extends SubCommand {
+	public static class AttachGeometry extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 
@@ -439,13 +445,13 @@ public class DatasetCommands {
 				ImportJdbcCmd.class
 			},
 			description="import into the dataset")
-	public static class Import extends SubCommand {
+	public static class Import extends SubCommand<MarmotRuntime> {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception { }
 	}
 
 	@Command(name="csv", description="import CSV file into the dataset")
-	public static class ImportCsvCmd extends SubCommand {
+	public static class ImportCsvCmd extends SubCommand<MarmotRuntime> {
 		@Mixin private CsvParameters m_csvParams;
 		@Mixin private ImportParameters m_params;
 		
@@ -484,7 +490,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="shp", aliases={"shapefile"}, description="import shapefile(s) into the dataset")
-	public static class ImportShapefileCmd extends SubCommand {
+	public static class ImportShapefileCmd extends SubCommand<MarmotRuntime> {
 		@Mixin private ImportParameters m_params;
 		@Mixin private ShapefileParameters m_shpParams;
 		
@@ -525,7 +531,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="geojson", description="import geojson file into the dataset")
-	public static class ImportGeoJsonCmd extends SubCommand {
+	public static class ImportGeoJsonCmd extends SubCommand<MarmotRuntime> {
 		@Mixin private GeoJsonParameters m_gjsonParams;
 		@Mixin private ImportParameters m_importParams;
 		
@@ -566,7 +572,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="jdbc", description="import a JDBC-connected table into a dataset")
-	public static class ImportJdbcCmd extends SubCommand {
+	public static class ImportJdbcCmd extends SubCommand<MarmotRuntime> {
 		@Mixin private LoadJdbcParameters m_jdbcParams;
 		@Mixin private ImportParameters m_importParams;
 
@@ -609,7 +615,7 @@ public class DatasetCommands {
 				ExportJdbcTable.class,
 			},
 			description="export a dataset")
-	public static class Export extends SubCommand {
+	public static class Export extends SubCommand<MarmotRuntime> {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception { }
 	}
@@ -617,7 +623,7 @@ public class DatasetCommands {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
 	@Command(name="csv", description="export a dataset in CSV format")
-	public static class ExportCsv extends SubCommand {
+	public static class ExportCsv extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
 					description={"dataset id to export"})
 		private String m_dsId;
@@ -647,7 +653,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="shp", description="export the dataset in Shapefile format")
-	public static class ExportShapefile extends SubCommand {
+	public static class ExportShapefile extends SubCommand<MarmotRuntime> {
 		@Mixin private ExportShapefileParameters m_shpParams;
 		
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
@@ -679,7 +685,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="geojson", description="export a dataset in GeoJSON format")
-	public static class ExportGeoJson extends SubCommand {
+	public static class ExportGeoJson extends SubCommand<MarmotRuntime> {
 		@Mixin private GeoJsonParameters m_gjsonParams;
 		
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
@@ -708,7 +714,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="jdbc", description="export a dataset into JDBC table")
-	public static class ExportJdbcTable extends SubCommand {
+	public static class ExportJdbcTable extends SubCommand<MarmotRuntime> {
 		@Mixin private StoreJdbcParameters m_jdbcParams;
 		
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
@@ -739,13 +745,13 @@ public class DatasetCommands {
 				CreateThumbnail.class, DeleteThumbnail.class,
 			},
 			description="thumbnail related commands")
-	public static class Thumbnail extends SubCommand {
+	public static class Thumbnail extends SubCommand<MarmotRuntime> {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception { }
 	}
 
 	@Command(name="create", description="create a thumbnail for a dataset")
-	public static class CreateThumbnail extends SubCommand {
+	public static class CreateThumbnail extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="dataset", index="0", arity="1..1",
 					description={"dataset id for thumbnail"})
 		private String m_dsId;
@@ -767,7 +773,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="delete", description="delete a thumbnail for a dataset")
-	public static class DeleteThumbnail extends SubCommand {
+	public static class DeleteThumbnail extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="dataset", index="0", arity="1..1",
 					description={"dataset id for thumbnail"})
 		private String m_dsId;

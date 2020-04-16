@@ -63,6 +63,10 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 		return m_type;
 	}
 	
+	public void setType(DataSetType type) {
+		m_type = type;
+	}
+	
 	public String getDirName() {
 		return m_dir;
 	}

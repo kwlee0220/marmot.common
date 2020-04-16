@@ -317,7 +317,9 @@ message EstimateQuadKeysRequest {
 }
 message ClusterSpatiallyRequest {
 	string ds_id = 1;
-	string out_ds_id = 2;
+	oneof optional_out_ds_id {
+		string out_ds_id = 2;
+	}
 	ClusterSpatiallyOptionsProto options = 3;
 }
 

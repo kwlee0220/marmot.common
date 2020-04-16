@@ -23,7 +23,7 @@ import utils.io.FileUtils;
  */
 public class PlanCommands {
 	@Command(name="show", description="show a plan")
-	public static class Show extends SubCommand {
+	public static class Show extends SubCommand<MarmotRuntime> {
 		@Option(names={"-f"}, paramLabel="plan_file", required = true,
 				description={"target plan file to print"})
 		private String m_file;
@@ -36,7 +36,7 @@ public class PlanCommands {
 	}
 	
 	@Command(name="schema", description="show the output RecordSchema of a plan")
-	public static class Schema extends SubCommand {
+	public static class Schema extends SubCommand<MarmotRuntime> {
 		@Option(names={"-f"}, paramLabel="plan_file", required = true,
 				description={"plan file to print"})
 		private String m_file;
@@ -51,7 +51,7 @@ public class PlanCommands {
 	}
 	
 	@Command(name="run", description="execute a plan")
-	public static class Run extends SubCommand {
+	public static class Run extends SubCommand<MarmotRuntime> {
 		@Option(names={"-f"}, paramLabel="plan_file", required = true,
 				description={"target plan file to print"})
 		private String m_file;
@@ -64,7 +64,7 @@ public class PlanCommands {
 	}
 	
 	@Command(name="start", description="start a plan")
-	public static class Start extends SubCommand {
+	public static class Start extends SubCommand<MarmotRuntime> {
 		@Option(names={"-f"}, paramLabel="plan_file", required = true,
 				description={"target plan file to print"})
 		private String m_file;

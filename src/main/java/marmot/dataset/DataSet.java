@@ -6,7 +6,6 @@ import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.RecordSchema;
 import marmot.RecordSet;
-import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterSpatiallyOptions;
 import marmot.geo.command.CreateSpatialIndexOptions;
@@ -57,20 +56,20 @@ public interface DataSet {
 	/**
 	 * 데이터세트에 정의된 기본 공간 컬럼의 정보를 반환한다.
 	 * <p>
-	 * 공간 컬럼이 정의되지 않은 경우는 {@link GeometryColumnNotExistsException} 예외를 발생시킨다.
+	 * 공간 컬럼이 정의되지 않은 경우는 {@link NoGeometryColumnException} 예외를 발생시킨다.
 	 * 
 	 * @return	공간 컬럼 정보
-	 * @throws	GeometryColumnNotExistsException 공간 컬럼이 존재하지 않은 경우.
+	 * @throws	NoGeometryColumnException 공간 컬럼이 존재하지 않은 경우.
 	 */
 	public GeometryColumnInfo getGeometryColumnInfo();
 
 	/**
 	 * 데이터세트에 정의된 기본 공간 컬럼의 이름을 반환한다.
 	 * <p>
-	 * 공간 컬럼이 정의되지 않은 경우는 {@link GeometryColumnNotExistsException} 예외를 발생시킨다.
+	 * 공간 컬럼이 정의되지 않은 경우는 {@link NoGeometryColumnException} 예외를 발생시킨다.
 	 * 
 	 * @return	공간 컬럼 이름
-	 * @throws	GeometryColumnNotExistsException 공간 컬럼이 존재하지 않은 경우.
+	 * @throws	NoGeometryColumnException 공간 컬럼이 존재하지 않은 경우.
 	 */
 	public default String getGeometryColumn() {
 		return getGeometryColumnInfo().name();
@@ -79,10 +78,10 @@ public interface DataSet {
 	/**
 	 * 데이터세트에 정의된 기본 공간 컬럼의 순번을 반환한다.
 	 * <p>
-	 * 공간 컬럼이 정의되지 않은 경우는 {@link GeometryColumnNotExistsException} 예외를 발생시킨다.
+	 * 공간 컬럼이 정의되지 않은 경우는 {@link NoGeometryColumnException} 예외를 발생시킨다.
 	 * 
 	 * @return	공간 컬럼 순번
-	 * @throws	GeometryColumnNotExistsException 공간 컬럼이 존재하지 않은 경우.
+	 * @throws	NoGeometryColumnException 공간 컬럼이 존재하지 않은 경우.
 	 */
 	public default int getGeometryColumnIndex() {
 		return getRecordSchema().getColumn(getGeometryColumnInfo().name()).ordinal();
@@ -95,10 +94,10 @@ public interface DataSet {
 	/**
 	 * 모든 레코드의 기본 공간 컬럼에 기록된 공간 정보의 MBR을 반환한다.
 	 * <p>
-	 * 공간 컬럼이 정의되지 않은 경우는 {@link GeometryColumnNotExistsException} 예외를 발생시킨다.
+	 * 공간 컬럼이 정의되지 않은 경우는 {@link NoGeometryColumnException} 예외를 발생시킨다.
 	 * 
 	 * @return	MBR 좌표 또는 {@code null}
-	 * @throws	GeometryColumnNotExistsException 공간 컬럼이 존재하지 않은 경우.
+	 * @throws	NoGeometryColumnException 공간 컬럼이 존재하지 않은 경우.
 	 */
 	public Envelope getBounds();
 	
@@ -166,6 +165,7 @@ public interface DataSet {
 	
 	public long append(RecordSet rset, String partId);
 	
+	public boolean isSpatiallyClustered();
 	public Set<String> getClusterQuadKeyAll() throws NotSpatiallyClusteredException;
 	
 	/**
@@ -213,7 +213,10 @@ public interface DataSet {
 	public void deleteSpatialIndex();
 
 	public Set<String> estimateQuadKeys(EstimateQuadKeysOptions opts);
-	public void clusterSpatially(String outDsId, ClusterSpatiallyOptions opts);
+	public void cluster(String outDsId, ClusterSpatiallyOptions opts);
+	public default void cluster(ClusterSpatiallyOptions opts) {
+		cluster(null, opts);
+	}
 	
 	/**
 	 * 본 데이터 세트의 공간 색인 영역 중에서 주어진 질의 영역과 겹치는 레코드들의 수와

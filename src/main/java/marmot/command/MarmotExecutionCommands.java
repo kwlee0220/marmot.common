@@ -24,7 +24,7 @@ import utils.stream.FStream;
  */
 public class MarmotExecutionCommands {
 	@Command(name="show", description="show a MarmotExecution")
-	public static class Show extends SubCommand {
+	public static class Show extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity = "1..1", description={"execution id"})
 		private String m_id;
 		
@@ -36,7 +36,7 @@ public class MarmotExecutionCommands {
 	}
 	
 	@Command(name="list", description="list MarmotExecutions")
-	public static class ListExecs extends SubCommand {
+	public static class ListExecs extends SubCommand<MarmotRuntime> {
 		@Option(names={"-s", "-state"}, paramLabel="state",
 				description="list all executions in a particular state")
 		private String m_stateStr;
@@ -139,7 +139,7 @@ public class MarmotExecutionCommands {
 	}
 
 	@Command(name="cancel", description="cancel a running MarmotExecution")
-	public static class Cancel extends SubCommand {
+	public static class Cancel extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", arity = "1..1", description={"execution id"})
 		private String m_id;
 		

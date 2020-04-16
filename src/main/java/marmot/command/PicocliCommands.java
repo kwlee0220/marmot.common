@@ -1,6 +1,5 @@
 package marmot.command;
 
-import marmot.MarmotRuntime;
 import picocli.CommandLine;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Model.CommandSpec;
@@ -13,19 +12,19 @@ import picocli.CommandLine.Spec;
  * @author Kang-Woo Lee (ETRI)
  */
 public class PicocliCommands {
-	public interface PicocliCommand extends Runnable {
-		public MarmotRuntime getMarmotRuntime();
+	public interface PicocliCommand<T> extends Runnable {
+		public T getMarmotRuntime();
 	}
 	
-	public abstract static class SubCommand implements PicocliCommand {
-		@ParentCommand private PicocliCommand m_parent;
+	public abstract static class SubCommand<T> implements PicocliCommand<T> {
+		@ParentCommand private PicocliCommand<T> m_parent;
 		@Spec private CommandSpec m_spec;
 		@Mixin private UsageHelp m_help;
 		
-		abstract protected void run(MarmotRuntime marmot) throws Exception;
+		abstract protected void run(T marmot) throws Exception;
 		
 		@Override
-		public MarmotRuntime getMarmotRuntime() {
+		public T getMarmotRuntime() {
 			return m_parent.getMarmotRuntime();
 		}
 		

@@ -32,7 +32,7 @@ import utils.stream.FStream;
  */
 public class MarmotAnalysisCommands {
 	@Command(name="list", description="list MarmotAnalysis")
-	public static class ListAnalysis extends SubCommand {
+	public static class ListAnalysis extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="path", arity = "0..*", description={"directory path to display from"})
 		private String m_start;
 
@@ -77,7 +77,7 @@ public class MarmotAnalysisCommands {
 	}
 
 	@Command(name="run", description="run MarmotAnalysis")
-	public static class Run extends SubCommand {
+	public static class Run extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", arity = "1..1", description={"analysis id"})
 		private String m_id;
 		
@@ -99,7 +99,7 @@ public class MarmotAnalysisCommands {
 	}
 
 	@Command(name="show", description="show analysis")
-	public static class Show extends SubCommand {
+	public static class Show extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity = "1..1", description={"analysis id"})
 		private String m_id;
 		
@@ -139,14 +139,14 @@ public class MarmotAnalysisCommands {
 				AddModule.class,
 				AddComposite.class
 			})
-	public static class Add extends SubCommand {
+	public static class Add extends SubCommand<MarmotRuntime> {
 		@Override
 		public void run(MarmotRuntime marmot) throws Exception {
 			getCommandLine().usage(System.out, Ansi.OFF);
 		}
 	}
 	
-	private abstract static class AddCommand extends SubCommand {
+	private abstract static class AddCommand extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", description={"analysis id"})
 		private String m_id;
 		
@@ -223,7 +223,7 @@ public class MarmotAnalysisCommands {
 	}
 
 	@Command(name="delete", aliases= {"remove"}, description="delete analysis")
-	public static class Delete extends SubCommand {
+	public static class Delete extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="analysis_id (or directory-id)", arity = "1..1",
 					description={"analysis id to delete"})
 		private String m_id;

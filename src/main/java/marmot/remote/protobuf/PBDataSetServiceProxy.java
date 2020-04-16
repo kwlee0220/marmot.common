@@ -396,12 +396,15 @@ public class PBDataSetServiceProxy {
 						.toSet();
 	}
 
-	public void clusterSpatially(String dsId, String outDsId, ClusterSpatiallyOptions opts) {
-		ClusterSpatiallyRequest req = ClusterSpatiallyRequest.newBuilder()
-															.setDsId(dsId)
-															.setOutDsId(outDsId)
-															.setOptions(opts.toProto())
-															.build();
+	public void cluster(String dsId, String outDsId, ClusterSpatiallyOptions opts) {
+		ClusterSpatiallyRequest.Builder builder = ClusterSpatiallyRequest.newBuilder()
+																		.setDsId(dsId)
+																		.setOptions(opts.toProto());
+		if ( outDsId != null ) {
+			builder = builder.setOutDsId(outDsId);
+		}
+		ClusterSpatiallyRequest req = builder.build();
+		
 		PBUtils.handle(m_dsBlockingStub.clusterSpatially(req));
 	}
 	

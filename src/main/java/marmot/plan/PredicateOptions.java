@@ -1,5 +1,9 @@
 package marmot.plan;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 import marmot.proto.optor.PredicateOptionsProto;
 import marmot.support.PBSerializable;
 import utils.func.FOption;
@@ -8,7 +12,9 @@ import utils.func.FOption;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class PredicateOptions implements PBSerializable<PredicateOptionsProto> {
+public class PredicateOptions implements PBSerializable<PredicateOptionsProto>, Serializable {
+	private static final long serialVersionUID = 1L;
+
 	private final FOption<Boolean> m_negated;
 	
 	public static PredicateOptions DEFAULT = new PredicateOptions(FOption.empty());
@@ -28,6 +34,28 @@ public class PredicateOptions implements PBSerializable<PredicateOptionsProto> {
 	
 	public PredicateOptions negated(boolean flag) {
 		return new PredicateOptions(FOption.of(flag));
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final PredicateOptionsProto m_proto;
+		
+		private SerializationProxy(PredicateOptions opts) {
+			m_proto = opts.toProto();
+		}
+		
+		private Object readResolve() {
+			return PredicateOptions.fromProto(m_proto);
+		}
 	}
 
 	public static PredicateOptions fromProto(PredicateOptionsProto proto) {

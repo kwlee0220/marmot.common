@@ -28,7 +28,7 @@ import utils.stream.FStream;
 			AddReduceToRecord.class,
 		},
 		description="add a 'group-by' operators")
-class GroupByCommands extends SubCommand {
+class GroupByCommands extends SubCommand<MarmotRuntime> {
 	@Parameters(paramLabel="keys", index="0", arity="1..1",
 				description={"group key columns"})
 	private String m_keyCols;

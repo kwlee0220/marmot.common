@@ -1,5 +1,7 @@
 package marmot.type;
 
+import java.io.Serializable;
+
 import utils.Throwables;
 
 /**
@@ -7,7 +9,7 @@ import utils.Throwables;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public abstract class DataType {
+public abstract class DataType implements Serializable {
 	private final String m_name;
 	private final TypeCode m_tc;
 	private final Class<?> m_instCls;

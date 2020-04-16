@@ -1,5 +1,8 @@
 package marmot.geo.command;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 
@@ -22,10 +25,14 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyOptionsProto> {
-	private static final ClusterSpatiallyOptions DEFAULT
+public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyOptionsProto>,
+												Serializable {
+	private static final long serialVersionUID = 1L;
+
+	public static final ClusterSpatiallyOptions DEFAULT
 				= new ClusterSpatiallyOptions(false, FOption.empty(), FOption.empty(), null, null,
 											-1, FOption.empty(), FOption.empty(), FOption.empty());
+	public static final ClusterSpatiallyOptions FORCE = DEFAULT.force(true);
 
 	private final boolean m_force;						// create file
 	private final FOption<Integer> m_mapperCount;
@@ -50,13 +57,6 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		m_partitionCount = paritionCount;
 		m_clusterSize = clusterSize;
 		m_blockSize = blockSize;
-	}
-	
-	public static ClusterSpatiallyOptions DEFAULT() {
-		return DEFAULT;
-	}
-	public static ClusterSpatiallyOptions FORCE() {
-		return DEFAULT.force(true);
 	}
 	
 	public boolean force() {
@@ -110,7 +110,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		return FOption.ofNullable(m_quadKeyDsId);
 	}
 	public ClusterSpatiallyOptions quadKeyDsId(String quadKeyDsId) {
-		Utilities.checkNotNullArgument(m_quadKeyDsId, "quadKeyDsId");
+		Utilities.checkNotNullArgument(quadKeyDsId, "quadKeyDsId");
 
 		return new ClusterSpatiallyOptions(m_force, m_mapperCount, m_validRange, null,
 											quadKeyDsId, -1, m_partitionCount,
@@ -206,8 +206,30 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		return builder.toString();
 	}
 	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final ClusterSpatiallyOptionsProto m_proto;
+		
+		private SerializationProxy(ClusterSpatiallyOptions opts) {
+			m_proto = opts.toProto();
+		}
+		
+		private Object readResolve() {
+			return ClusterSpatiallyOptions.fromProto(m_proto);
+		}
+	}
+	
 	public static ClusterSpatiallyOptions fromProto(ClusterSpatiallyOptionsProto proto) {
-		ClusterSpatiallyOptions opts = ClusterSpatiallyOptions.DEFAULT()
+		ClusterSpatiallyOptions opts = ClusterSpatiallyOptions.DEFAULT
 															.force(proto.getForce());
 		
 		switch ( proto.getOptionalMapperCountCase() ) {

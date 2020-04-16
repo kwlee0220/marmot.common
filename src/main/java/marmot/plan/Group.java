@@ -1,10 +1,14 @@
 package marmot.plan;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
+import marmot.RecordSchema;
 import marmot.proto.optor.GroupByKeyProto;
 import marmot.support.PBSerializable;
 import utils.CSV;
@@ -18,7 +22,9 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class Group implements PBSerializable<GroupByKeyProto> {
+public class Group implements Serializable, PBSerializable<GroupByKeyProto> {
+	private static final long serialVersionUID = 1L;
+	
 	private final String m_keys;
 	private FOption<String> m_tagCols = FOption.empty();
 	private FOption<String> m_orderBy = FOption.empty();
@@ -75,6 +81,40 @@ public class Group implements PBSerializable<GroupByKeyProto> {
 	public Group workerCount(int workerCount) {
 		m_workerCount = FOption.of(workerCount);
 		return this;
+	}
+	
+	public RecordSchema toKeySchema(RecordSchema inputSchema) {
+		return inputSchema.project(CSV.parseCsv(m_keys).toList());
+	}
+	
+	public RecordSchema toTagSchema(RecordSchema inputSchema) {
+		return m_tagCols.map(csv -> inputSchema.project(CSV.parseCsv(csv).toList()))
+						.getOrElse(RecordSchema.NULL);
+	}
+	
+	public RecordSchema toOrderSchema(RecordSchema inputSchema) {
+		return m_orderBy.map(csv -> inputSchema.project(CSV.parseCsv(csv).toList()))
+						.getOrElse(RecordSchema.NULL);
+	}
+	
+	public RecordSchema toFullKeySchema(RecordSchema inputSchema) {
+		Set<String> fullKeys = Sets.newLinkedHashSet();
+		CSV.parseCsv(m_keys).toCollection(fullKeys);
+		m_tagCols.ifPresent(csv -> CSV.parseCsv(csv).toCollection(fullKeys));
+		m_orderBy.ifPresent(csv -> CSV.parseCsv(csv).toCollection(fullKeys));
+		m_partCol.ifPresent(csv -> CSV.parseCsv(csv).toCollection(fullKeys));
+		
+		return inputSchema.project(fullKeys);
+	}
+	
+	public RecordSchema toValueSchema(RecordSchema inputSchema) {
+		Set<String> fullKeys = Sets.newHashSet();
+		CSV.parseCsv(m_keys).toCollection(fullKeys);
+		m_tagCols.ifPresent(csv -> CSV.parseCsv(csv).toCollection(fullKeys));
+		m_orderBy.ifPresent(csv -> CSV.parseCsv(csv).toCollection(fullKeys));
+		m_partCol.ifPresent(csv -> CSV.parseCsv(csv).toCollection(fullKeys));
+		
+		return inputSchema.complement(fullKeys);
 	}
 	
 	public static Group parseGroup(String expr) {

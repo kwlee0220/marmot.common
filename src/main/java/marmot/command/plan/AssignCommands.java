@@ -21,7 +21,7 @@ import picocli.CommandLine.Parameters;
 			AddAssignGridCell.class,
 		},
 		description="add a 'assign' operators")
-class AssignCommands extends SubCommand {
+class AssignCommands extends SubCommand<MarmotRuntime> {
 	@Override
 	public void run(MarmotRuntime marmot) throws Exception {
 		getCommandLine().usage(System.out, Ansi.OFF);

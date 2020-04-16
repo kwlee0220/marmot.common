@@ -1,5 +1,8 @@
 package marmot;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +22,9 @@ import utils.stream.FStream;
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class RecordScript implements PBSerializable<RecordScriptProto> {
+public class RecordScript implements PBSerializable<RecordScriptProto>, Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	private final String m_script;
 	private final FOption<String> m_initializer;
 	private final List<ImportInfo> m_importedClasses = Lists.newArrayList();
@@ -94,6 +99,33 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		m_importedClasses.add(new ImportInfo(cls, name));
 		return this;
 	}
+	
+	@Override
+	public String toString() {
+		return m_script.toString();
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final RecordScriptProto m_proto;
+		
+		private SerializationProxy(RecordScript opts) {
+			m_proto = opts.toProto();
+		}
+		
+		private Object readResolve() {
+			return RecordScript.fromProto(m_proto);
+		}
+	}
 
 	public static RecordScript fromProto(RecordScriptProto proto) {
 		RecordScript rscript = null;
@@ -138,11 +170,6 @@ public class RecordScript implements PBSerializable<RecordScriptProto> {
 		}
 		
 		return builder.build();
-	}
-	
-	@Override
-	public String toString() {
-		return m_script.toString();
 	}
 	
 	public static class ImportInfo {

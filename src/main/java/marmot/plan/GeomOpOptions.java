@@ -1,13 +1,20 @@
 package marmot.plan;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
+
 import marmot.proto.optor.GeomOpOptionsProto;
+import marmot.support.PBSerializable;
 import utils.func.FOption;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class GeomOpOptions {
+public class GeomOpOptions implements PBSerializable<GeomOpOptionsProto>, Serializable {
+	private static final long serialVersionUID = 1L;
+
 	public static final GeomOpOptions DEFAULT = new GeomOpOptions(FOption.empty(), FOption.empty());
 	
 	private FOption<String> m_outColumn = FOption.empty();
@@ -60,6 +67,7 @@ public class GeomOpOptions {
 		return opts;
 	}
 
+	@Override
 	public GeomOpOptionsProto toProto() {
 		GeomOpOptionsProto.Builder builder = GeomOpOptionsProto.newBuilder();
 		
@@ -67,5 +75,27 @@ public class GeomOpOptions {
 		m_throwOpError.ifPresent(builder::setThrowOpError);
 		
 		return builder.build();
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final GeomOpOptionsProto m_proto;
+		
+		private SerializationProxy(GeomOpOptions opts) {
+			m_proto = opts.toProto();
+		}
+		
+		private Object readResolve() {
+			return GeomOpOptions.fromProto(m_proto);
+		}
 	}
 }

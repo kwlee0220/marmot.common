@@ -1,12 +1,16 @@
 package marmot.type;
 
+import java.util.Comparator;
+
 import utils.CSV;
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-public class FloatArrayType extends DataType implements NumericDataType, ContainerDataType {
+public class FloatArrayType extends DataType implements NumericDataType, ContainerDataType,
+														Comparator<Float[]> {
+	private static final long serialVersionUID = 1L;
 	private static final FloatArrayType TYPE = new FloatArrayType();
 	
 	public static FloatArrayType get() {
@@ -35,5 +39,18 @@ public class FloatArrayType extends DataType implements NumericDataType, Contain
 	@Override
 	public DataType getContainerType() {
 		return DataType.FLOAT;
+	}
+
+	@Override
+	public int compare(Float[] v1, Float[] v2) {
+		int length = Math.min(v1.length, v2.length);
+		for ( int i =0; i < length; ++i ) {
+			int cmp = Double.compare(v1[i], v2[i]);
+			if ( cmp != 0 ) {
+				return cmp;
+			}
+		}
+		
+		return v1.length - v2.length;
 	}
 }

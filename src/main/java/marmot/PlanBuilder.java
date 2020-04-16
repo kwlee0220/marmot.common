@@ -2165,7 +2165,7 @@ public class PlanBuilder {
 		return spatialJoin(geomCol, paramDataSet, opts.outputColumns(outputColumns));
 	}
 	public PlanBuilder spatialJoin(String geomCol, String paramDataSet, String outputColumns) {
-		return spatialJoin(geomCol, paramDataSet, outputColumns, SpatialJoinOptions.EMPTY);
+		return spatialJoin(geomCol, paramDataSet, outputColumns, SpatialJoinOptions.DEFAULT);
 	}
 	
 	public PlanBuilder spatialOuterJoin(String inputGeomCol, String paramDataSet,
@@ -2206,7 +2206,7 @@ public class PlanBuilder {
 	}
 	
 	public PlanBuilder spatialSemiJoin(String geomCol, String paramDataSet) {
-		return spatialSemiJoin(geomCol, paramDataSet, SpatialJoinOptions.EMPTY);
+		return spatialSemiJoin(geomCol, paramDataSet, SpatialJoinOptions.DEFAULT);
 	}
 	
 	/**
@@ -2341,7 +2341,7 @@ public class PlanBuilder {
 	
 	public PlanBuilder spatialAggregateJoin(String geomCol, String paramDataSet,
 											AggregateFunction... aggrFuncs) {
-		return spatialAggregateJoin(geomCol, paramDataSet, aggrFuncs, SpatialJoinOptions.EMPTY);
+		return spatialAggregateJoin(geomCol, paramDataSet, aggrFuncs, SpatialJoinOptions.DEFAULT);
 	}
 	
 	public PlanBuilder spatialAggregateJoin(String inputGeomCol, String paramDataSet,

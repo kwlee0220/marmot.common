@@ -53,7 +53,7 @@ import utils.func.Funcs;
 			AddArcClip.class,
 		},
 		description="add a operator into the plan")
-public class BuildPlanCommand extends SubCommand {
+public class BuildPlanCommand extends SubCommand<MarmotRuntime> {
 	@Parameters(paramLabel="plan_file", arity="0..1", description={"Json plan file path"})
 	private String m_file;
 
@@ -67,7 +67,7 @@ public class BuildPlanCommand extends SubCommand {
 	}
 	
 	@Command(name="create", description="create an empty plan")
-	public static class Create extends SubCommand {
+	public static class Create extends SubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="plan_name", arity="1..1", description={"plan name"})
 		private String m_planName;
 		

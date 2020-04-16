@@ -168,7 +168,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @return	본 키에 포함되지 않은 컬럼으로 구성된 레코드 스키마.
 	 * @see #project(List)
 	 */
-	public RecordSchema complement(List<String> key) {
+	public RecordSchema complement(Iterable<String> key) {
 		Utilities.checkNotNullArgument(key, "key column list is null");
 		
 		Set<CIString> names = FStream.from(key).map(CIString::of).toSet();

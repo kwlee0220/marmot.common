@@ -9,6 +9,7 @@ import marmot.proto.ColumnProto;
 import marmot.support.PBSerializable;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
+import marmot.type.TypeCode;
 import utils.CIString;
 import utils.Utilities;
 
@@ -140,14 +141,18 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	private static class SerializationProxy implements Serializable {
 		private static final long serialVersionUID = 4661876959105417945L;
 		
-		private final String m_expr;
+		private final String m_name;
+		private final TypeCode m_tc;
+		private final int m_ordinal;
 		
 		private SerializationProxy(Column col) {
-			m_expr = col.toStringExpr();
+			m_name = col.name();
+			m_tc = col.type().getTypeCode();
+			m_ordinal = col.ordinal();
 		}
 		
 		private Object readResolve() {
-			return Column.parse(m_expr);
+			return new Column(CIString.of(m_name), DataTypes.fromTypeCode(m_tc), m_ordinal);
 		}
 	}
 }

@@ -12,10 +12,10 @@ import marmot.RecordSets.CountingRecordSet;
 import marmot.dataset.DataSet;
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
-import marmot.dataset.GeometryColumnNotExistsException;
+import marmot.dataset.IndexNotFoundException;
+import marmot.dataset.NoGeometryColumnException;
 import marmot.dataset.NotSpatiallyClusteredException;
 import marmot.geo.catalog.DataSetInfo;
-import marmot.geo.catalog.IndexNotFoundException;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.command.ClusterSpatiallyOptions;
 import marmot.geo.command.CreateSpatialIndexOptions;
@@ -66,7 +66,7 @@ public class PBDataSetProxy implements DataSet {
 	@Override
 	public GeometryColumnInfo getGeometryColumnInfo() {
 		return m_info.getGeometryColumnInfo()
-					.getOrThrow(GeometryColumnNotExistsException::new);
+					.getOrThrow(NoGeometryColumnException::new);
 	}
 
 	@Override
@@ -75,7 +75,7 @@ public class PBDataSetProxy implements DataSet {
 			return new Envelope(m_info.getBounds());
 		}
 		else {
-			throw new GeometryColumnNotExistsException();
+			throw new NoGeometryColumnException();
 		}
 	}
 
@@ -194,6 +194,18 @@ public class PBDataSetProxy implements DataSet {
 	public RecordSet readSpatialCluster(String quadKey) {
 		return m_service.readSpatialCluster(getId(), quadKey);
 	}
+	
+	@Override
+	public boolean isSpatiallyClustered() {
+		switch ( getType() ) {
+			case FILE:
+				return hasSpatialIndex();
+			case SPATIAL_CLUSTER:
+				return true;
+			default:
+				return false;
+		}
+	}
 
 	@Override
 	public Set<String> getClusterQuadKeyAll() throws NotSpatiallyClusteredException {
@@ -206,8 +218,8 @@ public class PBDataSetProxy implements DataSet {
 	}
 
 	@Override
-	public void clusterSpatially(String outDsId, ClusterSpatiallyOptions opts) {
-		m_service.clusterSpatially(getId(), outDsId, opts);
+	public void cluster(String outDsId, ClusterSpatiallyOptions opts) {
+		m_service.cluster(getId(), outDsId, opts);
 	}
 
 	@Override

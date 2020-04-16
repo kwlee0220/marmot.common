@@ -11,6 +11,7 @@ import utils.func.FOption;
  */
 public class LoadOptions implements PBSerializable<LoadOptionsProto> {
 	public static final LoadOptions DEFAULT = new LoadOptions(FOption.empty(), FOption.empty());
+	public static final LoadOptions FIXED_MAPPERS = new LoadOptions(FOption.empty(), FOption.of(0));
 	
 	private FOption<Integer> m_nsplits = FOption.empty();
 	private FOption<Integer> m_mapperCount = FOption.empty();
@@ -28,10 +29,6 @@ public class LoadOptions implements PBSerializable<LoadOptionsProto> {
 		Utilities.checkArgument(count >= 0, "invalid mapper count: " + count);
 		
 		return new LoadOptions(FOption.empty(), FOption.of(count));
-	}
-	
-	public static LoadOptions FIXED_MAPPERS() {
-		return new LoadOptions(FOption.empty(), FOption.of(0));
 	}
 	
 	public FOption<Integer> splitCount() {

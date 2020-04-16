@@ -15,7 +15,7 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProto>, Serializable {
-	public static final SpatialJoinOptions EMPTY
+	public static final SpatialJoinOptions DEFAULT
 							= new SpatialJoinOptions(FOption.empty(), FOption.empty(),
 													FOption.empty(), FOption.empty());
 	public static final SpatialJoinOptions NEGATED
@@ -99,7 +99,7 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	}
 	
 	public static SpatialJoinOptions fromProto(SpatialJoinOptionsProto proto) {
-		SpatialJoinOptions opts = SpatialJoinOptions.EMPTY;
+		SpatialJoinOptions opts = SpatialJoinOptions.DEFAULT;
 		switch ( proto.getOptionalJoinExprCase() ) {
 			case JOIN_EXPR:
 				opts = opts.joinExpr(proto.getJoinExpr());
