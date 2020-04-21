@@ -17,6 +17,8 @@ import utils.func.FOption;
  * @author Kang-Woo Lee (ETRI)
  */
 public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsProto>, Serializable {
+	private static final long serialVersionUID = 1L;
+	
 	public static final StoreDataSetOptions DEFAULT
 			= new StoreDataSetOptions(CreateDataSetOptions.DEFAULT, FOption.empty(), FOption.empty());
 	public static final StoreDataSetOptions FORCE

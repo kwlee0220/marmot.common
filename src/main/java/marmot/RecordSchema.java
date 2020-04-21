@@ -23,6 +23,7 @@ import utils.CSV;
 import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
+import utils.stream.IntFStream;
 import utils.stream.KVFStream;
 
 
@@ -159,6 +160,14 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 					.flatMapOption(this::findColumn)
 					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 					.build();
+	}
+	public RecordSchema project(int... colIdxes) {
+		Utilities.checkNotNullArgument(colIdxes, "colIdxes are null");
+		
+		return IntFStream.of(colIdxes)
+						.map(this::getColumnAt)
+						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.build();
 	}
 	
 	/**
