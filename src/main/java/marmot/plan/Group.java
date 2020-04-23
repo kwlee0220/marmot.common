@@ -1,5 +1,7 @@
 package marmot.plan;
 
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -159,6 +161,28 @@ public class Group implements Serializable, PBSerializable<GroupByKeyProto> {
 		return FStream.from(kvList)
 						.map(kv -> String.format("%s=%s", kv.key(), kv.value()))
 						.join(';');
+	}
+	
+	private Object writeReplace() {
+		return new SerializationProxy(this);
+	}
+	
+	private void readObject(ObjectInputStream stream) throws InvalidObjectException {
+		throw new InvalidObjectException("Use Serialization Proxy instead.");
+	}
+
+	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
+		
+		private final GroupByKeyProto m_proto;
+		
+		private SerializationProxy(Group group) {
+			m_proto = group.toProto();
+		}
+		
+		private Object readResolve() {
+			return Group.fromProto(m_proto);
+		}
 	}
 
 	public static Group fromProto(GroupByKeyProto proto) {
