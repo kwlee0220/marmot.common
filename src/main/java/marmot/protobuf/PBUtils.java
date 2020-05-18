@@ -652,20 +652,40 @@ public class PBUtils {
 	}
 	
 	public static Envelope fromProto(EnvelopeProto proto) {
-		return new Envelope(fromProto(proto.getTl()), fromProto(proto.getBr()));
+		Coordinate tl = PBUtils.fromProto(proto.getTl());
+		if ( !Double.isInfinite(tl.x) ) {
+			return new Envelope(tl, fromProto(proto.getBr()));
+		}
+		else {
+			return new Envelope();
+		}
 	}
 	
 	public static EnvelopeProto toProto(Envelope envl) {
-		return EnvelopeProto.newBuilder()
-							.setTl(CoordinateProto.newBuilder()
-												.setX(envl.getMinX())
-												.setY(envl.getMinY())
-												.build())
-							.setBr(CoordinateProto.newBuilder()
-												.setX(envl.getMaxX())
-												.setY(envl.getMaxY())
-												.build())
-							.build();
+		if ( !envl.isNull() ) {
+			return EnvelopeProto.newBuilder()
+								.setTl(CoordinateProto.newBuilder()
+													.setX(envl.getMinX())
+													.setY(envl.getMinY())
+													.build())
+								.setBr(CoordinateProto.newBuilder()
+													.setX(envl.getMaxX())
+													.setY(envl.getMaxY())
+													.build())
+								.build();
+		}
+		else {
+			return EnvelopeProto.newBuilder()
+								.setTl(CoordinateProto.newBuilder()
+													.setX(Double.NEGATIVE_INFINITY)
+													.setY(Double.NEGATIVE_INFINITY)
+													.build())
+								.setBr(CoordinateProto.newBuilder()
+													.setX(Double.NEGATIVE_INFINITY)
+													.setY(Double.NEGATIVE_INFINITY)
+													.build())
+								.build();
+		}
 	}
 	
 	public static Geometry fromProto(GeometryProto proto) {

@@ -1,6 +1,6 @@
 package marmot.type;
 
-import java.time.LocalDate;
+import java.sql.Date;
 
 
 /**
@@ -8,6 +8,7 @@ import java.time.LocalDate;
  * @author Kang-Woo Lee (ETRI)
  */
 public class DateType extends DataType implements ComparableDataType {
+	private static final long serialVersionUID = 1L;
 	private static final DateType TYPE = new DateType();
 	
 	public static DateType get() {
@@ -15,17 +16,17 @@ public class DateType extends DataType implements ComparableDataType {
 	}
 	
 	private DateType() {
-		super("date", TypeCode.DATE, LocalDate.class);
+		super("date", TypeCode.DATE, Date.class);
 	}
 
 	@Override
-	public LocalDate newInstance() {
-		return LocalDate.now();
+	public Date newInstance() {
+		return new Date(new java.util.Date().getTime());
 	}
 	
 	@Override
-	public LocalDate parseInstance(String str) {
+	public Date parseInstance(String str) {
 		str = str.trim();
-		return (str.length() > 0) ? LocalDate.parse(str) : null;
+		return (str.length() > 0) ? Date.valueOf(str) : null;
 	}
 }

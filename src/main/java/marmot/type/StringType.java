@@ -30,6 +30,17 @@ public class StringType extends DataType implements ComparableDataType, Comparat
 
 	@Override
 	public int compare(String v1, String v2) {
-		return v1.compareTo(v2);
+		if ( v1 != null && v2 != null ) {
+			return v1.compareTo(v2);
+		}
+		else if ( v1 != null ) {
+			return 1;
+		}
+		else if ( v2 != null ) {
+			return -1;
+		}
+		else {
+			return 1;
+		}
 	}
 }

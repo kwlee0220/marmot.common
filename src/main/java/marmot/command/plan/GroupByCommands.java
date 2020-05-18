@@ -5,7 +5,6 @@ import java.util.List;
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
 import marmot.RecordSchema;
-import marmot.command.PicocliCommands.SubCommand;
 import marmot.command.plan.GroupByCommands.AddAggregateByGroup;
 import marmot.command.plan.GroupByCommands.AddReduceToRecord;
 import marmot.command.plan.GroupByCommands.AddTakeByGroup;
@@ -15,6 +14,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.PicocliSubCommand;
 import utils.stream.FStream;
 
 /**
@@ -28,7 +28,7 @@ import utils.stream.FStream;
 			AddReduceToRecord.class,
 		},
 		description="add a 'group-by' operators")
-class GroupByCommands extends SubCommand<MarmotRuntime> {
+class GroupByCommands extends PicocliSubCommand<MarmotRuntime> {
 	@Parameters(paramLabel="keys", index="0", arity="1..1",
 				description={"group key columns"})
 	private String m_keyCols;
@@ -43,7 +43,7 @@ class GroupByCommands extends SubCommand<MarmotRuntime> {
 	private int m_workerCount = 0;
 	
 	@Override
-	public void run(MarmotRuntime marmot) throws Exception {
+	public void run(MarmotRuntime initialContext) throws Exception {
 		getCommandLine().usage(System.out, Ansi.OFF);
 	}
 	

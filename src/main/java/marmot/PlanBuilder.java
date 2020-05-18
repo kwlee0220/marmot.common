@@ -2225,16 +2225,18 @@ public class PlanBuilder {
 								SpatialJoinOptions opts) {
 		Utilities.checkNotNullArgument(geomCol, "input Geometry column is null");
 		Utilities.checkNotNullArgument(paramDataSet, "parameter DataSet id is null");
-		Utilities.checkArgument(topK > 0, "invalid top-k: " + topK);
 		Utilities.checkArgument(Double.compare(dist, 0) > 0, "invalid distance: " + dist);
 		
-		SpatialKnnInnerJoinProto join = SpatialKnnInnerJoinProto.newBuilder()
+		SpatialKnnInnerJoinProto.Builder builder = SpatialKnnInnerJoinProto.newBuilder()
 																.setGeomColumn(geomCol)
 																.setParamDataset(paramDataSet)
-																.setTopK(topK)
 																.setRadius(dist)
-																.setOptions(opts.toProto())
-																.build();
+																.setOptions(opts.toProto());
+		if ( topK > 0 ) {
+			builder = builder.setTopK(topK);
+		}
+		SpatialKnnInnerJoinProto join = builder.build();
+
 		return add(OperatorProto.newBuilder()
 								.setSpatialKnnJoin(join)
 								.build());

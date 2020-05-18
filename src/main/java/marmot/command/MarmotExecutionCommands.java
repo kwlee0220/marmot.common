@@ -7,7 +7,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import marmot.MarmotRuntime;
-import marmot.command.PicocliCommands.SubCommand;
 import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotAnalysis.Type;
 import marmot.exec.MarmotExecution;
@@ -15,6 +14,7 @@ import marmot.exec.MarmotExecution.State;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.PicocliSubCommand;
 import utils.UnitUtils;
 import utils.stream.FStream;
 
@@ -24,19 +24,19 @@ import utils.stream.FStream;
  */
 public class MarmotExecutionCommands {
 	@Command(name="show", description="show a MarmotExecution")
-	public static class Show extends SubCommand<MarmotRuntime> {
+	public static class Show extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity = "1..1", description={"execution id"})
 		private String m_id;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			MarmotExecution exec = marmot.getMarmotExecution(m_id);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			MarmotExecution exec = initialContext.getMarmotExecution(m_id);
 			System.out.println(exec);
 		}
 	}
 	
 	@Command(name="list", description="list MarmotExecutions")
-	public static class ListExecs extends SubCommand<MarmotRuntime> {
+	public static class ListExecs extends PicocliSubCommand<MarmotRuntime> {
 		@Option(names={"-s", "-state"}, paramLabel="state",
 				description="list all executions in a particular state")
 		private String m_stateStr;
@@ -55,17 +55,17 @@ public class MarmotExecutionCommands {
 		private boolean m_details;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			if ( m_recurPeriod != null ) {
 				long period = UnitUtils.parseDuration(m_recurPeriod);
 				ScheduledExecutorService exector = Executors.newSingleThreadScheduledExecutor();
 				exector.scheduleAtFixedRate(()-> {
-					show(marmot);
+					show(initialContext);
 					System.out.println("-----------------------------------------------------------------------------------------");
 				}, 0, period, TimeUnit.MILLISECONDS);
 			}
 			else {
-				show(marmot);
+				show(initialContext);
 			}
 		}
 		
@@ -139,13 +139,13 @@ public class MarmotExecutionCommands {
 	}
 
 	@Command(name="cancel", description="cancel a running MarmotExecution")
-	public static class Cancel extends SubCommand<MarmotRuntime> {
+	public static class Cancel extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", arity = "1..1", description={"execution id"})
 		private String m_id;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			MarmotExecution exec = marmot.getMarmotExecution(m_id);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			MarmotExecution exec = initialContext.getMarmotExecution(m_id);
 			exec.cancel();
 		}
 	}

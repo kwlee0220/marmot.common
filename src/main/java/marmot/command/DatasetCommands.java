@@ -21,7 +21,6 @@ import marmot.PlanBuilder;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
-import marmot.command.PicocliCommands.SubCommand;
 import marmot.dataset.DataSet;
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
@@ -51,6 +50,7 @@ import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import utils.StopWatch;
+import utils.PicocliSubCommand;
 import utils.UnitUtils;
 import utils.Utilities;
 import utils.async.ProgressiveExecution;
@@ -62,7 +62,7 @@ import utils.func.FOption;
  */
 public class DatasetCommands {
 	@Command(name="list", description="list datasets")
-	public static class ListDataSet extends SubCommand<MarmotRuntime> {
+	public static class ListDataSet extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="path", index="0", arity="0..1", description={"dataset folder path"})
 		private String m_start;
 
@@ -73,16 +73,16 @@ public class DatasetCommands {
 		private boolean m_details;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			List<DataSet> dsList;
 			if ( m_start != null ) {
-				dsList = marmot.getDataSetAllInDir(m_start, m_recursive);
+				dsList = initialContext.getDataSetAllInDir(m_start, m_recursive);
 				if ( dsList.isEmpty() ) {
-					dsList.add(marmot.getDataSet(m_start));
+					dsList.add(initialContext.getDataSet(m_start));
 				}
 			}
 			else {
-				dsList = marmot.getDataSetAll();
+				dsList = initialContext.getDataSetAll();
 			}
 			
 			for ( DataSet ds: dsList ) {
@@ -104,7 +104,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="show", description="print records of the dataset")
-	public static class Show extends SubCommand<MarmotRuntime> {
+	public static class Show extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id to print"})
 		private String m_dsId;
 
@@ -128,7 +128,7 @@ public class DatasetCommands {
 		private boolean m_displayGeom;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			PlanBuilder builder = Plan.builder("list_records");
 			switch ( m_type.toLowerCase() ) {
 				case "dataset":
@@ -153,7 +153,7 @@ public class DatasetCommands {
 		
 			if ( !m_displayGeom ) {
 				Plan tmp = builder.build();
-				RecordSchema schema = marmot.getOutputRecordSchema(tmp);
+				RecordSchema schema = initialContext.getOutputRecordSchema(tmp);
 				String cols = schema.streamColumns()
 									.filter(col -> col.type().isGeometryType())
 									.map(Column::name)
@@ -163,7 +163,7 @@ public class DatasetCommands {
 				}
 			}
 			
-			try ( RecordSet rset = marmot.executeLocally(builder.build()) ) {
+			try ( RecordSet rset = initialContext.executeLocally(builder.build()) ) {
 				Record record = DefaultRecord.of(rset.getRecordSchema());
 				while ( rset.next(record) ) {
 					Map<String,Object> values = record.toMap();
@@ -192,13 +192,13 @@ public class DatasetCommands {
 	}
 
 	@Command(name="schema", description="print the RecordSchema of the dataset")
-	public static class Schema extends SubCommand<MarmotRuntime> {
+	public static class Schema extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			DataSet ds = marmot.getDataSet(m_dsId);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			DataSet ds = initialContext.getDataSet(m_dsId);
 
 			System.out.println("TYPE         : " + ds.getType());
 			if ( ds.getRecordCount() > 0 ) {
@@ -233,7 +233,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="move", description="move a dataset to another directory")
-	public static class Move extends SubCommand<MarmotRuntime> {
+	public static class Move extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"id for the source dataset"})
 		private String m_src;
 		
@@ -241,14 +241,14 @@ public class DatasetCommands {
 		private String m_dest;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			DataSet srcDs = marmot.getDataSet(m_src);
-			marmot.moveDataSet(srcDs.getId(), m_dest);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			DataSet srcDs = initialContext.getDataSet(m_src);
+			initialContext.moveDataSet(srcDs.getId(), m_dest);
 		}
 	}
 
 	@Command(name="set_geometry", description="set Geometry column info for a dataset")
-	public static class SetGcInfo extends SubCommand<MarmotRuntime> {
+	public static class SetGcInfo extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 		
@@ -261,8 +261,8 @@ public class DatasetCommands {
 		private String m_srid;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			DataSet ds = marmot.getDataSet(m_dsId);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			DataSet ds = initialContext.getDataSet(m_dsId);
 			
 			GeometryColumnInfo gcInfo = new GeometryColumnInfo(m_column, m_srid);
 			ds.updateGeometryColumnInfo(FOption.ofNullable(gcInfo));
@@ -270,7 +270,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="count", description="count records of the dataset")
-	public static class Count extends SubCommand<MarmotRuntime> {
+	public static class Count extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 
@@ -284,7 +284,7 @@ public class DatasetCommands {
 		private boolean m_verbose = false;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
 			LoadOptions opts = LoadOptions.DEFAULT;
@@ -296,7 +296,7 @@ public class DatasetCommands {
 								.load(m_dsId, opts)
 								.aggregate(AggregateFunction.COUNT())
 								.build();
-			long cnt = marmot.executeToLong(plan).get();
+			long cnt = initialContext.executeToLong(plan).get();
 			watch.stop();
 			
 			if ( m_verbose ) {
@@ -309,7 +309,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="bind", description="bind the existing file(s) as a dataset")
-	public static class Bind extends SubCommand<MarmotRuntime> {
+	public static class Bind extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="path", index="0", arity="1..1",
 					description={"source file-path (or source dataset-id) to bind"})
 		private String m_path;
@@ -333,7 +333,7 @@ public class DatasetCommands {
 		private boolean m_force;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			DataSetType type;
 			switch ( m_type ) {
 				case "text":
@@ -343,7 +343,7 @@ public class DatasetCommands {
 					type = DataSetType.FILE;
 					break;
 				case "dataset":
-					DataSet srcDs = marmot.getDataSet(m_path);
+					DataSet srcDs = initialContext.getDataSet(m_path);
 					if ( m_gcInfo == null && srcDs.hasGeometryColumn() ) {
 						m_gcInfo = srcDs.getGeometryColumnInfo();
 					}
@@ -361,12 +361,12 @@ public class DatasetCommands {
 			if ( m_gcInfo != null ) {
 				opts = opts.geometryColumnInfo(m_gcInfo);
 			}
-			marmot.bindExternalDataSet(m_dataset, m_path, type, opts);
+			initialContext.bindExternalDataSet(m_dataset, m_path, type, opts);
 		}
 	}
 
 	@Command(name="delete", description="delete the dataset(s)")
-	public static class Delete extends SubCommand<MarmotRuntime> {
+	public static class Delete extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 
@@ -374,18 +374,18 @@ public class DatasetCommands {
 		private boolean m_recursive;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			if ( m_recursive ) {
-				marmot.deleteDir(m_dsId);
+				initialContext.deleteDir(m_dsId);
 			}
 			else {
-				marmot.deleteDataSet(m_dsId);
+				initialContext.deleteDataSet(m_dsId);
 			}
 		}
 	}
 
 	@Command(name="attach_geometry", description="attach geometry data into the dataset")
-	public static class AttachGeometry extends SubCommand<MarmotRuntime> {
+	public static class AttachGeometry extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity="1..1", description={"dataset id"})
 		private String m_dsId;
 
@@ -414,8 +414,8 @@ public class DatasetCommands {
 		private FOption<Integer> m_nworkers = FOption.empty();
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			DataSet geomDs = marmot.getDataSet(m_geomDsId);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			DataSet geomDs = initialContext.getDataSet(m_geomDsId);
 			if ( !geomDs.hasGeometryColumn() ) {
 				System.err.println("Geometry dataset does not have default Geometry column: "
 									+ "id=" + m_geomDsId);
@@ -433,7 +433,7 @@ public class DatasetCommands {
 									.hashJoin(m_refCol, m_geomDsId, m_keyCol, outputCols, opts)
 									.store(m_outDsId, FORCE(outGcInfo))
 									.build();
-			marmot.execute(plan);
+			initialContext.execute(plan);
 		}
 	}
 
@@ -445,13 +445,13 @@ public class DatasetCommands {
 				ImportJdbcCmd.class
 			},
 			description="import into the dataset")
-	public static class Import extends SubCommand<MarmotRuntime> {
+	public static class Import extends PicocliSubCommand<MarmotRuntime> {
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception { }
+		public void run(MarmotRuntime initialContext) throws Exception { }
 	}
 
 	@Command(name="csv", description="import CSV file into the dataset")
-	public static class ImportCsvCmd extends SubCommand<MarmotRuntime> {
+	public static class ImportCsvCmd extends PicocliSubCommand<MarmotRuntime> {
 		@Mixin private CsvParameters m_csvParams;
 		@Mixin private ImportParameters m_params;
 		
@@ -470,7 +470,7 @@ public class DatasetCommands {
 		private String m_glob = "**/*.csv";
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
 			File csvFilePath = new File(m_start);
@@ -481,7 +481,7 @@ public class DatasetCommands {
 							System.out.printf("imported: count=%d, elapsed=%s, velo=%.0f/s%n",
 											report, watch.getElapsedMillisString(), velo);
 						});
-			long count = importFile.run(marmot);
+			long count = importFile.run(initialContext);
 			
 			double velo = count / watch.getElapsedInFloatingSeconds();
 			System.out.printf("imported: dataset=%s count=%d elapsed=%s, velo=%.1f/s%n",
@@ -490,7 +490,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="shp", aliases={"shapefile"}, description="import shapefile(s) into the dataset")
-	public static class ImportShapefileCmd extends SubCommand<MarmotRuntime> {
+	public static class ImportShapefileCmd extends PicocliSubCommand<MarmotRuntime> {
 		@Mixin private ImportParameters m_params;
 		@Mixin private ShapefileParameters m_shpParams;
 		
@@ -506,7 +506,7 @@ public class DatasetCommands {
 		}
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
 			if ( m_params.getGeometryColumnInfo().isAbsent() ) {
@@ -521,7 +521,7 @@ public class DatasetCommands {
 							System.out.printf("imported: count=%d, elapsed=%s, velo=%.1f/s%n",
 											report, watch.getElapsedMillisString(), velo);
 						});
-			long count = importFile.run(marmot);
+			long count = importFile.run(initialContext);
 			
 			double velo = count / watch.getElapsedInFloatingSeconds();
 			System.out.printf("imported: dataset=%s count=%d elapsed=%s, velo=%.1f/s%n",
@@ -531,7 +531,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="geojson", description="import geojson file into the dataset")
-	public static class ImportGeoJsonCmd extends SubCommand<MarmotRuntime> {
+	public static class ImportGeoJsonCmd extends PicocliSubCommand<MarmotRuntime> {
 		@Mixin private GeoJsonParameters m_gjsonParams;
 		@Mixin private ImportParameters m_importParams;
 		
@@ -548,7 +548,7 @@ public class DatasetCommands {
 		}
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
 			if ( m_importParams.getGeometryColumnInfo().isAbsent() ) {
@@ -563,7 +563,7 @@ public class DatasetCommands {
 							System.out.printf("imported: count=%d, elapsed=%s, velo=%.1f/s%n",
 											report, watch.getElapsedMillisString(), velo);
 						});
-			long count = importFile.run(marmot);
+			long count = importFile.run(initialContext);
 			
 			double velo = count / watch.getElapsedInFloatingSeconds();
 			System.out.printf("imported: dataset=%s count=%d elapsed=%s, velo=%.1f/s%n",
@@ -572,7 +572,7 @@ public class DatasetCommands {
 	}
 
 	@Command(name="jdbc", description="import a JDBC-connected table into a dataset")
-	public static class ImportJdbcCmd extends SubCommand<MarmotRuntime> {
+	public static class ImportJdbcCmd extends PicocliSubCommand<MarmotRuntime> {
 		@Mixin private LoadJdbcParameters m_jdbcParams;
 		@Mixin private ImportParameters m_importParams;
 
@@ -588,7 +588,7 @@ public class DatasetCommands {
 		}
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
 			ImportJdbcTable importFile = ImportJdbcTable.from(m_tableName, m_jdbcParams,
@@ -599,7 +599,7 @@ public class DatasetCommands {
 							System.out.printf("imported: count=%d, elapsed=%s, velo=%.1f/s%n",
 											report, watch.getElapsedMillisString(), velo);
 						});
-			long count = importFile.run(marmot);
+			long count = importFile.run(initialContext);
 			
 			double velo = count / watch.getElapsedInFloatingSeconds();
 			System.out.printf("imported: dataset=%s count=%d elapsed=%s, velo=%.1f/s%n",
@@ -615,15 +615,15 @@ public class DatasetCommands {
 				ExportJdbcTable.class,
 			},
 			description="export a dataset")
-	public static class Export extends SubCommand<MarmotRuntime> {
+	public static class Export extends PicocliSubCommand<MarmotRuntime> {
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception { }
+		public void run(MarmotRuntime initialContext) throws Exception { }
 	}
 	
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
 	@Command(name="csv", description="export a dataset in CSV format")
-	public static class ExportCsv extends SubCommand<MarmotRuntime> {
+	public static class ExportCsv extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
 					description={"dataset id to export"})
 		private String m_dsId;
@@ -638,7 +638,7 @@ public class DatasetCommands {
 		private boolean m_force;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			m_csvParams.charset().ifAbsent(() -> m_csvParams.charset(DEFAULT_CHARSET));
 			
 			File outFile = new File(m_output);
@@ -648,12 +648,12 @@ public class DatasetCommands {
 			
 			FOption<String> output = FOption.ofNullable(m_output);
 			BufferedWriter writer = ExternIoUtils.toWriter(output, m_csvParams.charset().get());
-			new ExportAsCsv(m_dsId, m_csvParams).run(marmot, writer);
+			new ExportAsCsv(m_dsId, m_csvParams).run(initialContext, writer);
 		}
 	}
 
 	@Command(name="shp", description="export the dataset in Shapefile format")
-	public static class ExportShapefile extends SubCommand<MarmotRuntime> {
+	public static class ExportShapefile extends PicocliSubCommand<MarmotRuntime> {
 		@Mixin private ExportShapefileParameters m_shpParams;
 		
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
@@ -672,20 +672,20 @@ public class DatasetCommands {
 		private int m_interval = -1;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			ExportDataSetAsShapefile export = new ExportDataSetAsShapefile(m_dsId, m_output,
 																			m_shpParams);
 			export.setForce(m_force);
 			FOption.when(m_interval > 0, m_interval)
 					.ifPresent(export::setProgressInterval);
 			
-			ProgressiveExecution<Long, Long> act = export.start(marmot);
+			ProgressiveExecution<Long, Long> act = export.start(initialContext);
 			act.get();
 		}
 	}
 
 	@Command(name="geojson", description="export a dataset in GeoJSON format")
-	public static class ExportGeoJson extends SubCommand<MarmotRuntime> {
+	public static class ExportGeoJson extends PicocliSubCommand<MarmotRuntime> {
 		@Mixin private GeoJsonParameters m_gjsonParams;
 		
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
@@ -700,21 +700,21 @@ public class DatasetCommands {
 		private boolean m_pretty;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			ExportAsGeoJson export = new ExportAsGeoJson(m_dsId)
 										.printPrinter(m_pretty);
 			m_gjsonParams.geoJsonSrid().ifPresent(export::setGeoJSONSrid);
 			
 			FOption<String> output = FOption.ofNullable(m_output);
 			BufferedWriter writer = ExternIoUtils.toWriter(output, m_gjsonParams.charset());
-			long count = export.run(marmot, writer);
+			long count = export.run(initialContext, writer);
 			
 			System.out.printf("done: %d records%n", count);
 		}
 	}
 
 	@Command(name="jdbc", description="export a dataset into JDBC table")
-	public static class ExportJdbcTable extends SubCommand<MarmotRuntime> {
+	public static class ExportJdbcTable extends PicocliSubCommand<MarmotRuntime> {
 		@Mixin private StoreJdbcParameters m_jdbcParams;
 		
 		@Parameters(paramLabel="dataset_id", index="0", arity="1..1",
@@ -730,12 +730,12 @@ public class DatasetCommands {
 		private int m_interval = -1;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			ExportIntoJdbcTable export = new ExportIntoJdbcTable(m_dsId, m_tblName, m_jdbcParams);
 			FOption.when(m_interval > 0, m_interval)
 					.ifPresent(export::reportInterval);
 			
-			long count = export.run(marmot);
+			long count = export.run(initialContext);
 			System.out.printf("done: %d records%n", count);
 		}
 	}
@@ -745,13 +745,13 @@ public class DatasetCommands {
 				CreateThumbnail.class, DeleteThumbnail.class,
 			},
 			description="thumbnail related commands")
-	public static class Thumbnail extends SubCommand<MarmotRuntime> {
+	public static class Thumbnail extends PicocliSubCommand<MarmotRuntime> {
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception { }
+		public void run(MarmotRuntime initialContext) throws Exception { }
 	}
 
 	@Command(name="create", description="create a thumbnail for a dataset")
-	public static class CreateThumbnail extends SubCommand<MarmotRuntime> {
+	public static class CreateThumbnail extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="dataset", index="0", arity="1..1",
 					description={"dataset id for thumbnail"})
 		private String m_dsId;
@@ -761,10 +761,10 @@ public class DatasetCommands {
 		private long m_sampleCount;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
-			DataSet ds = marmot.getDataSet(m_dsId);
+			DataSet ds = initialContext.getDataSet(m_dsId);
 			ds.createThumbnail((int)m_sampleCount);
 			
 			System.out.printf("nsmaples=%,d, elapsed time: %s%n",
@@ -773,14 +773,14 @@ public class DatasetCommands {
 	}
 
 	@Command(name="delete", description="delete a thumbnail for a dataset")
-	public static class DeleteThumbnail extends SubCommand<MarmotRuntime> {
+	public static class DeleteThumbnail extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="dataset", index="0", arity="1..1",
 					description={"dataset id for thumbnail"})
 		private String m_dsId;
 
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			DataSet ds = marmot.getDataSet(m_dsId);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			DataSet ds = initialContext.getDataSet(m_dsId);
 			ds.deleteThumbnail();
 		}
 	}

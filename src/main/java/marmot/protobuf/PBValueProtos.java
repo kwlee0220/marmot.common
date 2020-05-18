@@ -1,6 +1,6 @@
 package marmot.protobuf;
 
-import java.time.LocalDate;
+import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -30,7 +30,6 @@ import marmot.type.MapTile;
 import marmot.type.Trajectory;
 import marmot.type.TypeCode;
 import utils.LocalDateTimes;
-import utils.LocalDates;
 import utils.LocalTimes;
 import utils.Utilities;
 import utils.func.Tuple;
@@ -88,7 +87,7 @@ public class PBValueProtos {
 				builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
 				break;
 			case DATE:
-				builder.setDateValue(LocalDates.toUtcMillis((LocalDate)obj));
+				builder.setDateValue(((Date)obj).getTime());
 				break;
 			case TIME:
 				builder.setTimeValue(LocalTimes.toString((LocalTime)obj));
@@ -196,9 +195,8 @@ public class PBValueProtos {
 		else if ( obj instanceof LocalDateTime ) {
 			builder.setDatetimeValue(Utilities.toUTCEpocMillis((LocalDateTime)obj));
 		}
-		else if ( obj instanceof LocalDate ) {
-			LocalDateTime ldt = ((LocalDate)obj).atStartOfDay();
-			builder.setDateValue(Utilities.toUTCEpocMillis(ldt));
+		else if ( obj instanceof Date ) {
+			builder.setDateValue(((Date)obj).getTime());
 		}
 		else if ( obj instanceof LocalTime ) {
 			builder.setTimeValue(((LocalTime)obj).toString());
@@ -255,7 +253,7 @@ public class PBValueProtos {
 			case DATETIME_VALUE:
 				return Tuple.of(DataType.DATETIME, LocalDateTimes.fromUtcMillis(proto.getDatetimeValue()));
 			case DATE_VALUE:
-				return Tuple.of(DataType.DATE, LocalDates.fromUtcMillis(proto.getDateValue()));
+				return Tuple.of(DataType.DATE, new Date(proto.getDateValue()));
 			case TIME_VALUE:
 				return Tuple.of(DataType.TIME, LocalTimes.fromString(proto.getTimeValue()));
 			case DURATION_VALUE:
@@ -314,7 +312,7 @@ public class PBValueProtos {
 			case DATETIME_VALUE:
 				return LocalDateTimes.fromUtcMillis(proto.getDatetimeValue());
 			case DATE_VALUE:
-				return LocalDates.fromUtcMillis(proto.getDateValue());
+				return new Date(proto.getDateValue());
 			case TIME_VALUE:
 				return LocalTimes.fromString(proto.getTimeValue());
 			case DURATION_VALUE:

@@ -7,7 +7,6 @@ import java.io.Writer;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
-import marmot.command.PicocliCommands.SubCommand;
 import marmot.command.plan.BuildPlanCommand.AddAggregate;
 import marmot.command.plan.BuildPlanCommand.AddDefineColumn;
 import marmot.command.plan.BuildPlanCommand.AddExpand;
@@ -33,6 +32,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.PicocliSubCommand;
 import utils.func.Funcs;
 
 /**
@@ -53,7 +53,7 @@ import utils.func.Funcs;
 			AddArcClip.class,
 		},
 		description="add a operator into the plan")
-public class BuildPlanCommand extends SubCommand<MarmotRuntime> {
+public class BuildPlanCommand extends PicocliSubCommand<MarmotRuntime> {
 	@Parameters(paramLabel="plan_file", arity="0..1", description={"Json plan file path"})
 	private String m_file;
 
@@ -62,17 +62,17 @@ public class BuildPlanCommand extends SubCommand<MarmotRuntime> {
 	}
 	
 	@Override
-	public void run(MarmotRuntime marmot) throws Exception {
+	public void run(MarmotRuntime initialContext) throws Exception {
 		getCommandLine().usage(System.out, Ansi.OFF);
 	}
 	
 	@Command(name="create", description="create an empty plan")
-	public static class Create extends SubCommand<MarmotRuntime> {
+	public static class Create extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="plan_name", arity="1..1", description={"plan name"})
 		private String m_planName;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			Plan plan = Plan.builder(m_planName).build();
 			String file = ((BuildPlanCommand)getParent()).m_file;
 			

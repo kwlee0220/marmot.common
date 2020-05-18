@@ -42,7 +42,7 @@ repositories {
 		url "http://www.datanucleus.org/downloads/maven2/"
 	}
 	maven {
-		url "http://download.osgeo.org/webdav/geotools/"
+		url "http://repo.osgeo.org/repository/release/"
 	}
     mavenCentral()
 }
@@ -101,9 +101,6 @@ dependencies {
 	
 	// StringTemplate4
 	implementation "org.antlr:ST4:4.0.8"
-	
-	// command line parser
-	api "info.picocli:picocli:${picocli_version}"
 	
 	testImplementation "junit:junit:4.12"
 }

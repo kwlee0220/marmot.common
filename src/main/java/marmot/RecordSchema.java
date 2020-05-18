@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
+import com.google.common.primitives.Ints;
 
 import marmot.proto.ColumnProto;
 import marmot.proto.RecordSchemaProto;
@@ -22,6 +24,7 @@ import utils.CIString;
 import utils.CSV;
 import utils.Utilities;
 import utils.func.FOption;
+import utils.func.Tuple;
 import utils.stream.FStream;
 import utils.stream.IntFStream;
 import utils.stream.KVFStream;
@@ -189,6 +192,15 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	public RecordSchema complement(String... cols) {
 		return complement(Lists.newArrayList(cols));
 	}
+	public RecordSchema complement(int... colIdxes) {
+		Set<Integer> idxes = Sets.newHashSet(Ints.asList(colIdxes));
+		return FStream.of(m_columns)
+						.zipWithIndex()
+						.filter(t -> !idxes.contains(t._2))
+						.map(Tuple::_1)
+						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.build();
+	}
 
 	public static RecordSchema fromProto(RecordSchemaProto proto) {
 		Utilities.checkNotNullArgument(proto, "RecordSchemaProto is null");
@@ -251,6 +263,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	}
 
 	private static class SerializationProxy implements Serializable {
+		private static final long serialVersionUID = 1L;
 		private final String m_strRep;
 		
 		private SerializationProxy(RecordSchema schema) {

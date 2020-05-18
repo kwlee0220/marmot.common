@@ -15,21 +15,21 @@ import com.google.common.collect.Lists;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
-import marmot.command.PicocliCommands.PicocliCommand;
-import marmot.command.PicocliCommands.SubCommand;
 import marmot.optor.AggregateFunction;
 import utils.CSV;
+import utils.PicocliCommand;
+import utils.PicocliSubCommand;
 
 
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
  */
-abstract class AbstractAddOperatorCommand extends SubCommand<MarmotRuntime> {
+abstract class AbstractAddOperatorCommand extends PicocliSubCommand<MarmotRuntime> {
 	@Override
-	public void run(MarmotRuntime marmot) throws Exception {
-		Plan plan = loadPlan(marmot);
-		plan = add(marmot, plan.toBuilder()).build();
+	public void run(MarmotRuntime initialContext) throws Exception {
+		Plan plan = loadPlan(initialContext);
+		plan = add(initialContext, plan.toBuilder()).build();
 		
 		String file = getPlanFile();
 		

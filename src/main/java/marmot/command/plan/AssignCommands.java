@@ -2,7 +2,6 @@ package marmot.command.plan;
 
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;
-import marmot.command.PicocliCommands.SubCommand;
 import marmot.command.plan.AssignCommands.AddAssignGridCell;
 import marmot.command.plan.AssignCommands.AddAssignUid;
 import marmot.optor.geo.SquareGrid;
@@ -10,6 +9,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.PicocliSubCommand;
 
 /**
  * 
@@ -21,9 +21,9 @@ import picocli.CommandLine.Parameters;
 			AddAssignGridCell.class,
 		},
 		description="add a 'assign' operators")
-class AssignCommands extends SubCommand<MarmotRuntime> {
+class AssignCommands extends PicocliSubCommand<MarmotRuntime> {
 	@Override
-	public void run(MarmotRuntime marmot) throws Exception {
+	public void run(MarmotRuntime initialContext) throws Exception {
 		getCommandLine().usage(System.out, Ansi.OFF);
 	}
 	

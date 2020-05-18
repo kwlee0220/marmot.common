@@ -290,12 +290,16 @@ public class DataUtils {
 		}
 	}
 	
-	public static LocalDate asDate(Object obj) {
-		if ( obj instanceof LocalDate ) {
-			return (LocalDate)obj;
+	public static java.sql.Date asDate(Object obj) {
+		if ( obj instanceof java.sql.Date ) {
+			return (java.sql.Date)obj;
+		}
+		else if ( obj instanceof LocalDate ) {
+			long epoch = ((LocalDate)obj).atStartOfDay(ZoneId.systemDefault()).toInstant().getEpochSecond();
+			return new java.sql.Date(epoch);
 		}
 		else if ( obj instanceof Date ) {
-			return ((Date)obj).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+			return new java.sql.Date(((Date)obj).getTime());
 		}
 		else {
 			throw new IllegalArgumentException("Not Date object: obj=" + obj);

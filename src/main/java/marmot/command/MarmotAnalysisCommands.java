@@ -12,7 +12,6 @@ import com.google.common.collect.Sets;
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.analysis.system.SystemAnalysis;
-import marmot.command.PicocliCommands.SubCommand;
 import marmot.exec.CompositeAnalysis;
 import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotAnalysis.Type;
@@ -23,6 +22,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.PicocliSubCommand;
 import utils.func.KeyValue;
 import utils.stream.FStream;
 
@@ -32,7 +32,7 @@ import utils.stream.FStream;
  */
 public class MarmotAnalysisCommands {
 	@Command(name="list", description="list MarmotAnalysis")
-	public static class ListAnalysis extends SubCommand<MarmotRuntime> {
+	public static class ListAnalysis extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="path", arity = "0..*", description={"directory path to display from"})
 		private String m_start;
 
@@ -46,13 +46,13 @@ public class MarmotAnalysisCommands {
 		private boolean m_topLevel;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			List<MarmotAnalysis> analList;
 			if ( m_start != null ) {
-				analList = marmot.getDescendantAnalysisAll(m_start);
+				analList = initialContext.getDescendantAnalysisAll(m_start);
 			}
 			else {
-				analList = marmot.getAnalysisAll();
+				analList = initialContext.getAnalysisAll();
 			}
 			
 			if ( m_topLevel ) {
@@ -77,7 +77,7 @@ public class MarmotAnalysisCommands {
 	}
 
 	@Command(name="run", description="run MarmotAnalysis")
-	public static class Run extends SubCommand<MarmotRuntime> {
+	public static class Run extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", arity = "1..1", description={"analysis id"})
 		private String m_id;
 		
@@ -85,34 +85,34 @@ public class MarmotAnalysisCommands {
 		private boolean m_async;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			MarmotAnalysis analysis = marmot.getAnalysis(m_id);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			MarmotAnalysis analysis = initialContext.getAnalysis(m_id);
 			
 			if ( m_async ) {
-				MarmotExecution exec = marmot.startAnalysis(analysis);
+				MarmotExecution exec = initialContext.startAnalysis(analysis);
 				System.out.println(exec.getId());
 			}
 			else {
-				marmot.executeAnalysis(analysis);
+				initialContext.executeAnalysis(analysis);
 			}
 		}
 	}
 
 	@Command(name="show", description="show analysis")
-	public static class Show extends SubCommand<MarmotRuntime> {
+	public static class Show extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", arity = "1..1", description={"analysis id"})
 		private String m_id;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			MarmotAnalysis anal = marmot.getAnalysis(m_id);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			MarmotAnalysis anal = initialContext.getAnalysis(m_id);
 			if ( anal.getType() != Type.COMPOSITE ) {
 				System.out.println(anal);
 			}
 			else {
 				CompositeAnalysis comp = (CompositeAnalysis)anal;
 				try ( PrintWriter pw = new PrintWriter(System.out) ) {
-					showComponents(marmot, pw, comp, "");
+					showComponents(initialContext, pw, comp, "");
 				}
 			}
 		}
@@ -139,14 +139,14 @@ public class MarmotAnalysisCommands {
 				AddModule.class,
 				AddComposite.class
 			})
-	public static class Add extends SubCommand<MarmotRuntime> {
+	public static class Add extends PicocliSubCommand<MarmotRuntime> {
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			getCommandLine().usage(System.out, Ansi.OFF);
 		}
 	}
 	
-	private abstract static class AddCommand extends SubCommand<MarmotRuntime> {
+	private abstract static class AddCommand extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="id", index="0", description={"analysis id"})
 		private String m_id;
 		
@@ -156,8 +156,8 @@ public class MarmotAnalysisCommands {
 		abstract protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
-			add(marmot, m_id, m_force);
+		public void run(MarmotRuntime initialContext) throws Exception {
+			add(initialContext, m_id, m_force);
 		}
 		
 	}
@@ -223,7 +223,7 @@ public class MarmotAnalysisCommands {
 	}
 
 	@Command(name="delete", aliases= {"remove"}, description="delete analysis")
-	public static class Delete extends SubCommand<MarmotRuntime> {
+	public static class Delete extends PicocliSubCommand<MarmotRuntime> {
 		@Parameters(paramLabel="analysis_id (or directory-id)", arity = "1..1",
 					description={"analysis id to delete"})
 		private String m_id;
@@ -235,16 +235,16 @@ public class MarmotAnalysisCommands {
 		private boolean m_force;
 		
 		@Override
-		public void run(MarmotRuntime marmot) throws Exception {
+		public void run(MarmotRuntime initialContext) throws Exception {
 			if ( !m_force ) {
-				CompositeAnalysis parent = marmot.findParentAnalysis(m_id);
+				CompositeAnalysis parent = initialContext.findParentAnalysis(m_id);
 				if ( parent != null ) {
 					throw new IllegalStateException("some analysises refer to this: " + parent);
 				}
 			}
 			
 			try {
-				marmot.deleteAnalysis(m_id, m_recursive);
+				initialContext.deleteAnalysis(m_id, m_recursive);
 			}
 			catch ( Exception e ) {
 				System.err.println(e);

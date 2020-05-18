@@ -7,12 +7,12 @@ import java.util.UUID;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
-import marmot.command.UsageHelp;
 import marmot.dataset.DataSet;
 import marmot.dataset.GeometryColumnInfo;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+import utils.UsageHelp;
 import utils.func.CheckedConsumer;
 
 /**
