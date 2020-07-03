@@ -68,7 +68,8 @@ ext.joda_time_version = '2.10'
 ext.picocli_version = '3.9.6'
 ext.univocity_version = '2.8.1'
 ext.postgresql_version = '42.0.0'
-ext.postgis_jdbc_version = '2.1.0'
+//ext.postgis_jdbc_version = '2.1.0'
+ext.postgis_jdbc_version = '2.2.1'
 ext.mvel2_version = '2.4.0.Final'
 
 dependencies {
@@ -103,7 +104,8 @@ dependencies {
 	
 	// PostSQL
 //	compile "org.postgresql:postgresql:${postgresql_version}"
-	implementation "org.postgis:postgis-jdbc:${postgis_jdbc_version}"
+//	implementation "org.postgis:postgis-jdbc:${postgis_jdbc_version}"
+	implementation "net.postgis:postgis-jdbc:${postgis_jdbc_version}"
 	
 	// Joda-Time
 	implementation "joda-time:joda-time:${joda_time_version}"
