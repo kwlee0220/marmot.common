@@ -11,6 +11,7 @@ import com.google.common.collect.Maps;
 import marmot.support.DataUtils;
 import utils.CSV;
 import utils.io.IOUtils;
+import utils.io.Serializables;
 import utils.stream.FStream;
 
 /**
@@ -89,7 +90,7 @@ public class KMeansParameters {
 	public List<FeatureVector> initialCentroids() {
 		try {
 			String encoded = m_params.get(INIT_CENTROIDS);
-			return (List<FeatureVector>)IOUtils.deserialize(IOUtils.destringify(encoded));
+			return (List<FeatureVector>)Serializables.deserialize(IOUtils.destringify(encoded));
 		}
 		catch ( Exception e ) {
 			throw new RuntimeException(e);
@@ -97,7 +98,7 @@ public class KMeansParameters {
 	}
 	public void initialCentroids(List<FeatureVector> centroids) {
 		try {
-			String str = IOUtils.stringify(IOUtils.serialize(Lists.newArrayList(centroids)));
+			String str = IOUtils.stringify(Serializables.serialize(Lists.newArrayList(centroids)));
 			m_params.put(INIT_CENTROIDS, str);
 		}
 		catch ( IOException e ) {

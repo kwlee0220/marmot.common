@@ -78,6 +78,7 @@ import utils.func.CheckedSupplier;
 import utils.func.FOption;
 import utils.func.KeyValue;
 import utils.io.IOUtils;
+import utils.io.Serializables;
 import utils.stream.FStream;
 import utils.stream.KVFStream;
 
@@ -136,7 +137,7 @@ public class PBUtils {
 	public static final SerializedProto serializeJava(Serializable obj) {
 		try {
 			JavaSerializedProto proto = JavaSerializedProto.newBuilder()
-										.setSerialized(ByteString.copyFrom(IOUtils.serialize(obj)))
+										.setSerialized(ByteString.copyFrom(Serializables.serialize(obj)))
 										.build();
 			return SerializedProto.newBuilder()
 									.setJava(proto)
@@ -172,7 +173,7 @@ public class PBUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T deserialize(JavaSerializedProto proto) {
 		try {
-			return (T)IOUtils.deserialize(proto.getSerialized().toByteArray());
+			return (T)Serializables.deserialize(proto.getSerialized().toByteArray());
 		}
 		catch ( Exception e ) {
 			Throwable cause = Throwables.unwrapThrowable(e);
