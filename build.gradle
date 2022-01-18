@@ -47,19 +47,15 @@ sourceSets {
 
 repositories {
     mavenLocal()
-	maven {
-		url "http://www.datanucleus.org/downloads/maven2/"
-	}
-	maven {
-		url "https://repo.osgeo.org/repository/release/"
-	}
+	maven { url "http://www.datanucleus.org/downloads/maven2/" }
+	maven { url "https://repo.osgeo.org/repository/release/" }
     mavenCentral()
 }
 
 ext {
 	grpc_version = '1.16.1'
 	protobuf_version = '3.5.1'
-	geotools_version = '25.3'
+	geotools_version = '26.1'
 	jts_version = '1.18.2'
 	commons_io_version = '2.11.0'
 	commons_csv_version = '1.5'
@@ -79,7 +75,7 @@ dependencies {
 	api project(':utilsx')
 	
 //	api "com.vividsolutions:jts:${jts_version}"
-	implementation "org.locationtech.jts:jts:${jts_version}"
+	api "org.locationtech.jts:jts:${jts_version}"
 	
 	// GeoTools, JTS, Proj4J
 	api	"org.geotools:gt-opengis:${geotools_version}"
