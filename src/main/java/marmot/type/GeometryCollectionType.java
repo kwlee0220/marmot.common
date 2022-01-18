@@ -1,8 +1,7 @@
 package marmot.type;
 
 import org.geotools.geometry.jts.Geometries;
-
-import com.vividsolutions.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.GeometryCollection;
 
 import marmot.geo.GeoClientUtils;
 

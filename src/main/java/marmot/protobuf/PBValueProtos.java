@@ -6,11 +6,12 @@ import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
+
 import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 
 import marmot.proto.DoubleArrayProto;
 import marmot.proto.FloatArrayProto;

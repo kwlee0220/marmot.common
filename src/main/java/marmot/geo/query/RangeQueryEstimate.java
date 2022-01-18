@@ -2,7 +2,7 @@ package marmot.geo.query;
 
 import java.util.List;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 
 import marmot.proto.service.RangeQueryEstimateProto;
 import marmot.proto.service.RangeQueryEstimateProto.ClusterEstimateProto;

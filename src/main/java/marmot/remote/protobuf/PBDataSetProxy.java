@@ -2,7 +2,7 @@ package marmot.remote.protobuf;
 
 import java.util.Set;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 
 import marmot.Plan;
 import marmot.PlanBuilder;

@@ -5,8 +5,9 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.List;
 
+import org.locationtech.jts.geom.Envelope;
+
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.proto.service.EstimateQuadKeysOptionsProto;
 import marmot.protobuf.PBUtils;

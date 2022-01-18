@@ -1,8 +1,7 @@
 package marmot.type;
 
 import org.geotools.geometry.jts.Geometries;
-
-import com.vividsolutions.jts.geom.MultiPoint;
+import org.locationtech.jts.geom.MultiPoint;
 
 import marmot.geo.GeoClientUtils;
 

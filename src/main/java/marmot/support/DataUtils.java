@@ -7,9 +7,8 @@ import java.time.ZoneId;
 import java.util.Date;
 
 import org.geotools.geometry.jts.Geometries;
-
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Geometry;
 
 import marmot.geo.GeoClientUtils;
 import marmot.type.DataType;

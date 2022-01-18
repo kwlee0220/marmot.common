@@ -7,8 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import org.locationtech.jts.geom.Point;
+
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Point;
 
 import marmot.Column;
 import marmot.Record;

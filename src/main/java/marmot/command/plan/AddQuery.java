@@ -1,6 +1,6 @@
 package marmot.command.plan;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 
 import marmot.MarmotRuntime;
 import marmot.PlanBuilder;

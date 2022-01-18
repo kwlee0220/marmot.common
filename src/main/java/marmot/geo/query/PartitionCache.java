@@ -28,7 +28,7 @@ import utils.fostore.FileObjectStore;
 import utils.func.FOption;
 import utils.func.Unchecked;
 import utils.io.IOUtils;
-import utils.io.Lz4Compressions;
+import utilsx.io.Lz4Compressions;
 
 
 /**

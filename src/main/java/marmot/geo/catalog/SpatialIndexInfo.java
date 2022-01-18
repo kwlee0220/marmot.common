@@ -5,7 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Objects;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 
 import marmot.dataset.GeometryColumnInfo;
 import marmot.proto.SpatialIndexInfoProto;

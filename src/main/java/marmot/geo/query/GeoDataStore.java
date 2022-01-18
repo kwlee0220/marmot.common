@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.locationtech.jts.geom.Envelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.UncheckedExecutionException;
-import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.MarmotRuntime;
 import marmot.MarmotRuntimeException;

@@ -3,9 +3,10 @@ package marmot.optor.geo;
 import java.util.Arrays;
 import java.util.List;
 
+import org.locationtech.jts.geom.Geometry;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
 
 import utils.UnitUtils;
 

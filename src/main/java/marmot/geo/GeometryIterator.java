@@ -3,8 +3,8 @@ package marmot.geo;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryCollection;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryCollection;
 
 /**
  * 

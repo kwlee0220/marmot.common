@@ -2,7 +2,7 @@ package marmot.dataset;
 
 import java.util.Set;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 
 import marmot.RecordSchema;
 import marmot.RecordSet;

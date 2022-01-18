@@ -1,10 +1,10 @@
 package marmot.type;
 
 import org.geotools.geometry.jts.Geometries;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.ParseException;
 
 import com.google.common.base.Preconditions;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.io.ParseException;
 
 import marmot.geo.GeoClientUtils;
 

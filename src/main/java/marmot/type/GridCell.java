@@ -2,8 +2,8 @@ package marmot.type;
 
 import java.util.Objects;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Envelope;
 
 import utils.Point2i;
 import utils.Size2d;

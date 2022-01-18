@@ -8,8 +8,9 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.locationtech.jts.geom.Envelope;
+
 import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.proto.service.ClusterSpatiallyOptionsProto;
 import marmot.protobuf.PBUtils;

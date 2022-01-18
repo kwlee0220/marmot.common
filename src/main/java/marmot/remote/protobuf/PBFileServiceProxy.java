@@ -26,7 +26,7 @@ import utils.StopWatch;
 import utils.Throwables;
 import utils.UnitUtils;
 import utils.func.FOption;
-import utils.io.Lz4Compressions;
+import utilsx.io.Lz4Compressions;
 
 /**
  * 

@@ -1,8 +1,7 @@
 package marmot.type;
 
 import org.geotools.geometry.jts.Geometries;
-
-import com.vividsolutions.jts.geom.MultiLineString;
+import org.locationtech.jts.geom.MultiLineString;
 
 import marmot.geo.GeoClientUtils;
 

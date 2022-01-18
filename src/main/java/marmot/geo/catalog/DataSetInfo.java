@@ -4,8 +4,9 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
+import org.locationtech.jts.geom.Envelope;
+
 import com.google.common.base.Preconditions;
-import com.vividsolutions.jts.geom.Envelope;
 
 import marmot.Column;
 import marmot.GRecordSchema;

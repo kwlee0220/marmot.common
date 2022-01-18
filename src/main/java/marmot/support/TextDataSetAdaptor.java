@@ -5,11 +5,10 @@ import static marmot.optor.AggregateFunction.ENVELOPE;
 
 import java.lang.reflect.Method;
 
+import org.locationtech.jts.geom.Envelope;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.vividsolutions.jts.geom.Envelope;
-import com.vividsolutions.jts.geom.Polygon;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;

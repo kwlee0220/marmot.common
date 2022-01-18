@@ -6,8 +6,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.locationtech.jts.geom.Envelope;
+
 import com.google.protobuf.ByteString;
-import com.vividsolutions.jts.geom.Envelope;
 
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
@@ -67,8 +68,8 @@ import marmot.protobuf.PBRecordProtos;
 import marmot.protobuf.PBUtils;
 import utils.Throwables;
 import utils.func.FOption;
-import utils.io.Lz4Compressions;
 import utils.stream.FStream;
+import utilsx.io.Lz4Compressions;
 
 /**
  * 

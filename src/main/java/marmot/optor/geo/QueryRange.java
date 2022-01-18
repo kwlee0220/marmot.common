@@ -2,7 +2,7 @@ package marmot.optor.geo;
 
 import javax.annotation.Nullable;
 
-import com.vividsolutions.jts.geom.Envelope;
+import org.locationtech.jts.geom.Envelope;
 
 import marmot.plan.PredicateOptions;
 import marmot.proto.optor.QueryRangeProto;

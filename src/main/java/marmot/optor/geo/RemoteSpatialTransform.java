@@ -1,7 +1,8 @@
 package marmot.optor.geo;
 
+import org.locationtech.jts.geom.Geometry;
+
 import com.google.common.base.Preconditions;
-import com.vividsolutions.jts.geom.Geometry;
 
 import marmot.type.DataType;
 
