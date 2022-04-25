@@ -7,6 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 
+import org.apache.commons.io.FilenameUtils;
+
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.RecordSchema;
@@ -15,7 +17,6 @@ import marmot.plan.STScriptPlanLoader;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import utils.PicocliSubCommand;
-import utils.io.FileUtils;
 
 /**
  * 
@@ -78,7 +79,7 @@ public class PlanCommands {
 	}
 	
 	private static Plan loadPlan(File file) throws FileNotFoundException, IOException {
-		String ext = FileUtils.getExtension(file).toLowerCase();
+		String ext = FilenameUtils.getExtension(file.getAbsolutePath()).toLowerCase();
 		switch ( ext ) {
 			case "json":
 			case "":

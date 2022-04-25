@@ -20,9 +20,9 @@ import utils.StopWatch;
 import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
 import utils.async.CancellableWork;
-import utils.async.ProgressiveExecution;
 import utils.func.FOption;
 import utils.func.Try;
+import utils.react.ProgressiveExecution;
 
 /**
  * 

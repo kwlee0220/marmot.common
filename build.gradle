@@ -53,6 +53,7 @@ repositories {
 }
 
 ext {
+	log4j_version = '1.2.17'
 	grpc_version = '1.16.1'
 	protobuf_version = '3.5.1'
 	geotools_version = '26.1'
@@ -60,13 +61,13 @@ ext {
 	commons_io_version = '2.11.0'
 	commons_csv_version = '1.5'
 	cglib_version = '3.3.0'
-	httpclient_version = '4.5.6'
 	joda_time_version = '2.10'
 	picocli_version = '3.9.6'
 	univocity_version = '2.8.1'
 	postgresql_version = '42.0.0'
 	postgis_jdbc_version = '2.2.1'
 	mvel2_version = '2.4.0.Final'
+	rxjava2_version = '2.2.21'
 }
 
 
@@ -74,7 +75,7 @@ dependencies {
 	api project(':utils')
 	api project(':utilsx')
 	
-//	api "com.vividsolutions:jts:${jts_version}"
+	api "log4j:log4j:${log4j_version}"
 	api "org.locationtech.jts:jts:${jts_version}"
 	
 	// GeoTools, JTS, Proj4J
@@ -85,17 +86,13 @@ dependencies {
 	api	"org.geotools:gt-epsg-hsql:${geotools_version}"
 	api "org.geotools:gt-shapefile:${geotools_version}"
 	api	"org.geotools:gt-geojson:${geotools_version}"
-	
-	implementation "org.mvel:mvel2:${mvel2_version}"
-
-	// Jackson
-//	compile "com.fasterxml.jackson.core:jackson-databind:2.6.5"
 
 	// Misc
 	implementation "commons-io:commons-io:${commons_io_version}"
 	implementation "org.apache.commons:commons-csv:${commons_csv_version}"
 	implementation "cglib:cglib:${cglib_version}"
-	api "org.apache.httpcomponents:httpclient:${httpclient_version}"
+	implementation "io.reactivex.rxjava2:rxjava:${rxjava2_version}"
+	implementation "org.mvel:mvel2:${mvel2_version}"
 	
 	// grpc
 	api "com.google.protobuf:protobuf-java:${protobuf_version}"
@@ -105,8 +102,6 @@ dependencies {
 	implementation "io.grpc:grpc-protobuf:${grpc_version}"
 	
 	// PostSQL
-//	compile "org.postgresql:postgresql:${postgresql_version}"
-//	implementation "org.postgis:postgis-jdbc:${postgis_jdbc_version}"
 	implementation "net.postgis:postgis-jdbc:${postgis_jdbc_version}"
 	
 	// Joda-Time

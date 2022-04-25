@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -114,7 +115,7 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	private CsvRecordSet loadFile(File file) {
 		try {
 			InputStream src = new FileInputStream(file);
-			String ext = FileUtils.getExtension(file);
+			String ext = FilenameUtils.getExtension(file.getAbsolutePath());
 			switch ( ext ) {
 				case "csv":
 					break;
