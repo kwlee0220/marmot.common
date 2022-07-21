@@ -46,14 +46,13 @@ sourceSets {
 }
 
 repositories {
-    mavenLocal()
+	mavenLocal()
 	maven { url "http://www.datanucleus.org/downloads/maven2/" }
 	maven { url "https://repo.osgeo.org/repository/release/" }
-    mavenCentral()
+	mavenCentral()
 }
 
 ext {
-	log4j_version = '1.2.17'
 	grpc_version = '1.16.1'
 	protobuf_version = '3.5.1'
 	geotools_version = '26.1'
@@ -75,7 +74,6 @@ dependencies {
 	api project(':utils')
 	api project(':utilsx')
 	
-	api "log4j:log4j:${log4j_version}"
 	api "org.locationtech.jts:jts:${jts_version}"
 	
 	// GeoTools, JTS, Proj4J
