@@ -18,17 +18,19 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalNotification;
 
-import marmot.MarmotRuntime;
-import marmot.RecordSet;
-import marmot.dataset.DataSet;
-import marmot.protobuf.PBRecordProtos;
 import utils.Utilities;
 import utils.fostore.FileObjectHandler;
 import utils.fostore.FileObjectStore;
 import utils.func.FOption;
 import utils.func.Unchecked;
+import utils.func.UncheckedConsumer;
 import utils.io.IOUtils;
 import utils.io.Lz4Compressions;
+
+import marmot.MarmotRuntime;
+import marmot.RecordSet;
+import marmot.dataset.DataSet;
+import marmot.protobuf.PBRecordProtos;
 
 
 /**
@@ -73,7 +75,7 @@ public class PartitionCache {
 		// 먼저 dsId를 사용해서 m_dsCache를 접근한다.
 		// 만일 일정기간동안 사용되지 않은 데이터세트의 파티션들이 m_fileCache에 있다면
 		// 이때 제거된다.
-		DataSet ds = Unchecked.getOrThrowRuntimeException(() -> m_dsCache.get(dsId));
+		DataSet ds = Unchecked.getOrRTE(() -> m_dsCache.get(dsId));
 		
 		PartitionKey key = new PartitionKey(dsId, quadKey);
 		FOption<InputStream> ois = m_fileCache.get(key);
@@ -128,7 +130,7 @@ public class PartitionCache {
 		s_logger.info("victim selected: dataset={}", dsId);
 		try {
 			m_fileCache.findFileObjectKeyAll(k -> k.m_dsId.equals(dsId))
-						.forEach(Unchecked.ignore(m_fileCache::remove));
+						.forEach(UncheckedConsumer.ignore(m_fileCache::remove));
 		}
 		catch ( IOException ignored ) { }
 	}

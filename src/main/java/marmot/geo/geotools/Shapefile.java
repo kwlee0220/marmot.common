@@ -17,15 +17,16 @@ import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.google.common.collect.Maps;
 
+import utils.func.Try;
+import utils.func.Unchecked;
+import utils.io.FileUtils;
+import utils.stream.FStream;
+
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
-import utils.func.Try;
-import utils.func.Unchecked;
-import utils.io.FileUtils;
-import utils.stream.FStream;
 
 /**
  * 
