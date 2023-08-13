@@ -14,6 +14,7 @@ import marmot.geo.GeoClientUtils;
 import marmot.type.DataType;
 import marmot.type.GeometryDataType;
 
+
 /**
  * 
  * @author Kang-Woo Lee (ETRI)
@@ -268,14 +269,14 @@ public class DataUtils {
 		return asBoolean(obj, false);
 	}
 	
-	public static Geometry asGeometry(Object obj) {
-		if ( obj instanceof Geometry ) {
-			return (Geometry)obj;
-		}
-		else {
-			throw new IllegalArgumentException("unsupport type conversion to Geometry: from=" + obj);
-		}
-	}
+//	public static Geometry asGeometry(Object obj) {
+//		if ( obj instanceof Geometry ) {
+//			return (Geometry)obj;
+//		}
+//		else {
+//			throw new IllegalArgumentException("unsupport type conversion to Geometry: from=" + obj);
+//		}
+//	}
 	
 	public static LocalDateTime asDatetime(Object obj) {
 		if ( obj instanceof LocalDateTime ) {

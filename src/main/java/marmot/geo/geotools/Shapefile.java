@@ -28,6 +28,7 @@ import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
 
+
 /**
  * 
  * @author Kang-Woo Lee (ETRI)

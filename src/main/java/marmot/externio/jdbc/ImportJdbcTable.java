@@ -6,6 +6,10 @@ import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Map;
 
+import utils.func.FOption;
+import utils.func.Funcs;
+import utils.jdbc.JdbcProcessor;
+
 import marmot.Column;
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -17,9 +21,6 @@ import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
 import marmot.support.MetaPlanLoader;
 import marmot.type.DataType;
-import utils.func.FOption;
-import utils.func.Funcs;
-import utils.jdbc.JdbcProcessor;
 
 
 /**
@@ -132,7 +133,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 		return schema.streamColumns()
 						.map(col -> {
 							DataType type = geomCols.get(col.name());
-							type = Funcs.getIfNotNull(type,  col.type());
+							type = Funcs.asNonNull(type,  col.type());
 							return new Column(col.name(), type);
 						})
 						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))

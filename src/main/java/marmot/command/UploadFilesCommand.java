@@ -2,14 +2,17 @@ package marmot.command;
 
 import java.io.File;
 
-import marmot.MarmotRuntime;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
+
 import utils.UnitUtils;
 import utils.UsageHelp;
 import utils.func.CheckedConsumer;
 import utils.func.Funcs;
+
+import marmot.MarmotRuntime;
+
 
 /**
  * 
@@ -37,8 +40,8 @@ public class UploadFilesCommand implements CheckedConsumer<MarmotRuntime> {
 	@Override
 	public void accept(MarmotRuntime marmot) throws Exception {
 		UploadFiles upload = new UploadFiles(marmot, new File(m_srcPath), m_destPath);
-		Funcs.when(m_glob != null, () -> upload.glob(m_glob));
-		Funcs.when(m_blockSize > 0, () -> upload.blockSize(m_blockSize));
+		Funcs.runIfNotNull(m_glob, () -> upload.glob(m_glob));
+		Funcs.runIf(m_blockSize > 0, () -> upload.blockSize(m_blockSize));
 		Funcs.acceptIfNotNull(m_codecName, upload::compressionCodecName);
 		upload.run();
 	}
