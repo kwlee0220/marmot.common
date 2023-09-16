@@ -27,7 +27,7 @@ import utils.async.Guard;
  */
 public class SuppliableInputStream extends InputStream {
 	private static final Logger s_logger = LoggerFactory.getLogger(SuppliableInputStream.class);
-	private static final long TIMEOUT = UnitUtils.parseDuration("10s");
+	private static final long TIMEOUT = UnitUtils.parseDurationMillis("10s");
 	
 	private final int m_chunkQLength;
 	

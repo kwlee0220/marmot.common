@@ -57,7 +57,7 @@ public class MarmotExecutionCommands {
 		@Override
 		public void run(MarmotRuntime initialContext) throws Exception {
 			if ( m_recurPeriod != null ) {
-				long period = UnitUtils.parseDuration(m_recurPeriod);
+				long period = UnitUtils.parseDurationMillis(m_recurPeriod);
 				ScheduledExecutorService exector = Executors.newSingleThreadScheduledExecutor();
 				exector.scheduleAtFixedRate(()-> {
 					show(initialContext);
@@ -72,7 +72,7 @@ public class MarmotExecutionCommands {
 		private void show(MarmotRuntime marmot) {
 			List<MarmotExecution> execList = marmot.getMarmotExecutionAll();
 			if ( m_timeSpanStr != null ) {
-				long dur = UnitUtils.parseDuration(m_timeSpanStr);
+				long dur = UnitUtils.parseDurationMillis(m_timeSpanStr);
 				long now = System.currentTimeMillis();
 				execList = FStream.from(execList)
 									.filter(exec -> exec.isRunning() || (now - exec.getFinishedTime()) < dur)
