@@ -1,11 +1,13 @@
 package marmot.rset;
 
-import io.reactivex.Observer;
-import io.reactivex.subjects.BehaviorSubject;
+import utils.Utilities;
+
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
-import utils.Utilities;
+
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 
 /**

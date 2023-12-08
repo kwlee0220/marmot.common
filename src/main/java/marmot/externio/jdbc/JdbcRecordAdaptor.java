@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.locationtech.jts.geom.Geometry;
@@ -20,17 +19,18 @@ import org.locationtech.jts.io.ParseException;
 
 import com.google.common.collect.Maps;
 
+import utils.LocalDateTimes;
+import utils.LocalDates;
+import utils.LocalTimes;
+import utils.jdbc.JdbcProcessor;
+import utils.stream.KVFStream;
+
 import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.geo.GeoClientUtils;
 import marmot.type.DataType;
-import utils.LocalDateTimes;
-import utils.LocalDates;
-import utils.LocalTimes;
-import utils.jdbc.JdbcProcessor;
-import utils.stream.KVFStream;
 
 
 /**
@@ -94,13 +94,7 @@ public abstract class JdbcRecordAdaptor {
 								.append(prmKeyStr)
 								.append(")")
 								.toString();
-
-		try {
-			jdbc.execute(stmt -> stmt.executeUpdate(sqlStr));
-		}
-		catch ( ExecutionException e ) {
-			throw (SQLException)e.getCause();
-		}
+		jdbc.executeQuery(sqlStr);
 	}
 	
 	public void loadRecord(ResultSet rs, Record record) throws RecordSetException {

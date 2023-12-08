@@ -68,7 +68,7 @@ ext {
 	postgresql_version = '42.0.0'
 	postgis_jdbc_version = '2.2.1'
 	mvel2_version = '2.4.0.Final'
-	rxjava2_version = '2.2.21'
+	rxjava3_version = '3.1.8'
 }
 
 
@@ -91,7 +91,7 @@ dependencies {
 	implementation "commons-io:commons-io:${commons_io_version}"
 	implementation "org.apache.commons:commons-csv:${commons_csv_version}"
 	implementation "cglib:cglib:${cglib_version}"
-	implementation "io.reactivex.rxjava2:rxjava:${rxjava2_version}"
+	implementation "io.reactivex.rxjava3:rxjava:${rxjava3_version}"
 	implementation "org.mvel:mvel2:${mvel2_version}"
 	
 	// grpc

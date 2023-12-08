@@ -3,8 +3,11 @@ package marmot.externio.csv;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
-import io.reactivex.Observable;
-import io.reactivex.subjects.BehaviorSubject;
+import utils.Utilities;
+import utils.func.FOption;
+import utils.func.Tuple;
+import utils.rx.ProgressReporter;
+
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
@@ -12,10 +15,9 @@ import marmot.RecordSet;
 import marmot.dataset.DataSet;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.type.DataType;
-import utils.Utilities;
-import utils.func.FOption;
-import utils.func.Tuple;
-import utils.react.ProgressReporter;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 
 /**
