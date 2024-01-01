@@ -23,14 +23,14 @@ public class SystemAnalysis extends MarmotAnalysis {
 	
 	public static Set<String> getSystemAnalysisClassIdAll() {
 		return FStream.of(SystemAnalysis.class.getMethods())
-					.flatMapOption(m -> FOption.ofNullable(m.getAnnotation(SystemAnalysisDef.class)))
+					.flatMapFOption(m -> FOption.ofNullable(m.getAnnotation(SystemAnalysisDef.class)))
 					.map(SystemAnalysisDef::id)
 					.toSet();
 	}
 	
 	public static List<String> getSystemParameterNameAll(String id) {
 		return FStream.of(SystemAnalysis.class.getMethods())
-					.flatMapOption(m -> FOption.ofNullable(m.getAnnotation(SystemAnalysisDef.class)))
+					.flatMapFOption(m -> FOption.ofNullable(m.getAnnotation(SystemAnalysisDef.class)))
 					.filter(def -> def.id().equals(id))
 					.flatMapArray(def -> def.parameters())
 					.toList();

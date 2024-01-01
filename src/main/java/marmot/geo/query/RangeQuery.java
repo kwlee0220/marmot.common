@@ -12,19 +12,21 @@ import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import utils.StopWatch;
+import utils.Utilities;
+import utils.async.AbstractThreadedExecution;
+import utils.async.CancellableWork;
+import utils.async.Executions;
+import utils.async.StartableExecution;
+import utils.async.op.AsyncExecutions;
+import utils.func.Try;
+import utils.stream.FStream;
+
 import marmot.Record;
 import marmot.RecordSet;
 import marmot.dataset.DataSet;
 import marmot.geo.GeoClientUtils;
 import marmot.geo.query.RangeQueryEstimate.ClusterEstimate;
-import utils.StopWatch;
-import utils.Utilities;
-import utils.async.AbstractThreadedExecution;
-import utils.async.CancellableWork;
-import utils.async.StartableExecution;
-import utils.async.op.AsyncExecutions;
-import utils.func.Try;
-import utils.stream.FStream;
 
 
 /**
@@ -101,7 +103,7 @@ public class RangeQuery {
 									est.getMatchCount(), sampleRatio);
 		if ( cost > m_maxLocalCacheCost ) {
 			if ( m_usePrefetch ) {
-				StartableExecution<RecordSet> fg = AsyncExecutions.from(() -> queryAtServer(msg));
+				StartableExecution<RecordSet> fg = Executions.supplyAsync(() -> queryAtServer(msg));
 				StartableExecution<?> bg = forkClusterPrefetcher(est);
 				StartableExecution<RecordSet> exec = AsyncExecutions.backgrounded(fg, bg);
 				exec.start();
@@ -191,7 +193,7 @@ public class RangeQuery {
 
 		@Override
 		public boolean cancelWork() {
-			CompletableFuture.runAsync(() -> Try.run(() -> pollInfinite()));
+			CompletableFuture.runAsync(() -> Try.run(() -> waitForDone()));
 			
 			return true;
 		}

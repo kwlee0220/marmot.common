@@ -160,7 +160,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		Utilities.checkNotNullArgument(key, "name list is null");
 		
 		return FStream.from(key)
-					.flatMapOption(this::findColumn)
+					.flatMapFOption(this::findColumn)
 					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 					.build();
 	}
