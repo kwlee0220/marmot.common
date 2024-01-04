@@ -193,7 +193,7 @@ public class RangeQuery {
 
 		@Override
 		public boolean cancelWork() {
-			CompletableFuture.runAsync(() -> Try.run(() -> waitForDone()));
+			CompletableFuture.runAsync(() -> Try.run(() -> waitForFinished()));
 			
 			return true;
 		}
