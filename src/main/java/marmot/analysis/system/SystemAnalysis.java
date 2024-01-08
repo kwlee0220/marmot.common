@@ -5,13 +5,14 @@ import java.util.Set;
 
 import com.google.common.collect.Lists;
 
+import utils.Utilities;
+import utils.func.FOption;
+import utils.stream.FStream;
+
 import marmot.exec.MarmotAnalysis;
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
 import marmot.proto.service.MarmotAnalysisProto.SystemExecProto;
-import utils.Utilities;
-import utils.func.FOption;
-import utils.stream.FStream;
 
 /**
  * 
@@ -32,7 +33,7 @@ public class SystemAnalysis extends MarmotAnalysis {
 		return FStream.of(SystemAnalysis.class.getMethods())
 					.flatMapFOption(m -> FOption.ofNullable(m.getAnnotation(SystemAnalysisDef.class)))
 					.filter(def -> def.id().equals(id))
-					.flatMapArray(def -> def.parameters())
+					.flatMap(def -> FStream.of(def.parameters()))
 					.toList();
 	}
 

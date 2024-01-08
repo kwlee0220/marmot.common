@@ -20,6 +20,7 @@ import utils.async.Executions;
 import utils.async.StartableExecution;
 import utils.async.op.AsyncExecutions;
 import utils.func.Try;
+import utils.stream.AsyncExecutionOptions;
 import utils.stream.FStream;
 
 import marmot.Record;
@@ -132,7 +133,7 @@ public class RangeQuery {
 									.andThen(d -> d.getOrElse(FStream.empty()));
 		FStream<Record> recStream = FStream.from(est.getClusterEstimates())
 											.map(ClusterEstimate::getQuadKey)
-											.flatMapParallel(loader, 3);
+											.flatMapAsync(loader, AsyncExecutionOptions.WORKER_COUNT(3));
 		
 		return RecordSet.from(m_ds.getRecordSchema(), recStream);
 	}

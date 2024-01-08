@@ -8,6 +8,9 @@ import java.util.Set;
 
 import org.locationtech.jts.geom.Geometry;
 
+import utils.func.FOption;
+import utils.stream.FStream;
+
 import marmot.dataset.DataSet;
 import marmot.dataset.DataSetExistsException;
 import marmot.dataset.DataSetNotFoundException;
@@ -21,8 +24,6 @@ import marmot.exec.MarmotExecutionException;
 import marmot.exec.PlanAnalysis;
 import marmot.io.MarmotFileNotFoundException;
 import marmot.optor.CreateDataSetOptions;
-import utils.func.FOption;
-import utils.stream.FStream;
 
 /**
  * 
@@ -226,7 +227,7 @@ public interface MarmotRuntime {
 		List<MarmotAnalysis> analList = getAnalysisAll();
 		Set<String> subCompList = FStream.from(analList)
 										.castSafely(CompositeAnalysis.class)
-										.flatMapIterable(c -> c.getComponents())
+										.flatMap(c -> FStream.from(c.getComponents()))
 										.toSet();
 		return FStream.from(analList)
 							.filter(a -> !subCompList.contains(a.getId()))
