@@ -16,10 +16,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
-import marmot.proto.ColumnProto;
-import marmot.proto.RecordSchemaProto;
-import marmot.support.PBSerializable;
-import marmot.type.DataType;
 import utils.CIString;
 import utils.CSV;
 import utils.Utilities;
@@ -28,6 +24,11 @@ import utils.func.Tuple;
 import utils.stream.FStream;
 import utils.stream.IntFStream;
 import utils.stream.KVFStream;
+
+import marmot.proto.ColumnProto;
+import marmot.proto.RecordSchemaProto;
+import marmot.support.PBSerializable;
+import marmot.type.DataType;
 
 
 /**
@@ -146,7 +147,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		
 		return FStream.of(schemas)
 					.flatMap(s -> FStream.of(s.m_columns))
-					.foldLeft(builder(), (b,c) -> b.addColumn(c))
+					.fold(builder(), (b,c) -> b.addColumn(c))
 					.build();
 	}
 
@@ -161,7 +162,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		
 		return FStream.from(key)
 					.flatMapFOption(this::findColumn)
-					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+					.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 					.build();
 	}
 	public RecordSchema project(int... colIdxes) {
@@ -169,7 +170,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		
 		return IntFStream.of(colIdxes)
 						.map(this::getColumnAt)
-						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
 	}
 	
@@ -186,7 +187,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		Set<CIString> names = FStream.from(key).map(CIString::of).toSet();
 		return FStream.of(m_columns)
 						.filter(c -> !names.contains(c.ciName()))
-						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
 	}
 	public RecordSchema complement(String... cols) {
@@ -198,7 +199,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 						.zipWithIndex()
 						.filter(t -> !idxes.contains(t._2))
 						.map(Tuple::_1)
-						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
 	}
 
@@ -207,7 +208,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		
 		return FStream.from(proto.getColumnsList())
 					.map(Column::fromProto)
-					.foldLeft(RecordSchema.builder(),
+					.fold(RecordSchema.builder(),
 								(b,c)->b.addColumn(c.name(),c.type()))
 					.build();
 	}
@@ -240,7 +241,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	public static RecordSchema parse(String schemaStr) {
 		return CSV.parseCsv(schemaStr)
 					.map(Column::parse)
-					.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+					.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 					.build();
 	}
 	
@@ -278,7 +279,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	public Builder toBuilder() {
 		// 별도 다시 생성하여 사용하지 않으면, column 객체의 공유로 인해
 		// 문제가 발생할 수 있음.
-		return FStream.of(m_columns).foldLeft(builder(), (b,c) -> b.addColumn(c));
+		return FStream.of(m_columns).fold(builder(), (b,c) -> b.addColumn(c));
 	}
 
 	public static Builder builder() {

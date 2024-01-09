@@ -112,7 +112,7 @@ public class Interval implements Serializable {
 								.toList();
 			clusters.removeAll(neighbors);
 			Interval merged = FStream.from(neighbors)
-									.foldLeft(intvl, (i,c) -> Interval.merge(i, c));
+									.fold(intvl, (i,c) -> Interval.merge(i, c));
 			clusters.add(merged);
 		}
 		

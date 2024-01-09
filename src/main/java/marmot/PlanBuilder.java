@@ -887,7 +887,7 @@ public class PlanBuilder {
 		ValueAggregateReducersProto varp
 							= FStream.from(aggrFuncs)
 									.map(AggregateFunction::toProto)
-									.foldLeft(ValueAggregateReducersProto.newBuilder(),
+									.fold(ValueAggregateReducersProto.newBuilder(),
 												(builder,aggr) -> builder.addAggregate(aggr))
 									.build();
 		ReducerProto reducer = ReducerProto.newBuilder()
@@ -940,7 +940,7 @@ public class PlanBuilder {
 		
 		ValueAggregateReducersProto varp = FStream.from(aggrs)
 													.map(AggregateFunction::toProto)
-													.foldLeft(ValueAggregateReducersProto.newBuilder(),
+													.fold(ValueAggregateReducersProto.newBuilder(),
 																(b,f) -> b.addAggregate(f))
 													.build();
 		ReducerProto reducer = ReducerProto.newBuilder()
@@ -2357,7 +2357,7 @@ public class PlanBuilder {
 		
 		ValueAggregateReducersProto reducer = FStream.of(aggrFuncs)
 												.map(AggregateFunction::toProto)
-												.foldLeft(ValueAggregateReducersProto.newBuilder(),
+												.fold(ValueAggregateReducersProto.newBuilder(),
 															(b,a) -> b.addAggregate(a))
 												.build();
 		SpatialReduceJoinProto join = SpatialReduceJoinProto.newBuilder()

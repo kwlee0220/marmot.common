@@ -65,7 +65,6 @@ public class LoadJdbcParameters extends JdbcParameters {
 		Map<String,DataType> geomCols = CSV.parseCsv(cols, ',')
 											.map(decl -> LazySplitter.parseKeyValue(decl, ':'))
 											.toKeyValueStream(kv -> kv)
-//											.toKeyValueStream(KeyValue::key, KeyValue::value)
 											.mapValue(DataTypes::fromName)
 											.toMap();
 		m_geomCols = FOption.of(geomCols);

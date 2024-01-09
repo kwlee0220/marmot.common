@@ -49,7 +49,7 @@ public class RecordProjector {
 		m_colIdxes = colIdxes;
 		m_outputSchema = IntFStream.of(colIdxes)
 									.mapToObj(inputSchema::getColumnAt)
-									.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+									.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 									.build();
 		m_values = new Object[m_colIdxes.length];
 	}

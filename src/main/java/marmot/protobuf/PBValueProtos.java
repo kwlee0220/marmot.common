@@ -13,6 +13,14 @@ import org.locationtech.jts.geom.Point;
 import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
 
+import utils.LocalDateTimes;
+import utils.LocalTimes;
+import utils.Utilities;
+import utils.func.Tuple;
+import utils.stream.DoubleFStream;
+import utils.stream.FStream;
+import utils.stream.FloatFStream;
+
 import marmot.proto.DoubleArrayProto;
 import marmot.proto.FloatArrayProto;
 import marmot.proto.GridCellProto;
@@ -30,13 +38,6 @@ import marmot.type.Interval;
 import marmot.type.MapTile;
 import marmot.type.Trajectory;
 import marmot.type.TypeCode;
-import utils.LocalDateTimes;
-import utils.LocalTimes;
-import utils.Utilities;
-import utils.func.Tuple;
-import utils.stream.DoubleFStream;
-import utils.stream.FStream;
-import utils.stream.FloatFStream;
 
 /**
  * 
@@ -131,13 +132,13 @@ public class PBValueProtos {
 				break;
 			case DOUBLE_ARRAY:
 				DoubleArrayProto darray = DoubleFStream.of((Double[])obj)
-									.foldLeft(DoubleArrayProto.newBuilder(), (b,v) -> b.addElement(v))
+									.fold(DoubleArrayProto.newBuilder(), (b,v) -> b.addElement(v))
 									.build();
 				builder.setDoubleArray(darray);
 				break;
 			case FLOAT_ARRAY:
 				FloatArrayProto floatArray = FloatFStream.of((Float[])obj)
-									.foldLeft(FloatArrayProto.newBuilder(), (b,v) -> b.addElement(v))
+									.fold(FloatArrayProto.newBuilder(), (b,v) -> b.addElement(v))
 									.build();
 				builder.setFloatArray(floatArray);
 				break;
@@ -371,7 +372,7 @@ public class PBValueProtos {
 
 	public static Map<String,String> fromProto(PropertiesProto proto) {
 		return FStream.from(proto.getPropertyList())
-				.foldLeft(Maps.newHashMap(), (map,kv) -> {
+				.fold(Maps.newHashMap(), (map,kv) -> {
 					map.put(kv.getKey(), kv.getValue());
 					return map;
 				});

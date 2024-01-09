@@ -12,13 +12,14 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.TextFormat;
 import com.google.protobuf.util.JsonFormat;
 
+import utils.func.FOption;
+import utils.io.IOUtils;
+import utils.stream.FStream;
+
 import marmot.proto.optor.OperatorProto;
 import marmot.proto.optor.PlanProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
-import utils.func.FOption;
-import utils.io.IOUtils;
-import utils.stream.FStream;
 
 /**
  * 
@@ -109,7 +110,7 @@ public class Plan implements PBSerializable<PlanProto> {
 	
 	public PlanBuilder toBuilder() {
 		return FStream.from(m_proto.getOperatorsList())
-					.foldLeft(new PlanBuilder(getName()), (b,o) -> b.add(o));
+						.fold(new PlanBuilder(getName()), (b,o) -> b.add(o));
 	}
 	
 	public void save(File file) throws IOException {
@@ -136,9 +137,9 @@ public class Plan implements PBSerializable<PlanProto> {
 		PlanBuilder builder = new PlanBuilder(plan1.getName());
 		
 		FStream.from(plan1.m_proto.getOperatorsList())
-				.foldLeft(builder, (b,o) -> b.add(o));
+				.fold(builder, (b,o) -> b.add(o));
 		FStream.from(plan2.m_proto.getOperatorsList())
-				.foldLeft(builder, (b,o) -> b.add(o));
+				.fold(builder, (b,o) -> b.add(o));
 		
 		return builder.build();
 	}
@@ -153,7 +154,7 @@ public class Plan implements PBSerializable<PlanProto> {
 			case STORE_DATASET:
 				return FStream.from(toProto().getOperatorsList())
 							.dropLast(1)
-							.foldLeft(Plan.builder(getName()), (b,o) -> b.add(o))
+							.fold(Plan.builder(getName()), (b,o) -> b.add(o))
 							.build();
 			default:
 				return this;

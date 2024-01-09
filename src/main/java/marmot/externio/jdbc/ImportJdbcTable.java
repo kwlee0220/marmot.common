@@ -136,7 +136,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 							type = Funcs.asNonNull(type,  col.type());
 							return new Column(col.name(), type);
 						})
-						.foldLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 						.build();
 	}
 }

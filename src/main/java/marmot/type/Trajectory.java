@@ -122,7 +122,7 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 	public TrajectoryProto toProto() {
 		return FStream.from(m_samples)
 					.map(Sample::toProto)
-					.foldLeft(TrajectoryProto.newBuilder(), (b,s) -> b.addSample(s))
+					.fold(TrajectoryProto.newBuilder(), (b,s) -> b.addSample(s))
 					.build();
 	}
 	

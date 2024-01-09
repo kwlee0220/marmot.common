@@ -320,7 +320,7 @@ public class RecordSets {
 									return c;
 								}
 							})
-							.collectLeft(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+							.collect(RecordSchema.builder(), (b,c) -> b.addColumn(c))
 							.build();
 		}
 

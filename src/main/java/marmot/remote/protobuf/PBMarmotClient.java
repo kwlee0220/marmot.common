@@ -135,7 +135,7 @@ public class PBMarmotClient implements MarmotRuntime {
 				List<OperatorProto> optors = plan.toProto().getOperatorsList();
 				optors.remove(optors.size()-1);
 				builder = FStream.from(optors)
-								.foldLeft(Plan.builder(plan.getName()), (b,o) -> b.add(o));
+								.fold(Plan.builder(plan.getName()), (b,o) -> b.add(o));
 				break;
 			default:
 				builder = plan.toBuilder();

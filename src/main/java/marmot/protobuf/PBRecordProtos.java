@@ -232,7 +232,7 @@ public class PBRecordProtos {
 	public static RecordProto toProto(Object[] values) {
 		return FStream.of(values)
 						.map(PBValueProtos::toValueProto)
-						.foldLeft(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
+						.fold(RecordProto.newBuilder(), (b,p) -> b.addColumn(p))
 						.build();
 	}
 	
