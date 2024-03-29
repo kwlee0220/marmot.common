@@ -94,7 +94,7 @@ public abstract class JdbcRecordAdaptor {
 								.append(prmKeyStr)
 								.append(")")
 								.toString();
-		jdbc.executeQuery(sqlStr);
+		jdbc.executeUpdate(sqlStr);
 	}
 	
 	public void loadRecord(ResultSet rs, Record record) throws RecordSetException {

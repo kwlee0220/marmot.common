@@ -10,6 +10,9 @@ import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import utils.CallHandler;
+import utils.ProxyUtils;
+
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.Record;
@@ -18,9 +21,8 @@ import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.geo.catalog.SpatialIndexInfo;
 import marmot.geo.query.GeoDataStore;
+
 import net.sf.cglib.proxy.MethodProxy;
-import utils.CallHandler;
-import utils.ProxyUtils;
 
 /**
  * 
@@ -114,7 +116,7 @@ public class TextDataSetAdaptor {
 		}
 	}
 	
-	private static class GetRecordCount implements CallHandler<DataSet> {
+	private static class GetRecordCount implements CallHandler {
 		private final Statistics m_stat;
 		
 		GetRecordCount(Statistics stat) {
@@ -127,17 +129,17 @@ public class TextDataSetAdaptor {
 		}
 
 		@Override
-		public Object intercept(DataSet ds, Method method, Object[] args, MethodProxy proxy)
+		public Object intercept(Object ds, Method method, Object[] args, MethodProxy proxy)
 			throws Throwable {
 			if ( m_stat.m_count < 0 ) {
-				m_stat.load(ds);
+				m_stat.load((DataSet)ds);
 			}
 			
 			return m_stat.m_count;
 		}
 	}
 	
-	private static class GetBounds implements CallHandler<DataSet> {
+	private static class GetBounds implements CallHandler {
 		private final Statistics m_stat;
 		
 		GetBounds(Statistics stat) {
@@ -150,10 +152,10 @@ public class TextDataSetAdaptor {
 		}
 
 		@Override
-		public Object intercept(DataSet ds, Method method, Object[] args, MethodProxy proxy)
+		public Object intercept(Object ds, Method method, Object[] args, MethodProxy proxy)
 			throws Throwable {
 			if ( m_stat.m_bounds == null ) {
-				m_stat.load(ds);
+				m_stat.load((DataSet)ds);
 			}
 			
 			return m_stat.m_bounds;

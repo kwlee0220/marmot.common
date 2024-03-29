@@ -8,7 +8,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +21,9 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalNotification;
 
 import utils.Utilities;
+import utils.fostore.DefaultFileObjectStore;
 import utils.fostore.FileObjectHandler;
 import utils.fostore.FileObjectStore;
-import utils.func.FOption;
 import utils.func.Unchecked;
 import utils.func.UncheckedConsumer;
 import utils.io.IOUtils;
@@ -48,7 +50,7 @@ public class PartitionCache {
 		throws IOException {
 		s_logger.info("use dataset_partition_cache: {}", storeRoot);
 		
-		m_fileCache = new FileObjectStore<>(storeRoot, new ParitionFileHandler(storeRoot));
+		m_fileCache = new DefaultFileObjectStore<>(storeRoot, new ParitionFileHandler(storeRoot));
 		m_dsCache = CacheBuilder.newBuilder()
 								.expireAfterAccess(expireSecs, SECONDS)
 								.removalListener(this::onDataSetRemoved)
@@ -77,20 +79,25 @@ public class PartitionCache {
 		// 이때 제거된다.
 		DataSet ds = Unchecked.getOrRTE(() -> m_dsCache.get(dsId));
 		
-		PartitionKey key = new PartitionKey(dsId, quadKey);
-		FOption<InputStream> ois = m_fileCache.get(key);
-		if ( ois.isPresent() ) {	// cache에 해당 파티션이 존재하는 경
-			is = ois.getUnchecked();
-		}
-		else {	// cache에 파티션이 존재하지 않는 경우
-			RecordSet cluster = ds.readSpatialCluster(quadKey);
+		try {
+			PartitionKey key = new PartitionKey(dsId, quadKey);
+			Optional<InputStream> ois = m_fileCache.get(key);
+			if ( ois.isPresent() ) {	// cache에 해당 파티션이 존재하는 경
+				is = ois.get();
+			}
+			else {	// cache에 파티션이 존재하지 않는 경우
+				RecordSet cluster = ds.readSpatialCluster(quadKey);
+				
+				File file = writeIntoCache(key, cluster);
+				is = new FileInputStream(file);
+			}
 			
-			File file = writeIntoCache(key, cluster);
-			is = new FileInputStream(file);
+			is = Lz4Compressions.decompress(is);
+			return PBRecordProtos.readRecordSet(is);
 		}
-		
-		is = Lz4Compressions.decompress(is);
-		return PBRecordProtos.readRecordSet(is);
+		catch ( ExecutionException unexpected ) {
+			throw new AssertionError();
+		}
 	}
 	
 	public void put(String dsId, String quadKey, RecordSet rset)
@@ -117,7 +124,10 @@ public class PartitionCache {
 		InputStream is = PBRecordProtos.toInputStream(rset); 
 		try {
 			is = Lz4Compressions.compress(is);
-			return m_fileCache.insert(key, is);
+			return m_fileCache.insert(key, is).get();
+		}
+		catch ( Exception unexpected ) {
+			throw new AssertionError();
 		}
 		finally {
 			is.close();

@@ -63,7 +63,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 			String sql = sqlBuilder.toString();
 			ResultSet rs = ( m_jdbcParams.fetchSize() > 0 )
 						? jdbc.executeQuery(sql, stmt -> stmt.setFetchSize(m_jdbcParams.fetchSize()))
-						: jdbc.executeQuery(sql);
+						: jdbc.executeQuery(sql, true);
 			return new JdbcRecordSet(adaptor, rs);
 			
 		}
@@ -104,17 +104,18 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 	private RecordSchema buildRecordSchemaFromSelectExpr(JdbcProcessor jdbc, String tblName,
 														String selectExpr) throws SQLException {
 		String sql = String.format("select %s from %s limit 1", selectExpr, tblName);
-		ResultSet rs = jdbc.executeQuery(sql);
-		ResultSetMetaData meta = rs.getMetaData();
-		
-		RecordSchema.Builder builder = RecordSchema.builder();
-		for ( int i =1; i <= meta.getColumnCount(); ++i ) {
-			DataType type = JdbcRecordAdaptor.fromSqlType(meta.getColumnType(i),
-														meta.getColumnName(i));
-			builder.addColumn(meta.getColumnLabel(i), type);
+		try ( ResultSet rs = jdbc.executeQuery(sql, false) ) {
+			ResultSetMetaData meta = rs.getMetaData();
+			
+			RecordSchema.Builder builder = RecordSchema.builder();
+			for ( int i =1; i <= meta.getColumnCount(); ++i ) {
+				DataType type = JdbcRecordAdaptor.fromSqlType(meta.getColumnType(i),
+															meta.getColumnName(i));
+				builder.addColumn(meta.getColumnLabel(i), type);
+			}
+			
+			return builder.build();
 		}
-		
-		return builder.build();
 	}
 	
 	private RecordSchema buildRecordSchema(MarmotRuntime marmot, JdbcProcessor jdbc)
