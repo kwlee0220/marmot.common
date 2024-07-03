@@ -1,7 +1,6 @@
 rootProject.name = 'marmot.common'
 
-ext.common_dir = "../../common"
-['utils', 'utilsx'].each {
-	include ":$it"
-	project(":$it").projectDir = file("$common_dir/$it")
-}
+include ":utils"
+project(':utils').projectDir = file('../../common/utils')
+include ":utilsx"
+project(':utilsx').projectDir = file('../../common/utilsx')

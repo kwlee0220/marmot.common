@@ -7,7 +7,7 @@ plugins {
 group = 'etri'
 version = '20.02.12'
 
-sourceCompatibility = '17'
+sourceCompatibility = '11'
 targetCompatibility = '11'
 [compileJava,compileTestJava]*.options*.encoding = 'UTF-8'
 
@@ -62,6 +62,8 @@ ext {
 	protobuf_version = '3.25.2'
 //	grpc_version = '1.16.1'
 //	protobuf_version = '3.5.1'
+
+	picocli_version = '3.9.6'
 	
 	geotools_version = '26.1'
 	jts_version = '1.18.2'
@@ -83,6 +85,9 @@ dependencies {
 
 	// Logback with SLF4j
 	implementation "ch.qos.logback:logback-classic:${logback_version}"
+	
+	// command line parser
+	implementation "info.picocli:picocli:${picocli_version}"
 	
 	api "org.locationtech.jts:jts:${jts_version}"
 	
