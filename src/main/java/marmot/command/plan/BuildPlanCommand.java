@@ -4,6 +4,9 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 
+import utils.PicocliSubCommand;
+import utils.func.Funcs;
+
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
@@ -28,12 +31,11 @@ import marmot.command.plan.SpatialCommands.AddTransformCrs;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.optor.AggregateFunction;
 import marmot.optor.StoreDataSetOptions;
+
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import utils.PicocliSubCommand;
-import utils.func.Funcs;
 
 /**
  * 
@@ -215,9 +217,9 @@ public class BuildPlanCommand extends PicocliSubCommand<MarmotRuntime> {
 				opts = opts.force(true);
 			}
 
-			opts = Funcs.applyIfNotNull(m_gcInfo, opts::geometryColumnInfo, opts);
-			opts = Funcs.applyIfNotNull(m_blockSize, opts::blockSize, opts);
-			opts = Funcs.applyIfNotNull(m_codecName, opts::compressionCodecName, opts);
+			opts = Funcs.applyIfNotNull(opts::geometryColumnInfo, m_gcInfo, opts);
+			opts = Funcs.applyIfNotNull(opts::blockSize, m_blockSize, opts);
+			opts = Funcs.applyIfNotNull(opts::compressionCodecName, m_codecName, opts);
 			
 			return builder.store(m_dsId, opts);
 		}
