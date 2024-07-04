@@ -134,7 +134,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 		return schema.streamColumns()
 						.map(col -> {
 							DataType type = geomCols.get(col.name());
-							type = Funcs.asNonNull(type,  col.type());
+							type = Funcs.toNonNull(type,  col.type());
 							return new Column(col.name(), type);
 						})
 						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
