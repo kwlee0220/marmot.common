@@ -217,9 +217,9 @@ public class BuildPlanCommand extends PicocliSubCommand<MarmotRuntime> {
 				opts = opts.force(true);
 			}
 
-			opts = Funcs.applyIfNotNull(opts::geometryColumnInfo, m_gcInfo, opts);
-			opts = Funcs.applyIfNotNull(opts::blockSize, m_blockSize, opts);
-			opts = Funcs.applyIfNotNull(opts::compressionCodecName, m_codecName, opts);
+			opts = Funcs.applyIfNonNull(opts::geometryColumnInfo, m_gcInfo, opts);
+			opts = Funcs.applyIfNonNull(opts::blockSize, m_blockSize, opts);
+			opts = Funcs.applyIfNonNull(opts::compressionCodecName, m_codecName, opts);
 			
 			return builder.store(m_dsId, opts);
 		}
