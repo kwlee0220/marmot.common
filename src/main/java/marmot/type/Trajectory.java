@@ -11,14 +11,15 @@ import org.locationtech.jts.geom.Point;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import utils.LocalDateTimes;
+import utils.func.FOption;
+import utils.func.Lazy;
+import utils.stream.FStream;
+
 import marmot.geo.GeoClientUtils;
 import marmot.proto.TrajectoryProto;
 import marmot.proto.TrajectoryProto.SampleProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
-import utils.func.FOption;
-import utils.func.Lazy;
-import utils.stream.FStream;
 
 /**
  * 
@@ -156,7 +157,7 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 		}
 		
 		public LocalDateTime getTimestamp() {
-			return Utilities.fromUTCEpocMillis(m_ts).toLocalDateTime();
+			return LocalDateTimes.fromUtcMillis(m_ts);
 		}
 		
 		public static Sample parse(String str) {

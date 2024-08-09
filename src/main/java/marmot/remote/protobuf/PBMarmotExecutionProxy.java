@@ -1,12 +1,15 @@
 package marmot.remote.protobuf;
 
-import static utils.Utilities.fromUTCEpocMillis;
-
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.GuardedBy;
+
+import utils.LocalDateTimes;
+import utils.UnitUtils;
+import utils.async.Guard;
+import utils.func.FOption;
 
 import marmot.exec.MarmotAnalysis;
 import marmot.exec.MarmotExecution;
@@ -14,9 +17,6 @@ import marmot.proto.service.ExecutionInfoProto;
 import marmot.proto.service.ExecutionInfoProto.ExecutionStateInfoProto;
 import marmot.proto.service.ExecutionInfoProto.ExecutionStateProto;
 import marmot.protobuf.PBUtils;
-import utils.UnitUtils;
-import utils.async.Guard;
-import utils.func.FOption;
 
 /**
  * 
@@ -193,7 +193,7 @@ public class PBMarmotExecutionProxy implements MarmotExecution {
 					: m_info.getFinishedTime() - m_info.getStartedTime();
 		String elapsedStr = UnitUtils.toSecondString(elapsed);
 
-		LocalDateTime startedStr = fromUTCEpocMillis(m_info.getStartedTime()).toLocalDateTime();
+		LocalDateTime startedStr = LocalDateTimes.fromUtcMillis(m_info.getStartedTime());
 		return String.format("%10s: %9s%s%s, started=%s, elapsed=%s", getId(), state,
 							failedCause, analyStr, startedStr, elapsedStr);
 	}

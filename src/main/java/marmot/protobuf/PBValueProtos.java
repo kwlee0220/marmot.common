@@ -15,7 +15,6 @@ import com.google.protobuf.ByteString;
 
 import utils.LocalDateTimes;
 import utils.LocalTimes;
-import utils.Utilities;
 import utils.func.Tuple;
 import utils.stream.DoubleFStream;
 import utils.stream.FStream;
@@ -195,7 +194,7 @@ public class PBValueProtos {
 			builder.setFloatValue((float)obj);
 		}
 		else if ( obj instanceof LocalDateTime ) {
-			builder.setDatetimeValue(Utilities.toUTCEpocMillis((LocalDateTime)obj));
+			builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
 		}
 		else if ( obj instanceof Date ) {
 			builder.setDateValue(((Date)obj).getTime());
