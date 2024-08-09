@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.util.Map;
 
 import utils.func.FOption;
-import utils.func.Funcs;
 import utils.jdbc.JdbcProcessor;
 
 import marmot.Column;
@@ -134,7 +133,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 		return schema.streamColumns()
 						.map(col -> {
 							DataType type = geomCols.get(col.name());
-							type = Funcs.toNonNull(type,  col.type());
+							type = FOption.getOrElse(type,  col.type());
 							return new Column(col.name(), type);
 						})
 						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))

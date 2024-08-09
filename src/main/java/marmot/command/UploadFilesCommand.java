@@ -5,7 +5,7 @@ import java.io.File;
 import utils.UnitUtils;
 import utils.UsageHelp;
 import utils.func.CheckedConsumer;
-import utils.func.Funcs;
+import utils.func.FOption;
 
 import marmot.MarmotRuntime;
 
@@ -40,9 +40,11 @@ public class UploadFilesCommand implements CheckedConsumer<MarmotRuntime> {
 	@Override
 	public void accept(MarmotRuntime marmot) throws Exception {
 		UploadFiles upload = new UploadFiles(marmot, new File(m_srcPath), m_destPath);
-		Funcs.runIfNonNull(m_glob, () -> upload.glob(m_glob));
-		Funcs.runIf(() -> upload.blockSize(m_blockSize), m_blockSize > 0);
-		Funcs.acceptIfNonNull(m_codecName, upload::compressionCodecName);
+		FOption.run(m_glob, () -> upload.glob(m_glob));
+		if ( m_blockSize > 0 ) {
+			upload.blockSize(m_blockSize);
+		}
+		FOption.accept(m_codecName, upload::compressionCodecName);
 		upload.run();
 	}
 
