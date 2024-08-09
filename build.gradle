@@ -134,7 +134,6 @@ dependencies {
 }
 
 task sourceJar(type: Jar) {
-	classifier 'sources'
 	from sourceSets.main.allSource
 }
 
@@ -148,7 +147,6 @@ javadoc {
 	options.links = ['https://docs.oracle.com/javase/8/docs/api/']
 }
 task javadocJar(type: Jar) {
-	classifier 'javadoc'
 	from javadoc.destinationDir
 }
 
