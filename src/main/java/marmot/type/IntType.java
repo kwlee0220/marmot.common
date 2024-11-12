@@ -20,7 +20,7 @@ public class IntType extends DataType implements IntegralDataType, Comparator<In
 	
 	@Override
 	public Integer newInstance() {
-		return new Integer(0);
+		return Integer.valueOf(0);
 	}
 	
 	@Override

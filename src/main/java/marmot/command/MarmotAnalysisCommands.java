@@ -23,7 +23,7 @@ import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import utils.PicocliSubCommand;
-import utils.func.KeyValue;
+import utils.KeyValue;
 import utils.stream.FStream;
 
 /**

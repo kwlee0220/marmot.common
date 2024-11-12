@@ -20,7 +20,7 @@ public class FloatType extends DataType implements NumericDataType, Comparator<F
 
 	@Override
 	public Float newInstance() {
-		return new Float(0);
+		return Float.valueOf(0);
 	}
 	
 	@Override

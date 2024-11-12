@@ -20,7 +20,7 @@ public class ByteType extends DataType implements IntegralDataType, Comparator<B
 	
 	@Override
 	public Byte newInstance() {
-		return new Byte((byte)0);
+		return Byte.valueOf((byte)0);
 	}
 	
 	@Override

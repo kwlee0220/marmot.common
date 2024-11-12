@@ -76,7 +76,7 @@ import utils.Throwables;
 import utils.func.CheckedRunnable;
 import utils.func.CheckedSupplier;
 import utils.func.FOption;
-import utils.func.KeyValue;
+import utils.KeyValue;
 import utils.io.IOUtils;
 import utils.io.Serializables;
 import utils.stream.FStream;

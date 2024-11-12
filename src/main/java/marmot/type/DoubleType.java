@@ -20,7 +20,7 @@ public class DoubleType extends DataType implements NumericDataType, Comparator<
 
 	@Override
 	public Double newInstance() {
-		return new Double(0);
+		return Double.valueOf(0);
 	}
 	
 	@Override

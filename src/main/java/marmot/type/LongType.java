@@ -20,7 +20,7 @@ public class LongType extends DataType implements IntegralDataType, Comparator<L
 
 	@Override
 	public Long newInstance() {
-		return new Long(0);
+		return Long.valueOf(0);
 	}
 	
 	@Override

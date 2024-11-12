@@ -6,7 +6,7 @@ import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
 import marmot.proto.service.MarmotAnalysisProto.ModuleExecProto;
 import utils.Utilities;
-import utils.func.KeyValue;
+import utils.KeyValue;
 import utils.stream.KVFStream;
 
 /**

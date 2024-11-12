@@ -20,7 +20,7 @@ public class ShortType extends DataType implements IntegralDataType, Comparator<
 	
 	@Override
 	public Short newInstance() {
-		return new Short((short)0);
+		return Short.valueOf((short)0);
 	}
 	
 	@Override
