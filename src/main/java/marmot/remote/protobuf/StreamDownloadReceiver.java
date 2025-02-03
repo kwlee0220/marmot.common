@@ -96,7 +96,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 		try {
 			if ( m_state == State.DOWNLOADING ) {
 				m_state = State.CANCELLING;
-				m_guard.signalAll();
+				m_guard.signalAllInGuard();
 				
 				m_stream.endOfSupply();
 				
@@ -109,7 +109,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 			Date due = new Date(System.currentTimeMillis() + CANCELLING_TIMEOUT);
 			while ( m_state == State.CANCELLING ) {
 				try {
-					if ( !m_guard.awaitUntil(due) ) {
+					if ( !m_guard.awaitInGuardUntil(due) ) {
 						break;
 					}
 				}
@@ -191,7 +191,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 				m_state = State.COMPLETED;
 			}
 			
-			m_guard.signalAll();
+			m_guard.signalAllInGuard();
 		}
 		finally {
 			m_guard.unlock();

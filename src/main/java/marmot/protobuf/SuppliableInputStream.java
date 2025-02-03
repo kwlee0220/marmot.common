@@ -15,10 +15,11 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 
-import marmot.remote.protobuf.PBStreamClosedException;
 import utils.Throwables;
 import utils.UnitUtils;
 import utils.async.Guard;
+
+import marmot.remote.protobuf.PBStreamClosedException;
 
 
 /**
@@ -57,7 +58,7 @@ public class SuppliableInputStream extends InputStream {
 		try {
 			m_chunkQueue.clear();
 			m_closed = true;
-			m_guard.signalAll();
+			m_guard.signalAllInGuard();
 			
 			if ( !m_eos ) {
 				// Consumer쪽에서 먼저 강제로 스트림을 close시킨 경우는
@@ -69,7 +70,7 @@ public class SuppliableInputStream extends InputStream {
 				Date due = new Date(System.currentTimeMillis() + TIMEOUT);
 				try {
 					while ( !m_eos ) {
-						if ( !m_guard.awaitUntil(due) ) {
+						if ( !m_guard.awaitInGuardUntil(due) ) {
 							break;
 						}
 					}
