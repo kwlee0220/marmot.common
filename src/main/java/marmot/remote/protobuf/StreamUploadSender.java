@@ -202,7 +202,7 @@ abstract class StreamUploadSender extends AbstractThreadedExecution<ByteString>
 				else if ( m_error != null || m_serverClosed ) {
 					return -1;
 				}
-				if ( !m_guard.awaitInGuardUntil(due) ) {
+				if ( !m_guard.awaitUntilInGuard(due) ) {
 					throw new TimeoutException();
 				}
 			}
@@ -219,7 +219,7 @@ abstract class StreamUploadSender extends AbstractThreadedExecution<ByteString>
 		m_guard.lock();
 		try {
 			while ( !(m_serverClosed || m_error != null) ) {
-				if ( !m_guard.awaitInGuardUntil(due) ) {
+				if ( !m_guard.awaitUntilInGuard(due) ) {
 					throw new TimeoutException();
 				}
 			}

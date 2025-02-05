@@ -6,9 +6,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.grpc.stub.StreamObserver;
-import utils.Throwables;
+
 import utils.async.Guard;
-import utils.func.Try;
+import utils.async.GuardedSupplier;
 
 /**
  * 
@@ -30,24 +30,16 @@ public class SingleValueObserver<T> implements StreamObserver<T> {
 		m_guard.awaitUntil(() -> m_done);
 	}
 	
-	public Try<T> get() throws InterruptedException, Throwable {
-		return m_guard.awaitUntilAndTryToGet(() -> m_done, () -> {
+	public T get() {
+		return GuardedSupplier.from(m_guard, () -> {
 			if ( m_cause != null ) {
 				throw m_cause;
-			}
-			else {
+			} else {
 				return m_value;
 			}
-		});
-	}
-	
-	public T getRTE() {
-		try {
-			return get().get();
-		}
-		catch ( Throwable e ) {
-			throw Throwables.toRuntimeException(e);
-		}
+		})
+		.preCondition(() -> m_done)
+		.get();
 	}
 
 	@Override

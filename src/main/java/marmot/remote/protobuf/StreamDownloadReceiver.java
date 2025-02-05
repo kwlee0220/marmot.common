@@ -11,16 +11,19 @@ import org.slf4j.LoggerFactory;
 import com.google.protobuf.ByteString;
 
 import io.grpc.stub.StreamObserver;
-import marmot.proto.service.DownChunkRequest;
-import marmot.proto.service.DownChunkResponse;
-import marmot.protobuf.PBUtils;
-import marmot.protobuf.SuppliableInputStream;
+
 import utils.Throwables;
 import utils.UnitUtils;
 import utils.Utilities;
 import utils.async.CancellableWork;
 import utils.async.EventDrivenExecution;
 import utils.async.Guard;
+import utils.async.GuardedSupplier;
+
+import marmot.proto.service.DownChunkRequest;
+import marmot.proto.service.DownChunkResponse;
+import marmot.protobuf.PBUtils;
+import marmot.protobuf.SuppliableInputStream;
 
 
 /**
@@ -109,7 +112,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 			Date due = new Date(System.currentTimeMillis() + CANCELLING_TIMEOUT);
 			while ( m_state == State.CANCELLING ) {
 				try {
-					if ( !m_guard.awaitInGuardUntil(due) ) {
+					if ( !m_guard.awaitUntilInGuard(due) ) {
 						break;
 					}
 				}
@@ -200,13 +203,13 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 
 	@Override
 	public void onCompleted() {
-		State state = m_guard.get(() -> {
+		State state = GuardedSupplier.from(m_guard, () -> {
 			if ( m_state == State.CANCELLING ) {
 				m_state = State.CANCELLED;
 			}
 			
 			return m_state;
-		}, true);
+		}).get();
 		if ( state == State.DOWNLOADING ) {
 			Throwable cause = new IOException("Peer has broken the pipe");
 			m_stream.endOfSupply(cause);
