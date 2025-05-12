@@ -4,6 +4,13 @@ import java.util.Map;
 
 import org.locationtech.jts.geom.Envelope;
 
+import utils.CSV;
+import utils.KeyValue;
+import utils.Size2d;
+import utils.UnitUtils;
+import utils.Utilities;
+import utils.func.Either;
+
 import marmot.MarmotRuntime;
 import marmot.dataset.DataSet;
 import marmot.geo.GeoClientUtils;
@@ -11,12 +18,6 @@ import marmot.proto.Size2dProto;
 import marmot.proto.optor.SquareGridProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
-import utils.CSV;
-import utils.Size2d;
-import utils.UnitUtils;
-import utils.Utilities;
-import utils.func.Either;
-import utils.KeyValue;
 
 /**
  * 
@@ -106,8 +107,8 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 		Utilities.checkNotNullArgument(expr, "SquareGrid string is null");
 	
 		Map<String,String> kvMap = CSV.parseCsv(expr, ';')
-										.map(KeyValue::parse)
-										.toMap(KeyValue::key, KeyValue::value);
+										.toKeyValueStream(KeyValue::parse)
+										.toMap();
 		
 		String cellExpr = kvMap.get("cell");
 		if ( cellExpr == null ) {

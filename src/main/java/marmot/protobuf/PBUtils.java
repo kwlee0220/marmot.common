@@ -31,6 +31,19 @@ import com.google.protobuf.util.JsonFormat.Printer;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
+
+import utils.KeyValue;
+import utils.Size2d;
+import utils.Size2i;
+import utils.Throwables;
+import utils.func.CheckedRunnable;
+import utils.func.CheckedSupplier;
+import utils.func.FOption;
+import utils.io.IOUtils;
+import utils.io.Serializables;
+import utils.stream.FStream;
+import utils.stream.KeyValueFStream;
+
 import marmot.Record;
 import marmot.exec.MarmotExecutionException;
 import marmot.geo.GeoClientUtils;
@@ -70,17 +83,6 @@ import marmot.type.DataTypes;
 import marmot.type.GeometryDataType;
 import marmot.type.Interval;
 import marmot.type.TypeCode;
-import utils.Size2d;
-import utils.Size2i;
-import utils.Throwables;
-import utils.func.CheckedRunnable;
-import utils.func.CheckedSupplier;
-import utils.func.FOption;
-import utils.KeyValue;
-import utils.io.IOUtils;
-import utils.io.Serializables;
-import utils.stream.FStream;
-import utils.stream.KVFStream;
 
 /**
  * 
@@ -221,11 +223,11 @@ public class PBUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> FOption<T> getOptionField(Message proto, String field) {
 		try {
-			return FOption.ofNullable((T)KVFStream.from(proto.getAllFields())
-												.filter(kv -> kv.key().getName().equals(field))
-												.next()
-												.map(kv -> kv.value())
-												.getOrNull());
+			return FOption.ofNullable((T)KeyValueFStream.from(proto.getAllFields())
+														.filter(kv -> kv.key().getName().equals(field))
+														.next()
+														.map(kv -> kv.value())
+														.getOrNull());
 					}
 		catch ( Exception e ) {
 			throw new PBException("fails to get the field " + field, e);
@@ -251,13 +253,11 @@ public class PBUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T getField(Message proto, String field) {
 		try {
-			return(T)KVFStream.from(proto.getAllFields())
+			return(T)KeyValueFStream.from(proto.getAllFields())
 									.filter(kv -> kv.key().getName().equals(field))
 									.next()
 									.map(kv -> kv.value())
-									.getOrThrow(()
-										-> new PBException("unknown field: name=" + field
-																	+ ", msg=" + proto));
+									.getOrThrow(() -> new PBException("unknown field: name=" + field + ", msg=" + proto));
 		}
 		catch ( Exception e ) {
 			throw new PBException("fails to get the field " + field, e);
@@ -758,12 +758,12 @@ public class PBUtils {
 	}
 	
 	public static PropertiesProto toProto(Map<String,String> metadata) {
-		List<PropertyProto> properties = KVFStream.from(metadata)
-												.map(kv -> PropertyProto.newBuilder()
-																		.setKey(kv.key())
-																		.setValue(kv.value())
-																		.build())
-												.toList();
+		List<PropertyProto> properties = KeyValueFStream.from(metadata)
+														.map(kv -> PropertyProto.newBuilder()
+																				.setKey(kv.key())
+																				.setValue(kv.value())
+																				.build())
+														.toList();
 		return PropertiesProto.newBuilder()
 							.addAllProperty(properties)
 							.build();
@@ -778,12 +778,12 @@ public class PBUtils {
 	
 	public static KeyValueMapProto toKeyValueMapProto(Map<String,Object> keyValueMap) {
 		List<KeyValueProto> keyValues
-					= KVFStream.from(keyValueMap)
-								.map((k,v) -> KeyValueProto.newBuilder()
-															.setKey(k)
-															.setValue(PBValueProtos.toValueProto(v))
-															.build())
-								.toList();
+					= KeyValueFStream.from(keyValueMap)
+									.map((k,v) -> KeyValueProto.newBuilder()
+																.setKey(k)
+																.setValue(PBValueProtos.toValueProto(v))
+																.build())
+									.toList();
 		return KeyValueMapProto.newBuilder()
 							.addAllKeyValue(keyValues)
 							.build();

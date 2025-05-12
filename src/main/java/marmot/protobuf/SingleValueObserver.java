@@ -1,5 +1,7 @@
 package marmot.protobuf;
 
+import java.util.concurrent.ExecutionException;
+
 import javax.annotation.concurrent.GuardedBy;
 
 import org.slf4j.Logger;
@@ -8,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import io.grpc.stub.StreamObserver;
 
 import utils.async.Guard;
-import utils.async.GuardedSupplier;
 
 /**
  * 
@@ -27,19 +28,18 @@ public class SingleValueObserver<T> implements StreamObserver<T> {
 	}
 	
 	public void await() throws InterruptedException {
-		m_guard.awaitUntil(() -> m_done);
+		m_guard.awaitCondition(() -> m_done).andReturn();
 	}
 	
-	public T get() {
-		return GuardedSupplier.from(m_guard, () -> {
-			if ( m_cause != null ) {
-				throw m_cause;
-			} else {
-				return m_value;
-			}
-		})
-		.preCondition(() -> m_done)
-		.get();
+	public T get() throws InterruptedException, ExecutionException {
+		return m_guard.awaitCondition(() -> m_done)
+						.andGetChecked(() -> {
+							if ( m_cause != null ) {
+								throw m_cause;
+							} else {
+								return m_value;
+							}
+						});
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class SingleValueObserver<T> implements StreamObserver<T> {
 	public void onError(Throwable error) {
 		s_logger.error("unexpected onError: class={}, error={}", getClass(), error);
 		
-		m_guard.runAndSignalAll(() -> {
+		m_guard.run(() -> {
 			m_cause = error;
 			m_done = true;
 		});
@@ -59,6 +59,6 @@ public class SingleValueObserver<T> implements StreamObserver<T> {
 
 	@Override
 	public void onCompleted() {
-		m_guard.runAndSignalAll(() -> m_done = true);
+		m_guard.run(() -> m_done = true);
 	}
 }

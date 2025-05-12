@@ -7,11 +7,12 @@ import java.util.Map;
 
 import org.locationtech.jts.geom.Geometry;
 
+import utils.KeyValue;
+import utils.func.FOption;
+import utils.stream.KeyValueFStream;
+
 import marmot.support.DataUtils;
 import marmot.support.RecordMap;
-import utils.func.FOption;
-import utils.KeyValue;
-import utils.stream.KVFStream;
 
 
 /**
@@ -75,8 +76,8 @@ public interface Record {
 		return new RecordMap(this);
 	}
 	
-	public default KVFStream<String,Object> fstream() {
-		return new KVFStream<String, Object>() {
+	public default KeyValueFStream<String,Object> fstream() {
+		return new KeyValueFStream<String, Object>() {
 			private final RecordSchema m_schema = getRecordSchema();
 			private int m_idx = 0;
 

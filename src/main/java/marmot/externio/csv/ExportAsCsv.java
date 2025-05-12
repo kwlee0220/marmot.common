@@ -3,9 +3,9 @@ package marmot.externio.csv;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
+import utils.Tuple;
 import utils.Utilities;
 import utils.func.FOption;
-import utils.func.Tuple;
 import utils.rx.ProgressReporter;
 
 import marmot.MarmotRuntime;

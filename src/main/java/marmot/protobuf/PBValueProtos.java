@@ -15,7 +15,7 @@ import com.google.protobuf.ByteString;
 
 import utils.LocalDateTimes;
 import utils.LocalTimes;
-import utils.func.Tuple;
+import utils.Tuple;
 import utils.stream.DoubleFStream;
 import utils.stream.FStream;
 import utils.stream.FloatFStream;

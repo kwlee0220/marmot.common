@@ -2,12 +2,13 @@ package marmot.exec;
 
 import java.util.Map;
 
+import utils.KeyValue;
+import utils.Utilities;
+import utils.stream.KeyValueFStream;
+
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
 import marmot.proto.service.MarmotAnalysisProto.ModuleExecProto;
-import utils.Utilities;
-import utils.KeyValue;
-import utils.stream.KVFStream;
 
 /**
  * 
@@ -56,9 +57,9 @@ public class ModuleAnalysis extends MarmotAnalysis {
 
 	@Override
 	public MarmotAnalysisProto toProto() {
-		String argsExpr = KVFStream.from(m_args)
-									.map(KeyValue::toString)
-									.join("; ");
+		String argsExpr = KeyValueFStream.from(m_args)
+										.map(KeyValue::toString)
+										.join("; ");
 		
 		ModuleExecProto module = ModuleExecProto.newBuilder()
 												.setModuleId(m_moduleId)

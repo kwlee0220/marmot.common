@@ -9,6 +9,10 @@ import java.util.Set;
 
 import com.google.common.collect.Sets;
 
+import utils.KeyValue;
+import utils.PicocliSubCommand;
+import utils.stream.FStream;
+
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.analysis.system.SystemAnalysis;
@@ -18,13 +22,11 @@ import marmot.exec.MarmotAnalysis.Type;
 import marmot.exec.MarmotExecution;
 import marmot.exec.ModuleAnalysis;
 import marmot.exec.PlanAnalysis;
+
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Help.Ansi;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import utils.PicocliSubCommand;
-import utils.KeyValue;
-import utils.stream.FStream;
 
 /**
  * 
@@ -203,8 +205,8 @@ public class MarmotAnalysisCommands {
 		@Override
 		protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception {
 			Map<String,String> args = FStream.from(m_kvArgs)
-											.map(KeyValue::parse)
-											.toMap(KeyValue::key, KeyValue::value);
+											.toKeyValueStream(KeyValue::parse)
+											.toMap();
 			ModuleAnalysis analysis = new ModuleAnalysis(id, m_moduleId, args);
 			marmot.addAnalysis(analysis, force);
 		}

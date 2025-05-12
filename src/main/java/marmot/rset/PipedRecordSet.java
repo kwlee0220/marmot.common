@@ -15,7 +15,6 @@ import com.google.common.base.Preconditions;
 import utils.Throwables;
 import utils.Utilities;
 import utils.async.Guard;
-import utils.async.GuardedRunnable;
 
 import marmot.Record;
 import marmot.RecordSchema;
@@ -152,11 +151,11 @@ public class PipedRecordSet extends AbstractRecordSet {
 			switch ( m_state ) {
 				case OPEN:
 					m_state = State.CONSUMER_CLOSED;
-					m_guard.signalAllInGuard();
+					m_guard.signalAll();
 					break;
 				case SUPPLIER_CLOSED:
 					m_state = State.CLOSED;
-					m_guard.signalAllInGuard();
+					m_guard.signalAll();
 					break;
 				default:
 					break;
@@ -192,7 +191,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 				Record record = m_queue.poll();
 				if ( record != null ) {
 					m_lastConsumeMillis = System.currentTimeMillis();
-					m_guard.signalAllInGuard();
+					m_guard.signalAll();
 					
 					return record;
 				}
@@ -200,7 +199,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 					return null;
 				}
 				
-				if ( !m_guard.awaitUntilInGuard(due) ) {
+				if ( !m_guard.awaitSignal(due) ) {
 					throw new RecordSetTimeoutException("PipedRecordSet supplier is too slow");
 				}
 			}
@@ -225,10 +224,10 @@ public class PipedRecordSet extends AbstractRecordSet {
 							getLogger().debug("append a record: {}/{}",
 												m_queue.size(), m_maxQueueLength);
 							
-							m_guard.signalAllInGuard();
+							m_guard.signalAll();
 							return true;
 						}
-						if ( !m_guard.awaitUntilInGuard(due) ) {
+						if ( !m_guard.awaitSignal(due) ) {
 							throw new RecordSetTimeoutException("PipedRecordSet consumer is too slow");
 						}
 						break;
@@ -250,8 +249,8 @@ public class PipedRecordSet extends AbstractRecordSet {
 	}
 	
 	public void endOfSupply() {
-		GuardedRunnable.from(m_guard, () -> {
-			switch ( m_state ) {
+		m_guard.run(() -> {
+			switch (m_state) {
 				case OPEN:
 					m_state = State.SUPPLIER_CLOSED;
 					break;
@@ -261,11 +260,11 @@ public class PipedRecordSet extends AbstractRecordSet {
 				default:
 					throw new IllegalStateException("unexpected state: state=" + m_state);
 			}
-		}).run();
+		});
 	}
 	
 	public void endOfSupply(Throwable failure) {
-		GuardedRunnable.from(m_guard, () -> {
+		m_guard.run(() -> {
 			switch ( m_state ) {
 				case OPEN:
 					m_state = State.SUPPLIER_CLOSED;
@@ -278,15 +277,15 @@ public class PipedRecordSet extends AbstractRecordSet {
 				default:
 					throw new IllegalStateException("unexpected state: state=" + m_state);
 			}
-		}).run();
+		});
 	}
 	
 	public void waitForFullyClosed() throws InterruptedException {
-		m_guard.awaitUntil(() -> m_state == State.CLOSED);
+		m_guard.awaitCondition(() -> m_state == State.CLOSED).andReturn();
 	}
 	
 	public boolean waitForFullyClosed(long timeout, TimeUnit unit) throws InterruptedException {
-		return m_guard.awaitUntil(() -> m_state == State.CLOSED, timeout, unit);
+		return m_guard.awaitCondition(() -> m_state == State.CLOSED, timeout, unit).andReturn();
 	}
 	
 	@Override
@@ -318,18 +317,6 @@ public class PipedRecordSet extends AbstractRecordSet {
 		@Override
 		public String toString() {
 			return String.format("supply=%d, consume=%d", m_supplyCount, m_consumeCount);
-		}
-		
-		private long getStep() {
-			return m_supplyCount + m_consumeCount;
-		}
-		
-		private ProgressReport notifySupplied() {
-			return new ProgressReport(m_supplyCount+1, m_consumeCount);
-		}
-		
-		private ProgressReport notifyConsumed() {
-			return new ProgressReport(m_supplyCount, m_consumeCount+1);
 		}
 	}
 }

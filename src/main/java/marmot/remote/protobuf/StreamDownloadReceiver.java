@@ -18,7 +18,6 @@ import utils.Utilities;
 import utils.async.CancellableWork;
 import utils.async.EventDrivenExecution;
 import utils.async.Guard;
-import utils.async.GuardedSupplier;
 
 import marmot.proto.service.DownChunkRequest;
 import marmot.proto.service.DownChunkResponse;
@@ -99,7 +98,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 		try {
 			if ( m_state == State.DOWNLOADING ) {
 				m_state = State.CANCELLING;
-				m_guard.signalAllInGuard();
+				m_guard.signalAll();
 				
 				m_stream.endOfSupply();
 				
@@ -112,7 +111,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 			Date due = new Date(System.currentTimeMillis() + CANCELLING_TIMEOUT);
 			while ( m_state == State.CANCELLING ) {
 				try {
-					if ( !m_guard.awaitUntilInGuard(due) ) {
+					if ( !m_guard.awaitSignal(due) ) {
 						break;
 					}
 				}
@@ -194,7 +193,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 				m_state = State.COMPLETED;
 			}
 			
-			m_guard.signalAllInGuard();
+			m_guard.signalAll();
 		}
 		finally {
 			m_guard.unlock();
@@ -203,13 +202,13 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 
 	@Override
 	public void onCompleted() {
-		State state = GuardedSupplier.from(m_guard, () -> {
+		State state = m_guard.get(() -> {
 			if ( m_state == State.CANCELLING ) {
 				m_state = State.CANCELLED;
 			}
 			
 			return m_state;
-		}).get();
+		});
 		if ( state == State.DOWNLOADING ) {
 			Throwable cause = new IOException("Peer has broken the pipe");
 			m_stream.endOfSupply(cause);

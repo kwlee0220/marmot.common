@@ -40,17 +40,18 @@ import org.opengis.geometry.BoundingBox;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-import marmot.Column;
-import marmot.Record;
-import marmot.RecordSchema;
-import marmot.RecordSetException;
-import marmot.type.GeometryDataType;
 import utils.Size2d;
 import utils.Size2i;
 import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
-import utils.stream.KVFStream;
+import utils.stream.KeyValueFStream;
+
+import marmot.Column;
+import marmot.Record;
+import marmot.RecordSchema;
+import marmot.RecordSetException;
+import marmot.type.GeometryDataType;
 
 /**
  * 
@@ -526,10 +527,10 @@ public class GeoClientUtils {
 	}
 	
 	public static String toNonGeomString(Record record) {
-		return KVFStream.from(record.toMap())
-						.filterValue(v -> !(v instanceof Geometry))
-						.toMap()
-						.toString();
+		return KeyValueFStream.from(record.toMap())
+								.filterValue(v -> !(v instanceof Geometry))
+								.toMap()
+								.toString();
 	}
 	
 	public static Size2d divide(Envelope envl, Size2i unit) {

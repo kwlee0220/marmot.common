@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -58,7 +56,7 @@ public class SuppliableInputStream extends InputStream {
 		try {
 			m_chunkQueue.clear();
 			m_closed = true;
-			m_guard.signalAllInGuard();
+			m_guard.signalAll();
 			
 			if ( !m_eos ) {
 				// Consumer쪽에서 먼저 강제로 스트림을 close시킨 경우는
@@ -70,7 +68,7 @@ public class SuppliableInputStream extends InputStream {
 				Date due = new Date(System.currentTimeMillis() + TIMEOUT);
 				try {
 					while ( !m_eos ) {
-						if ( !m_guard.awaitUntilInGuard(due) ) {
+						if ( !m_guard.awaitSignal(due) ) {
 							break;
 						}
 					}
@@ -122,10 +120,7 @@ public class SuppliableInputStream extends InputStream {
     }
 	
 	public void supply(ByteString chunk) throws InterruptedException, PBStreamClosedException {
-		final Lock lock = m_guard.getLock();
-		final Condition cond = m_guard.getCondition();
-		
-		lock.lock();
+		m_guard.lock();
 		try {
 			while ( true ) {
 				if ( m_closed ) {
@@ -137,25 +132,25 @@ public class SuppliableInputStream extends InputStream {
 				if ( m_chunkQueue.size() < m_chunkQLength ) {
 					m_chunkQueue.add(chunk);
 					++m_chunkCount;
-					cond.signalAll();
+					m_guard.signalAll();
 					
 					return;
 				}
 				
-				cond.await();
+				m_guard.awaitSignal();
 			}
 		}
 		finally {
-			lock.unlock();
+			m_guard.unlock();
 		}
 	}
 	
 	public void endOfSupply() {
-		m_guard.runAndSignalAll(() -> m_eos = true);
+		m_guard.run(() -> m_eos = true);
 	}
 	
 	public void endOfSupply(Throwable cause) {
-		m_guard.runAndSignalAll(() -> {
+		m_guard.run(() -> {
 			if ( !m_eos ) {
 				m_eos = true;
 				m_cause = cause;
@@ -183,7 +178,7 @@ public class SuppliableInputStream extends InputStream {
 	}
 	
 	private ByteString getNextChunk() throws InterruptedException, IOException {
-		m_guard.getLock().lock();
+		m_guard.lock();
 		try {
 			while ( m_chunkQueue.isEmpty() ) {
 				if ( m_closed ) {
@@ -199,14 +194,14 @@ public class SuppliableInputStream extends InputStream {
 					return null;
 				}
 				
-				m_guard.getCondition().await();
+				m_guard.awaitSignal();
 			}
 			
-			m_guard.getCondition().signalAll();
+			m_guard.signalAll();
 			return m_chunkQueue.remove(0);
 		}
 		finally {
-			m_guard.getLock().unlock();
+			m_guard.unlock();
 		}
 	}
 }

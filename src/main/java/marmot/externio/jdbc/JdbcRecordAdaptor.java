@@ -23,7 +23,7 @@ import utils.LocalDateTimes;
 import utils.LocalDates;
 import utils.LocalTimes;
 import utils.jdbc.JdbcProcessor;
-import utils.stream.KVFStream;
+import utils.stream.KeyValueFStream;
 
 import marmot.Column;
 import marmot.Record;
@@ -73,11 +73,11 @@ public abstract class JdbcRecordAdaptor {
 	}
 	
 	public static RecordSchema buildRecordSchema(JdbcProcessor jdbc, String tblName) throws SQLException {
-		return KVFStream.from(jdbc.getColumns(tblName))
-						.mapValue((k,v) -> fromSqlType(v.type(), v.typeName()))
-						.map((k,v) -> new Column(k,v))
-						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
-						.build();
+		return KeyValueFStream.from(jdbc.getColumns(tblName))
+								.mapValue((k,v) -> fromSqlType(v.type(), v.typeName()))
+								.map((k,v) -> new Column(k,v))
+								.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
+								.build();
 	}
 	
 	public void createTable(JdbcProcessor jdbc, String tblName, String... primaryKeys)
@@ -321,11 +321,11 @@ public abstract class JdbcRecordAdaptor {
 	}
 	
 	private static Class<? extends JdbcRecordAdaptor> getAdaptorClass(String protocol) {
-		return KVFStream.from(JDBC_PROCESSORS)
-						.filter(kv -> kv.key().equals(protocol))
-						.next()
-						.map(kv -> kv.value())
-						.getOrThrow(() -> new IllegalArgumentException("unsupported Jdbc protocol: " + protocol));
+		return KeyValueFStream.from(JDBC_PROCESSORS)
+								.filter(kv -> kv.key().equals(protocol))
+								.next()
+								.map(kv -> kv.value())
+								.getOrThrow(() -> new IllegalArgumentException("unsupported Jdbc protocol: " + protocol));
 
 	}
 	

@@ -23,7 +23,7 @@ import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 import utils.stream.IntFStream;
-import utils.stream.KVFStream;
+import utils.stream.KeyValueFStream;
 
 import marmot.proto.ColumnProto;
 import marmot.proto.RecordSchemaProto;
@@ -425,10 +425,10 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 			CIString key = CIString.of(colName);
 			LinkedHashMap<CIString, Column> old = m_columns;
 			m_columns = new LinkedHashMap<>(old.size());
-			KVFStream.from(old)
-					.filterKey(k -> !k.equals(key))
-					.toValueStream()
-					.forEach(this::addColumn);
+			KeyValueFStream.from(old)
+							.filterKey(k -> !k.equals(key))
+							.values()
+							.forEach(this::addColumn);
 			
 			return this;
 		}
