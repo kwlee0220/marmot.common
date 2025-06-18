@@ -84,7 +84,7 @@ dependencies {
 	api project(':utils')
 	api project(':utilsx')
 
-	// Logback with SLF4j
+	// Logback
 	implementation "ch.qos.logback:logback-classic:${logback_version}"
 	
 	implementation "com.google.code.gson:gson:${gson_version}"
