@@ -12,7 +12,7 @@ import utils.io.IOUtils;
  * @author Kang-Woo Lee (ETRI)
  */
 public abstract class ConcatedRecordSet extends AbstractRecordSet {
-	@Nullable private RecordSet m_current = null;	// null이면 first-call 의미
+	private @Nullable RecordSet m_current = null;	// null이면 first-call 의미
 	private boolean m_eos = false;
 	
 	/**

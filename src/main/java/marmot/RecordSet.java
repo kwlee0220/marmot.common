@@ -384,7 +384,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 */
 	public default Iterator<Record> iterator() {
 		return new Iterator<Record>() {
-			@Nullable private Record m_next;
+			private @Nullable Record m_next;
 			
 			{
 				m_next = RecordSet.this.nextCopy();

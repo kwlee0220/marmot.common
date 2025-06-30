@@ -20,7 +20,7 @@ import utils.Utilities;
 public class ExportAsGeoJson {
 	private final String m_dsId;
 	private boolean m_prettyPrinter = false;
-	@Nullable private String m_gjsonSrid;
+	private @Nullable String m_gjsonSrid;
 	
 	public ExportAsGeoJson(String dsId) {
 		Utilities.checkNotNullArgument(dsId, "dataset id is null");

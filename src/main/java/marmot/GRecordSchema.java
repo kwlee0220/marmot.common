@@ -20,7 +20,7 @@ import utils.func.FOption;
 public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, Serializable {
 	private static final long serialVersionUID = 1L;
 	
-	@Nullable private final GeometryColumnInfo m_gcInfo;	// FOption을 serializable하기 싫어서 사용하지 않음
+	private final @Nullable GeometryColumnInfo m_gcInfo;	// FOption을 serializable하기 싫어서 사용하지 않음
 	private final RecordSchema m_schema;
 	
 	public GRecordSchema(FOption<GeometryColumnInfo> gcInfo, RecordSchema schema) {

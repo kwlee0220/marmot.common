@@ -17,8 +17,8 @@ import marmot.support.PBSerializable;
  */
 public class QueryRange implements PBSerializable<QueryRangeProto> {
 	private final RangeCase m_rangeCase;
-	@Nullable private final Envelope m_bounds;
-	@Nullable private final String m_rangeDsId;
+	private final @Nullable Envelope m_bounds;
+	private final @Nullable String m_rangeDsId;
 	private final PredicateOptions m_options;
 	
 	public static QueryRange of(Envelope bounds) {

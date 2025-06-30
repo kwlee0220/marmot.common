@@ -38,9 +38,9 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 	private final boolean m_force;						// create file
 	private final FOption<Integer> m_mapperCount;
 	private final FOption<Envelope> m_validRange;
-	@Nullable private final List<String> m_quadKeyList;	// 셋 중 최대 하나만 의미 있는 값을 가짐
-	@Nullable private final String m_quadKeyDsId;
-	@Nullable private final long m_sampleSize;			
+	private final @Nullable List<String> m_quadKeyList;	// 셋 중 최대 하나만 의미 있는 값을 가짐
+	private final @Nullable String m_quadKeyDsId;
+	private final @Nullable long m_sampleSize;			
 	private final FOption<Integer> m_partitionCount;
 	private final FOption<Long> m_clusterSize;
 	private final FOption<Long> m_blockSize;
