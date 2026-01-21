@@ -3,15 +3,17 @@ package marmot;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
+
+import utils.Utilities;
+import utils.func.FOption;
 
 import marmot.dataset.GeometryColumnInfo;
 import marmot.dataset.NoGeometryColumnException;
 import marmot.proto.GRecordSchemaProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -23,9 +25,9 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 	private final @Nullable GeometryColumnInfo m_gcInfo;	// FOption을 serializable하기 싫어서 사용하지 않음
 	private final RecordSchema m_schema;
 	
-	public GRecordSchema(FOption<GeometryColumnInfo> gcInfo, RecordSchema schema) {
+	public GRecordSchema(Optional<GeometryColumnInfo> gcInfo, RecordSchema schema) {
 		m_schema = schema;
-		m_gcInfo = gcInfo.getOrNull();
+		m_gcInfo = gcInfo.orElse(null);
 	}
 	
 	public GRecordSchema(GeometryColumnInfo gcInfo, RecordSchema schema) {

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -13,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import marmot.Plan;
 import marmot.plan.STScriptPlanLoader;
-import utils.func.FOption;
 
 /**
  * 
@@ -25,37 +25,37 @@ public class MetaPlanLoader {
 	private static final String ST_PLAN_SUFFIX = "meta.st";
 	private static final String JSON_PLAN_SUFFIX = "meta.json";
 	
-	public static FOption<Plan> load(File start) throws IOException {
-		FOption<Plan> plan = tryToLoadTemplatePlan(start);
-		if ( plan.isAbsent() ) {
+	public static Optional<Plan> load(File start) throws IOException {
+		Optional<Plan> plan = tryToLoadTemplatePlan(start);
+		if ( plan.isEmpty() ) {
 			plan = tryToLoadJsonPlan(start);
 		}
 		
 		return plan;
 	}
 	
-	private static FOption<Plan> tryToLoadTemplatePlan(File start) throws IOException {
+	private static Optional<Plan> tryToLoadTemplatePlan(File start) throws IOException {
 		File metaFile = getMetaPlanFile(start, ST_PLAN_SUFFIX);
 		if ( metaFile.exists() ) {
 			Plan plan = STScriptPlanLoader.load(metaFile);
 			s_logger.info("load import plan file=" + start);
-			return FOption.of(plan);
+			return Optional.of(plan);
 		}
 		else {
-			return FOption.empty();
+			return Optional.empty();
 		}
 	}
 	
-	private static FOption<Plan> tryToLoadJsonPlan(File start) throws IOException {
+	private static Optional<Plan> tryToLoadJsonPlan(File start) throws IOException {
 		File metaFile = getMetaPlanFile(start, JSON_PLAN_SUFFIX);
 		if ( metaFile.exists() ) {
 			try ( Reader reader = new InputStreamReader(new FileInputStream(metaFile),
 														StandardCharsets.UTF_8) ) {
-				return FOption.of(Plan.parseJson(reader));
+				return Optional.of(Plan.parseJson(reader));
 			}
 		}
 		else {
-			return FOption.empty();
+			return Optional.empty();
 		}
 	}
 	

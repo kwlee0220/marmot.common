@@ -6,16 +6,17 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import utils.Utilities;
+import utils.stream.FStream;
+
 import marmot.proto.optor.RecordScriptProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
-import utils.Utilities;
-import utils.func.FOption;
-import utils.stream.FStream;
 
 
 /**
@@ -26,7 +27,7 @@ public class RecordScript implements PBSerializable<RecordScriptProto>, Serializ
 	private static final long serialVersionUID = 1L;
 	
 	private final String m_script;
-	private final FOption<String> m_initializer;
+	private final Optional<String> m_initializer;
 	private final List<ImportInfo> m_importedClasses = Lists.newArrayList();
 	private final Map<String,Object> m_arguments = Maps.newHashMap();
 	
@@ -42,14 +43,14 @@ public class RecordScript implements PBSerializable<RecordScriptProto>, Serializ
 		Utilities.checkNotNullArgument(script, "script is null");
 		
 		m_script = script;
-		m_initializer = FOption.empty();
+		m_initializer = Optional.empty();
 	}
 
 	private RecordScript(String initScript, String script) {
 		Utilities.checkNotNullArgument(initScript, "initialization script is null");
 		Utilities.checkNotNullArgument(script, "script is null");
 
-		m_initializer = FOption.of(initScript);
+		m_initializer = Optional.of(initScript);
 		m_script = script;
 	}
 	
@@ -57,7 +58,7 @@ public class RecordScript implements PBSerializable<RecordScriptProto>, Serializ
 		return m_script;
 	}
 	
-	public FOption<String> getInitializer() {
+	public Optional<String> getInitializer() {
 		return m_initializer;
 	}
 	
@@ -174,23 +175,23 @@ public class RecordScript implements PBSerializable<RecordScriptProto>, Serializ
 	
 	public static class ImportInfo {
 		private final Class<?> m_class;
-		private final FOption<String> m_name;
+		private final Optional<String> m_name;
 		
 		public ImportInfo(Class<?> cls, String name) {
 			m_class = cls;
-			m_name = FOption.of(name);
+			m_name = Optional.of(name);
 		}
 		
 		public ImportInfo(Class<?> cls) {
 			m_class = cls;
-			m_name = FOption.empty();
+			m_name = Optional.empty();
 		}
 		
 		public Class<?> getImportClass() {
 			return m_class;
 		}
 		
-		public FOption<String> getImportName() {
+		public Optional<String> getImportName() {
 			return m_name;
 		}
 		
@@ -216,7 +217,7 @@ public class RecordScript implements PBSerializable<RecordScriptProto>, Serializ
 		public String toString() {
 			String clsName = m_class.getName();
 			return m_name.map(name -> String.format("%s:%s", clsName, name))
-						.getOrElse(() -> "" + clsName);
+						.orElseGet(() -> "" + clsName);
 		}
 	}
 }

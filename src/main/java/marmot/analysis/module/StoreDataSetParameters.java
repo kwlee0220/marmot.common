@@ -3,12 +3,13 @@ package marmot.analysis.module;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import marmot.optor.StoreDataSetOptions;
 import utils.UnitUtils;
-import utils.func.FOption;
+
+import marmot.optor.StoreDataSetOptions;
 
 /**
  * 
@@ -46,27 +47,26 @@ public class StoreDataSetParameters {
 	}
 	
 	public boolean force() {
-		return FOption.ofNullable(m_params.get(FORCE))
+		return Optional.ofNullable(m_params.get(FORCE))
 						.map(Boolean::parseBoolean)
-						.getOrElse(false);
+						.orElse(false);
 	}
 	public void force(boolean flag) {
 		m_params.put(FORCE, "" + flag);
 	}
 	
-	public FOption<String> compressionCodecName() {
-		return FOption.ofNullable(m_params.get(COMPRESS_CODEC));
+	public Optional<String> compressionCodecName() {
+		return Optional.ofNullable(m_params.get(COMPRESS_CODEC));
 	}
 	public void compressionCodecName(String codec) {
 		m_params.put(COMPRESS_CODEC, codec);
 	}
-	public void compressionCodecName(FOption<String> codec) {
-		codec.ifAbsent(() -> m_params.remove(COMPRESS_CODEC))
-			.ifPresent(this::compressionCodecName);
+	public void compressionCodecName(Optional<String> codec) {
+		codec.ifPresentOrElse(this::compressionCodecName, () -> m_params.remove(COMPRESS_CODEC));
 	}
 	
-	public FOption<Long> blockSize() {
-		return FOption.ofNullable(m_params.get(BLOCK_SIZE))
+	public Optional<Long> blockSize() {
+		return Optional.ofNullable(m_params.get(BLOCK_SIZE))
 					.map(Long::parseLong);
 	}
 	public void blockSize(long nbytes) {
@@ -76,9 +76,8 @@ public class StoreDataSetParameters {
 		long nbytes = UnitUtils.parseByteSize(nbytesStr);
 		m_params.put(BLOCK_SIZE, ""+nbytes);
 	}
-	public void blockSize(FOption<Long> nbytes) {
-		nbytes.ifAbsent(() -> m_params.remove(BLOCK_SIZE))
-			.ifPresent(this::blockSize);
+	public void blockSize(Optional<Long> nbytes) {
+		nbytes.ifPresentOrElse(this::blockSize, () -> m_params.remove(BLOCK_SIZE));
 	}
 	
 	@Override

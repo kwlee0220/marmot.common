@@ -1,6 +1,6 @@
 package marmot;
 
-import utils.func.FOption;
+import java.util.Optional;
 
 import marmot.dataset.GeometryColumnInfo;
 import marmot.optor.StoreDataSetOptions;
@@ -13,38 +13,38 @@ import marmot.proto.service.BindDataSetOptionsProto;
  */
 public class BindDataSetOptions {
 	public static final BindDataSetOptions EMPTY
-							= new BindDataSetOptions(FOption.empty(), false);
+							= new BindDataSetOptions(Optional.empty(), false);
 	
-	private final FOption<GeometryColumnInfo> m_gcInfo;
+	private final Optional<GeometryColumnInfo> m_gcInfo;
 	private final boolean m_force;
 	
-	private BindDataSetOptions(FOption<GeometryColumnInfo> gcInfo, boolean force) {
+	private BindDataSetOptions(Optional<GeometryColumnInfo> gcInfo, boolean force) {
 		m_gcInfo = gcInfo;
 		m_force = force;
 	}
 	
 	public static BindDataSetOptions DEFAULT() {
-		return new BindDataSetOptions(FOption.empty(), false);
+		return new BindDataSetOptions(Optional.empty(), false);
 	}
 	
 	public static BindDataSetOptions DEFAULT(GeometryColumnInfo gcInfo) {
-		return new BindDataSetOptions(FOption.of(gcInfo), false);
+		return new BindDataSetOptions(Optional.of(gcInfo), false);
 	}
 	
 	public static BindDataSetOptions FORCE(boolean flag) {
-		return new BindDataSetOptions(FOption.empty(), flag);
+		return new BindDataSetOptions(Optional.empty(), flag);
 	}
 	
 	public static BindDataSetOptions FORCE(GeometryColumnInfo gcInfo) {
-		return new BindDataSetOptions(FOption.of(gcInfo), true);
+		return new BindDataSetOptions(Optional.of(gcInfo), true);
 	}
 	
-	public FOption<GeometryColumnInfo> geometryColumnInfo() {
+	public Optional<GeometryColumnInfo> geometryColumnInfo() {
 		return m_gcInfo;
 	}
 	
 	public BindDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		return new BindDataSetOptions(FOption.of(gcInfo), m_force);
+		return new BindDataSetOptions(Optional.of(gcInfo), m_force);
 	}
 	
 	public boolean force() {
@@ -57,7 +57,7 @@ public class BindDataSetOptions {
 	
 	public StoreDataSetOptions toStoreDataSetOptions() {
 		StoreDataSetOptions opts = StoreDataSetOptions.DEFAULT.force(m_force);
-		opts = m_gcInfo.transform(opts, StoreDataSetOptions::geometryColumnInfo);
+		opts = m_gcInfo.isPresent() ? opts.geometryColumnInfo(m_gcInfo.get()) : opts;
 		
 		return opts;
 	}

@@ -19,6 +19,12 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
+import utils.StopWatch;
+import utils.Utilities;
+import utils.func.Optionals;
+import utils.func.Try;
+import utils.stream.FStream;
+
 import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -26,10 +32,6 @@ import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
 import marmot.support.DataUtils;
 import marmot.type.DataType;
-import utils.StopWatch;
-import utils.Utilities;
-import utils.func.Try;
-import utils.stream.FStream;
 
 
 /**
@@ -81,12 +83,12 @@ public class CsvRecordSet extends AbstractRecordSet {
 		
 		m_watch = StopWatch.start();
 		
-		m_nullValue = opts.nullValue().getOrNull();
+		m_nullValue = opts.nullValue().orElse(null);
 		CSVFormat format = CSVFormat.DEFAULT.withDelimiter(opts.delimiter())
 									.withQuote(null);
-		format = opts.quote().transform(format, (f,q) -> f.withQuote(q));
-		format = opts.escape().transform(format, (f,esc) -> f.withEscape(esc));
-		if ( opts.trimColumn().getOrElse(false) ) {
+		format = Optionals.transform(opts.quote(), format, (f,q) -> f.withQuote(q));
+		format = Optionals.transform(opts.escape(), format, (f,esc) -> f.withEscape(esc));
+		if ( opts.trimColumn().orElse(false) ) {
 			format = format.withTrim(true).withIgnoreSurroundingSpaces(true);
 		}
 		else {
@@ -100,12 +102,12 @@ public class CsvRecordSet extends AbstractRecordSet {
 		}
 		m_first = Lists.newArrayList(m_iter.next().iterator());
 		
-		if ( opts.headerFirst().getOrElse(false) ) {
+		if ( opts.headerFirst().orElse(false) ) {
 			m_schema = CsvUtils.buildRecordSchema(m_first);
 			m_first = null;
 		}
 		else if ( opts.header().isPresent() ) {
-			try ( Reader hdrReader = new StringReader(opts.header().getUnchecked());
+			try ( Reader hdrReader = new StringReader(opts.header().get());
 					CSVParser hdrParser = format.parse(hdrReader); ) {
 				CSVRecord header = hdrParser.getRecords().get(0);
 				m_schema = CsvUtils.buildRecordSchema(Lists.newArrayList(header.iterator()));

@@ -7,8 +7,8 @@ plugins {
 group = 'etri'
 version = '20.02.12'
 
-sourceCompatibility = '11'
-targetCompatibility = '11'
+sourceCompatibility = '17'
+targetCompatibility = '17'
 [compileJava,compileTestJava]*.options*.encoding = 'UTF-8'
 
 protobuf {
@@ -139,6 +139,7 @@ dependencies {
 task sourceJar(type: Jar) {
 	from sourceSets.main.allSource
 }
+
 
 javadoc {
 	source sourceSets.main.allJava

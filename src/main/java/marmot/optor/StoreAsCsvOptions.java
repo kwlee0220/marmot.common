@@ -1,11 +1,13 @@
 package marmot.optor;
 
 import java.nio.charset.Charset;
+import java.util.Optional;
+
+import utils.UnitUtils;
+import utils.func.FOption;
 
 import marmot.proto.optor.StoreAsCsvProto.StoreAsCsvOptionsProto;
 import marmot.support.PBSerializable;
-import utils.UnitUtils;
-import utils.func.FOption;
 
 /**
  * 
@@ -44,7 +46,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 									m_compressionCodecName);
 	}
 	
-	public FOption<Character> quote() {
+	public Optional<Character> quote() {
 		return m_csvOptions.quote();
 	}
 
@@ -53,7 +55,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 									m_compressionCodecName);
 	}
 	
-	public FOption<Character> escape() {
+	public Optional<Character> escape() {
 		return m_csvOptions.escape();
 	}
 	
@@ -62,7 +64,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 									m_compressionCodecName);
 	}
 	
-	public FOption<Charset> charset() {
+	public Optional<Charset> charset() {
 		return m_csvOptions.charset();
 	}
 
@@ -76,7 +78,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 									m_compressionCodecName);
 	}
 	
-	public FOption<Boolean> headerFirst() {
+	public Optional<Boolean> headerFirst() {
 		return m_csvOptions.headerFirst();
 	}
 
@@ -112,7 +114,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 		String headerFirst = m_csvOptions.headerFirst()
 										.filter(f -> f)
 										.map(f -> ", header")
-										.getOrElse("");
+										.orElse("");
 		String csStr = !charset().toString().equalsIgnoreCase("utf-8")
 						? String.format(", %s", charset().toString()) : "";
 		return String.format("delim='%s'%s%s",

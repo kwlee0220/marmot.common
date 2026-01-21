@@ -3,6 +3,10 @@ package marmot.externio.geojson;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
+
+import utils.Throwables;
+import utils.func.FOption;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -13,8 +17,6 @@ import marmot.command.ImportParameters;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.externio.ImportIntoDataSet;
 import marmot.support.MetaPlanLoader;
-import utils.Throwables;
-import utils.func.FOption;
 
 /**
  * 
@@ -23,7 +25,7 @@ import utils.func.FOption;
 public abstract class ImportGeoJson extends ImportIntoDataSet {
 	protected final GeoJsonParameters m_gjsonParams;
 	
-	protected abstract FOption<Plan> loadMetaPlan();
+	protected abstract Optional<Plan> loadMetaPlan();
 	
 	public static ImportGeoJson from(File file, GeoJsonParameters geojsonParams,
 									ImportParameters params) {
@@ -32,12 +34,12 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	
 	public static ImportGeoJson from(BufferedReader reader, GeoJsonParameters geojParams,
 									ImportParameters params) {
-		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.empty(), geojParams, params);
+		return new ImportGeoJsonStreamIntoDataSet(reader, Optional.empty(), geojParams, params);
 	}
 	
 	public static ImportGeoJson from(BufferedReader reader, Plan plan,
 									GeoJsonParameters geojParams, ImportParameters params) {
-		return new ImportGeoJsonStreamIntoDataSet(reader, FOption.of(plan), geojParams,
+		return new ImportGeoJsonStreamIntoDataSet(reader, Optional.of(plan), geojParams,
 												params);
 	}
 
@@ -48,41 +50,41 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected Optional<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
-			FOption<Plan> importPlan = loadMetaPlan();
-			FOption<Plan> prePlan = getPrePlan();
+			Optional<Plan> importPlan = loadMetaPlan();
+			Optional<Plan> prePlan = getPrePlan();
 			
-			if ( importPlan.isAbsent() && prePlan.isAbsent() ) {
-				return FOption.empty();
+			if ( importPlan.isEmpty() && prePlan.isEmpty() ) {
+				return Optional.empty();
 			}
-			if ( importPlan.isAbsent() ) {
+			if ( importPlan.isEmpty() ) {
 				return prePlan;
 			}
-			if ( prePlan.isAbsent() ) {
+			if ( prePlan.isEmpty() ) {
 				return importPlan;
 			}
 			
-			return FOption.of(Plan.concat(prePlan.get(), importPlan.get()));
+			return Optional.of(Plan.concat(prePlan.get(), importPlan.get()));
 		}
 		catch ( Exception e ) {
 			throw Throwables.toRuntimeException(e);
 		}
 	}
 	
-	private FOption<Plan> getPrePlan() {
+	private Optional<Plan> getPrePlan() {
 		FOption<String> osrcSrid = m_gjsonParams.geoJsonSrid();
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
 		if ( osrcSrid.isPresent() ) {
 			String srcSrid = osrcSrid.get();
 			if ( !srcSrid.equals(info.srid()) ) {
-				return FOption.of(new PlanBuilder("import_geojson")
+				return Optional.of(new PlanBuilder("import_geojson")
 										.transformCrs(info.name(), srcSrid, info.srid())
 										.build());
 			}
 		}
 		
-		return FOption.empty();
+		return Optional.empty();
 	}
 	
 	private static class ImportGeoJsonFileIntoDataSet extends ImportGeoJson {
@@ -102,7 +104,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected FOption<Plan> loadMetaPlan() {
+		protected Optional<Plan> loadMetaPlan() {
 			try {
 				return MetaPlanLoader.load(m_start);
 			}
@@ -114,9 +116,9 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 	
 	private static class ImportGeoJsonStreamIntoDataSet extends ImportGeoJson {
 		private final BufferedReader m_reader;
-		private final FOption<Plan> m_plan;
+		private final Optional<Plan> m_plan;
 		
-		ImportGeoJsonStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
+		ImportGeoJsonStreamIntoDataSet(BufferedReader reader, Optional<Plan> plan,
 									GeoJsonParameters geojParams, ImportParameters params) {
 			super(geojParams, params);
 			
@@ -136,7 +138,7 @@ public abstract class ImportGeoJson extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected FOption<Plan> loadMetaPlan() {
+		protected Optional<Plan> loadMetaPlan() {
 			return m_plan;
 		}
 	}

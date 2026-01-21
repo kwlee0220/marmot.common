@@ -4,6 +4,7 @@ package marmot.remote.protobuf;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.locationtech.jts.geom.Envelope;
@@ -12,6 +13,12 @@ import com.google.protobuf.ByteString;
 
 import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
+
+import utils.Throwables;
+import utils.func.Optionals;
+import utils.io.Lz4Compressions;
+import utils.stream.FStream;
+
 import marmot.BindDataSetOptions;
 import marmot.Plan;
 import marmot.RecordSchema;
@@ -66,10 +73,6 @@ import marmot.proto.service.UpdateGeometryColumnInfoRequest;
 import marmot.proto.service.VoidResponse;
 import marmot.protobuf.PBRecordProtos;
 import marmot.protobuf.PBUtils;
-import utils.Throwables;
-import utils.func.FOption;
-import utils.io.Lz4Compressions;
-import utils.stream.FStream;
 
 /**
  * 
@@ -167,7 +170,7 @@ public class PBDataSetServiceProxy {
 						.toList();
 	}
 	
-	public DataSet updateGeometryColumnInfo(String dsId, FOption<GeometryColumnInfo> info) {
+	public DataSet updateGeometryColumnInfo(String dsId, Optional<GeometryColumnInfo> info) {
 		UpdateGeometryColumnInfoRequest.Builder builder
 												= UpdateGeometryColumnInfoRequest.newBuilder()
 																				.setId(dsId);
@@ -238,7 +241,7 @@ public class PBDataSetServiceProxy {
 		return PBRecordProtos.readRecordSet(is);
 	}
 	
-	public long appendRecordSet(String dsId, RecordSet rset, FOption<String> partId) {
+	public long appendRecordSet(String dsId, RecordSet rset, Optional<String> partId) {
 		try {
 			InputStream is = PBRecordProtos.toInputStream(rset);
 			if ( m_marmot.useCompression() ) {
@@ -253,7 +256,7 @@ public class PBDataSetServiceProxy {
 															.setId(dsId)
 															.setUseCompression(m_marmot.useCompression());
 					
-					builder = partId.transform(builder, (b,i) -> b.setPartitionId(i));
+					builder = Optionals.transform(partId, builder, (b,i) -> b.setPartitionId(i));
 					AppendRecordSetRequest req = builder.build();
 					return req.toByteString();
 				}

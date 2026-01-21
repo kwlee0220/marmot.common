@@ -2,6 +2,7 @@ package marmot.externio.text;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -9,7 +10,6 @@ import marmot.RecordSet;
 import marmot.command.ImportParameters;
 import marmot.externio.ImportIntoDataSet;
 import marmot.support.MetaPlanLoader;
-import utils.func.FOption;
 
 /**
  * 
@@ -32,7 +32,7 @@ public class ImportTextFile extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected Optional<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
 			return MetaPlanLoader.load(m_start);
 		}

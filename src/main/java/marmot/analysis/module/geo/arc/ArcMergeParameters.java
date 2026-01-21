@@ -3,12 +3,13 @@ package marmot.analysis.module.geo.arc;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import marmot.support.DataUtils;
 import utils.Utilities;
-import utils.func.FOption;
+
+import marmot.support.DataUtils;
 
 /**
  * 
@@ -85,17 +86,17 @@ public class ArcMergeParameters {
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
 	
-	public FOption<Boolean> getForce() {
+	public Optional<Boolean> getForce() {
 		String str = m_params.get(FORCE);
-		return str != null ? FOption.of(DataUtils.asBoolean(str)) : FOption.empty();
+		return str != null ? Optional.of(DataUtils.asBoolean(str)) : Optional.empty();
 	}
 	
 	public void setForce(boolean flag) {
 		m_params.put(FORCE, "" + flag);
 	}
 	
-	public FOption<String> getCompressionCodecName() {
-		return FOption.ofNullable(m_params.get(COMPRESSION));
+	public Optional<String> getCompressionCodecName() {
+		return Optional.ofNullable(m_params.get(COMPRESSION));
 	}
 	
 	public void setCompressionCodecName(String codecName) {
@@ -107,9 +108,9 @@ public class ArcMergeParameters {
 		}
 	}
 	
-	public FOption<Long> getBlockSize() {
+	public Optional<Long> getBlockSize() {
 		String str = m_params.get(BLOCK_SIZE);
-		return str != null ? FOption.of(DataUtils.asLong(str)) : FOption.empty();
+		return str != null ? Optional.of(DataUtils.asLong(str)) : Optional.empty();
 	}
 	
 	public void setBlockSize(long sz) {

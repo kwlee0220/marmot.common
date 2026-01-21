@@ -1,11 +1,12 @@
 package marmot.optor;
 
 import java.nio.charset.Charset;
+import java.util.Optional;
+
+import utils.Utilities;
 
 import marmot.proto.optor.CsvOptionsProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -13,13 +14,13 @@ import utils.func.FOption;
  */
 public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	private final char m_delim;
-	private final FOption<Character> m_quote;
-	private final FOption<Character> m_escape;
-	private final FOption<Charset> m_charset;
-	private final FOption<Boolean> m_headerFirst;
+	private final Optional<Character> m_quote;
+	private final Optional<Character> m_escape;
+	private final Optional<Charset> m_charset;
+	private final Optional<Boolean> m_headerFirst;
 	
-	private CsvOptions(char delim, FOption<Character> quote, FOption<Character> escape,
-						FOption<Charset> charset, FOption<Boolean> headerFirst) {
+	private CsvOptions(char delim, Optional<Character> quote, Optional<Character> escape,
+						Optional<Charset> charset, Optional<Boolean> headerFirst) {
 		m_delim = delim;
 		m_quote = quote;
 		m_escape = escape;
@@ -28,23 +29,19 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	}
 	
 	public static CsvOptions DEFAULT() {
-		return new CsvOptions(',', FOption.empty(), FOption.empty(), FOption.empty(),
-							FOption.empty());
+		return new CsvOptions(',', Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 	}
 	
 	public static CsvOptions DEFAULT(char delim) {
-		return new CsvOptions(delim, FOption.empty(), FOption.empty(), FOption.empty(),
-							FOption.empty());
+		return new CsvOptions(delim, Optional.empty(), Optional.empty(), Optional.empty(), Optional.empty());
 	}
 	
 	public static CsvOptions DEFAULT(char delim, char quote) {
-		return new CsvOptions(delim, FOption.of(quote), FOption.empty(), FOption.empty(),
-							FOption.empty());
+		return new CsvOptions(delim, Optional.of(quote), Optional.empty(), Optional.empty(), Optional.empty());
 	}
 	
 	public static CsvOptions DEFAULT(char delim, char quote, char escape) {
-		return new CsvOptions(delim, FOption.of(quote), FOption.of(escape),
-							FOption.empty(), FOption.empty());
+		return new CsvOptions(delim, Optional.of(quote), Optional.of(escape), Optional.empty(), Optional.empty());
 	}
 	
 	public char delimiter() {
@@ -55,23 +52,23 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 		return new CsvOptions(delim, m_quote, m_escape, m_charset, m_headerFirst);
 	}
 	
-	public FOption<Character> quote() {
+	public Optional<Character> quote() {
 		return m_quote;
 	}
 
 	public CsvOptions quote(char quote) {
-		return new CsvOptions(m_delim, FOption.of(quote), m_escape, m_charset, m_headerFirst);
+		return new CsvOptions(m_delim, Optional.of(quote), m_escape, m_charset, m_headerFirst);
 	}
 	
-	public FOption<Character> escape() {
+	public Optional<Character> escape() {
 		return m_escape;
 	}
 	
 	public CsvOptions escape(char escape) {
-		return new CsvOptions(m_delim, m_quote, FOption.of(escape), m_charset, m_headerFirst);
+		return new CsvOptions(m_delim, m_quote, Optional.of(escape), m_charset, m_headerFirst);
 	}
 	
-	public FOption<Charset> charset() {
+	public Optional<Charset> charset() {
 		return m_charset;
 	}
 
@@ -82,15 +79,15 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	public CsvOptions charset(Charset charset) {
 		Utilities.checkNotNullArgument(charset, "Charset is null");
 		
-		return new CsvOptions(m_delim, m_quote, m_escape, FOption.of(charset), m_headerFirst);
+		return new CsvOptions(m_delim, m_quote, m_escape, Optional.of(charset), m_headerFirst);
 	}
 	
-	public FOption<Boolean> headerFirst() {
+	public Optional<Boolean> headerFirst() {
 		return m_headerFirst;
 	}
 	
 	public CsvOptions headerFirst(Boolean flag) {
-		return new CsvOptions(m_delim, m_quote, m_escape, m_charset, FOption.ofNullable(flag));
+		return new CsvOptions(m_delim, m_quote, m_escape, m_charset, Optional.ofNullable(flag));
 	}
 	
 	@Override

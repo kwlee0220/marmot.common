@@ -3,14 +3,17 @@ package marmot.externio.jdbc;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Optional;
 
-import marmot.type.DataType;
-import marmot.type.DataTypes;
-import picocli.CommandLine.Option;
 import utils.CSV;
 import utils.LazySplitter;
 import utils.Utilities;
 import utils.func.FOption;
+
+import marmot.type.DataType;
+import marmot.type.DataTypes;
+
+import picocli.CommandLine.Option;
 
 
 /**
@@ -22,9 +25,9 @@ public class LoadJdbcParameters extends JdbcParameters {
 	
 	private FOption<String> m_selectExpr = FOption.empty();
 	private int m_fetchSize = DEF_FETCH_SIZE;
-	private FOption<Map<String,DataType>> m_geomCols = FOption.empty();
-	private FOption<String> m_srid = FOption.empty();
-	private FOption<File> m_importPlanFile = FOption.empty();
+	private Optional<Map<String,DataType>> m_geomCols = Optional.empty();
+	private Optional<String> m_srid = Optional.empty();
+	private Optional<File> m_importPlanFile = Optional.empty();
 	
 	public LoadJdbcParameters() { }
 	
@@ -55,7 +58,7 @@ public class LoadJdbcParameters extends JdbcParameters {
 		return this;
 	}
 	
-	public FOption<Map<String,DataType>> geomColumns() {
+	public Optional<Map<String,DataType>> geomColumns() {
 		return m_geomCols;
 	}
 
@@ -67,27 +70,27 @@ public class LoadJdbcParameters extends JdbcParameters {
 											.toKeyValueStream(kv -> kv)
 											.mapValue(DataTypes::fromName)
 											.toMap();
-		m_geomCols = FOption.of(geomCols);
+		m_geomCols = Optional.of(geomCols);
 		return this;
 	}
 	
-	public FOption<String> srid() {
+	public Optional<String> srid() {
 		return m_srid;
 	}
 
 	@Option(names={"-srid"}, paramLabel="EPSG-code", description="EPSG code for input table")
 	public LoadJdbcParameters srid(String srid) {
-		m_srid = FOption.ofNullable(srid);
+		m_srid = Optional.ofNullable(srid);
 		return this;
 	}
 
 	@Option(names={"-plan"}, paramLabel="path", description="after-process plan file")
 	public LoadJdbcParameters plan(String planFile) throws IOException {
-		m_importPlanFile = FOption.of(new File(planFile));
+		m_importPlanFile = Optional.of(new File(planFile));
 		return this;
 	}
 	
-	public FOption<File> plan() {
+	public Optional<File> plan() {
 		return m_importPlanFile;
 	}
 	

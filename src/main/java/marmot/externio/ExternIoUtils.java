@@ -6,9 +6,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.Optional;
 
 import utils.UnitUtils;
-import utils.func.FOption;
+import utils.func.Optionals;
 
 /**
  * 
@@ -20,10 +21,10 @@ public class ExternIoUtils {
 	}
 	
 	private static final int DEFAULT_BUFFER_SIZE = (int)UnitUtils.parseByteSize("32kb");
-	public static BufferedWriter toWriter(FOption<String> path, Charset charset)
+	public static BufferedWriter toWriter(Optional<String> path, Charset charset)
 		throws IOException {
-		OutputStream os = path.mapOrThrow(str -> (OutputStream)new FileOutputStream(str))
-								.getOrElse(System.out);
+		OutputStream os = Optionals.mapOrThrow(path, str -> (OutputStream)new FileOutputStream(str))
+									.orElse(System.out);
 	    return new BufferedWriter(new OutputStreamWriter(os, charset), DEFAULT_BUFFER_SIZE);
 	}
 }

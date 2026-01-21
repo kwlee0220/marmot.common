@@ -9,20 +9,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
-
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
 import utils.PicocliSubCommand;
 import utils.StopWatch;
 import utils.UnitUtils;
 import utils.Utilities;
-import utils.func.FOption;
+import utils.func.Optionals;
 import utils.rx.ProgressiveExecution;
 
 import marmot.BindDataSetOptions;
@@ -57,6 +53,11 @@ import marmot.optor.AggregateFunction;
 import marmot.optor.JoinOptions;
 import marmot.plan.LoadOptions;
 import marmot.support.DefaultRecord;
+
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Mixin;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 /**
  * 
@@ -215,7 +216,7 @@ public class DatasetCommands {
 				System.out.println("SRID         : " + ds.getGeometryColumnInfo().srid());
 			}
 			System.out.println("HDFS PATH    : " + ds.getHdfsPath());
-			System.out.println("COMPRESSION  : " + ds.getCompressionCodecName().getOrElse("none"));
+			System.out.println("COMPRESSION  : " + ds.getCompressionCodecName().orElse("none"));
 
 			if ( ds.isSpatiallyClustered() ) {
 				System.out.println("SPATIAL CLUSTERS: " + ds.getClusterQuadKeyAll().size());
@@ -267,7 +268,7 @@ public class DatasetCommands {
 			DataSet ds = initialContext.getDataSet(m_dsId);
 			
 			GeometryColumnInfo gcInfo = new GeometryColumnInfo(m_column, m_srid);
-			ds.updateGeometryColumnInfo(FOption.ofNullable(gcInfo));
+			ds.updateGeometryColumnInfo(Optional.ofNullable(gcInfo));
 		}
 	}
 
@@ -278,9 +279,9 @@ public class DatasetCommands {
 
 		@Option(names="-mappers", paramLabel="count", description="mapper count")
 		private void setMapperCount(int count) {
-			m_mapperCount = FOption.of(count);
+			m_mapperCount = Optional.of(count);
 		}
-		private FOption<Integer> m_mapperCount = FOption.empty();
+		private Optional<Integer> m_mapperCount = Optional.empty();
 		
 		@Option(names={"-v", "-verbose"}, description="verbose")
 		private boolean m_verbose = false;
@@ -291,7 +292,7 @@ public class DatasetCommands {
 			
 			LoadOptions opts = LoadOptions.DEFAULT;
 			if ( m_mapperCount.isPresent() ) {
-				int cnt = m_mapperCount.getUnchecked();
+				int cnt = m_mapperCount.get();
 				opts = (cnt > 0) ? LoadOptions.MAPPERS(cnt) :LoadOptions.FIXED_MAPPERS;
 			}
 			Plan plan = Plan.builder("count records")
@@ -413,7 +414,7 @@ public class DatasetCommands {
 		
 		@Option(names={"-workers"}, paramLabel="worker count", required=false,
 				description={"join worker count"})
-		private FOption<Integer> m_nworkers = FOption.empty();
+		private Optional<Integer> m_nworkers = Optional.empty();
 
 		@Override
 		public void run(MarmotRuntime initialContext) throws Exception {
@@ -511,7 +512,7 @@ public class DatasetCommands {
 		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
-			if ( m_params.getGeometryColumnInfo().isAbsent() ) {
+			if ( m_params.getGeometryColumnInfo().isEmpty() ) {
 				throw new IllegalArgumentException("Option '-geom_col' is missing");
 			}
 			
@@ -553,7 +554,7 @@ public class DatasetCommands {
 		public void run(MarmotRuntime initialContext) throws Exception {
 			StopWatch watch = StopWatch.start();
 			
-			if ( m_importParams.getGeometryColumnInfo().isAbsent() ) {
+			if ( m_importParams.getGeometryColumnInfo().isEmpty() ) {
 				throw new IllegalArgumentException("Option '-geom_col' is missing");
 			}
 			
@@ -641,14 +642,14 @@ public class DatasetCommands {
 
 		@Override
 		public void run(MarmotRuntime initialContext) throws Exception {
-			m_csvParams.charset().ifAbsent(() -> m_csvParams.charset(DEFAULT_CHARSET));
+			Optionals.ifAbsent(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
 			
 			File outFile = new File(m_output);
 			if ( m_force && m_output != null && outFile.exists() ) {
 				FileUtils.forceDelete(outFile);
 			}
 			
-			FOption<String> output = FOption.ofNullable(m_output);
+			Optional<String> output = Optional.ofNullable(m_output);
 			BufferedWriter writer = ExternIoUtils.toWriter(output, m_csvParams.charset().get());
 			new ExportAsCsv(m_dsId, m_csvParams).run(initialContext, writer);
 		}
@@ -678,8 +679,9 @@ public class DatasetCommands {
 			ExportDataSetAsShapefile export = new ExportDataSetAsShapefile(m_dsId, m_output,
 																			m_shpParams);
 			export.setForce(m_force);
-			FOption.when(m_interval > 0, m_interval)
-					.ifPresent(export::setProgressInterval);
+			if ( m_interval > 0 ) {
+				export.setProgressInterval(m_interval);
+			}
 			
 			ProgressiveExecution<Long, Long> act = export.start(initialContext);
 			act.get();
@@ -707,7 +709,7 @@ public class DatasetCommands {
 										.printPrinter(m_pretty);
 			m_gjsonParams.geoJsonSrid().ifPresent(export::setGeoJSONSrid);
 			
-			FOption<String> output = FOption.ofNullable(m_output);
+			Optional<String> output = Optional.ofNullable(m_output);
 			BufferedWriter writer = ExternIoUtils.toWriter(output, m_gjsonParams.charset());
 			long count = export.run(initialContext, writer);
 			
@@ -734,8 +736,9 @@ public class DatasetCommands {
 		@Override
 		public void run(MarmotRuntime initialContext) throws Exception {
 			ExportIntoJdbcTable export = new ExportIntoJdbcTable(m_dsId, m_tblName, m_jdbcParams);
-			FOption.when(m_interval > 0, m_interval)
-					.ifPresent(export::reportInterval);
+			if ( m_interval > 0 ) {
+				export.reportInterval(m_interval);
+			}
 			
 			long count = export.run(initialContext);
 			System.out.printf("done: %d records%n", count);

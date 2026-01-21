@@ -5,8 +5,11 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.Map;
+import java.util.Optional;
 
 import utils.func.FOption;
+import utils.func.Optionals;
+import utils.func.Unchecked;
 import utils.jdbc.JdbcProcessor;
 
 import marmot.Column;
@@ -72,8 +75,8 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
-		FOption<Plan> toGeomPlan = m_params.getGeometryColumnInfo().map(gcInfo -> {
+	protected Optional<Plan> loadImportPlan(MarmotRuntime marmot) {
+		Optional<Plan> toGeomPlan = m_params.getGeometryColumnInfo().map(gcInfo -> {
 				PlanBuilder builder = new PlanBuilder("import_jdbc_table");
 				
 				if ( m_jdbcParams.srid().isPresent() ) {
@@ -87,16 +90,17 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 			});
 		
 		// 추가 작업 플랜이 있는 경우, 이를 반영할 경우의 레코드 스키마를 계산한다.
-		FOption<Plan> importPlan = m_jdbcParams.plan()
-												.flatMapSneakily(file -> MetaPlanLoader.load(file));
-		if ( importPlan.isAbsent() ) {
+		Optional<Plan> importPlan
+				= m_jdbcParams.plan()
+								.flatMap(file -> Unchecked.getOrThrowSneakily(() -> MetaPlanLoader.load(file)));
+		if ( importPlan.isEmpty() ) {
 			return toGeomPlan;
 		}
-		else if ( toGeomPlan.isAbsent() ) {
+		else if ( toGeomPlan.isEmpty() ) {
 			return importPlan;
 		}
 		else {
-			return FOption.of(Plan.concat(toGeomPlan.get(), importPlan.get()));
+			return Optional.of(Plan.concat(toGeomPlan.get(), importPlan.get()));
 		}
 	}
 	
@@ -124,8 +128,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 					.getOrElseThrow(() -> JdbcRecordAdaptor.buildRecordSchema(jdbc, m_tableName));
 		
 		// 공간정보 관련 인자가 있는 경우, 공간 정보를 추가한다.
-		return m_jdbcParams.geomColumns()
-							.transform(schema, this::replaceWkbWithGeometryType);
+		return Optionals.transform(m_jdbcParams.geomColumns(), schema, this::replaceWkbWithGeometryType);
 	}
 	
 	private RecordSchema replaceWkbWithGeometryType(RecordSchema schema,

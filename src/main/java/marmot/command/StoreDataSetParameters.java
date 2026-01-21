@@ -1,11 +1,14 @@
 package marmot.command;
 
+import java.util.Optional;
+
+import utils.UnitUtils;
+
 import marmot.dataset.GeometryColumnInfo;
 import marmot.optor.CreateDataSetOptions;
 import marmot.optor.StoreDataSetOptions;
+
 import picocli.CommandLine.Option;
-import utils.UnitUtils;
-import utils.func.FOption;
 
 
 /**
@@ -14,7 +17,7 @@ import utils.func.FOption;
  */
 public class StoreDataSetParameters {
 	private StoreDataSetOptions m_options = StoreDataSetOptions.DEFAULT;
-	private FOption<Integer> m_reportInterval = FOption.empty();
+	private Optional<Integer> m_reportInterval = Optional.empty();
 	
 	public StoreDataSetParameters() {
 	}
@@ -22,7 +25,7 @@ public class StoreDataSetParameters {
 		m_options = opts;
 	}
 	
-	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {
+	public Optional<GeometryColumnInfo> getGeometryColumnInfo() {
 		return m_options.geometryColumnInfo();
 	}
 
@@ -55,7 +58,7 @@ public class StoreDataSetParameters {
 	 * @return 기존 데이터세트에 추가 여부
 	 */
 	public boolean getAppend() {
-		return m_options.append().getOrElse(false);
+		return m_options.append().orElse(false);
 	}
 
 	/**
@@ -68,7 +71,7 @@ public class StoreDataSetParameters {
 		m_options = m_options.append(flag);
 	}
 	
-	public FOption<Long> getBlockSize() {
+	public Optional<Long> getBlockSize() {
 		return m_options.blockSize();
 	}
 
@@ -81,7 +84,7 @@ public class StoreDataSetParameters {
 		m_options = m_options.blockSize(blockSize);
 	}
 	
-	public FOption<String> getCompressionCodecName() {
+	public Optional<String> getCompressionCodecName() {
 		return m_options.compressionCodecName();
 	}
 
@@ -90,14 +93,14 @@ public class StoreDataSetParameters {
 		m_options = m_options.compressionCodecName(codecName);
 	}
 	
-	public FOption<Integer> getReportInterval() {
+	public Optional<Integer> getReportInterval() {
 		return m_reportInterval;
 	}
 
 	@Option(names={"-report_interval"}, paramLabel="record count",
 			description="progress report interval")
 	public void setReportInterval(int interval) {
-		m_reportInterval = (interval > 0) ? FOption.of(interval) : FOption.empty();
+		m_reportInterval = (interval > 0) ? Optional.of(interval) : Optional.empty();
 	}
 	
 	public StoreDataSetOptions toOptions() {

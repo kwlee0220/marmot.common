@@ -2,7 +2,12 @@ package marmot.externio.shp;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 import java.util.function.Supplier;
+
+import utils.Throwables;
+import utils.Utilities;
+import utils.func.FOption;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -15,9 +20,6 @@ import marmot.dataset.GeometryColumnInfo;
 import marmot.externio.ImportIntoDataSet;
 import marmot.rset.SingleThreadSuppliedRecordSet;
 import marmot.support.MetaPlanLoader;
-import utils.Throwables;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -57,40 +59,40 @@ public class ImportShapefile extends ImportIntoDataSet {
 	}
 
 	@Override
-	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected Optional<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
-			FOption<Plan> importPlan = MetaPlanLoader.load(m_start);
-			FOption<Plan> prePlan = getPrePlan();
+			Optional<Plan> importPlan = MetaPlanLoader.load(m_start);
+			Optional<Plan> prePlan = getPrePlan();
 			
-			if ( importPlan.isAbsent() && prePlan.isAbsent() ) {
-				return FOption.empty();
+			if ( importPlan.isEmpty() && prePlan.isEmpty() ) {
+				return Optional.empty();
 			}
-			if ( importPlan.isAbsent() ) {
+			if ( importPlan.isEmpty() ) {
 				return prePlan;
 			}
-			if ( prePlan.isAbsent() ) {
+			if ( prePlan.isEmpty() ) {
 				return importPlan;
 			}
 			
-			return FOption.of(Plan.concat(prePlan.get(), importPlan.get()));
+			return Optional.of(Plan.concat(prePlan.get(), importPlan.get()));
 		}
 		catch ( Exception e ) {
 			throw Throwables.toRuntimeException(e);
 		}
 	}
 	
-	private FOption<Plan> getPrePlan() {
+	private Optional<Plan> getPrePlan() {
 		GeometryColumnInfo info = m_params.getGeometryColumnInfo().get();
 		FOption<String> oshpSrid = m_shpParams.srid();
 		if ( oshpSrid.isPresent() ) {
 			String shpSrid = oshpSrid.get();
 			if ( !shpSrid.equals(info.srid()) ) {
-				return FOption.of(new PlanBuilder("import_shapefile")
+				return Optional.of(new PlanBuilder("import_shapefile")
 										.transformCrs(info.name(), shpSrid, info.srid())
 										.build());
 			}
 		}
 		
-		return FOption.empty();
+		return Optional.empty();
 	}
 }

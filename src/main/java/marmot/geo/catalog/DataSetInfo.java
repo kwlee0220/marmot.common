@@ -3,10 +3,13 @@ package marmot.geo.catalog;
 import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.Optional;
 
 import org.locationtech.jts.geom.Envelope;
 
 import com.google.common.base.Preconditions;
+
+import utils.func.FOption;
 
 import marmot.Column;
 import marmot.GRecordSchema;
@@ -18,7 +21,6 @@ import marmot.proto.service.DataSetInfoProto.DataSetGeometryInfoProto;
 import marmot.proto.service.DataSetTypeProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
-import utils.func.FOption;
 
 
 /**
@@ -31,12 +33,12 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 	private String m_id;
 	private String m_dir;
 	private DataSetType m_type;
-	private FOption<GeometryColumnInfo> m_geomColInfo = FOption.empty();
+	private Optional<GeometryColumnInfo> m_geomColInfo = Optional.empty();
 	private Envelope m_bounds = new Envelope();
 	private long m_count = 0;
 	private RecordSchema m_schema;
 	private String m_filePath;
-	private FOption<String> m_compressionCodecName = FOption.empty();
+	private Optional<String> m_compressionCodecName = Optional.empty();
 	private boolean m_mapOutputCompression = false;
 	private long m_blockSize = -1;
 	private float m_thumbnailRatio = -1;
@@ -84,7 +86,7 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 		return new GRecordSchema(m_geomColInfo, m_schema);
 	}
 	
-	public FOption<GeometryColumnInfo> getGeometryColumnInfo() {
+	public Optional<GeometryColumnInfo> getGeometryColumnInfo() {
 		return m_geomColInfo;
 	}
 	
@@ -92,14 +94,14 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 		return m_geomColInfo.map(GeometryColumnInfo::name)
 							.map(name -> m_schema.getColumn(name))
 							.map(Column::ordinal)
-							.getOrElse(-1);
+							.orElse(-1);
 	}
 	
 	public void setGeometryColumnInfo(GeometryColumnInfo gcInfo) {
-		setGeometryColumnInfo(FOption.of(gcInfo));
+		setGeometryColumnInfo(Optional.of(gcInfo));
 	}
 	
-	public void setGeometryColumnInfo(FOption<GeometryColumnInfo> info) {
+	public void setGeometryColumnInfo(Optional<GeometryColumnInfo> info) {
 		if ( info.isPresent() ) {
 			String colName = info.get().name();
 			Column col = m_schema.findColumn(colName).getOrNull();
@@ -147,15 +149,15 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 		return info;
 	}
 	
-	public FOption<String> getCompressionCodecName() {
+	public Optional<String> getCompressionCodecName() {
 		return m_compressionCodecName;
 	}
 	
 	public void setCompressionCodecName(String codecName) {
-		m_compressionCodecName = FOption.ofNullable(codecName);
+		m_compressionCodecName = Optional.ofNullable(codecName);
 	}
 	
-	public void setCompressionCodecName(FOption<String> codecName) {
+	public void setCompressionCodecName(Optional<String> codecName) {
 		m_compressionCodecName = codecName;
 	}
 	
@@ -231,17 +233,17 @@ public final class DataSetInfo implements PBSerializable<DataSetInfoProto>, Seri
 		
 		FOption<DataSetGeometryInfoProto> gip = PBUtils.getOptionField(proto, "geometry_info");
 		gip.ifPresent(geom -> {
-			info.m_geomColInfo = FOption.of(new GeometryColumnInfo(geom.getColumn(),
+			info.m_geomColInfo = Optional.of(new GeometryColumnInfo(geom.getColumn(),
 																	geom.getSrid()));
 			info.m_bounds = PBUtils.fromProto(geom.getBounds());
 		});
 		
 		switch ( proto.getOptionalCompressionCodecNameCase() ) {
 			case COMPRESSION_CODEC_NAME:
-				info.m_compressionCodecName = FOption.of(proto.getCompressionCodecName());
+				info.m_compressionCodecName = Optional.of(proto.getCompressionCodecName());
 				break;
 			case OPTIONALCOMPRESSIONCODECNAME_NOT_SET:
-				info.m_compressionCodecName = FOption.empty();
+				info.m_compressionCodecName = Optional.empty();
 				break;
 			default:
 				throw new AssertionError();

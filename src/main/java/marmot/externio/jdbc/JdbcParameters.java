@@ -4,10 +4,11 @@ import static utils.Utilities.checkArgument;
 import static utils.Utilities.checkNotNullArgument;
 
 import java.util.List;
+import java.util.Optional;
+
+import utils.CSV;
 
 import picocli.CommandLine.Option;
-import utils.CSV;
-import utils.func.FOption;
 
 
 /**
@@ -22,7 +23,7 @@ public class JdbcParameters {
 	private String m_passwd;
 	private String m_dbName;
 	private GeometryFormat m_geomFormat = GeometryFormat.WKB;
-	private FOption<String> m_jdbcJarPath = FOption.empty();
+	private Optional<String> m_jdbcJarPath = Optional.empty();
 	
 	public JdbcParameters() { }
 	
@@ -90,14 +91,14 @@ public class JdbcParameters {
 		return this;
 	}
 	
-	public FOption<String> jdbcJarPath() {
+	public Optional<String> jdbcJarPath() {
 		return m_jdbcJarPath;
 	}
 
 	@Option(names={"-jdbc_jar"}, paramLabel="jdbc_jar_path", required=false,
 			description={"the path to JDBC driver jar"})
 	public void jdbcJarPath(String jarPath) {
-		m_jdbcJarPath = FOption.ofNullable(jarPath);
+		m_jdbcJarPath = Optional.ofNullable(jarPath);
 	}
 	
 	public JdbcParameters duplicate() {

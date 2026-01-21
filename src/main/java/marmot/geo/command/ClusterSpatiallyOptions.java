@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
@@ -12,14 +13,15 @@ import org.locationtech.jts.geom.Envelope;
 
 import com.google.common.collect.Lists;
 
-import marmot.proto.service.ClusterSpatiallyOptionsProto;
-import marmot.protobuf.PBUtils;
-import marmot.support.PBSerializable;
 import utils.CSV;
 import utils.UnitUtils;
 import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
+
+import marmot.proto.service.ClusterSpatiallyOptionsProto;
+import marmot.protobuf.PBUtils;
+import marmot.support.PBSerializable;
 
 
 /**
@@ -32,7 +34,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 
 	public static final ClusterSpatiallyOptions DEFAULT
 				= new ClusterSpatiallyOptions(false, FOption.empty(), FOption.empty(), null, null,
-											-1, FOption.empty(), FOption.empty(), FOption.empty());
+											-1, FOption.empty(), FOption.empty(), Optional.empty());
 	public static final ClusterSpatiallyOptions FORCE = DEFAULT.force(true);
 
 	private final boolean m_force;						// create file
@@ -43,12 +45,12 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 	private final @Nullable long m_sampleSize;			
 	private final FOption<Integer> m_partitionCount;
 	private final FOption<Long> m_clusterSize;
-	private final FOption<Long> m_blockSize;
+	private final Optional<Long> m_blockSize;
 	
 	private ClusterSpatiallyOptions(boolean force, FOption<Integer> mapperCount,
 									FOption<Envelope> validRange, Collection<String> quadKeyList,
 									String quadKeyDsId, long sampleSize, FOption<Integer> paritionCount,
-									FOption<Long> clusterSize, FOption<Long> blockSize) {
+									FOption<Long> clusterSize, Optional<Long> blockSize) {
 		m_force = force;
 		m_mapperCount = mapperCount;
 		m_validRange = validRange;
@@ -157,10 +159,10 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		return clusterSize(FOption.of(clusterSize));
 	}
 	
-	public FOption<Long> blockSize() {
+	public Optional<Long> blockSize() {
 		return m_blockSize;
 	}
-	public ClusterSpatiallyOptions blockSize(FOption<Long> blockSize) {
+	public ClusterSpatiallyOptions blockSize(Optional<Long> blockSize) {
 		return new ClusterSpatiallyOptions(m_force, m_mapperCount, m_validRange, m_quadKeyList,
 											m_quadKeyDsId, m_sampleSize, m_partitionCount,
 											m_clusterSize, blockSize);
@@ -168,7 +170,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 	public ClusterSpatiallyOptions blockSize(long blockSize) {
 		Utilities.checkArgument(blockSize > 0, "invalid block_size=" + blockSize);
 		
-		return blockSize(FOption.of(blockSize));
+		return blockSize(Optional.of(blockSize));
 	}
 	
 	public EstimateQuadKeysOptions toEstimateQuadKeysOptions() {

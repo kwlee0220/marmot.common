@@ -1,8 +1,11 @@
 package marmot.dataset;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.locationtech.jts.geom.Envelope;
+
+import utils.func.FOption;
 
 import marmot.RecordSchema;
 import marmot.RecordSet;
@@ -11,7 +14,6 @@ import marmot.geo.command.ClusterSpatiallyOptions;
 import marmot.geo.command.CreateSpatialIndexOptions;
 import marmot.geo.command.EstimateQuadKeysOptions;
 import marmot.geo.query.RangeQueryEstimate;
-import utils.func.FOption;
 
 /**
  * 
@@ -127,7 +129,7 @@ public interface DataSet {
 	 * 
 	 * @return	반환 여부
 	 */
-	public FOption<String> getCompressionCodecName();
+	public Optional<String> getCompressionCodecName();
 
 	/**
 	 * 데이터세트의 크기를 바이트 단위로 반환한다. 
@@ -144,7 +146,7 @@ public interface DataSet {
 	 * @param gcInfo	공간 컬럼 정보.
 	 * @return	공간 컬럼 정보가 갱신된 데이터 세트
 	 */
-	public DataSet updateGeometryColumnInfo(FOption<GeometryColumnInfo> gcInfo);
+	public DataSet updateGeometryColumnInfo(Optional<GeometryColumnInfo> gcInfo);
 	
 	/**
 	 * 데이터세트에 저장된 레코드 세트를 읽는다.

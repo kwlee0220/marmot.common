@@ -3,12 +3,13 @@ package marmot.analysis.module.geo.arc;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import marmot.support.DataUtils;
 import utils.Utilities;
-import utils.func.FOption;
+
+import marmot.support.DataUtils;
 
 
 /**
@@ -67,8 +68,8 @@ public class ArcUnionParameters {
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
 	
-	public FOption<Boolean> getForce() {
-		return FOption.ofNullable(m_params.get(FORCE))
+	public Optional<Boolean> getForce() {
+		return Optional.ofNullable(m_params.get(FORCE))
 						.map(DataUtils::asBoolean);
 	}
 	
@@ -76,8 +77,8 @@ public class ArcUnionParameters {
 		m_params.put(FORCE, "" + flag);
 	}
 	
-	public FOption<String> getCompressionCodecName() {
-		return FOption.ofNullable(m_params.get(COMPRESSION));
+	public Optional<String> getCompressionCodecName() {
+		return Optional.ofNullable(m_params.get(COMPRESSION));
 	}
 	
 	public void setCompressionCodecName(String codecName) {
@@ -89,8 +90,8 @@ public class ArcUnionParameters {
 		}
 	}
 	
-	public FOption<Long> getBlockSize() {
-		return FOption.ofNullable(m_params.get(BLOCK_SIZE))
+	public Optional<Long> getBlockSize() {
+		return Optional.ofNullable(m_params.get(BLOCK_SIZE))
 						.map(DataUtils::asLong);
 	}
 	public void setBlockSize(long sz) {

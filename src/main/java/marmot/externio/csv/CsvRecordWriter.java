@@ -13,8 +13,12 @@ import java.nio.file.Files;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+
 import utils.UnitUtils;
 import utils.Utilities;
+import utils.func.Optionals;
 import utils.rx.ProgressReporter;
 
 import marmot.Column;
@@ -24,9 +28,6 @@ import marmot.RecordSet;
 import marmot.externio.RecordWriter;
 import marmot.optor.CsvOptions;
 import marmot.type.DataType;
-
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 
 /**
@@ -46,7 +47,7 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 	
 	public static CsvRecordWriter get(File file, RecordSchema schema, CsvOptions opts)
 		throws IOException {
-		Charset cs = opts.charset().getOrElse(DEFAULT_CHARSET);
+		Charset cs = opts.charset().orElse(DEFAULT_CHARSET);
 		return new CsvRecordWriter(Files.newBufferedWriter(file.toPath(), cs), schema, opts);
 	}
 	
@@ -60,7 +61,7 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 	
 	public static CsvRecordWriter get(OutputStream os, RecordSchema schema, CsvOptions opts)
 		throws IOException {
-		Charset cs = opts.charset().getOrElse(DEFAULT_CHARSET);
+		Charset cs = opts.charset().orElse(DEFAULT_CHARSET);
 		
 		Writer writer = new OutputStreamWriter(os, cs);
 		return new CsvRecordWriter(new BufferedWriter(writer, DEFAULT_BUFFER_SIZE), schema, opts);
@@ -89,14 +90,14 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 		CSVFormat format = CSVFormat.DEFAULT.withQuote(null)
 											.withIgnoreSurroundingSpaces()
 											.withDelimiter(opts.delimiter());
-		format = opts.quote().transform(format, (f,q) -> f.withQuote(q));
-		format = opts.escape().transform(format, (f,esc) -> f.withEscape(esc));
+		format = Optionals.transform(opts.quote(), format, (f,q) -> f.withQuote(q));
+		format = Optionals.transform(opts.escape(), format, (f,esc) -> f.withEscape(esc));
 
 		String[] header = schema.streamColumns()
 								.map(Column::name)
 								.toArray(String.class);
 		format = format.withHeader(header);
-		format = format.withSkipHeaderRecord(!opts.headerFirst().getOrElse(false));
+		format = format.withSkipHeaderRecord(!opts.headerFirst().orElse(false));
 		
 		m_printer = format.print(writer);
 		m_colTypes = schema.streamColumns()

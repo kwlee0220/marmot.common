@@ -2,8 +2,12 @@ package marmot.optor;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Lists;
+
+import utils.UnitUtils;
+import utils.stream.FStream;
 
 import marmot.dataset.DataSetType;
 import marmot.dataset.GeometryColumnInfo;
@@ -11,9 +15,6 @@ import marmot.io.MarmotFileWriteOptions;
 import marmot.proto.service.CreateDataSetOptionsProto;
 import marmot.proto.service.DataSetTypeProto;
 import marmot.support.PBSerializable;
-import utils.UnitUtils;
-import utils.func.FOption;
-import utils.stream.FStream;
 
 /**
  * 
@@ -21,37 +22,37 @@ import utils.stream.FStream;
  */
 public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptionsProto> {
 	public static final CreateDataSetOptions DEFAULT
-			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.DEFAULT);
+			= new CreateDataSetOptions(Optional.empty(), MarmotFileWriteOptions.DEFAULT);
 	public static final CreateDataSetOptions FORCE
-			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.FORCE);
+			= new CreateDataSetOptions(Optional.empty(), MarmotFileWriteOptions.FORCE);
 	public static final CreateDataSetOptions APPEND_IF_EXISTS
-			= new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.APPEND_IF_EXISTS);
+			= new CreateDataSetOptions(Optional.empty(), MarmotFileWriteOptions.APPEND_IF_EXISTS);
 	
 	private final DataSetType m_dsType;
-	private final FOption<GeometryColumnInfo> m_gcInfo;
+	private final Optional<GeometryColumnInfo> m_gcInfo;
 	private final MarmotFileWriteOptions m_writeOpts;
 	
-	private CreateDataSetOptions(DataSetType dsType, FOption<GeometryColumnInfo> gcInfo,
+	private CreateDataSetOptions(DataSetType dsType, Optional<GeometryColumnInfo> gcInfo,
 									MarmotFileWriteOptions writeOpts) {
 		m_dsType = dsType;
 		m_gcInfo = gcInfo;
 		m_writeOpts = writeOpts;
 	}
 	
-	private CreateDataSetOptions(FOption<GeometryColumnInfo> gcInfo, MarmotFileWriteOptions writeOpts) {
+	private CreateDataSetOptions(Optional<GeometryColumnInfo> gcInfo, MarmotFileWriteOptions writeOpts) {
 		this(DataSetType.FILE, gcInfo, writeOpts);
 	}
 	
 	public static CreateDataSetOptions GEOMETRY(GeometryColumnInfo gcInfo) {
-		return new CreateDataSetOptions(FOption.of(gcInfo), MarmotFileWriteOptions.DEFAULT);
+		return new CreateDataSetOptions(Optional.of(gcInfo), MarmotFileWriteOptions.DEFAULT);
 	}
 	
 	public static CreateDataSetOptions FORCE(GeometryColumnInfo gcInfo) {
-		return new CreateDataSetOptions(FOption.of(gcInfo), MarmotFileWriteOptions.FORCE);
+		return new CreateDataSetOptions(Optional.of(gcInfo), MarmotFileWriteOptions.FORCE);
 	}
 	
 	public static CreateDataSetOptions FORCE(boolean flag) {
-		return new CreateDataSetOptions(FOption.empty(), MarmotFileWriteOptions.FORCE(flag));
+		return new CreateDataSetOptions(Optional.empty(), MarmotFileWriteOptions.FORCE(flag));
 	}
 	
 	public DataSetType type() {
@@ -62,12 +63,12 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 		return new CreateDataSetOptions(type, m_gcInfo, m_writeOpts);
 	}
 	
-	public FOption<GeometryColumnInfo> geometryColumnInfo() {
+	public Optional<GeometryColumnInfo> geometryColumnInfo() {
 		return m_gcInfo;
 	}
 	
 	public CreateDataSetOptions geometryColumnInfo(GeometryColumnInfo gcInfo) {
-		return new CreateDataSetOptions(m_dsType, FOption.of(gcInfo), m_writeOpts);
+		return new CreateDataSetOptions(m_dsType, Optional.of(gcInfo), m_writeOpts);
 	}
 	
 	public boolean force() {
@@ -78,32 +79,32 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.force(flag));
 	}
 	
-	public FOption<Long> blockSize() {
+	public Optional<Long> blockSize() {
 		return m_writeOpts.blockSize();
 	}
 
-	public CreateDataSetOptions blockSize(FOption<Long> blkSize) {
+	public CreateDataSetOptions blockSize(Optional<Long> blkSize) {
 		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.blockSize(blkSize));
 	}
 	public CreateDataSetOptions blockSize(long blkSize) {
-		return blockSize(FOption.of(blkSize));
+		return blockSize(Optional.of(blkSize));
 	}
 
 	public CreateDataSetOptions blockSize(String blkSizeStr) {
 		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.blockSize(blkSizeStr));
 	}
 	
-	public FOption<String> compressionCodecName() {
+	public Optional<String> compressionCodecName() {
 		return m_writeOpts.compressionCodecName();
 	}
-	public CreateDataSetOptions compressionCodecName(FOption<String> name) {
+	public CreateDataSetOptions compressionCodecName(Optional<String> name) {
 		return new CreateDataSetOptions(m_dsType, m_gcInfo, m_writeOpts.compressionCodecName(name));
 	}
 	public CreateDataSetOptions compressionCodecName(String name) {
-		return compressionCodecName(FOption.ofNullable(name));
+		return compressionCodecName(Optional.ofNullable(name));
 	}
 	
-	public FOption<Map<String,String>> metaData() {
+	public Optional<Map<String,String>> metaData() {
 		return m_writeOpts.metaData();
 	}
 
@@ -122,10 +123,10 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 	public static CreateDataSetOptions fromProto(CreateDataSetOptionsProto proto) {
 		DataSetType type = DataSetType.fromString(proto.getType().name());
 		
-		FOption<GeometryColumnInfo> gcInfo = FOption.empty();
+		Optional<GeometryColumnInfo> gcInfo = Optional.empty();
 		switch ( proto.getOptionalGeomColInfoCase() ) {
 			case GEOM_COL_INFO:
-				gcInfo = FOption.of(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
+				gcInfo = Optional.of(GeometryColumnInfo.fromProto(proto.getGeomColInfo()));
 				break;
 			default:
 		}

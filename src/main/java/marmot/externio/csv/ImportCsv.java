@@ -5,6 +5,11 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
+
+import utils.Throwables;
+import utils.Tuple;
+import utils.func.Optionals;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -15,9 +20,6 @@ import marmot.command.ImportParameters;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.externio.ImportIntoDataSet;
 import marmot.support.MetaPlanLoader;
-import utils.Throwables;
-import utils.Tuple;
-import utils.func.FOption;
 
 
 /**
@@ -29,7 +31,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	
 	protected final CsvParameters m_csvParams;
 	
-	protected abstract FOption<Plan> loadMetaPlan();
+	protected abstract Optional<Plan> loadMetaPlan();
 	
 	public static ImportCsv from(File file, CsvParameters csvParams, ImportParameters params) {
 		return new ImportCsvFileIntoDataSet(file, csvParams, params, "**/*.csv");
@@ -42,48 +44,48 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	
 	public static ImportCsv from(BufferedReader reader, CsvParameters csvParams,
 									ImportParameters params) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.empty(), csvParams, params);
+		return new ImportCsvStreamIntoDataSet(reader, Optional.empty(), csvParams, params);
 	}
 	
 	public static ImportCsv from(BufferedReader reader, Plan plan, CsvParameters csvParams,
 									ImportParameters params) {
-		return new ImportCsvStreamIntoDataSet(reader, FOption.of(plan), csvParams, params);
+		return new ImportCsvStreamIntoDataSet(reader, Optional.of(plan), csvParams, params);
 	}
 
 	private ImportCsv(CsvParameters csvParams, ImportParameters params) {
 		super(params);
 		
 		m_csvParams = csvParams.duplicate();
-		m_csvParams.charset().ifAbsent(() -> m_csvParams.charset(DEFAULT_CHARSET));
+		Optionals.ifAbsent(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
 	}
 
 	@Override
-	protected FOption<Plan> loadImportPlan(MarmotRuntime marmot) {
+	protected Optional<Plan> loadImportPlan(MarmotRuntime marmot) {
 		try {
-			FOption<Plan> importPlan = loadMetaPlan();
-			FOption<Plan> toPointPlan = getToPointPlan();
+			Optional<Plan> importPlan = loadMetaPlan();
+			Optional<Plan> toPointPlan = getToPointPlan();
 			
-			if ( importPlan.isAbsent() && toPointPlan.isAbsent() ) {
-				return FOption.empty();
+			if ( importPlan.isEmpty() && toPointPlan.isEmpty() ) {
+				return Optional.empty();
 			}
-			if ( importPlan.isAbsent() ) {
+			if ( importPlan.isEmpty() ) {
 				return toPointPlan;
 			}
-			if ( toPointPlan.isAbsent() ) {
+			if ( toPointPlan.isEmpty() ) {
 				return importPlan;
 			}
 			
-			return FOption.of(Plan.concat(toPointPlan.get(), importPlan.get()));
+			return Optional.of(Plan.concat(toPointPlan.get(), importPlan.get()));
 		}
 		catch ( Exception e ) {
 			throw Throwables.toRuntimeException(e);
 		}
 	}
 
-	private FOption<Plan> getToPointPlan() {
+	private Optional<Plan> getToPointPlan() {
 		if ( !m_csvParams.pointColumns().isPresent()
 			|| !m_params.getGeometryColumnInfo().isPresent() ) {
-			return FOption.empty();
+			return Optional.empty();
 		}
 		
 		PlanBuilder builder = new PlanBuilder("import_csv");
@@ -103,7 +105,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 			}
 		}
 		
-		return FOption.of(builder.build());
+		return Optional.of(builder.build());
 	}
 	
 	private static class ImportCsvFileIntoDataSet extends ImportCsv {
@@ -124,7 +126,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected FOption<Plan> loadMetaPlan() {
+		protected Optional<Plan> loadMetaPlan() {
 			try {
 				return MetaPlanLoader.load(m_start);
 			}
@@ -137,14 +139,14 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 	private static class ImportCsvStreamIntoDataSet extends ImportCsv {
 		private final String m_key;
 		private final BufferedReader m_reader;
-		private final FOption<Plan> m_plan;
+		private final Optional<Plan> m_plan;
 		
-		ImportCsvStreamIntoDataSet(BufferedReader reader, FOption<Plan> plan,
+		ImportCsvStreamIntoDataSet(BufferedReader reader, Optional<Plan> plan,
 									CsvParameters csvParams, ImportParameters params) {
 			this("unknown", reader, plan, csvParams, params);
 		}
 		
-		ImportCsvStreamIntoDataSet(String key, BufferedReader reader, FOption<Plan> plan,
+		ImportCsvStreamIntoDataSet(String key, BufferedReader reader, Optional<Plan> plan,
 									CsvParameters csvParams, ImportParameters params) {
 			super(csvParams, params);
 			
@@ -164,7 +166,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		}
 
 		@Override
-		protected FOption<Plan> loadMetaPlan() {
+		protected Optional<Plan> loadMetaPlan() {
 			return m_plan;
 		}
 	}

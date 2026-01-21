@@ -2,9 +2,13 @@ package marmot.externio;
 
 import static marmot.optor.StoreDataSetOptions.APPEND;
 
+import java.util.Optional;
+
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+
 import utils.Throwables;
 import utils.Utilities;
-import utils.func.FOption;
 import utils.rx.ProgressReporter;
 
 import marmot.MarmotRuntime;
@@ -17,9 +21,6 @@ import marmot.command.ImportParameters;
 import marmot.dataset.DataSet;
 import marmot.optor.StoreDataSetOptions;
 
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
-
 
 /**
  * 
@@ -30,7 +31,7 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.create();
 	
 	protected abstract RecordSet loadRecordSet(MarmotRuntime marmot);
-	protected abstract FOption<Plan> loadImportPlan(MarmotRuntime marmot);
+	protected abstract Optional<Plan> loadImportPlan(MarmotRuntime marmot);
 	
 	public ImportIntoDataSet(ImportParameters params) {
 		Utilities.checkNotNullArgument(params, "params is null");
@@ -53,25 +54,28 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 		
 		String dsId = m_params.getDataSetId();
 		try {
-			FOption<Plan> importPlan = loadImportPlan(marmot);
+			Optional<Plan> importPlan = loadImportPlan(marmot);
 			
 			RecordSet rset0 = loadRecordSet(marmot);
-			RecordSet rset = m_params.getReportInterval()
-									.transform(rset0,
-											(r,n) -> r.reportProgress(m_subject).reportInterval(n));
+			RecordSet rset = rset0;
+			if ( m_params.getReportInterval().isPresent() ) {
+				rset = rset0.reportProgress(m_subject, m_params.getReportInterval().get());
+			}
 			
 			DataSet ds;
 			if ( append ) {
 				ds = marmot.getDataSet(dsId);
 			}
 			else {
-				RecordSchema outSchema = importPlan.transform(rset.getRecordSchema(),
-														(s,p) -> marmot.getOutputRecordSchema(p,s));
+				RecordSchema outSchema = rset.getRecordSchema();
+				if ( importPlan.isPresent() )  {
+					outSchema = marmot.getOutputRecordSchema(importPlan.get(), rset.getRecordSchema());
+				}
 				ds = marmot.createDataSet(dsId, outSchema, m_params.toCreateOptions());
 			}
 			
 			if ( importPlan.isPresent() ) {
-				PlanBuilder builder = importPlan.getUnchecked().toBuilder();
+				PlanBuilder builder = importPlan.get().toBuilder();
 				switch ( builder.getLastOperatorProto().getOperatorCase() ) {
 					case STORE_DATASET:
 						throw new IllegalArgumentException("import-plan should not be "
@@ -80,8 +84,9 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 				}
 
 				StoreDataSetOptions opts = APPEND.blockSize(ds.getBlockSize());
-				opts = ds.getCompressionCodecName()
-							.transform(opts, StoreDataSetOptions::compressionCodecName);
+				if ( ds.getCompressionCodecName().isPresent() ) {
+					opts = opts.compressionCodecName(ds.getCompressionCodecName().get());
+				}
 				Plan adjusted = builder.store(dsId, opts)
 										.build();	
 				try ( CountingRecordSet countingRSet = rset.asCountingRecordSet() ) {

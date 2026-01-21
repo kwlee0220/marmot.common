@@ -3,6 +3,7 @@ package marmot.analysis.module.geo;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
@@ -58,9 +59,8 @@ public class CreateSpatialIndexParameters {
 	public FOption<String> quadKeyDataSet() {
 		return FOption.ofNullable(m_params.get(QUADKEY_DATASET));
 	}
-	public void quadKeyDataSet(FOption<String> dsId) {
-		dsId.ifAbsent(() -> m_params.remove(QUADKEY_DATASET))
-			.ifPresent(this::quadKeyDataSet);
+	public void quadKeyDataSet(Optional<String> dsId) {
+		dsId.ifPresentOrElse(this::quadKeyDataSet, () -> m_params.remove(QUADKEY_DATASET));
 	}
 	public void quadKeyDataSet(String dsId) {
 		m_params.put(QUADKEY_DATASET, dsId);

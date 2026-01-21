@@ -1,11 +1,13 @@
 package marmot.optor;
 
 import java.nio.charset.Charset;
+import java.util.Optional;
+
+import utils.Utilities;
+import utils.func.FOption;
 
 import marmot.proto.optor.ParseCsvProto.ParseCsvOptionsProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -57,7 +59,7 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 									m_trimColumns, m_nullValue, m_throwParseError);
 	}
 	
-	public FOption<Character> quote() {
+	public Optional<Character> quote() {
 		return m_csvOptions.quote();
 	}
 
@@ -66,7 +68,7 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 									m_nullValue, m_throwParseError);
 	}
 	
-	public FOption<Character> escape() {
+	public Optional<Character> escape() {
 		return m_csvOptions.escape();
 	}
 	
@@ -75,7 +77,7 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 									m_nullValue, m_throwParseError);
 	}
 	
-	public FOption<Charset> charset() {
+	public Optional<Charset> charset() {
 		return m_csvOptions.charset();
 	}
 
@@ -89,7 +91,7 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 									m_nullValue, m_throwParseError);
 	}
 	
-	public FOption<Boolean> headerFirst() {
+	public Optional<Boolean> headerFirst() {
 		return m_csvOptions.headerFirst();
 	}
 
@@ -141,7 +143,7 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 		String headerFirst = m_csvOptions.headerFirst()
 											.filter(f -> f)
 											.map(f -> ", header")
-											.getOrElse("");
+											.orElse("");
 		String nullString = m_nullValue.map(v -> String.format(", null=\"%s\"", v))
 										.getOrElse("");
 		String csStr = !charset().toString().equalsIgnoreCase("utf-8")

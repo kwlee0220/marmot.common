@@ -1,8 +1,12 @@
 package marmot.remote.protobuf;
 
+import java.util.Optional;
 import java.util.Set;
 
 import org.locationtech.jts.geom.Envelope;
+
+import utils.Utilities;
+import utils.func.FOption;
 
 import marmot.Plan;
 import marmot.PlanBuilder;
@@ -22,8 +26,6 @@ import marmot.geo.command.CreateSpatialIndexOptions;
 import marmot.geo.command.EstimateQuadKeysOptions;
 import marmot.geo.query.RangeQueryEstimate;
 import marmot.optor.StoreDataSetOptions;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -66,7 +68,7 @@ public class PBDataSetProxy implements DataSet {
 	@Override
 	public GeometryColumnInfo getGeometryColumnInfo() {
 		return m_info.getGeometryColumnInfo()
-					.getOrThrow(NoGeometryColumnException::new);
+					.orElseThrow(NoGeometryColumnException::new);
 	}
 
 	@Override
@@ -101,12 +103,12 @@ public class PBDataSetProxy implements DataSet {
 	}
 
 	@Override
-	public FOption<String> getCompressionCodecName() {
+	public Optional<String> getCompressionCodecName() {
 		return m_info.getCompressionCodecName();
 	}
 
 	@Override
-	public DataSet updateGeometryColumnInfo(FOption<GeometryColumnInfo> gcInfo) {
+	public DataSet updateGeometryColumnInfo(Optional<GeometryColumnInfo> gcInfo) {
 		return m_service.updateGeometryColumnInfo(getId(), gcInfo);
 	}
 
@@ -134,7 +136,7 @@ public class PBDataSetProxy implements DataSet {
 	public long append(RecordSet rset) {
 		Utilities.checkNotNullArgument(rset, "RecordSet is null");
 		
-		long count = m_service.appendRecordSet(getId(), rset, FOption.empty());
+		long count = m_service.appendRecordSet(getId(), rset, Optional.empty());
 		m_info = m_service.getDataSet(getId()).m_info;
 		
 		return count;
@@ -144,7 +146,7 @@ public class PBDataSetProxy implements DataSet {
 	public long append(RecordSet rset, String partId) {
 		Utilities.checkNotNullArgument(rset, "RecordSet is null");
 		
-		long count = m_service.appendRecordSet(getId(), rset, FOption.of(partId));
+		long count = m_service.appendRecordSet(getId(), rset, Optional.of(partId));
 		m_info = m_service.getDataSet(getId()).m_info;
 		
 		return count;
@@ -171,7 +173,9 @@ public class PBDataSetProxy implements DataSet {
 		}
 
 		StoreDataSetOptions opts = StoreDataSetOptions.APPEND.blockSize(getBlockSize());
-		opts = getCompressionCodecName().transform(opts, StoreDataSetOptions::compressionCodecName);
+		if ( getCompressionCodecName().isPresent() ) {
+			opts = opts.compressionCodecName(getCompressionCodecName().get());
+		}
 		Plan adjusted = builder.store(getId(), opts).build();
 		
 		try ( CountingRecordSet countingRSet = rset.asCountingRecordSet() ) {
