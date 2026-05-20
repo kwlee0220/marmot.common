@@ -20,7 +20,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalNotification;
 
-import utils.Utilities;
+import utils.Preconditions;
 import utils.fostore.DefaultFileObjectStore;
 import utils.fostore.FileObjectHandler;
 import utils.fostore.FileObjectStore;
@@ -150,8 +150,8 @@ public class PartitionCache {
 		private final String m_quadKey;
 		
 		PartitionKey(String dsId, String quadKey) {
-			Utilities.checkNotNullArgument(dsId, "DataSet id");
-			Utilities.checkNotNullArgument(quadKey, "quad-key");
+			Preconditions.checkNotNullArgument(dsId, "DataSet id");
+			Preconditions.checkNotNullArgument(quadKey, "quad-key");
 			
 			m_dsId = dsId;
 			m_quadKey = quadKey;
@@ -204,15 +204,15 @@ public class PartitionCache {
 
 		@Override
 		public InputStream readFileObject(File file) throws IOException {
-			Utilities.checkNotNullArgument(file, "FileStore file");
+			Preconditions.checkNotNullArgument(file, "FileStore file");
 			
 			return new FileInputStream(file);
 		}
 
 		@Override
 		public void writeFileObject(InputStream is, File file) throws IOException {
-			Utilities.checkNotNullArgument(is, "InputStream");
-			Utilities.checkNotNullArgument(file, "FileStore file");
+			Preconditions.checkNotNullArgument(is, "InputStream");
+			Preconditions.checkNotNullArgument(file, "FileStore file");
 			
 			IOUtils.toFile(is, file);
 		}

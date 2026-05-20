@@ -10,6 +10,11 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+
+import utils.Preconditions;
+import utils.func.FOption;
+import utils.stream.FStream;
+
 import marmot.BindDataSetOptions;
 import marmot.ExecutePlanOptions;
 import marmot.MarmotRuntime;
@@ -30,9 +35,6 @@ import marmot.io.MarmotFileNotFoundException;
 import marmot.optor.CreateDataSetOptions;
 import marmot.optor.StoreDataSetOptions;
 import marmot.proto.optor.OperatorProto;
-import utils.Utilities;
-import utils.func.FOption;
-import utils.stream.FStream;
 
 /**
  * 
@@ -146,14 +148,14 @@ public class PBMarmotClient implements MarmotRuntime {
 	
 	@Override
 	public DataSet getDataSet(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "dataset id is null");
+		Preconditions.checkNotNullArgument(dsId, "dataset id is null");
 		
 		return m_dsService.getDataSet(dsId);
 	}
 
 	@Override
 	public DataSet getDataSetOrNull(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "dataset id is null");
+		Preconditions.checkNotNullArgument(dsId, "dataset id is null");
 		
 		return m_dsService.getDataSetOrNull(dsId);
 	}
@@ -165,7 +167,7 @@ public class PBMarmotClient implements MarmotRuntime {
 
 	@Override
 	public List<DataSet> getDataSetAllInDir(String folder, boolean recursive) {
-		Utilities.checkNotNullArgument(folder, "dataset folder is null");
+		Preconditions.checkNotNullArgument(folder, "dataset folder is null");
 		
 		return m_dsService.getDataSetAllInDir(folder, recursive);
 	}

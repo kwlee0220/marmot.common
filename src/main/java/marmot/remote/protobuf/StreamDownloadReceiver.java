@@ -12,12 +12,12 @@ import com.google.protobuf.ByteString;
 
 import io.grpc.stub.StreamObserver;
 
+import utils.Preconditions;
 import utils.Throwables;
 import utils.UnitUtils;
-import utils.Utilities;
 import utils.async.CancellableWork;
 import utils.async.EventDrivenExecution;
-import utils.async.Guard;
+import utils.thread.Guard;
 
 import marmot.proto.service.DownChunkRequest;
 import marmot.proto.service.DownChunkResponse;
@@ -65,8 +65,8 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 	}
 
 	InputStream start(ByteString req, StreamObserver<DownChunkResponse> channel) {
-		Utilities.checkNotNullArgument(req, "download-stream-consumer request");
-		Utilities.checkNotNullArgument(channel, "download-stream channel");
+		Preconditions.checkNotNullArgument(req, "download-stream-consumer request");
+		Preconditions.checkNotNullArgument(channel, "download-stream channel");
 
 		m_channel = channel;
 		m_channel.onNext(DownChunkResponse.newBuilder().setHeader(req).build());
@@ -76,7 +76,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 	}
 
 	InputStream start(StreamObserver<DownChunkResponse> channel) {
-		Utilities.checkNotNullArgument(channel, "download-stream channel");
+		Preconditions.checkNotNullArgument(channel, "download-stream channel");
 
 		m_channel = channel;
 		notifyStarted();

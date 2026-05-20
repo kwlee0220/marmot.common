@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
+import utils.Preconditions;
 
 import marmot.Column;
 import marmot.ColumnNotFoundException;
@@ -12,7 +12,6 @@ import marmot.Record;
 import marmot.RecordSchema;
 import marmot.proto.RecordProto;
 import marmot.protobuf.PBRecordProtos;
-import utils.Utilities;
 
 
 /**
@@ -70,7 +69,7 @@ public class DefaultRecord implements Record {
 	 */
 	@Override
 	public Object get(String name) {
-		Utilities.checkNotNullArgument(name, "column name");
+		Preconditions.checkNotNullArgument(name, "column name");
 		
 		return m_values[m_schema.getColumn(name).ordinal()];
 	}
@@ -88,7 +87,7 @@ public class DefaultRecord implements Record {
 	
 	@Override
 	public DefaultRecord set(String name, Object value) {
-		Utilities.checkNotNullArgument(name, "column name");
+		Preconditions.checkNotNullArgument(name, "column name");
 		
 		Column col = m_schema.getColumn(name);
 		m_values[col.ordinal()] = value;

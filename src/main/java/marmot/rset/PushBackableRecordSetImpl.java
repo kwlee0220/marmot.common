@@ -3,13 +3,12 @@ package marmot.rset;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.base.Preconditions;
+import utils.Preconditions;
 
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
-import utils.Utilities;
 
 /**
  * 
@@ -20,7 +19,7 @@ public class PushBackableRecordSetImpl extends AbstractRecordSet implements Push
 	private final List<Record> m_pushBackeds;
 	
 	public PushBackableRecordSetImpl(RecordSet rset) {
-		Utilities.checkNotNullArgument(rset, "rset is null");
+		Preconditions.checkNotNullArgument(rset, "rset is null");
 		
 		m_input = rset;
 		m_pushBackeds = new ArrayList<>();

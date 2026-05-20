@@ -6,12 +6,13 @@ import java.util.List;
 
 import com.google.common.collect.Lists;
 
+import utils.Preconditions;
+import utils.io.FileUtils;
+import utils.stream.FStream;
+
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.ExternExecProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
-import utils.Utilities;
-import utils.io.FileUtils;
-import utils.stream.FStream;
 
 /**
  * 
@@ -50,7 +51,7 @@ public class ExternAnalysis extends MarmotAnalysis {
 	}
 	
 	public static ExternAnalysis fromProto(MarmotAnalysisProto proto) {
-		Utilities.checkArgument(proto.getMemberCase().equals(MemberCase.EXTERN_EXEC),
+		Preconditions.checkArgument(proto.getMemberCase().equals(MemberCase.EXTERN_EXEC),
 								"not ExternAnalysis");
 		
 		ExternExecProto sysFunc = proto.getExternExec();

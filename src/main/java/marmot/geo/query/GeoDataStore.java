@@ -1,8 +1,8 @@
 package marmot.geo.query;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static utils.Utilities.checkArgument;
-import static utils.Utilities.checkNotNullArgument;
+import static utils.Preconditions.checkArgument;
+import static utils.Preconditions.checkNotNullArgument;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,11 +18,12 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 
+import utils.stream.FStream;
+
 import marmot.MarmotRuntime;
 import marmot.MarmotRuntimeException;
 import marmot.dataset.DataSet;
 import marmot.support.TextDataSetAdaptor;
-import utils.stream.FStream;
 
 /**
  * 
@@ -73,7 +74,7 @@ public class GeoDataStore {
 		}
 		
 		public Builder setMarmotRuntime(MarmotRuntime marmot) {
-			checkNotNullArgument(marmot);
+			checkNotNullArgument(marmot, "marmot runtime");
 			
 			m_marmot = marmot;
 			return this;

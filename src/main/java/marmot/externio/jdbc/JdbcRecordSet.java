@@ -1,16 +1,17 @@
 package marmot.externio.jdbc;
 
-import static utils.Utilities.checkNotNullArgument;
+import static utils.Preconditions.checkNotNullArgument;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
+import utils.func.Try;
+import utils.io.IOUtils;
 
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.rset.AbstractRecordSet;
-import utils.func.Try;
-import utils.io.IOUtils;
 
 /**
  * 

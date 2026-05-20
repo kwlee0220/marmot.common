@@ -1,9 +1,10 @@
 package marmot.rset;
 
+import utils.Preconditions;
+import utils.stream.FStream;
+
 import marmot.RecordSchema;
 import marmot.RecordSet;
-import utils.Utilities;
-import utils.stream.FStream;
 
 /**
  * 
@@ -15,8 +16,8 @@ public class FStreamConcatedRecordSet extends ConcatedRecordSet {
 	
 	public FStreamConcatedRecordSet(RecordSchema schema,
 							FStream<? extends RecordSet> components) {
-		Utilities.checkNotNullArgument(schema, "schema is null");
-		Utilities.checkNotNullArgument(components, "components is null");
+		Preconditions.checkNotNullArgument(schema, "schema is null");
+		Preconditions.checkNotNullArgument(components, "components is null");
 		
 		m_schema = schema;
 		m_components = components;

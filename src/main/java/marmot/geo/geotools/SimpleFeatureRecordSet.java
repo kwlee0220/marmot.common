@@ -12,8 +12,10 @@ import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.crs.CoordinateReferenceSystem;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+
+import utils.Preconditions;
+import utils.func.Try;
 
 import marmot.Column;
 import marmot.Record;
@@ -23,8 +25,6 @@ import marmot.geo.CRSUtils;
 import marmot.rset.AbstractRecordSet;
 import marmot.support.DataUtils;
 import marmot.type.DataType;
-import utils.Utilities;
-import utils.func.Try;
 
 /**
  * 
@@ -41,7 +41,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 	
 	public SimpleFeatureRecordSet(FeatureIterator<SimpleFeature> iter)
 		throws FactoryException {
-		Preconditions.checkArgument(iter != null && iter.hasNext());
+		Preconditions.checkArgument(iter != null && iter.hasNext(), "invalid FeatureIterator: %s", iter);
 
 		m_first = iter.next();
 		SimpleFeatureType sfType = m_first.getFeatureType();
@@ -122,7 +122,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 	}
 	
 	public void setSRID(String srid) {
-		Utilities.checkNotNullArgument(srid, "SRID");
+		Preconditions.checkNotNullArgument(srid, "SRID");
 		
 		m_srid = srid;
 		m_crs = CRSUtils.toCRS(m_srid);
@@ -133,7 +133,7 @@ public class SimpleFeatureRecordSet extends AbstractRecordSet {
 	}
 	
 	public void setCRS(CoordinateReferenceSystem crs) {
-		Utilities.checkNotNullArgument(crs, "CoordinateReferenceSystem");
+		Preconditions.checkNotNullArgument(crs, "CoordinateReferenceSystem");
 		
 		m_crs = crs;
 		m_srid = CRSUtils.toEPSG(CRS.toSRS(m_crs));

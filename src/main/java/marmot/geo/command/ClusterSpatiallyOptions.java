@@ -7,15 +7,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.Nullable;
-
+import org.jetbrains.annotations.Nullable;
 import org.locationtech.jts.geom.Envelope;
 
 import com.google.common.collect.Lists;
 
 import utils.CSV;
+import utils.Preconditions;
 import utils.UnitUtils;
-import utils.Utilities;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -42,7 +41,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 	private final FOption<Envelope> m_validRange;
 	private final @Nullable List<String> m_quadKeyList;	// 셋 중 최대 하나만 의미 있는 값을 가짐
 	private final @Nullable String m_quadKeyDsId;
-	private final @Nullable long m_sampleSize;			
+	private final long m_sampleSize;			
 	private final FOption<Integer> m_partitionCount;
 	private final FOption<Long> m_clusterSize;
 	private final Optional<Long> m_blockSize;
@@ -92,7 +91,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 											m_clusterSize, m_blockSize);
 	}
 	public ClusterSpatiallyOptions validRange(Envelope validRange) {
-		Utilities.checkNotNullArgument(validRange, "valid_range");
+		Preconditions.checkNotNullArgument(validRange, "valid_range");
 		
 		return validRange(FOption.of(validRange));
 	}
@@ -101,7 +100,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		return FOption.ofNullable(m_quadKeyList);
 	}
 	public ClusterSpatiallyOptions quadKeyList(Collection<String> quadKeyList) {
-		Utilities.checkArgument(quadKeyList != null && quadKeyList.size() > 0,
+		Preconditions.checkArgument(quadKeyList != null && quadKeyList.size() > 0,
 								"invalid quadKeyList=" + quadKeyList);
 
 		return new ClusterSpatiallyOptions(m_force, m_mapperCount, m_validRange, quadKeyList,
@@ -113,7 +112,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		return FOption.ofNullable(m_quadKeyDsId);
 	}
 	public ClusterSpatiallyOptions quadKeyDsId(String quadKeyDsId) {
-		Utilities.checkNotNullArgument(quadKeyDsId, "quadKeyDsId");
+		Preconditions.checkNotNullArgument(quadKeyDsId, "quadKeyDsId");
 
 		return new ClusterSpatiallyOptions(m_force, m_mapperCount, m_validRange, null,
 											quadKeyDsId, -1, m_partitionCount,
@@ -124,7 +123,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		return (m_sampleSize > 0) ? FOption.of(m_sampleSize) : FOption.empty();
 	}
 	public ClusterSpatiallyOptions sampleSize(long sampleSize) {
-		Utilities.checkArgument(sampleSize > 0, "invalid sampleSize=" + sampleSize);
+		Preconditions.checkArgument(sampleSize > 0, "invalid sampleSize=" + sampleSize);
 
 		return new ClusterSpatiallyOptions(m_force, m_mapperCount, m_validRange, null,
 											null, sampleSize, m_partitionCount,
@@ -135,7 +134,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 		return m_partitionCount;
 	}
 	public ClusterSpatiallyOptions partitionCount(int count) {
-		Utilities.checkArgument(count > 0, "invalid partition_count=" + count);
+		Preconditions.checkArgument(count > 0, "invalid partition_count=" + count);
 		
 		return partitionCount(FOption.of(count));
 	}
@@ -154,7 +153,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 											clusterSize, m_blockSize);
 	}
 	public ClusterSpatiallyOptions clusterSize(long clusterSize) {
-		Utilities.checkArgument(clusterSize > 0, "invalid maxClusterSize=" + clusterSize);
+		Preconditions.checkArgument(clusterSize > 0, "invalid maxClusterSize=" + clusterSize);
 		
 		return clusterSize(FOption.of(clusterSize));
 	}
@@ -168,7 +167,7 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 											m_clusterSize, blockSize);
 	}
 	public ClusterSpatiallyOptions blockSize(long blockSize) {
-		Utilities.checkArgument(blockSize > 0, "invalid block_size=" + blockSize);
+		Preconditions.checkArgument(blockSize > 0, "invalid block_size=" + blockSize);
 		
 		return blockSize(Optional.of(blockSize));
 	}

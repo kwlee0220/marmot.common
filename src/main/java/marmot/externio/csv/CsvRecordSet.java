@@ -19,8 +19,8 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
+import utils.Preconditions;
 import utils.StopWatch;
-import utils.Utilities;
 import utils.func.Optionals;
 import utils.func.Try;
 import utils.stream.FStream;
@@ -53,8 +53,8 @@ public class CsvRecordSet extends AbstractRecordSet {
 	private StopWatch m_watch;
 	
 	static CsvRecordSet from(String key, InputStream is, CsvParameters opts) throws IOException {
-		Utilities.checkNotNullArgument(is, "is is null");
-		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
+		Preconditions.checkNotNullArgument(is, "is is null");
+		Preconditions.checkNotNullArgument(opts, "CsvOptions is null");
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(is, opts.charset().get()));
 		return new CsvRecordSet(key, reader, opts);
@@ -62,15 +62,15 @@ public class CsvRecordSet extends AbstractRecordSet {
 	
 	static CsvRecordSet from(String key, BufferedReader reader, CsvParameters opts)
 		throws IOException {
-		Utilities.checkNotNullArgument(reader, "reader is null");
-		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
+		Preconditions.checkNotNullArgument(reader, "reader is null");
+		Preconditions.checkNotNullArgument(opts, "CsvOptions is null");
 		
 		return new CsvRecordSet(key, reader, opts);
 	}
 	
 	static CsvRecordSet from(File file, CsvParameters opts) throws IOException {
-		Utilities.checkNotNullArgument(file, "file is null");
-		Utilities.checkNotNullArgument(opts, "CsvOptions is null");
+		Preconditions.checkNotNullArgument(file, "file is null");
+		Preconditions.checkNotNullArgument(opts, "CsvOptions is null");
 		
 		Reader reader = new InputStreamReader(new FileInputStream(file), opts.charset().get());
 		return new CsvRecordSet(file.getAbsolutePath(), new BufferedReader(reader), opts);

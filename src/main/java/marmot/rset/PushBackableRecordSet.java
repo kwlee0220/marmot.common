@@ -1,8 +1,9 @@
 package marmot.rset;
 
+import utils.Preconditions;
+
 import marmot.Record;
 import marmot.RecordSet;
-import utils.Utilities;
 
 /**
  * 
@@ -16,7 +17,7 @@ public interface PushBackableRecordSet extends RecordSet {
 	}
 	
 	public default boolean peek(Record output) {
-		Utilities.checkNotNullArgument(output, "output is null");
+		Preconditions.checkNotNullArgument(output, "output is null");
 		
 		Record next = nextCopy();
 		if ( next != null ) {

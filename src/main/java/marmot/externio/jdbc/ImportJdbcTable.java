@@ -48,10 +48,16 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 	@Override
 	protected RecordSet loadRecordSet(MarmotRuntime marmot) {
 		try {
-			JdbcProcessor jdbc = JdbcProcessor.create(m_jdbcParams.system(), m_jdbcParams.host(),
-													m_jdbcParams.port(), m_jdbcParams.user(),
-													m_jdbcParams.password(), m_jdbcParams.database());
-			m_jdbcParams.jdbcJarPath().map(File::new).ifPresent(jdbc::setJdbcJarFile);
+			JdbcProcessor.Builder jdbcBuilder = JdbcProcessor.builder()
+																.system(m_jdbcParams.system())
+																.host(m_jdbcParams.host())
+																.port(m_jdbcParams.port())
+																.user(m_jdbcParams.user())
+																.password(m_jdbcParams.password())
+																.dbName(m_jdbcParams.database());
+			JdbcProcessor jdbc = jdbcBuilder.build();
+			
+			m_jdbcParams.jdbcJarPath().map(File::new).ifPresent(jdbcBuilder::jarFile);
 			RecordSchema schema = buildRecordSchema(marmot, jdbc);
 			JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(jdbc, schema, m_jdbcParams.geometryFormat());
 			

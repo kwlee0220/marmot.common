@@ -9,13 +9,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import utils.Preconditions;
+import utils.jdbc.JdbcProcessor;
+
 import marmot.Column;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.RecordSetException;
 import marmot.externio.RecordSetWriter;
-import utils.Utilities;
-import utils.jdbc.JdbcProcessor;
 
 /**
  * 
@@ -58,7 +59,7 @@ public class JdbcRecordSetWriter implements RecordSetWriter {
 
 	@Override
 	public long write(RecordSet rset) throws IOException {
-		Utilities.checkNotNullArgument(rset, "rset is null");
+		Preconditions.checkNotNullArgument(rset, "rset is null");
 		
 		RecordSchema schema = rset.getRecordSchema();
 		JdbcRecordAdaptor adaptor = JdbcRecordAdaptor.create(m_jdbc, schema, m_geomFormat);

@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import utils.Preconditions;
 import utils.Throwables;
-import utils.Utilities;
 import utils.func.FOption;
 
 import marmot.MarmotRuntime;
@@ -36,7 +36,7 @@ public class ImportShapefile extends ImportIntoDataSet {
 
 	private ImportShapefile(File start, ShapefileParameters shpParams, ImportParameters params) {
 		super(params);
-		Utilities.checkArgument(params.getGeometryColumnInfo().isPresent(),
+		Preconditions.checkArgument(params.getGeometryColumnInfo().isPresent(),
 									"GeometryColumnInfo is missing");
 		
 		m_start = start;

@@ -3,12 +3,13 @@ package marmot.externio;
 import java.io.Closeable;
 import java.io.IOException;
 
+import utils.Preconditions;
+
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
 import marmot.dataset.DataSet;
 import marmot.support.DefaultRecord;
-import utils.Utilities;
 
 
 /**
@@ -35,7 +36,7 @@ public interface RecordWriter extends RecordSetWriter, Closeable {
 	 * @throws IOException	저장 도중 예외가 발생된 경우.
 	 */
 	public default long write(RecordSet rset) throws IOException {
-		Utilities.checkNotNullArgument(rset, "RecordSet is null");
+		Preconditions.checkNotNullArgument(rset, "RecordSet is null");
 		
 		long nwrites = 0;
 		Record record = DefaultRecord.of(getRecordSchema());

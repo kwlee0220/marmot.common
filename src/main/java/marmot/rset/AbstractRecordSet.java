@@ -5,13 +5,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import utils.LoggerSettable;
+import utils.Preconditions;
+import utils.Throwables;
+
 import marmot.Record;
 import marmot.RecordSet;
 import marmot.RecordSetClosedException;
 import marmot.support.DefaultRecord;
-import utils.LoggerSettable;
-import utils.Throwables;
-import utils.Utilities;
 
 /**
  * 
@@ -45,7 +46,7 @@ public abstract class AbstractRecordSet implements RecordSet, LoggerSettable {
 	}
 	
 	public boolean next(Record output) {
-		Utilities.checkNotNullArgument(output, "output Record");
+		Preconditions.checkNotNullArgument(output, "output Record");
 		
 		Record next = nextCopy();
 		if ( next != null ) {

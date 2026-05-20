@@ -5,11 +5,13 @@ import java.io.InputStream;
 import com.google.protobuf.ByteString;
 
 import io.grpc.stub.StreamObserver;
+
+import utils.Preconditions;
+
 import marmot.proto.service.UpRequestDownResponse;
 import marmot.proto.service.UpResponseDownRequest;
 import marmot.protobuf.PBUtils;
 import marmot.remote.protobuf.StreamObservers.ClientUpDownChannel;
-import utils.Utilities;
 
 /**
  * 
@@ -22,7 +24,7 @@ abstract class StreamUpnDownloadClient implements StreamObserver<UpResponseDownR
 	abstract protected ByteString getHeader() throws Exception;
 	
 	StreamUpnDownloadClient(InputStream stream) {
-		Utilities.checkNotNullArgument(stream, "Stream to upload");
+		Preconditions.checkNotNullArgument(stream, "Stream to upload");
 		
 		m_uploader = new StreamUploadSender(stream) {
 			@Override
@@ -34,7 +36,7 @@ abstract class StreamUpnDownloadClient implements StreamObserver<UpResponseDownR
 	}
 	
 	InputStream upAndDownload(StreamObserver<UpRequestDownResponse> channel) {
-		Utilities.checkNotNullArgument(channel, "UpRequestDownResponse stream channel");
+		Preconditions.checkNotNullArgument(channel, "UpRequestDownResponse stream channel");
 		
 		ClientUpDownChannel upDown = StreamObservers.getClientUpDownChannel(channel);
 		

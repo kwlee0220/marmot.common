@@ -9,15 +9,14 @@ import javax.annotation.concurrent.GuardedBy;
 
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 
 import io.grpc.stub.StreamObserver;
 
+import utils.Preconditions;
 import utils.Throwables;
-import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
-import utils.async.Guard;
+import utils.thread.Guard;
 import utils.io.IOUtils;
 import utils.io.LimitedInputStream;
 
@@ -49,14 +48,14 @@ abstract class StreamUploadSender extends AbstractThreadedExecution<ByteString>
 	abstract protected ByteString getHeader() throws Exception;
 	
 	protected StreamUploadSender(InputStream stream) {
-		Utilities.checkNotNullArgument(stream, "Stream to upload");
+		Preconditions.checkNotNullArgument(stream, "Stream to upload");
 		
 		m_stream = stream;
 		setLogger(LoggerFactory.getLogger(StreamUploadSender.class));
 	}
 	
 	void setChannel(StreamObserver<UpChunkRequest> channel) {
-		Utilities.checkNotNullArgument(channel, "Upload stream channel");
+		Preconditions.checkNotNullArgument(channel, "Upload stream channel");
 
 		m_channel = channel;
 	}

@@ -37,9 +37,9 @@ import org.locationtech.jts.io.WKTWriter;
 import org.locationtech.jts.precision.GeometryPrecisionReducer;
 import org.opengis.geometry.BoundingBox;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import utils.Preconditions;
 import utils.Size2d;
 import utils.Size2i;
 import utils.Utilities;
@@ -166,7 +166,7 @@ public class GeoClientUtils {
 	}
 	
 	public static void toWKBStream(Geometry geom, OutputStream os) throws IOException {
-		Preconditions.checkArgument(geom != null && !geom.isEmpty());
+		Preconditions.checkArgument(geom != null && !geom.isEmpty(), "cannot write empty geometry");
 		
 		new WKBWriter().write(geom, new OutputStreamOutStream(os));
 	}
@@ -298,15 +298,15 @@ public class GeoClientUtils {
 	}
 	
 	public static Geometry cast(Geometry geom, GeometryDataType dstType) {
-		Utilities.checkNotNullArgument(geom, "geom is null");
-		Utilities.checkNotNullArgument(dstType, "dstType is null");
+		Preconditions.checkNotNullArgument(geom, "geom is null");
+		Preconditions.checkNotNullArgument(dstType, "dstType is null");
 		
 		return cast(geom, dstType.toGeometries());
 	}
 	
 	public static Geometry cast(Geometry geom, Geometries dstType) {
-		Utilities.checkNotNullArgument(geom, "geom is null");
-		Utilities.checkNotNullArgument(dstType, "dstType is null");
+		Preconditions.checkNotNullArgument(geom, "geom is null");
+		Preconditions.checkNotNullArgument(dstType, "dstType is null");
 		
 		if ( Geometries.get(geom) == dstType || dstType == Geometries.GEOMETRY ) {
 			return geom;
@@ -345,8 +345,8 @@ public class GeoClientUtils {
 	
 	@SuppressWarnings("unchecked")
 	public static <T extends Geometry> T cast(Geometry geom, Class<T> dstType) {
-		Utilities.checkNotNullArgument(geom, "geom is null");
-		Utilities.checkNotNullArgument(dstType, "dstType is null");
+		Preconditions.checkNotNullArgument(geom, "geom is null");
+		Preconditions.checkNotNullArgument(dstType, "dstType is null");
 		
 		if ( dstType.isInstance(geom) || dstType == Geometry.class ) {
 			return (T)geom;

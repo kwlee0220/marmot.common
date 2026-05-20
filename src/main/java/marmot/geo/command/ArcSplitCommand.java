@@ -1,15 +1,17 @@
 package marmot.geo.command;
 
-import marmot.MarmotRuntime;
-import marmot.analysis.module.geo.arc.ArcSplitParameters;
-import picocli.CommandLine.Mixin;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
-import utils.LazySplitter;
+import utils.Split;
 import utils.UnitUtils;
 import utils.UsageHelp;
 import utils.func.CheckedConsumer;
 import utils.func.FOption;
+
+import marmot.MarmotRuntime;
+import marmot.analysis.module.geo.arc.ArcSplitParameters;
+
+import picocli.CommandLine.Mixin;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 /**
  * 
@@ -47,9 +49,10 @@ abstract class ArcSplitCommand implements CheckedConsumer<MarmotRuntime> {
 	public void accept(MarmotRuntime marmot) throws Exception {
 		ArcSplitParameters params = new ArcSplitParameters();
 		params.setInputDataset(m_params.m_inputDsId);
-		String[] parts = LazySplitter.splitIntoTwo(m_params.m_splitDsSpec, ':');
-		params.setSplitDataset(parts[0]);
-		params.setSplitKey(parts[1]);
+		
+		Split split = Split.split(m_params.m_splitDsSpec, ":");
+		params.setSplitDataset(split.head());
+		params.setSplitKey(split.tail().get());
 		params.setOutputDataset(m_params.m_outputDsId);
 		
 		params.setForce(m_params.m_force);

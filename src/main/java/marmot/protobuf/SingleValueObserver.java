@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import io.grpc.stub.StreamObserver;
 
-import utils.async.Guard;
+import utils.thread.Guard;
 
 /**
  * 
@@ -35,7 +35,7 @@ public class SingleValueObserver<T> implements StreamObserver<T> {
 		return m_guard.awaitCondition(() -> m_done)
 						.andGetChecked(() -> {
 							if ( m_cause != null ) {
-								throw m_cause;
+								throw new ExecutionException(m_cause);
 							} else {
 								return m_value;
 							}

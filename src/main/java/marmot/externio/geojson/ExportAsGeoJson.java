@@ -5,12 +5,13 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import utils.Preconditions;
+
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
 import marmot.dataset.GeometryColumnInfo;
-import utils.Utilities;
 
 
 /**
@@ -23,7 +24,7 @@ public class ExportAsGeoJson {
 	private @Nullable String m_gjsonSrid;
 	
 	public ExportAsGeoJson(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "dataset id is null");
+		Preconditions.checkNotNullArgument(dsId, "dataset id is null");
 		
 		m_dsId = dsId;
 	}

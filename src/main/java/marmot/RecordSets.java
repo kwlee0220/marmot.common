@@ -12,16 +12,17 @@ import org.slf4j.Logger;
 
 import com.google.common.collect.Maps;
 
+import utils.Preconditions;
+import utils.StopWatch;
+import utils.Throwables;
+import utils.async.AbstractThreadedExecution;
+import utils.io.IOUtils;
+import utils.stream.FStream;
+
 import marmot.rset.AbstractRecordSet;
 import marmot.rset.PeekableRecordSet;
 import marmot.support.DefaultRecord;
 import marmot.support.ProgressReportable;
-import utils.StopWatch;
-import utils.Throwables;
-import utils.Utilities;
-import utils.async.AbstractThreadedExecution;
-import utils.io.IOUtils;
-import utils.stream.FStream;
 
 /**
  * 
@@ -256,7 +257,7 @@ public class RecordSets {
 		private long m_count = 0;
 		
 		CountingRecordSet(RecordSet rset) {
-			Utilities.checkNotNullArgument(rset, "input RecordSet is null");
+			Preconditions.checkNotNullArgument(rset, "input RecordSet is null");
 			
 			m_rset = rset;
 		}

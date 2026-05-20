@@ -5,9 +5,10 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import utils.Preconditions;
+
 import marmot.proto.GeometryColumnInfoProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
 
 /**
  * 
@@ -20,8 +21,8 @@ public final class GeometryColumnInfo implements PBSerializable<GeometryColumnIn
 	private final String m_srid;
 	
 	public GeometryColumnInfo(String colName, String srid) {
-		Utilities.checkNotNullArgument(colName, "column name");
-		Utilities.checkNotNullArgument(srid, "SRID");
+		Preconditions.checkNotNullArgument(colName, "column name");
+		Preconditions.checkNotNullArgument(srid, "SRID");
 		
 		m_name = colName;
 		m_srid = srid;

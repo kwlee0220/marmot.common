@@ -1,7 +1,8 @@
 package marmot.externio.jdbc;
 
+import utils.Preconditions;
+
 import marmot.RecordSchema;
-import utils.Utilities;
 
 
 /**
@@ -12,7 +13,7 @@ public class DefaultRecordAdaptor extends JdbcRecordAdaptor {
 	public DefaultRecordAdaptor(RecordSchema schema, GeometryFormat format) {
 		super(schema, format);
 		
-		Utilities.checkArgument(format != GeometryFormat.NATIVE,
+		Preconditions.checkArgument(format != GeometryFormat.NATIVE,
 							"default JdbcRecordAdaptor does not support 'NATIVE' geometry format");
 	}
 }

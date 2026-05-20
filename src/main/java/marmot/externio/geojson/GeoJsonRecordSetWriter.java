@@ -23,6 +23,10 @@ import org.locationtech.jts.geom.Polygon;
 
 import com.google.gson.stream.JsonWriter;
 
+import utils.Preconditions;
+import utils.UnitUtils;
+import utils.func.FOption;
+
 import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -30,9 +34,6 @@ import marmot.RecordSet;
 import marmot.dataset.DataSet;
 import marmot.externio.RecordSetWriter;
 import marmot.support.DefaultRecord;
-import utils.UnitUtils;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -70,7 +71,7 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 	}
 	
 	private GeoJsonRecordSetWriter(BufferedWriter writer) {
-		Utilities.checkNotNullArgument(writer, "BufferedWriter is null");
+		Preconditions.checkNotNullArgument(writer, "BufferedWriter is null");
 		
 		m_writer = writer;
 	}
@@ -102,7 +103,7 @@ public class GeoJsonRecordSetWriter implements RecordSetWriter {
 
 	@Override
 	public long write(RecordSet rset) throws IOException {
-		Utilities.checkNotNullArgument(m_geomCol, "Geometry column name is null");
+		Preconditions.checkNotNullArgument(m_geomCol, "Geometry column name is null");
 		
 		JsonWriter writer = new JsonWriter(m_writer);
 		if ( m_pretty ) {

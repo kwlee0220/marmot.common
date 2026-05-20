@@ -1,10 +1,11 @@
 package marmot.geo.command;
 
+import utils.Preconditions;
+import utils.UnitUtils;
+import utils.func.FOption;
+
 import marmot.proto.service.CreateSpatialIndexOptionsProto;
 import marmot.support.PBSerializable;
-import utils.UnitUtils;
-import utils.Utilities;
-import utils.func.FOption;
 
 
 /**
@@ -32,7 +33,7 @@ public class CreateSpatialIndexOptions implements PBSerializable<CreateSpatialIn
 	}
 	
 	public static CreateSpatialIndexOptions WORKER_COUNT(int count) {
-		Utilities.checkArgument(count > 0, "count > 0");
+		Preconditions.checkArgument(count > 0, "count > 0");
 		
 		return new CreateSpatialIndexOptions(FOption.empty(), FOption.empty(), FOption.of(count));
 	}
@@ -42,7 +43,7 @@ public class CreateSpatialIndexOptions implements PBSerializable<CreateSpatialIn
 	}
 	
 	public CreateSpatialIndexOptions sampleSize(long size) {
-		Utilities.checkArgument(size > 0, "invalid sample_size=" + size);
+		Preconditions.checkArgument(size > 0, "invalid sample_size=" + size);
 		
 		return new CreateSpatialIndexOptions(FOption.of(size), m_blockSize, m_workerCount);
 	}
@@ -52,7 +53,7 @@ public class CreateSpatialIndexOptions implements PBSerializable<CreateSpatialIn
 	}
 	
 	public CreateSpatialIndexOptions blockSize(long blockSize) {
-		Utilities.checkArgument(blockSize > 0, "invalid block_size=" + blockSize);
+		Preconditions.checkArgument(blockSize > 0, "invalid block_size=" + blockSize);
 		
 		return new CreateSpatialIndexOptions(m_sampleSize, FOption.of(blockSize), m_workerCount);
 	}
@@ -62,7 +63,7 @@ public class CreateSpatialIndexOptions implements PBSerializable<CreateSpatialIn
 	}
 	
 	public CreateSpatialIndexOptions workerCount(int count) {
-		Utilities.checkArgument(count > 0, "invalid worker_count=" + count);
+		Preconditions.checkArgument(count > 0, "invalid worker_count=" + count);
 		
 		return new CreateSpatialIndexOptions(m_sampleSize, m_blockSize, FOption.of(count));
 	}

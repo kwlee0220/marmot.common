@@ -8,8 +8,8 @@ import java.util.Optional;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 
+import utils.Preconditions;
 import utils.Tuple;
-import utils.Utilities;
 import utils.func.Optionals;
 
 import marmot.MarmotInternalException;
@@ -105,7 +105,7 @@ public class CsvParameters {
 
 	@Option(names={"-header"}, paramLabel="column_list", description={"header field list"})
 	public CsvParameters header(String header) {
-		Utilities.checkNotNullArgument(header, "CSV header");
+		Preconditions.checkNotNullArgument(header, "CSV header");
 		
 		m_header = Optional.of(header);
 		return this;
@@ -144,7 +144,7 @@ public class CsvParameters {
 
 	@Option(names={"-point_cols"}, paramLabel="xy-columns", description="X,Y columns for point")
 	public CsvParameters pointColumns(String pointCols) {
-		Utilities.checkNotNullArgument(pointCols, "Point columns are null");
+		Preconditions.checkNotNullArgument(pointCols, "Point columns are null");
 		
 		m_pointCols = Optional.ofNullable(pointCols);
 		return this;

@@ -11,7 +11,7 @@ import java.util.Optional;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
-import utils.Utilities;
+import utils.Preconditions;
 import utils.stream.FStream;
 
 import marmot.proto.optor.RecordScriptProto;
@@ -40,15 +40,15 @@ public class RecordScript implements PBSerializable<RecordScriptProto>, Serializ
 	}
 
 	private RecordScript(String script) {
-		Utilities.checkNotNullArgument(script, "script is null");
+		Preconditions.checkNotNullArgument(script, "script is null");
 		
 		m_script = script;
 		m_initializer = Optional.empty();
 	}
 
 	private RecordScript(String initScript, String script) {
-		Utilities.checkNotNullArgument(initScript, "initialization script is null");
-		Utilities.checkNotNullArgument(script, "script is null");
+		Preconditions.checkNotNullArgument(initScript, "initialization script is null");
+		Preconditions.checkNotNullArgument(script, "script is null");
 
 		m_initializer = Optional.of(initScript);
 		m_script = script;
@@ -81,21 +81,21 @@ public class RecordScript implements PBSerializable<RecordScriptProto>, Serializ
 	}
 	
 	public RecordScript importClass(ImportInfo ic) {
-		Utilities.checkNotNullArgument(ic, "ImportedClass is null");
+		Preconditions.checkNotNullArgument(ic, "ImportedClass is null");
 		
 		m_importedClasses.add(ic);
 		return this;
 	}
 	
 	public RecordScript importClass(Class<?> cls) {
-		Utilities.checkNotNullArgument(cls, "ImportedClass is null");
+		Preconditions.checkNotNullArgument(cls, "ImportedClass is null");
 		
 		m_importedClasses.add(new ImportInfo(cls));
 		return this;
 	}
 	
 	public RecordScript importClass(Class<?> cls, String name) {
-		Utilities.checkNotNullArgument(cls, "ImportedClass is null");
+		Preconditions.checkNotNullArgument(cls, "ImportedClass is null");
 		
 		m_importedClasses.add(new ImportInfo(cls, name));
 		return this;

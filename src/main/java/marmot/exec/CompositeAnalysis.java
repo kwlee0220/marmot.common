@@ -3,10 +3,11 @@ package marmot.exec;
 import java.util.Arrays;
 import java.util.List;
 
+import utils.Preconditions;
+
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.CompositeExecProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
-import utils.Utilities;
 
 /**
  * 
@@ -43,7 +44,7 @@ public class CompositeAnalysis extends MarmotAnalysis {
 	}
 	
 	public static CompositeAnalysis fromProto(MarmotAnalysisProto proto) {
-		Utilities.checkArgument(proto.getMemberCase().equals(MemberCase.COMPOSITE_EXEC),
+		Preconditions.checkArgument(proto.getMemberCase().equals(MemberCase.COMPOSITE_EXEC),
 								"not CompositeAnalytics");
 		
 		List<String> comps = proto.getCompositeExec().getComponentList();

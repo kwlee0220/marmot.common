@@ -5,7 +5,7 @@ import java.util.Set;
 
 import org.locationtech.jts.geom.Envelope;
 
-import utils.Utilities;
+import utils.Preconditions;
 import utils.func.FOption;
 
 import marmot.Plan;
@@ -134,7 +134,7 @@ public class PBDataSetProxy implements DataSet {
 
 	@Override
 	public long append(RecordSet rset) {
-		Utilities.checkNotNullArgument(rset, "RecordSet is null");
+		Preconditions.checkNotNullArgument(rset, "RecordSet is null");
 		
 		long count = m_service.appendRecordSet(getId(), rset, Optional.empty());
 		m_info = m_service.getDataSet(getId()).m_info;
@@ -144,7 +144,7 @@ public class PBDataSetProxy implements DataSet {
 
 	@Override
 	public long append(RecordSet rset, String partId) {
-		Utilities.checkNotNullArgument(rset, "RecordSet is null");
+		Preconditions.checkNotNullArgument(rset, "RecordSet is null");
 		
 		long count = m_service.appendRecordSet(getId(), rset, Optional.of(partId));
 		m_info = m_service.getDataSet(getId()).m_info;
@@ -162,8 +162,8 @@ public class PBDataSetProxy implements DataSet {
 	 * @return	본 데이터 세트 객체.
 	 */
 	public long append(RecordSet rset, Plan plan) {
-		Utilities.checkNotNullArgument(rset, "RecordSet is null");
-		Utilities.checkNotNullArgument(plan, "Plan is null");
+		Preconditions.checkNotNullArgument(rset, "RecordSet is null");
+		Preconditions.checkNotNullArgument(plan, "Plan is null");
 
 		PlanBuilder builder = plan.toBuilder();
 		switch ( builder.getLastOperatorProto().getOperatorCase() ) {

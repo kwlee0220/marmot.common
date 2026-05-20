@@ -15,7 +15,7 @@ import com.google.protobuf.ByteString;
 
 import utils.Throwables;
 import utils.UnitUtils;
-import utils.async.Guard;
+import utils.thread.Guard;
 
 import marmot.remote.protobuf.PBStreamClosedException;
 

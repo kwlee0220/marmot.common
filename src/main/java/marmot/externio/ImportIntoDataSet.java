@@ -7,8 +7,8 @@ import java.util.Optional;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
+import utils.Preconditions;
 import utils.Throwables;
-import utils.Utilities;
 import utils.rx.ProgressReporter;
 
 import marmot.MarmotRuntime;
@@ -34,8 +34,8 @@ public abstract class ImportIntoDataSet implements ProgressReporter<Long> {
 	protected abstract Optional<Plan> loadImportPlan(MarmotRuntime marmot);
 	
 	public ImportIntoDataSet(ImportParameters params) {
-		Utilities.checkNotNullArgument(params, "params is null");
-		Utilities.checkNotNullArgument(params.getDataSetId(), "params.dataset_id is null");
+		Preconditions.checkNotNullArgument(params, "params is null");
+		Preconditions.checkNotNullArgument(params.getDataSetId(), "params.dataset_id is null");
 
 		m_params = params;
 	}

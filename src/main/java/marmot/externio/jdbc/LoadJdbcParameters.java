@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import utils.CSV;
-import utils.LazySplitter;
-import utils.Utilities;
+import utils.Preconditions;
+import utils.Split;
 import utils.func.FOption;
 
 import marmot.type.DataType;
@@ -52,7 +52,7 @@ public class LoadJdbcParameters extends JdbcParameters {
 
 	@Option(names={"-fetch"}, paramLabel="count", description={"fetch size (>0)"})
 	public LoadJdbcParameters fetchSize(int size) {
-		Utilities.checkArgument(size > 0, "invalid fetch-size: " + size);
+		Preconditions.checkArgument(size > 0, "invalid fetch-size: " + size);
 		
 		m_fetchSize = size;
 		return this;
@@ -65,8 +65,11 @@ public class LoadJdbcParameters extends JdbcParameters {
 	@Option(names={"-geom_cols"}, paramLabel="column_names_csv",
 			description={"geometry column names for Geometry data (eg. 'col1:multi_polygon,col2:point'"})
 	public LoadJdbcParameters geomColumns(String cols) {
+		Split.split(cols, ",");
+		
+		
 		Map<String,DataType> geomCols = CSV.parseCsv(cols, ',')
-											.map(decl -> LazySplitter.parseKeyValue(decl, ':'))
+											.map(decl -> Split.split(decl, ":").toKeyValue())
 											.toKeyValueStream(kv -> kv)
 											.mapValue(DataTypes::fromName)
 											.toMap();

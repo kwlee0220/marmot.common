@@ -1,13 +1,13 @@
 package marmot.rset;
 
-import utils.Utilities;
+import io.reactivex.rxjava3.core.Observer;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+
+import utils.Preconditions;
 
 import marmot.Record;
 import marmot.RecordSchema;
 import marmot.RecordSet;
-
-import io.reactivex.rxjava3.core.Observer;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 
 /**
@@ -25,8 +25,8 @@ public class ProgressReportingRecordSet extends AbstractRecordSet {
 	}
 	
 	public ProgressReportingRecordSet(RecordSet rset, Observer<Long> observer) {
-		Utilities.checkNotNullArgument(rset, "input is null");
-		Utilities.checkNotNullArgument(observer, "observer is null");
+		Preconditions.checkNotNullArgument(rset, "input is null");
+		Preconditions.checkNotNullArgument(observer, "observer is null");
 		
 		m_rset = rset;
 		m_subject = observer;

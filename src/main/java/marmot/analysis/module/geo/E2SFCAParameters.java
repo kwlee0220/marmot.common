@@ -4,12 +4,12 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+
+import utils.Preconditions;
 
 import marmot.optor.geo.advanced.WeightFunction;
 import marmot.support.DataUtils;
-import utils.Utilities;
 
 /**
  * 
@@ -66,7 +66,7 @@ public class E2SFCAParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setConsumerDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "consumer dataset id");
+		Preconditions.checkNotNullArgument(dsId, "consumer dataset id");
 		
 		m_params.put(CONSUMER_DATASET, dsId);
 	}
@@ -86,7 +86,7 @@ public class E2SFCAParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setProviderDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "provider dataset id");
+		Preconditions.checkNotNullArgument(dsId, "provider dataset id");
 		
 		m_params.put(PROVIDER_DATASET, dsId);
 	}
@@ -106,7 +106,7 @@ public class E2SFCAParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setOutputDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "output dataset");
+		Preconditions.checkNotNullArgument(dsId, "output dataset");
 		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
@@ -128,7 +128,7 @@ public class E2SFCAParameters {
 	 * @param cols	컬럼 이름 리스트.
 	 */
 	public void setConsumerFeatureColumns(String cols) {
-		Utilities.checkNotNullArgument(cols, "consumer feature column list");
+		Preconditions.checkNotNullArgument(cols, "consumer feature column list");
 		
 		m_params.put(CONSUMER_FEATURE_COLUMNS, cols);
 	}
@@ -150,7 +150,7 @@ public class E2SFCAParameters {
 	 * @param cols	컬럼 이름 리스트.
 	 */
 	public void setProviderFeatureColumns(String cols) {
-		Utilities.checkNotNullArgument(cols, "parameter feature column list");
+		Preconditions.checkNotNullArgument(cols, "parameter feature column list");
 		
 		m_params.put(PROVIDER_FEATURE_COLUMNS, cols);
 	}
@@ -172,7 +172,7 @@ public class E2SFCAParameters {
 	 * @param cols	컬럼 이름 리스트.
 	 */
 	public void setOutputFeatureColumns(String cols) {
-		Utilities.checkNotNullArgument(cols, "parameter feature column list");
+		Preconditions.checkNotNullArgument(cols, "parameter feature column list");
 		
 		m_params.put(OUTPUT_COLUMNS, cols);
 	}
@@ -212,7 +212,7 @@ public class E2SFCAParameters {
 	 * @param  wfunc	weight function
 	 */
 	public void setWeightFunction(WeightFunction wfunc) {
-		Utilities.checkNotNullArgument(wfunc, "weight function");
+		Preconditions.checkNotNullArgument(wfunc, "weight function");
 		
 		m_params.put(WEIGHT_FUNC, wfunc.toStringExpr());
 	}

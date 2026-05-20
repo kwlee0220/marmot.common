@@ -9,10 +9,11 @@ import org.apache.commons.io.FilenameUtils;
 import org.geotools.data.shapefile.ShapefileDumper;
 import org.geotools.data.simple.SimpleFeatureCollection;
 
-import com.google.common.base.Preconditions;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
+import utils.Preconditions;
 import utils.StopWatch;
-import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
 import utils.async.CancellableWork;
 import utils.func.FOption;
@@ -22,9 +23,6 @@ import utils.rx.ProgressiveExecution;
 import marmot.RecordSet;
 import marmot.RecordSets.CountingRecordSet;
 import marmot.geo.geotools.SimpleFeatures;
-
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 /**
  * 
@@ -39,8 +37,8 @@ class ExportAsShapefile {
 	private FOption<Long> m_interval = FOption.empty();
 	
 	protected ExportAsShapefile(String outputDir, ExportShapefileParameters params) {
-		Utilities.checkNotNullArgument(outputDir, "output directory is null");
-		Utilities.checkNotNullArgument(params, "ShapefileParameters is null");
+		Preconditions.checkNotNullArgument(outputDir, "output directory is null");
+		Preconditions.checkNotNullArgument(params, "ShapefileParameters is null");
 		
 		m_outputDir = new File(outputDir);
 		Preconditions.checkArgument(m_outputDir != null, "invalid output: " + outputDir);

@@ -15,9 +15,9 @@ import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 
 import utils.PicocliSubCommand;
+import utils.Preconditions;
 import utils.StopWatch;
 import utils.UnitUtils;
-import utils.Utilities;
 import utils.func.Optionals;
 import utils.rx.ProgressiveExecution;
 
@@ -465,7 +465,7 @@ public class DatasetCommands {
 		@Parameters(paramLabel="dataset_id", index="1", arity="1..1",
 					description={"dataset id to import onto"})
 		public void setDataSetId(String id) {
-			Utilities.checkNotNullArgument(id, "dataset id is null");
+			Preconditions.checkNotNullArgument(id, "dataset id is null");
 			m_params.setDataSetId(id);
 		}
 		
@@ -504,7 +504,7 @@ public class DatasetCommands {
 		@Parameters(paramLabel="dataset_id", index="1", arity="1..1",
 				description={"dataset id to import onto"})
 		public void setDataSetId(String id) {
-			Utilities.checkNotNullArgument(id, "dataset id is null");
+			Preconditions.checkNotNullArgument(id, "dataset id is null");
 			m_params.setDataSetId(id);
 		}
 
@@ -545,7 +545,7 @@ public class DatasetCommands {
 		@Parameters(paramLabel="dataset_id", index="1", arity="1..1",
 				description={"dataset id to import onto"})
 		public void setDataSetId(String id) {
-			Utilities.checkNotNullArgument(id, "dataset id is null");
+			Preconditions.checkNotNullArgument(id, "dataset id is null");
 			
 			m_importParams.setDataSetId(id);
 		}
@@ -586,7 +586,7 @@ public class DatasetCommands {
 		@Parameters(paramLabel="dataset_id", index="1", arity="1..1",
 				description={"dataset id to import onto"})
 		public void setDataSetId(String id) {
-			Utilities.checkNotNullArgument(id, "dataset id is null");
+			Preconditions.checkNotNullArgument(id, "dataset id is null");
 			m_importParams.setDataSetId(id);
 		}
 

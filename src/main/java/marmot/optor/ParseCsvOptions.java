@@ -3,7 +3,7 @@ package marmot.optor;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
-import utils.Utilities;
+import utils.Preconditions;
 import utils.func.FOption;
 
 import marmot.proto.optor.ParseCsvProto.ParseCsvOptionsProto;
@@ -105,7 +105,7 @@ public class ParseCsvOptions implements PBSerializable<ParseCsvOptionsProto> {
 	}
 
 	public ParseCsvOptions header(String header) {
-		Utilities.checkNotNullArgument(header, "CSV header");
+		Preconditions.checkNotNullArgument(header, "CSV header");
 		
 		return new ParseCsvOptions(m_csvOptions, FOption.of(header), m_trimColumns,
 									m_nullValue, m_throwParseError);

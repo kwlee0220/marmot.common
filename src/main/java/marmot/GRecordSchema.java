@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
-import utils.Utilities;
+import utils.Preconditions;
 import utils.func.FOption;
 
 import marmot.dataset.GeometryColumnInfo;
@@ -123,7 +123,7 @@ public final class GRecordSchema implements PBSerializable<GRecordSchemaProto>, 
 	}
 
 	public static GRecordSchema fromProto(GRecordSchemaProto proto) {
-		Utilities.checkNotNullArgument(proto, "GRecordSchemaProto is null");
+		Preconditions.checkNotNullArgument(proto, "GRecordSchemaProto is null");
 		
 		RecordSchema schema = RecordSchema.fromProto(proto.getSchema());
 		switch ( proto.getOptionalGcInfoCase() ) {

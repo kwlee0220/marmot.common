@@ -5,7 +5,7 @@ import java.util.Set;
 
 import com.google.common.collect.Lists;
 
-import utils.Utilities;
+import utils.Preconditions;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -96,7 +96,7 @@ public class SystemAnalysis extends MarmotAnalysis {
 	}
 	
 	public static SystemAnalysis fromProto(MarmotAnalysisProto proto) {
-		Utilities.checkArgument(proto.getMemberCase().equals(MemberCase.SYSTEM_EXEC),
+		Preconditions.checkArgument(proto.getMemberCase().equals(MemberCase.SYSTEM_EXEC),
 								"not SystemAnalysis");
 		
 		SystemExecProto sysFunc = proto.getSystemExec();

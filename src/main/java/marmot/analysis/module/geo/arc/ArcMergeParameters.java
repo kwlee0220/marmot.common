@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import utils.Utilities;
+import utils.Preconditions;
 
 import marmot.support.DataUtils;
 
@@ -61,7 +61,7 @@ public class ArcMergeParameters {
 	 * @param dsIdList	데이터세트 식별자.
 	 */
 	public void setInputDatasets(String dsIdList) {
-		Utilities.checkNotNullArgument(dsIdList, "input dataset id");
+		Preconditions.checkNotNullArgument(dsIdList, "input dataset id");
 		
 		m_params.put(INPUT_DATASETS, dsIdList);
 	}
@@ -81,7 +81,7 @@ public class ArcMergeParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setOutputDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "output dataset");
+		Preconditions.checkNotNullArgument(dsId, "output dataset");
 		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}

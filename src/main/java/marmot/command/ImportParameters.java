@@ -1,6 +1,6 @@
 package marmot.command;
 
-import utils.Utilities;
+import utils.Preconditions;
 
 
 /**
@@ -25,7 +25,7 @@ public class ImportParameters extends StoreDataSetParameters {
 	 * @param id	데이터세트 식별자.
 	 */
 	public void setDataSetId(String id) {
-		Utilities.checkNotNullArgument(id, "dataset id is null");
+		Preconditions.checkNotNullArgument(id, "dataset id is null");
 		
 		m_dsId = id;
 	}

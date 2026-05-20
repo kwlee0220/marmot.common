@@ -27,6 +27,10 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
+import utils.Preconditions;
+import utils.io.FileUtils;
+import utils.stream.FStream;
+
 import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.Record;
@@ -37,9 +41,6 @@ import marmot.dataset.DataSet;
 import marmot.support.DefaultRecord;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
-import utils.Utilities;
-import utils.io.FileUtils;
-import utils.stream.FStream;
 
 /**
  * 
@@ -135,7 +136,7 @@ public class SimpleFeatures {
 	 * @return	RecordSchema
 	 */
 	public static RecordSchema toRecordSchema(SimpleFeatureType sfType) {
-		Utilities.checkNotNullArgument(sfType, "feature type is null");
+		Preconditions.checkNotNullArgument(sfType, "feature type is null");
 		
 		RecordSchema.Builder builder = RecordSchema.builder();
 		for ( AttributeDescriptor desc: sfType.getAttributeDescriptors() ) {

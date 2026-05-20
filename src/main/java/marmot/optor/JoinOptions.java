@@ -2,7 +2,7 @@ package marmot.optor;
 
 import java.util.Optional;
 
-import utils.Utilities;
+import utils.Preconditions;
 
 import marmot.proto.optor.JoinOptionsProto;
 import marmot.support.PBSerializable;
@@ -31,7 +31,7 @@ public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 	}
 	
 	public static final JoinOptions INNER_JOIN(int nworkers) {
-		Utilities.checkArgument(nworkers > 0, "nworkers > 0");
+		Preconditions.checkArgument(nworkers > 0, "nworkers > 0");
 		return new JoinOptions(JoinType.INNER_JOIN, Optional.of(nworkers));
 	}
 	
@@ -40,22 +40,22 @@ public class JoinOptions implements PBSerializable<JoinOptionsProto> {
 	}
 	
 	public static final JoinOptions LEFT_OUTER_JOIN(int nworkers) {
-		Utilities.checkArgument(nworkers > 0, "nworkers > 0");
+		Preconditions.checkArgument(nworkers > 0, "nworkers > 0");
 		return new JoinOptions(JoinType.LEFT_OUTER_JOIN, Optional.of(nworkers));
 	}
 	
 	public static final JoinOptions RIGHT_OUTER_JOIN(int nworkers) {
-		Utilities.checkArgument(nworkers > 0, "nworkers > 0");
+		Preconditions.checkArgument(nworkers > 0, "nworkers > 0");
 		return new JoinOptions(JoinType.RIGHT_OUTER_JOIN, Optional.of(nworkers));
 	}
 	
 	public static final JoinOptions FULL_OUTER_JOIN(int nworkers) {
-		Utilities.checkArgument(nworkers > 0, "nworkers > 0");
+		Preconditions.checkArgument(nworkers > 0, "nworkers > 0");
 		return new JoinOptions(JoinType.FULL_OUTER_JOIN, Optional.of(nworkers));
 	}
 	
 	public static final JoinOptions SEMI_JOIN(int nworkers) {
-		Utilities.checkArgument(nworkers > 0, "nworkers > 0");
+		Preconditions.checkArgument(nworkers > 0, "nworkers > 0");
 		return new JoinOptions(JoinType.SEMI_JOIN, Optional.of(nworkers));
 	}
 	

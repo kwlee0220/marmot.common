@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import utils.Utilities;
+import utils.Preconditions;
 
 import marmot.support.DataUtils;
 
@@ -64,7 +64,7 @@ public class ArcSplitParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setInputDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "input dataset id");
+		Preconditions.checkNotNullArgument(dsId, "input dataset id");
 		
 		m_params.put(INPUT_DATASET, dsId);
 	}
@@ -84,7 +84,7 @@ public class ArcSplitParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setSplitDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "split dataset id");
+		Preconditions.checkNotNullArgument(dsId, "split dataset id");
 		
 		m_params.put(SPLIT_DATASET, dsId);
 	}
@@ -104,7 +104,7 @@ public class ArcSplitParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setOutputDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "output dataset");
+		Preconditions.checkNotNullArgument(dsId, "output dataset");
 		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
@@ -126,7 +126,7 @@ public class ArcSplitParameters {
 	 * @param cols	컬럼 이름 리스트.
 	 */
 	public void setSplitKey(String cols) {
-		Utilities.checkNotNullArgument(cols, "parameter feature column list");
+		Preconditions.checkNotNullArgument(cols, "parameter feature column list");
 		
 		m_params.put(SPLIT_KEY, cols);
 	}

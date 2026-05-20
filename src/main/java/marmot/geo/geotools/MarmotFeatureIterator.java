@@ -7,10 +7,11 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
+import utils.Preconditions;
+
 import marmot.Record;
 import marmot.RecordSet;
 import marmot.support.DefaultRecord;
-import utils.Utilities;
 
 
 /**
@@ -24,8 +25,8 @@ public class MarmotFeatureIterator implements SimpleFeatureIterator {
 	private boolean m_hasNext;
 	
 	public MarmotFeatureIterator(SimpleFeatureType sfType, RecordSet rset) {
-		Utilities.checkNotNullArgument(sfType, "SimpleFeatureType is null");
-		Utilities.checkNotNullArgument(rset, "RecordSet is null");
+		Preconditions.checkNotNullArgument(sfType, "SimpleFeatureType is null");
+		Preconditions.checkNotNullArgument(rset, "RecordSet is null");
 		
 		m_featBuilder = new SimpleFeatureBuilder(sfType);
 		m_record = DefaultRecord.of(rset.getRecordSchema());

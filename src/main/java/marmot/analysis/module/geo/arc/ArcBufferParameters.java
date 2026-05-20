@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import utils.Utilities;
+import utils.Preconditions;
 import utils.func.FOption;
 
 import marmot.support.DataUtils;
@@ -58,7 +58,7 @@ public class ArcBufferParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setInputDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "input dataset id");
+		Preconditions.checkNotNullArgument(dsId, "input dataset id");
 		
 		m_params.put(INPUT_DATASET, dsId);
 	}
@@ -78,7 +78,7 @@ public class ArcBufferParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void setOutputDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "output dataset");
+		Preconditions.checkNotNullArgument(dsId, "output dataset");
 		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
@@ -113,7 +113,7 @@ public class ArcBufferParameters {
 	 * @param col	거리 컬럼 이름.
 	 */
 	public void setDistanceColumn(String col) {
-		Utilities.checkNotNullArgument(col, "distance column is null");
+		Preconditions.checkNotNullArgument(col, "distance column is null");
 		
 		m_params.put(DISTANCE_COLUMN, col);
 	}

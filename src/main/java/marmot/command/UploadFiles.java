@@ -14,13 +14,14 @@ import java.nio.file.PathMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import marmot.MarmotRuntime;
+import utils.Preconditions;
 import utils.StopWatch;
 import utils.UnitUtils;
-import utils.Utilities;
 import utils.func.FOption;
 import utils.io.FileUtils;
 import utils.stream.FStream;
+
+import marmot.MarmotRuntime;
 
 
 /**
@@ -39,9 +40,9 @@ public class UploadFiles {
 	private FOption<String> m_codecName = FOption.empty();
 	
 	public UploadFiles(MarmotRuntime marmot, File start, String dest) {
-		Utilities.checkNotNullArgument(marmot, "marmot is null");
-		Utilities.checkNotNullArgument(start, "source file(or directory)");
-		Utilities.checkNotNullArgument(dest, "destination directory path");
+		Preconditions.checkNotNullArgument(marmot, "marmot is null");
+		Preconditions.checkNotNullArgument(start, "source file(or directory)");
+		Preconditions.checkNotNullArgument(dest, "destination directory path");
 		
 		m_marmot = marmot;
 		m_start = start;

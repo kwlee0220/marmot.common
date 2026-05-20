@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -19,7 +20,7 @@ import com.google.common.primitives.Ints;
 import utils.CIString;
 import utils.CSV;
 import utils.Indexed;
-import utils.Utilities;
+import utils.Preconditions;
 import utils.func.FOption;
 import utils.stream.FStream;
 import utils.stream.IntFStream;
@@ -68,7 +69,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @return	이름에 해당하는 컬럼이 존재하는 경우는 true, 그렇지 않은 경우는 false
 	 */
 	public boolean existsColumn(String name) {
-		Utilities.checkNotNullArgument(name, "column name is null");
+		Preconditions.checkNotNullArgument(name, "column name is null");
 		
 		return m_colMap.containsKey(CIString.of(name));
 	}
@@ -93,7 +94,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @return	컬럼 정보 객체
 	 */
 	public FOption<Column> findColumn(String name) {
-		Utilities.checkNotNullArgument(name, "column name is null");
+		Preconditions.checkNotNullArgument(name, "column name is null");
 		
 		return FOption.ofNullable(m_colMap.get(CIString.of(name)));
 	}
@@ -143,7 +144,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @return	연결된 레코드 스키마.
 	 */
 	public static RecordSchema concat(RecordSchema... schemas) {
-		Utilities.checkNotNullArgument(schemas, "RecordSchemas are null");
+		Preconditions.checkNotNullArgument(schemas, "RecordSchemas are null");
 		
 		return FStream.of(schemas)
 					.flatMap(s -> FStream.of(s.m_columns))
@@ -158,7 +159,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @return	키에 포함된 컬럼 이름으로 구성된 레코드 스키마.
 	 */
 	public RecordSchema project(Iterable<String> key) {
-		Utilities.checkNotNullArgument(key, "name list is null");
+		Preconditions.checkNotNullArgument(key, "name list is null");
 		
 		return FStream.from(key)
 					.flatMapFOption(this::findColumn)
@@ -166,7 +167,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 					.build();
 	}
 	public RecordSchema project(int... colIdxes) {
-		Utilities.checkNotNullArgument(colIdxes, "colIdxes are null");
+		Preconditions.checkNotNullArgument(colIdxes, "colIdxes are null");
 		
 		return IntFStream.of(colIdxes)
 						.map(this::getColumnAt)
@@ -182,7 +183,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	 * @see #project(List)
 	 */
 	public RecordSchema complement(Iterable<String> key) {
-		Utilities.checkNotNullArgument(key, "key column list is null");
+		Preconditions.checkNotNullArgument(key, "key column list is null");
 		
 		Set<CIString> names = FStream.from(key).map(CIString::of).toSet();
 		return FStream.of(m_columns)
@@ -204,7 +205,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	}
 
 	public static RecordSchema fromProto(RecordSchemaProto proto) {
-		Utilities.checkNotNullArgument(proto, "RecordSchemaProto is null");
+		Preconditions.checkNotNullArgument(proto, "RecordSchemaProto is null");
 		
 		return FStream.from(proto.getColumnsList())
 					.map(Column::fromProto)
@@ -252,7 +253,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 	
 	@Override
 	public int hashCode() {
-		return Utilities.hashCode(FStream.of(m_columns));
+		return Objects.hashCode(m_columns);
 	}
 	
 	private Object writeReplace() {
@@ -302,18 +303,18 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public boolean existsColumn(String name) {
-			Utilities.checkNotNullArgument(name, "column name is null");
-			Utilities.checkArgument(name.indexOf(',') == -1,
-									() -> "column name should not have ',', name=" + name);
+			Preconditions.checkNotNullArgument(name, "column name is null");
+			Preconditions.checkArgument(name.indexOf(',') == -1,
+									"column name should not have ',', name=%s", name);
 			
 			return m_columns.containsKey(CIString.of(name));
 		}
 		
 		public Builder addColumn(String name, DataType type) {
-			Utilities.checkNotNullArgument(name, "column name is null");
-			Utilities.checkNotNullArgument(type, "column type is null");
-			Utilities.checkArgument(name.indexOf(',') == -1,
-									() -> "column name should not have ',', name=" + name);
+			Preconditions.checkNotNullArgument(name, "column name is null");
+			Preconditions.checkNotNullArgument(type, "column type is null");
+			Preconditions.checkArgument(name.indexOf(',') == -1,
+										"column name should not have ',', name=%s", name);
 			
 			CIString ciName = CIString.of(name);
 			Column col = new Column(ciName, type, m_columns.size());
@@ -324,16 +325,16 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder addColumn(Column col) {
-			Utilities.checkNotNullArgument(col, "column is null");
+			Preconditions.checkNotNullArgument(col, "column is null");
 			
 			return addColumn(col.name(), col.type());
 		}
 		
 		public Builder addColumnIfAbsent(String name, DataType type) {
-			Utilities.checkNotNullArgument(name, "column name is null");
-			Utilities.checkNotNullArgument(type, "column type is null");
-			Utilities.checkArgument(name.indexOf(',') == -1,
-									() -> "column name should not have ',', name=" + name);
+			Preconditions.checkNotNullArgument(name, "column name is null");
+			Preconditions.checkNotNullArgument(type, "column type is null");
+			Preconditions.checkArgument(name.indexOf(',') == -1,
+										"column name should not have ',', name=%s", name);
 
 			CIString cname = CIString.of(name);
 			Column col = new Column(cname, type, m_columns.size());
@@ -342,10 +343,10 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder addOrReplaceColumn(String name, DataType type) {
-			Utilities.checkNotNullArgument(name, "column name is null");
-			Utilities.checkNotNullArgument(type, "column type is null");
-			Utilities.checkArgument(name.indexOf(',') == -1,
-									() -> "column name should not have ',', but " + name);
+			Preconditions.checkNotNullArgument(name, "column name is null");
+			Preconditions.checkNotNullArgument(type, "column type is null");
+			Preconditions.checkArgument(name.indexOf(',') == -1,
+										"column name should not have ',', name=%s", name);
 			
 			Column col = m_columns.get(CIString.of(name));
 			if ( col != null ) {
@@ -363,9 +364,9 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder addOrReplaceColumn(Column col) {
-			Utilities.checkNotNullArgument(col, "column is null");
-			Utilities.checkArgument(col.name().indexOf(',') == -1,
-									() -> "column name should not have ',', column=" + col.name());
+			Preconditions.checkNotNullArgument(col, "column is null");
+			Preconditions.checkArgument(col.name().indexOf(',') == -1,
+										"column name should not have ',', name=%s", col.name());
 			
 			Column prev = m_columns.get(col.ciName());
 			if ( prev != null ) {
@@ -383,7 +384,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder addColumnAll(Column... columns) {
-			Utilities.checkNotNullArguments(columns, "columns array is null");
+			Preconditions.checkNotNullArgument(columns, "columns array is null");
 			
 			for ( Column col: columns ) {
 				addColumn(col.name(), col.type());
@@ -392,7 +393,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder addColumnAll(Iterable<Column> columns) {
-			Utilities.checkNotNullArgument(columns, "columns list is null");
+			Preconditions.checkNotNullArgument(columns, "columns list is null");
 			
 			for ( Column col: columns ) {
 				addColumn(col.name(), col.type());
@@ -402,7 +403,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder addOrReplaceColumnAll(Column... columns) {
-			Utilities.checkNotNullArguments(columns, "columns array is null");
+			Preconditions.checkNotNullArgument(columns, "columns array is null");
 			
 			for ( Column col: columns ) {
 				addOrReplaceColumn(col.name(), col.type());
@@ -411,7 +412,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder addOrReplaceColumnAll(Iterable<Column> columns) {
-			Utilities.checkNotNullArgument(columns, "column iterator is null");
+			Preconditions.checkNotNullArgument(columns, "column iterator is null");
 			
 			for ( Column col: columns ) {
 				addOrReplaceColumn(col.name(), col.type());
@@ -420,7 +421,7 @@ public class RecordSchema implements PBSerializable<RecordSchemaProto>, Serializ
 		}
 		
 		public Builder removeColumn(String colName) {
-			Utilities.checkNotNullArgument(colName, "column name is null");
+			Preconditions.checkNotNullArgument(colName, "column name is null");
 			
 			CIString key = CIString.of(colName);
 			LinkedHashMap<CIString, Column> old = m_columns;

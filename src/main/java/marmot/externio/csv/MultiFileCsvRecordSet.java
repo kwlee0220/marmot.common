@@ -14,12 +14,13 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Lists;
 
+import utils.Preconditions;
+import utils.io.FileUtils;
+import utils.stream.FStream;
+
 import marmot.RecordSchema;
 import marmot.RecordSetException;
 import marmot.rset.ConcatedRecordSet;
-import utils.Utilities;
-import utils.io.FileUtils;
-import utils.stream.FStream;
 
 
 /**
@@ -40,9 +41,9 @@ class MultiFileCsvRecordSet extends ConcatedRecordSet {
 	}
 	
 	MultiFileCsvRecordSet(File start, CsvParameters params, String glob) {
-		Utilities.checkNotNullArgument(start, "start is null");
-		Utilities.checkNotNullArgument(params, "params is null");
-		Utilities.checkNotNullArgument(glob, "glob is null");
+		Preconditions.checkNotNullArgument(start, "start is null");
+		Preconditions.checkNotNullArgument(params, "params is null");
+		Preconditions.checkNotNullArgument(glob, "glob is null");
 		
 		m_start = start;
 		setLogger(s_logger);

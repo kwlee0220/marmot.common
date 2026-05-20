@@ -47,12 +47,12 @@ public class TextDataSetAdaptor {
 				SpatialIndexInfo idxInfo = ds.getSpatialIndexInfo().get();
 				Statistics stat = new Statistics(m_marmot, idxInfo.getRecordCount(),
 												idxInfo.getDataBounds());
-				return (DataSet)ProxyUtils.replaceAction(ds, EXTRA_INTFCS,
+				return (DataSet)ProxyUtils.replaceAction(ds, DataSetAdapted.class,
 											new GetRecordCount(stat), new GetBounds(stat));
 			}
 			else {
 				Statistics stat = new Statistics(m_marmot);
-				return (DataSet)ProxyUtils.replaceAction(ds, EXTRA_INTFCS,
+				return (DataSet)ProxyUtils.replaceAction(ds, DataSetAdapted.class,
 											new GetRecordCount(stat), new GetBounds(stat));
 			}
 		}

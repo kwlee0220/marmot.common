@@ -3,7 +3,7 @@ package marmot.optor;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
-import utils.Utilities;
+import utils.Preconditions;
 
 import marmot.proto.optor.CsvOptionsProto;
 import marmot.support.PBSerializable;
@@ -77,7 +77,7 @@ public class CsvOptions implements PBSerializable<CsvOptionsProto> {
 	}
 	
 	public CsvOptions charset(Charset charset) {
-		Utilities.checkNotNullArgument(charset, "Charset is null");
+		Preconditions.checkNotNullArgument(charset, "Charset is null");
 		
 		return new CsvOptions(m_delim, m_quote, m_escape, Optional.of(charset), m_headerFirst);
 	}

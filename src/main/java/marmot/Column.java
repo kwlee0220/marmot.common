@@ -5,13 +5,14 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.Objects;
 
+import utils.CIString;
+import utils.Preconditions;
+
 import marmot.proto.ColumnProto;
 import marmot.support.PBSerializable;
 import marmot.type.DataType;
 import marmot.type.DataTypes;
 import marmot.type.TypeCode;
-import utils.CIString;
-import utils.Utilities;
 
 /**
  * 
@@ -25,8 +26,8 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	private final short m_ordinal;
 
 	public Column(String name, DataType type) {
-		Utilities.checkNotNullArgument(name, "column name is null");
-		Utilities.checkNotNullArgument(type, "column type is null");
+		Preconditions.checkNotNullArgument(name, "column name is null");
+		Preconditions.checkNotNullArgument(type, "column type is null");
 
 		m_name = CIString.of(name);
 		m_type = type;
@@ -34,8 +35,8 @@ public final class Column implements PBSerializable<ColumnProto>, Serializable {
 	}
 	
 	public Column(CIString name, DataType type, int ordinal) {
-		Utilities.checkNotNullArgument(name, "column name");
-		Utilities.checkNotNullArgument(type, "column type");
+		Preconditions.checkNotNullArgument(name, "column name");
+		Preconditions.checkNotNullArgument(type, "column type");
 		
 		m_name = name;
 		m_type = type;

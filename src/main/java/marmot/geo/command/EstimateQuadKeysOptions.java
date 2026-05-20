@@ -9,13 +9,14 @@ import org.locationtech.jts.geom.Envelope;
 
 import com.google.common.collect.Lists;
 
+import utils.Preconditions;
+import utils.UnitUtils;
+import utils.func.FOption;
+import utils.stream.FStream;
+
 import marmot.proto.service.EstimateQuadKeysOptionsProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
-import utils.UnitUtils;
-import utils.Utilities;
-import utils.func.FOption;
-import utils.stream.FStream;
 
 
 /**
@@ -68,7 +69,7 @@ public class EstimateQuadKeysOptions implements PBSerializable<EstimateQuadKeysO
 		return new EstimateQuadKeysOptions(m_mapperCount, validRange, m_sampleSize,  m_clusterSize);
 	}
 	public EstimateQuadKeysOptions validRange(Envelope validRange) {
-		Utilities.checkNotNullArgument(validRange, "valid_range");
+		Preconditions.checkNotNullArgument(validRange, "valid_range");
 		
 		return validRange(FOption.ofNullable(validRange));
 	}
@@ -80,7 +81,7 @@ public class EstimateQuadKeysOptions implements PBSerializable<EstimateQuadKeysO
 		return new EstimateQuadKeysOptions(m_mapperCount, m_validRange, sampleSize, m_clusterSize);
 	}
 	public EstimateQuadKeysOptions sampleSize(long sampleSize) {
-		Utilities.checkArgument(sampleSize > 0, "invalid sampleSize=" + sampleSize);
+		Preconditions.checkArgument(sampleSize > 0, "invalid sampleSize=" + sampleSize);
 		
 		return sampleSize(FOption.of(sampleSize));
 	}
@@ -92,7 +93,7 @@ public class EstimateQuadKeysOptions implements PBSerializable<EstimateQuadKeysO
 		return new EstimateQuadKeysOptions(m_mapperCount, m_validRange, m_sampleSize, clusterSize);
 	}
 	public EstimateQuadKeysOptions clusterSize(long clusterSize) {
-		Utilities.checkArgument(clusterSize > 0, "invalid maxClusterSize=" + clusterSize);
+		Preconditions.checkArgument(clusterSize > 0, "invalid maxClusterSize=" + clusterSize);
 		
 		return clusterSize(FOption.of(clusterSize));
 	}

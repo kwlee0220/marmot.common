@@ -1,9 +1,10 @@
 package marmot.plan;
 
+import utils.Preconditions;
+import utils.func.FOption;
+
 import marmot.proto.optor.LoadOptionsProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -26,7 +27,7 @@ public class LoadOptions implements PBSerializable<LoadOptionsProto> {
 	}
 	
 	public static LoadOptions MAPPERS(int count) {
-		Utilities.checkArgument(count >= 0, "invalid mapper count: " + count);
+		Preconditions.checkArgument(count >= 0, "invalid mapper count: " + count);
 		
 		return new LoadOptions(FOption.empty(), FOption.of(count));
 	}

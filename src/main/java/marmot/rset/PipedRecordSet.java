@@ -10,11 +10,9 @@ import javax.annotation.concurrent.GuardedBy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Preconditions;
-
+import utils.Preconditions;
 import utils.Throwables;
-import utils.Utilities;
-import utils.async.Guard;
+import utils.thread.Guard;
 
 import marmot.Record;
 import marmot.RecordSchema;
@@ -55,7 +53,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 	@GuardedBy("m_guard") private long m_lastConsumeMillis;
 	
 	public PipedRecordSet(RecordSchema schema, int queueLength) {
-		Utilities.checkNotNullArgument(schema, "schema is null");
+		Preconditions.checkNotNullArgument(schema, "schema is null");
 		Preconditions.checkArgument(queueLength > 0, "queue length should be larger than zero");
 		
 		m_schema = schema;

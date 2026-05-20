@@ -16,8 +16,8 @@ import org.apache.commons.csv.CSVPrinter;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
+import utils.Preconditions;
 import utils.UnitUtils;
-import utils.Utilities;
 import utils.func.Optionals;
 import utils.rx.ProgressReporter;
 
@@ -81,9 +81,9 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 	
 	private CsvRecordWriter(BufferedWriter writer, RecordSchema schema, CsvOptions opts)
 		throws IOException {
-		Utilities.checkNotNullArgument(writer, "writer is null");
-		Utilities.checkNotNullArgument(opts, "StoreAsCsvOptions is null");
-		Utilities.checkNotNullArgument(schema, "RecordSchema is null");
+		Preconditions.checkNotNullArgument(writer, "writer is null");
+		Preconditions.checkNotNullArgument(opts, "StoreAsCsvOptions is null");
+		Preconditions.checkNotNullArgument(schema, "RecordSchema is null");
 		
 		m_schema = schema;
 		
@@ -127,7 +127,7 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 
 	@Override
 	public void write(Record record) throws IOException {
-		Utilities.checkNotNullArgument(record, "Record is null");
+		Preconditions.checkNotNullArgument(record, "Record is null");
 		
 		m_printer.printRecord(toCsvPartString(record));
 		if ( m_interval > 0 &&  (++m_count % m_interval) == 0 ) {

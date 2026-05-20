@@ -4,11 +4,12 @@ import java.io.InvalidObjectException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 
+import utils.Preconditions;
+import utils.func.FOption;
+
 import marmot.optor.geo.SpatialRelation;
 import marmot.proto.optor.SpatialJoinOptionsProto;
 import marmot.support.PBSerializable;
-import utils.Utilities;
-import utils.func.FOption;
 
 /**
  * 
@@ -36,14 +37,14 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	}
 	
 	public static SpatialJoinOptions OUTPUT(String outCols) {
-		Utilities.checkNotNullArgument(outCols, "output columns are null");
+		Preconditions.checkNotNullArgument(outCols, "output columns are null");
 		
 		return new SpatialJoinOptions(FOption.empty(), FOption.empty(), FOption.empty(),
 										FOption.of(outCols));
 	}
 	
 	public static SpatialJoinOptions WITHIN_DISTANCE(double dist) {
-		Utilities.checkArgument(dist >= 0, "dist >= 0");
+		Preconditions.checkArgument(dist >= 0, "dist >= 0");
 		
 		FOption<String> joinExprStr = FOption.of(SpatialRelation.WITHIN_DISTANCE(dist))
 											.map(SpatialRelation::toStringExpr);
@@ -55,19 +56,19 @@ public class SpatialJoinOptions implements PBSerializable<SpatialJoinOptionsProt
 	}
 	
 	public SpatialJoinOptions joinExpr(String expr) {
-		Utilities.checkNotNullArgument(expr, "join expression");
+		Preconditions.checkNotNullArgument(expr, "join expression");
 		
 		return new SpatialJoinOptions(FOption.of(expr), m_clusterOuter, m_negated, m_outputCols);
 	}
 	
 	public SpatialJoinOptions joinExpr(SpatialRelation rel) {
-		Utilities.checkNotNullArgument(rel, "join expression");
+		Preconditions.checkNotNullArgument(rel, "join expression");
 
 		return joinExpr(rel.toStringExpr());
 	}
 	
 	public SpatialJoinOptions withinDistance(double dist) {
-		Utilities.checkArgument(dist >= 0, "dist >= 0");
+		Preconditions.checkArgument(dist >= 0, "dist >= 0");
 		
 		return joinExpr(SpatialRelation.WITHIN_DISTANCE(dist));
 	}

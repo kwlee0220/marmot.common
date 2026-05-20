@@ -7,11 +7,12 @@ import java.util.Objects;
 
 import org.locationtech.jts.geom.Envelope;
 
+import utils.Preconditions;
+
 import marmot.dataset.GeometryColumnInfo;
 import marmot.proto.SpatialIndexInfoProto;
 import marmot.protobuf.PBUtils;
 import marmot.support.PBSerializable;
-import utils.Utilities;
 
 
 /**
@@ -32,8 +33,8 @@ public class SpatialIndexInfo implements PBSerializable<SpatialIndexInfoProto>, 
 	private long m_updatedMillis = -1;
 	
 	public SpatialIndexInfo(String dataset, GeometryColumnInfo geomCol) {
-		Utilities.checkNotNullArgument(dataset, "dataset is null");
-		Utilities.checkNotNullArgument(geomCol, "geomCol is null");
+		Preconditions.checkNotNullArgument(dataset, "dataset is null");
+		Preconditions.checkNotNullArgument(geomCol, "geomCol is null");
 		
 		m_dataset = dataset;
 		m_geomCol = geomCol;

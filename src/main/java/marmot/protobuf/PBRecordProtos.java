@@ -1,6 +1,6 @@
 package marmot.protobuf;
 
-import static utils.Utilities.checkNotNullArgument;
+import static utils.Preconditions.checkNotNullArgument;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +12,13 @@ import java.util.concurrent.CancellationException;
 
 import org.slf4j.LoggerFactory;
 
+import utils.Preconditions;
+import utils.Throwables;
+import utils.async.AbstractThreadedExecution;
+import utils.async.StartableExecution;
+import utils.io.IOUtils;
+import utils.stream.FStream;
+
 import marmot.Column;
 import marmot.Record;
 import marmot.RecordSchema;
@@ -22,12 +29,6 @@ import marmot.proto.RecordSchemaProto;
 import marmot.proto.ValueProto;
 import marmot.rset.AbstractRecordSet;
 import marmot.support.DefaultRecord;
-import utils.Throwables;
-import utils.Utilities;
-import utils.async.AbstractThreadedExecution;
-import utils.async.StartableExecution;
-import utils.io.IOUtils;
-import utils.stream.FStream;
 
 /**
  * 
@@ -162,7 +163,7 @@ public class PBRecordProtos {
 		private Throwable m_error;
 		
 		private PBRecordSetInputStream(RecordSet rset) {
-			Utilities.checkNotNullArgument(rset, "RecordSet");
+			Preconditions.checkNotNullArgument(rset, "RecordSet");
 			
 			try {
 				PipedOutputStream pipeOut = new PipedOutputStream();

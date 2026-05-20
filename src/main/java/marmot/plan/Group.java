@@ -12,7 +12,7 @@ import com.google.common.collect.Sets;
 
 import utils.CSV;
 import utils.KeyValue;
-import utils.Utilities;
+import utils.Preconditions;
 import utils.func.FOption;
 import utils.func.Funcs;
 import utils.stream.FStream;
@@ -121,7 +121,7 @@ public class Group implements Serializable, PBSerializable<GroupByKeyProto> {
 	}
 	
 	public static Group parseGroup(String expr) {
-		Utilities.checkNotNullArgument(expr, "Group string rep is null");
+		Preconditions.checkNotNullArgument(expr, "Group string rep is null");
 	
 		Map<String,String> kvMap = CSV.parseCsv(expr, ';')
 									.map(Group::parseKeyValue)

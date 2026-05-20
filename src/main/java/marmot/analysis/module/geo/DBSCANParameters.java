@@ -4,11 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 
+import utils.Preconditions;
+
 import marmot.support.DataUtils;
-import utils.Utilities;
 
 /**
  * 
@@ -63,7 +63,7 @@ public class DBSCANParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void inputDataSet(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "input dataset id");
+		Preconditions.checkNotNullArgument(dsId, "input dataset id");
 		
 		m_params.put(INPUT_DATASET, dsId);
 	}
@@ -83,7 +83,7 @@ public class DBSCANParameters {
 	 * @param dsId	데이터세트 식별자.
 	 */
 	public void outputDataSet(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "output dataset");
+		Preconditions.checkNotNullArgument(dsId, "output dataset");
 		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}
@@ -133,7 +133,7 @@ public class DBSCANParameters {
 	}
 	
 	public void idColumn(String name) {
-		Utilities.checkNotNullArgument(name, "id-column");
+		Preconditions.checkNotNullArgument(name, "id-column");
 		
 		m_params.put(ID_COLUMN, name);
 	}
@@ -148,7 +148,7 @@ public class DBSCANParameters {
 	}
 	
 	public void clusterColumn(String name) {
-		Utilities.checkNotNullArgument(name, "cluster-column");
+		Preconditions.checkNotNullArgument(name, "cluster-column");
 		
 		m_params.put(CLUSTER_COLUMN, name);
 	}
@@ -163,7 +163,7 @@ public class DBSCANParameters {
 	}
 	
 	public void typeColumn(String name) {
-		Utilities.checkNotNullArgument(name, "type-column");
+		Preconditions.checkNotNullArgument(name, "type-column");
 		
 		m_params.put(TYPE_COLUMN, name);
 	}

@@ -1,11 +1,12 @@
 package marmot.exec;
 
+import utils.Preconditions;
+
 import marmot.ExecutePlanOptions;
 import marmot.Plan;
 import marmot.proto.service.MarmotAnalysisProto;
 import marmot.proto.service.MarmotAnalysisProto.MemberCase;
 import marmot.proto.service.MarmotAnalysisProto.PlanExecProto;
-import utils.Utilities;
 
 /**
  * 
@@ -40,7 +41,7 @@ public class PlanAnalysis extends MarmotAnalysis {
 	}
 	
 	public static PlanAnalysis fromProto(MarmotAnalysisProto proto) {
-		Utilities.checkArgument(proto.getMemberCase().equals(MemberCase.PLAN_EXEC),
+		Preconditions.checkArgument(proto.getMemberCase().equals(MemberCase.PLAN_EXEC),
 								"not PlanAnalysis");
 		
 		PlanExecProto planExec = proto.getPlanExec();

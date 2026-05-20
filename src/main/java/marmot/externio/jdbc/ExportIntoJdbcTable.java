@@ -3,7 +3,10 @@ package marmot.externio.jdbc;
 import java.io.File;
 import java.io.IOException;
 
-import utils.Utilities;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+
+import utils.Preconditions;
 import utils.func.FOption;
 import utils.jdbc.JdbcProcessor;
 import utils.rx.ProgressReporter;
@@ -12,9 +15,6 @@ import marmot.MarmotRuntime;
 import marmot.Plan;
 import marmot.PlanBuilder;
 import marmot.RecordSet;
-
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 
 /**
@@ -29,9 +29,9 @@ public class ExportIntoJdbcTable implements ProgressReporter<Long> {
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.createDefault(0L);
 	
 	public ExportIntoJdbcTable(String dsId, String tblName, StoreJdbcParameters params) {
-		Utilities.checkNotNullArgument(dsId, "dataset id is null");
-		Utilities.checkNotNullArgument(tblName, "table-name is null");
-		Utilities.checkNotNullArgument(params, "JdbcParameters is null");
+		Preconditions.checkNotNullArgument(dsId, "dataset id is null");
+		Preconditions.checkNotNullArgument(tblName, "table-name is null");
+		Preconditions.checkNotNullArgument(params, "JdbcParameters is null");
 		
 		m_dsId = dsId;
 		m_tableName = tblName;
@@ -49,12 +49,17 @@ public class ExportIntoJdbcTable implements ProgressReporter<Long> {
 	}
 	
 	public long run(MarmotRuntime marmot) throws IOException {
-		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
+		Preconditions.checkNotNullArgument(marmot, "MarmotRuntime is null");
 
-		JdbcProcessor jdbc = JdbcProcessor.create(m_params.system(), m_params.host(),
-													m_params.port(), m_params.user(),
-													m_params.password(), m_params.database());
-		m_params.jdbcJarPath().map(File::new).ifPresent(jdbc::setJdbcJarFile);
+		JdbcProcessor.Builder jdbcBuilder = JdbcProcessor.builder()
+															.system(m_params.system())
+															.host(m_params.host())
+															.port(m_params.port())
+															.user(m_params.user())
+															.password(m_params.password())
+															.dbName(m_params.database());
+		m_params.jdbcJarPath().map(File::new).ifPresent(jdbcBuilder::jarFile);
+		JdbcProcessor jdbc = jdbcBuilder.build();
 
 		try ( RecordSet rset = loadRecordSet(marmot);
 				JdbcRecordSetWriter writer = new JdbcRecordSetWriter(m_tableName, jdbc,

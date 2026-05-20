@@ -25,8 +25,8 @@ import io.reactivex.rxjava3.core.ObservableOnSubscribe;
 import io.reactivex.rxjava3.core.Observer;
 
 import utils.LoggerSettable;
+import utils.Preconditions;
 import utils.Throwables;
-import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
 import utils.func.FOption;
 import utils.func.Try;
@@ -105,7 +105,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @return		{@link RecordSet} 객체.
 	 */
 	public static RecordSet empty(RecordSchema schema) {
-		Utilities.checkNotNullArgument(schema, "RecordSchema");
+		Preconditions.checkNotNullArgument(schema, "RecordSchema");
 		
 		return new EmptyRecordSet(schema);
 	}
@@ -117,8 +117,8 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @return	레코드 세트
 	 */
 	public static RecordSet of(Record... records) {
-		Utilities.checkNotNullArgument(records, "records is null");
-		Utilities.checkArgument(records.length > 0, "records.length > 0, but: " + records.length);
+		Preconditions.checkNotNullArgument(records, "records is null");
+		Preconditions.checkArgument(records.length > 0, "records.length > 0, but: " + records.length);
 		
 		RecordSchema schema = records[0].getRecordSchema();
 		return from(schema, Arrays.asList(records));
@@ -132,8 +132,8 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, FStream<? extends Record> fstream) {
-		Utilities.checkNotNullArgument(schema, "RecordSchema is null");
-		Utilities.checkNotNullArgument(fstream, "FStream is null");
+		Preconditions.checkNotNullArgument(schema, "RecordSchema is null");
+		Preconditions.checkNotNullArgument(fstream, "FStream is null");
 		
 		return new FStreamRecordSet(schema, fstream);
 	}
@@ -147,10 +147,10 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(Iterable<? extends Record> records) {
-		Utilities.checkNotNullArgument(records, "records is null");
+		Preconditions.checkNotNullArgument(records, "records is null");
 		
 		Iterator<? extends Record> iter = records.iterator();
-		Utilities.checkArgument(iter.hasNext(), "Record Iterable is empty");
+		Preconditions.checkArgument(iter.hasNext(), "Record Iterable is empty");
 		
 		RecordSchema schema = iter.next().getRecordSchema();
 		return from(schema, records.iterator());
@@ -166,8 +166,8 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, Iterable<? extends Record> iter) {
-		Utilities.checkNotNullArgument(schema, "schema is null");
-		Utilities.checkNotNullArgument(iter, "records is null");
+		Preconditions.checkNotNullArgument(schema, "schema is null");
+		Preconditions.checkNotNullArgument(iter, "records is null");
 		
 		return from(schema, iter.iterator());
 	}
@@ -182,8 +182,8 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @return	레코드 세트
 	 */
 	public static RecordSet from(RecordSchema schema, Iterator<? extends Record> iter) {
-		Utilities.checkNotNullArgument(schema, "schema is null");
-		Utilities.checkNotNullArgument(iter, "records is null");
+		Preconditions.checkNotNullArgument(schema, "schema is null");
+		Preconditions.checkNotNullArgument(iter, "records is null");
 		
 		return new IteratorRecordSet(schema, iter);
 	}
@@ -219,7 +219,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	
 	public default <S> S foldLeft(S accum, S stopper,
 								BiFunction<? super S,? super Record,? extends S> folder) {
-		Utilities.checkNotNullArgument(folder, "folder is null");
+		Preconditions.checkNotNullArgument(folder, "folder is null");
 
 		try {
 			if ( accum.equals(stopper) ) {
@@ -243,7 +243,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	
 	public default <S> S foldLeft(S accum,
 								BiFunction<? super S,? super Record,? extends S> folder) {
-		Utilities.checkNotNullArgument(folder, "folder is null");
+		Preconditions.checkNotNullArgument(folder, "folder is null");
 
 		try {
 			Record record = DefaultRecord.of(getRecordSchema());
@@ -259,7 +259,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	}
 	
 	public default <S> S collectLeft(S accum, BiConsumer<? super S,? super Record> consumer) {
-		Utilities.checkNotNullArgument(consumer, "consumer is null");
+		Preconditions.checkNotNullArgument(consumer, "consumer is null");
 
 		try {
 			Record record = DefaultRecord.of(getRecordSchema());
@@ -276,7 +276,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	
 	public default <S> S collectLeftCopy(S accum,
 										BiConsumer<? super S,? super Record> consumer) {
-		Utilities.checkNotNullArgument(consumer, "consumer is null");
+		Preconditions.checkNotNullArgument(consumer, "consumer is null");
 
 		try {
 			for ( Record rec = nextCopy(); rec != null; rec = nextCopy() ) {
@@ -300,7 +300,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @param consumer	레코드 세트에 포함된 레코드를 처리할 레코드 소비자 객체.
 	 */
 	public default void forEach(Consumer<? super Record> consumer) {
-		Utilities.checkNotNullArgument(consumer, "consumer is null");
+		Preconditions.checkNotNullArgument(consumer, "consumer is null");
 		
 		Record record = DefaultRecord.of(getRecordSchema());
 		try {
@@ -334,7 +334,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	 * @param consumer	레코드 세트에 포함된 레코드를 처리할 레코드 소비자 객체.
 	 */
 	public default void forEachCopy(Consumer<? super Record> consumer) {
-		Utilities.checkNotNullArgument(consumer, "consumer is null");
+		Preconditions.checkNotNullArgument(consumer, "consumer is null");
 		
 		Record record;
 		try {
@@ -509,36 +509,36 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	}
 	
 	public static RecordSet concat(RecordSchema schema, FStream<? extends RecordSet> rsets) {
-		Utilities.checkNotNullArgument(schema, "schema is null");
-		Utilities.checkNotNullArgument(rsets, "rsets is null");
+		Preconditions.checkNotNullArgument(schema, "schema is null");
+		Preconditions.checkNotNullArgument(rsets, "rsets is null");
 		
 		return new FStreamConcatedRecordSet(schema, rsets);
 	}
 	
 	public static RecordSet concat(RecordSet... rsets) {
-		Utilities.checkNotNullArguments(rsets, "rsets is null");
+		Preconditions.checkNotNullArgument(rsets, "rsets is null");
 		
 		return concat(rsets[0].getRecordSchema(), FStream.of(rsets));
 	}
 	
 	public static RecordSet concat(RecordSet rset, Record tail) {
-		Utilities.checkNotNullArgument(rset, "rset is null");
-		Utilities.checkNotNullArgument(tail, "tail is null");
-		Utilities.checkArgument(rset.getRecordSchema().equals(tail.getRecordSchema()),
+		Preconditions.checkNotNullArgument(rset, "rset is null");
+		Preconditions.checkNotNullArgument(tail, "tail is null");
+		Preconditions.checkArgument(rset.getRecordSchema().equals(tail.getRecordSchema()),
 								"incompatible RecordSchema");
 		
 		return concat(rset, RecordSet.of(tail));
 	}
 	
 	public static RecordSet concat(Record head, RecordSet tail) {
-		Utilities.checkNotNullArgument(head, "head is null");
-		Utilities.checkNotNullArgument(tail, "tails is null");
+		Preconditions.checkNotNullArgument(head, "head is null");
+		Preconditions.checkNotNullArgument(tail, "tails is null");
 		
 		return concat(RecordSet.of(head), tail);
 	}
 	
 	public static RecordSet concat(Iterable<? extends RecordSet> rsets) {
-		Utilities.checkNotNullArgument(rsets, "rsets is null");
+		Preconditions.checkNotNullArgument(rsets, "rsets is null");
 		
 		Iterator<? extends RecordSet> iter = rsets.iterator();
 		if ( !iter.hasNext() ) {
@@ -552,7 +552,7 @@ public interface RecordSet extends Closeable, Iterable<Record>, FStreamable<Reco
 	}
 	
 	public default RecordSet onClose(Runnable closer) {
-		Utilities.checkNotNullArgument(closer, "Closer");
+		Preconditions.checkNotNullArgument(closer, "Closer");
 		
 		return new CloserAttachedRecordSet(this, closer);
 	}

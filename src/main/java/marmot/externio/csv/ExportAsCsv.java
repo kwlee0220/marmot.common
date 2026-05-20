@@ -3,8 +3,11 @@ package marmot.externio.csv;
 import java.io.BufferedWriter;
 import java.io.IOException;
 
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.subjects.BehaviorSubject;
+
+import utils.Preconditions;
 import utils.Tuple;
-import utils.Utilities;
 import utils.func.FOption;
 import utils.rx.ProgressReporter;
 
@@ -15,9 +18,6 @@ import marmot.RecordSet;
 import marmot.dataset.DataSet;
 import marmot.dataset.GeometryColumnInfo;
 import marmot.type.DataType;
-
-import io.reactivex.rxjava3.core.Observable;
-import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 
 /**
@@ -31,8 +31,8 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	private final BehaviorSubject<Long> m_subject = BehaviorSubject.createDefault(0L);
 	
 	public ExportAsCsv(String dsId, CsvParameters params) {
-		Utilities.checkNotNullArgument(dsId, "dataset id is null");
-		Utilities.checkNotNullArgument(params, "CsvParameters is null");
+		Preconditions.checkNotNullArgument(dsId, "dataset id is null");
+		Preconditions.checkNotNullArgument(params, "CsvParameters is null");
 		
 		m_dsId = dsId;
 		m_params = params;
@@ -49,8 +49,8 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 	}
 	
 	public long run(MarmotRuntime marmot, BufferedWriter writer) throws IOException {
-		Utilities.checkNotNullArgument(marmot, "MarmotRuntime is null");
-		Utilities.checkNotNullArgument(writer, "writer is null");
+		Preconditions.checkNotNullArgument(marmot, "MarmotRuntime is null");
+		Preconditions.checkNotNullArgument(writer, "writer is null");
 		
 		return CsvRecordWriter.write(writer, locateRecordSet(marmot), m_params.toCsvOptions());
 	}

@@ -3,6 +3,7 @@ package marmot.exec;
 import java.util.Map;
 
 import utils.KeyValue;
+import utils.Preconditions;
 import utils.Utilities;
 import utils.stream.KeyValueFStream;
 
@@ -45,7 +46,7 @@ public class ModuleAnalysis extends MarmotAnalysis {
 	}
 	
 	public static ModuleAnalysis fromProto(MarmotAnalysisProto proto) {
-		Utilities.checkArgument(proto.getMemberCase().equals(MemberCase.MODULE_EXEC), "not ModuleAnalysis");
+		Preconditions.checkArgument(proto.getMemberCase().equals(MemberCase.MODULE_EXEC), "not ModuleAnalysis");
 
 		
 		ModuleExecProto module = proto.getModuleExec();

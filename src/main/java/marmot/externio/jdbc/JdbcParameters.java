@@ -1,7 +1,7 @@
 package marmot.externio.jdbc;
 
-import static utils.Utilities.checkArgument;
-import static utils.Utilities.checkNotNullArgument;
+import static utils.Preconditions.checkArgument;
+import static utils.Preconditions.checkNotNullArgument;
 
 import java.util.List;
 import java.util.Optional;

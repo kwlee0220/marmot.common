@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import utils.Utilities;
+import utils.Preconditions;
 
 import marmot.support.DataUtils;
 
@@ -45,7 +45,7 @@ public class ArcUnionParameters {
 		return m_params.get(LEFT_DATASET);
 	}
 	public void setLeftDataSet(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "left dataset id");
+		Preconditions.checkNotNullArgument(dsId, "left dataset id");
 		
 		m_params.put(LEFT_DATASET, dsId);
 	}
@@ -54,7 +54,7 @@ public class ArcUnionParameters {
 		return m_params.get(RIGHT_DATASET);
 	}
 	public void setRightDataSet(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "right dataset id");
+		Preconditions.checkNotNullArgument(dsId, "right dataset id");
 		
 		m_params.put(RIGHT_DATASET, dsId);
 	}
@@ -63,7 +63,7 @@ public class ArcUnionParameters {
 		return m_params.get(OUTPUT_DATASET);
 	}
 	public void setOutputDataset(String dsId) {
-		Utilities.checkNotNullArgument(dsId, "output dataset");
+		Preconditions.checkNotNullArgument(dsId, "output dataset");
 		
 		m_params.put(OUTPUT_DATASET, dsId);
 	}

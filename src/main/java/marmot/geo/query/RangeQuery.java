@@ -12,8 +12,8 @@ import org.locationtech.jts.geom.prep.PreparedGeometryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import utils.Preconditions;
 import utils.StopWatch;
-import utils.Utilities;
 import utils.async.AbstractThreadedExecution;
 import utils.async.CancellableWork;
 import utils.async.Executions;
@@ -52,10 +52,10 @@ public class RangeQuery {
 	
 	RangeQuery(DataSet ds, Envelope range, int sampleCount, PartitionCache cache,
 				boolean usePrefetch, int maxLocalCacheCost) {
-		Utilities.checkNotNullArgument(ds, "DataSet");
-		Utilities.checkNotNullArgument(range, "query ranage");
-		Utilities.checkNotNullArgument(cache, "DataSetPartitionCache");
-		Utilities.checkArgument(maxLocalCacheCost > 0, "MaxLocalCacheCost > 0, but " + maxLocalCacheCost);
+		Preconditions.checkNotNullArgument(ds, "DataSet");
+		Preconditions.checkNotNullArgument(range, "query ranage");
+		Preconditions.checkNotNullArgument(cache, "DataSetPartitionCache");
+		Preconditions.checkArgument(maxLocalCacheCost > 0, "MaxLocalCacheCost > 0, but " + maxLocalCacheCost);
 		
 		m_ds = ds;
 		m_dsId = m_ds.getId();
@@ -158,7 +158,7 @@ public class RangeQuery {
 		return matcheds;
 	}
 	
-	private StartableExecution<Void> forkClusterPrefetcher(RangeQueryEstimate est) {
+	private StartableExecution<?> forkClusterPrefetcher(RangeQueryEstimate est) {
 		FStream<StartableExecution<?>> strm
 								= FStream.from(est.getClusterEstimates())
 										.map(ClusterEstimate::getQuadKey)
@@ -168,8 +168,7 @@ public class RangeQuery {
 		return AsyncExecutions.sequential(strm);
 	}
 	
-	private class Prefetcher extends AbstractThreadedExecution<Void>
-							implements CancellableWork {
+	private class Prefetcher extends AbstractThreadedExecution<Void> implements CancellableWork {
 		private final String m_quadKey;
 		
 		Prefetcher(String quadKey) {
