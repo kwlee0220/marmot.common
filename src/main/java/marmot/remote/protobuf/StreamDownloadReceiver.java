@@ -91,7 +91,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 		return super.notifyFailed(cause);
 	}
 
-	private static final long CANCELLING_TIMEOUT = UnitUtils.parseDurationMillis("50s");
+	private static final long CANCELLING_TIMEOUT = UnitUtils.parseDuration("50s").toMillis();
 	@Override
 	public boolean cancelWork() {
 		m_guard.lock();

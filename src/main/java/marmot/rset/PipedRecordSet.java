@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -282,8 +283,8 @@ public class PipedRecordSet extends AbstractRecordSet {
 		m_guard.awaitCondition(() -> m_state == State.CLOSED).andReturn();
 	}
 	
-	public boolean waitForFullyClosed(long timeout, TimeUnit unit) throws InterruptedException {
-		return m_guard.awaitCondition(() -> m_state == State.CLOSED, timeout, unit).andReturn();
+	public void waitForFullyClosed(long timeout, TimeUnit unit) throws InterruptedException, TimeoutException {
+		m_guard.awaitCondition(() -> m_state == State.CLOSED, timeout, unit).andReturn();
 	}
 	
 	@Override

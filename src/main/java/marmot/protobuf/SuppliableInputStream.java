@@ -26,7 +26,7 @@ import marmot.remote.protobuf.PBStreamClosedException;
  */
 public class SuppliableInputStream extends InputStream {
 	private static final Logger s_logger = LoggerFactory.getLogger(SuppliableInputStream.class);
-	private static final long TIMEOUT = UnitUtils.parseDurationMillis("10s");
+	private static final long TIMEOUT = UnitUtils.parseDuration("10s").toMillis();
 	
 	private final int m_chunkQLength;
 	
