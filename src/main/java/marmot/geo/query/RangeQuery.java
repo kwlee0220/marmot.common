@@ -133,7 +133,7 @@ public class RangeQuery {
 									.andThen(d -> d.getOrElse(FStream.empty()));
 		FStream<Record> recStream = FStream.from(est.getClusterEstimates())
 											.map(ClusterEstimate::getQuadKey)
-											.flatMapAsync(loader, AsyncExecutionOptions.WORKER_COUNT(3));
+											.flatMapAsync(loader::apply, AsyncExecutionOptions.WORKER_COUNT(3));
 		
 		return RecordSet.from(m_ds.getRecordSchema(), recStream);
 	}
