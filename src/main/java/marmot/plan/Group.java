@@ -125,7 +125,7 @@ public class Group implements Serializable, PBSerializable<GroupByKeyProto> {
 	
 		Map<String,String> kvMap = CSV.parseCsv(expr, ';')
 									.map(Group::parseKeyValue)
-									.toKeyValueStream(KeyValue::key, KeyValue::value)
+									.mapToKeyValue(KeyValue::key, KeyValue::value)
 									.toMap();
 		String keyCols = kvMap.get("keys");
 		if ( keyCols == null ) {

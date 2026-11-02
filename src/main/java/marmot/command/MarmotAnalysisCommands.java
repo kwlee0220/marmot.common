@@ -205,7 +205,7 @@ public class MarmotAnalysisCommands {
 		@Override
 		protected void add(MarmotRuntime marmot, String id, boolean force) throws Exception {
 			Map<String,String> args = FStream.from(m_kvArgs)
-											.toKeyValueStream(KeyValue::parse)
+											.mapToKeyValue(KeyValue::parse)
 											.toMap();
 			ModuleAnalysis analysis = new ModuleAnalysis(id, m_moduleId, args);
 			marmot.addAnalysis(analysis, force);

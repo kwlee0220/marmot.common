@@ -771,7 +771,7 @@ public class PBUtils {
 	
 	public static Map<String,Object> fromProto(KeyValueMapProto kvmProto) {
 		return FStream.from(kvmProto.getKeyValueList())
-					.toKeyValueStream(proto -> KeyValue.of(proto.getKey(), proto.getValue()))
+					.mapToKeyValue(proto -> KeyValue.of(proto.getKey(), proto.getValue()))
 					.mapValue(vproto -> PBValueProtos.fromProto(vproto))
 					.toMap();
 	}

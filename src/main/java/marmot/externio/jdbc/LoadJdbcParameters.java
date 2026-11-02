@@ -70,7 +70,7 @@ public class LoadJdbcParameters extends JdbcParameters {
 		
 		Map<String,DataType> geomCols = CSV.parseCsv(cols, ',')
 											.map(decl -> Split.split(decl, ":").toKeyValue())
-											.toKeyValueStream(kv -> kv)
+											.mapToKeyValue(kv -> kv)
 											.mapValue(DataTypes::fromName)
 											.toMap();
 		m_geomCols = Optional.of(geomCols);
