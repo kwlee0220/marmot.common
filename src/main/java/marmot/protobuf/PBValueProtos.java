@@ -130,13 +130,13 @@ public class PBValueProtos {
 				builder.setTrajectoryValue(((Trajectory)obj).toProto());
 				break;
 			case DOUBLE_ARRAY:
-				DoubleArrayProto darray = DoubleFStream.of((Double[])obj)
+				DoubleArrayProto darray = DoubleFStream.from((Double[])obj)
 									.fold(DoubleArrayProto.newBuilder(), (b,v) -> b.addElement(v))
 									.build();
 				builder.setDoubleArray(darray);
 				break;
 			case FLOAT_ARRAY:
-				FloatArrayProto floatArray = FloatFStream.of((Float[])obj)
+				FloatArrayProto floatArray = FloatFStream.from((Float[])obj)
 									.fold(FloatArrayProto.newBuilder(), (b,v) -> b.addElement(v))
 									.build();
 				builder.setFloatArray(floatArray);
