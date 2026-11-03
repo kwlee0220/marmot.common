@@ -4,7 +4,6 @@ import java.util.Map;
 
 import utils.KeyValue;
 import utils.Preconditions;
-import utils.Utilities;
 import utils.stream.KeyValueFStream;
 
 import marmot.proto.service.MarmotAnalysisProto;
@@ -51,7 +50,7 @@ public class ModuleAnalysis extends MarmotAnalysis {
 		
 		ModuleExecProto module = proto.getModuleExec();
 		String argsStr = module.getModuleArgs();
-		Map<String,String> args = Utilities.parseKeyValueMap(argsStr, ';');
+		Map<String,String> args = KeyValue.parseMap(argsStr, ';');
 		
 		return new ModuleAnalysis(proto.getId(), module.getModuleId(), args);
 	}
