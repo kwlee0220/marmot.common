@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
+import java.time.ZoneOffset;
 
 import org.locationtech.jts.geom.Envelope;
 import org.locationtech.jts.geom.Geometry;
@@ -85,7 +86,7 @@ public class PBValueProtos {
 				builder.setBinaryValue(ByteString.copyFrom((byte[])obj));
 				break;
 			case DATETIME:
-				builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
+				builder.setDatetimeValue(LocalDateTimes.toEpochMilli((LocalDateTime)obj, ZoneOffset.UTC));
 				break;
 			case DATE:
 				builder.setDateValue(((Date)obj).getTime());
@@ -194,7 +195,7 @@ public class PBValueProtos {
 			builder.setFloatValue((float)obj);
 		}
 		else if ( obj instanceof LocalDateTime ) {
-			builder.setDatetimeValue(LocalDateTimes.toUtcMillis((LocalDateTime)obj));
+			builder.setDatetimeValue(LocalDateTimes.toEpochMilli((LocalDateTime)obj, ZoneOffset.UTC));
 		}
 		else if ( obj instanceof Date ) {
 			builder.setDateValue(((Date)obj).getTime());
@@ -252,11 +253,11 @@ public class PBValueProtos {
 			case BINARY_VALUE:
 				return Tuple.of(DataType.BINARY, proto.getBinaryValue().toByteArray());
 			case DATETIME_VALUE:
-				return Tuple.of(DataType.DATETIME, LocalDateTimes.fromUtcMillis(proto.getDatetimeValue()));
+				return Tuple.of(DataType.DATETIME, LocalDateTimes.fromEpochMilli(proto.getDatetimeValue(), ZoneOffset.UTC));
 			case DATE_VALUE:
 				return Tuple.of(DataType.DATE, new Date(proto.getDateValue()));
 			case TIME_VALUE:
-				return Tuple.of(DataType.TIME, LocalTimes.fromString(proto.getTimeValue()));
+				return Tuple.of(DataType.TIME, LocalTimes.parse(proto.getTimeValue()));
 			case DURATION_VALUE:
 				throw new UnsupportedOperationException("duration type");
 			case INTERVAL_VALUE:
@@ -311,11 +312,11 @@ public class PBValueProtos {
 			case BINARY_VALUE:
 				return proto.getBinaryValue().toByteArray();
 			case DATETIME_VALUE:
-				return LocalDateTimes.fromUtcMillis(proto.getDatetimeValue());
+				return LocalDateTimes.fromEpochMilli(proto.getDatetimeValue(), ZoneOffset.UTC);
 			case DATE_VALUE:
 				return new Date(proto.getDateValue());
 			case TIME_VALUE:
-				return LocalTimes.fromString(proto.getTimeValue());
+				return LocalTimes.parse(proto.getTimeValue());
 			case DURATION_VALUE:
 				throw new UnsupportedOperationException("duration type");
 			case INTERVAL_VALUE:

@@ -149,7 +149,7 @@ public class Plan implements PBSerializable<PlanProto> {
 			return this;
 		}
 		
-		OperatorProto last = getLastOperator().getUnchecked();
+		OperatorProto last = getLastOperator().getOrNull();
 		switch ( last.getOperatorCase() ) {
 			case STORE_DATASET:
 				return FStream.from(toProto().getOperatorsList())

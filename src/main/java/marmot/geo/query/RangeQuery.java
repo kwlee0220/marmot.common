@@ -129,7 +129,7 @@ public class RangeQuery {
 		s_logger.info("use local-cache: {}", logMsg);
 		
 		Function<String,FStream<Record>> loader
-							= Try.lift((String qk) -> readPartitionCache(qk, est, ratio))
+							= Try.liftFunction((String qk) -> readPartitionCache(qk, est, ratio))
 									.andThen(d -> d.getOrElse(FStream.empty()));
 		FStream<Record> recStream = FStream.from(est.getClusterEstimates())
 											.map(ClusterEstimate::getQuadKey)

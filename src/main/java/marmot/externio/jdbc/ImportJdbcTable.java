@@ -7,8 +7,7 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.Optional;
 
-import utils.func.FOption;
-import utils.func.Optionals;
+import utils.func.Nullables;
 import utils.func.Unchecked;
 import utils.jdbc.JdbcProcessor;
 
@@ -71,7 +70,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 			String sql = sqlBuilder.toString();
 			ResultSet rs = ( m_jdbcParams.fetchSize() > 0 )
 						? jdbc.executeQuery(sql, stmt -> stmt.setFetchSize(m_jdbcParams.fetchSize()))
-						: jdbc.executeQuery(sql, true);
+						: jdbc.executeQuery(sql);
 			return new JdbcRecordSet(adaptor, rs);
 			
 		}
@@ -113,7 +112,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 	private RecordSchema buildRecordSchemaFromSelectExpr(JdbcProcessor jdbc, String tblName,
 														String selectExpr) throws SQLException {
 		String sql = String.format("select %s from %s limit 1", selectExpr, tblName);
-		try ( ResultSet rs = jdbc.executeQuery(sql, false) ) {
+		try ( ResultSet rs = jdbc.executeQuery(sql) ) {
 			ResultSetMetaData meta = rs.getMetaData();
 			
 			RecordSchema.Builder builder = RecordSchema.builder();
@@ -134,7 +133,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 					.getOrElseThrow(() -> JdbcRecordAdaptor.buildRecordSchema(jdbc, m_tableName));
 		
 		// 공간정보 관련 인자가 있는 경우, 공간 정보를 추가한다.
-		return Optionals.transform(m_jdbcParams.geomColumns(), schema, this::replaceWkbWithGeometryType);
+		return Nullables.transform(m_jdbcParams.geomColumns(), schema, this::replaceWkbWithGeometryType);
 	}
 	
 	private RecordSchema replaceWkbWithGeometryType(RecordSchema schema,
@@ -142,7 +141,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 		return schema.streamColumns()
 						.map(col -> {
 							DataType type = geomCols.get(col.name());
-							type = FOption.getOrElse(type,  col.type());
+							type = Nullables.orElse(type,  col.type());
 							return new Column(col.name(), type);
 						})
 						.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))

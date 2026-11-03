@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import utils.Throwables;
 import utils.Tuple;
-import utils.func.Optionals;
+import utils.func.Nullables;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -56,7 +56,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		super(params);
 		
 		m_csvParams = csvParams.duplicate();
-		Optionals.ifAbsent(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
+		Nullables.ifNull(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
 	}
 
 	@Override

@@ -90,6 +90,6 @@ public class ExportAsCsv implements ProgressReporter<Long> {
 		}
 		
 		RecordSet rset = marmot.executeLocally(builder.build());
-		return m_reportInterval.transform(rset, (r,intvl) -> r.reportProgress(m_subject,intvl));
+		return m_reportInterval.fold(rset, (r,intvl) -> r.reportProgress(m_subject,intvl));
 	}
 }

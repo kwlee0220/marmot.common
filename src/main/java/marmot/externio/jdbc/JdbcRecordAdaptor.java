@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.time.ZoneOffset;
 
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
@@ -73,7 +74,7 @@ public abstract class JdbcRecordAdaptor {
 	}
 	
 	public static RecordSchema buildRecordSchema(JdbcProcessor jdbc, String tblName) throws SQLException {
-		return KeyValueFStream.from(jdbc.getColumnInfos(tblName))
+		return KeyValueFStream.from(jdbc.getColumns(tblName))
 								.mapValue(v -> fromSqlType(v.type(), v.typeName()))
 								.map((k,v) -> new Column(k,v))
 								.fold(RecordSchema.builder(), (b,c) -> b.addColumn(c))
@@ -299,10 +300,10 @@ public abstract class JdbcRecordAdaptor {
 						pstmt.setBytes(idx, (byte[])value);
 						break;
 					case DATETIME:
-						pstmt.setLong(idx, LocalDateTimes.toUtcMillis((LocalDateTime)value));
+						pstmt.setLong(idx, LocalDateTimes.toEpochMilli((LocalDateTime)value, ZoneOffset.UTC));
 						break;
 					case DATE:
-						pstmt.setLong(idx, LocalDates.toUtcMillis((LocalDate)value));
+						pstmt.setLong(idx, LocalDates.toEpochMilli((LocalDate)value, ZoneOffset.UTC));
 						break;
 					case TIME:
 						pstmt.setString(idx, LocalTimes.toString((LocalTime)value));

@@ -88,11 +88,11 @@ public class MultiFileGeoJsonRecordSet extends ConcatedRecordSet {
 			FOption<File> next = m_files.next();
 			if ( next.isPresent() ) {
 				try {
-					return parseGeoJson(next.getUnchecked(), m_geomColName, m_charset);
+					return parseGeoJson(next.getOrNull(), m_geomColName, m_charset);
 				}
 				catch ( IOException e ) {
 					String msg = String.format("fails to load GeoJSON file: path=%s, details=%s",
-												next.getUnchecked(), e);
+												next.getOrNull(), e);
 					throw new RecordSetException(msg);
 				}
 			}

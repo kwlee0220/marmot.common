@@ -44,7 +44,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 			m_rsets = Shapefile.traverse(start, charset)
 								.flatMapTry(shp -> {
 									getLogger().info("loading shapefile: " + shp);
-									return Try.get(shp::read);
+									return Try.of(shp::read);
 								});
 			
 			getLogger().info("loading {}: nfiles={}", this, files.size());
@@ -82,7 +82,7 @@ public class ShapefileRecordSet extends ConcatedRecordSet {
 	
 	public static RecordSchema loadRecordSchema(File start, Charset charset) throws IOException {
 		return Shapefile.traverse(start, charset)
-						.flatMapTry(shp -> Try.get(shp::getRecordSchema))
+						.flatMapTry(shp -> Try.of(shp::getRecordSchema))
 						.next()
 						.getOrThrow(() -> new IllegalArgumentException("no valid shapefile to read: path=" + start));
 	}

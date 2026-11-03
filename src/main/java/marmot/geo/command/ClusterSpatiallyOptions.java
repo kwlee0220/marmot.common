@@ -174,9 +174,9 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 	
 	public EstimateQuadKeysOptions toEstimateQuadKeysOptions() {
 		EstimateQuadKeysOptions opts = EstimateQuadKeysOptions.DEFAULT();
-		opts = m_mapperCount.transform(opts, (o,c) -> o.mapperCount(c));
-		opts = m_validRange.transform(opts, (o,r) -> o.validRange(r));
-		opts = m_clusterSize.transform(opts, (o,r) -> o.clusterSize(r));
+		opts = m_mapperCount.fold(opts, (o,c) -> o.mapperCount(c));
+		opts = m_validRange.fold(opts, (o,r) -> o.validRange(r));
+		opts = m_clusterSize.fold(opts, (o,r) -> o.clusterSize(r));
 		
 		return opts;
 	}

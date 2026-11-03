@@ -9,7 +9,7 @@ import java.nio.charset.Charset;
 import java.util.Optional;
 
 import utils.UnitUtils;
-import utils.func.Optionals;
+import utils.func.Nullables;
 
 /**
  * 
@@ -23,7 +23,7 @@ public class ExternIoUtils {
 	private static final int DEFAULT_BUFFER_SIZE = (int)UnitUtils.parseByteSize("32kb");
 	public static BufferedWriter toWriter(Optional<String> path, Charset charset)
 		throws IOException {
-		OutputStream os = Optionals.mapOrThrow(path, str -> (OutputStream)new FileOutputStream(str))
+		OutputStream os = Nullables.mapOrThrow(path, str -> (OutputStream)new FileOutputStream(str))
 									.orElse(System.out);
 	    return new BufferedWriter(new OutputStreamWriter(os, charset), DEFAULT_BUFFER_SIZE);
 	}

@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 
 import utils.Preconditions;
 import utils.StopWatch;
-import utils.func.Optionals;
+import utils.func.Nullables;
 import utils.func.Try;
 import utils.stream.FStream;
 
@@ -86,8 +86,8 @@ public class CsvRecordSet extends AbstractRecordSet {
 		m_nullValue = opts.nullValue().orElse(null);
 		CSVFormat format = CSVFormat.DEFAULT.withDelimiter(opts.delimiter())
 									.withQuote(null);
-		format = Optionals.transform(opts.quote(), format, (f,q) -> f.withQuote(q));
-		format = Optionals.transform(opts.escape(), format, (f,esc) -> f.withEscape(esc));
+		format = Nullables.transform(opts.quote(), format, (f,q) -> f.withQuote(q));
+		format = Nullables.transform(opts.escape(), format, (f,esc) -> f.withEscape(esc));
 		if ( opts.trimColumn().orElse(false) ) {
 			format = format.withTrim(true).withIgnoreSurroundingSpaces(true);
 		}

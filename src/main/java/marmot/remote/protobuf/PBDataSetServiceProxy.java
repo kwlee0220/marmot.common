@@ -15,7 +15,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.stub.StreamObserver;
 
 import utils.Throwables;
-import utils.func.Optionals;
+import utils.func.Nullables;
 import utils.io.Lz4Compressions;
 import utils.stream.FStream;
 
@@ -256,7 +256,7 @@ public class PBDataSetServiceProxy {
 															.setId(dsId)
 															.setUseCompression(m_marmot.useCompression());
 					
-					builder = Optionals.transform(partId, builder, (b,i) -> b.setPartitionId(i));
+					builder = Nullables.transform(partId, builder, (b,i) -> b.setPartitionId(i));
 					AppendRecordSetRequest req = builder.build();
 					return req.toByteString();
 				}

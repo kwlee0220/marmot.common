@@ -111,7 +111,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 			Date due = new Date(System.currentTimeMillis() + CANCELLING_TIMEOUT);
 			while ( m_state == State.CANCELLING ) {
 				try {
-					if ( !m_guard.awaitSignal(due) ) {
+					if ( !m_guard.awaitSignalUntil(due) ) {
 						break;
 					}
 				}

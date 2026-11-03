@@ -18,7 +18,7 @@ import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 import utils.Preconditions;
 import utils.UnitUtils;
-import utils.func.Optionals;
+import utils.func.Nullables;
 import utils.rx.ProgressReporter;
 
 import marmot.Column;
@@ -90,8 +90,8 @@ public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 		CSVFormat format = CSVFormat.DEFAULT.withQuote(null)
 											.withIgnoreSurroundingSpaces()
 											.withDelimiter(opts.delimiter());
-		format = Optionals.transform(opts.quote(), format, (f,q) -> f.withQuote(q));
-		format = Optionals.transform(opts.escape(), format, (f,esc) -> f.withEscape(esc));
+		format = Nullables.transform(opts.quote(), format, (f,q) -> f.withQuote(q));
+		format = Nullables.transform(opts.escape(), format, (f,esc) -> f.withEscape(esc));
 
 		String[] header = schema.streamColumns()
 								.map(Column::name)

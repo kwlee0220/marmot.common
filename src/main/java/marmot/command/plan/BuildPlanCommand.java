@@ -5,7 +5,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 
 import utils.PicocliSubCommand;
-import utils.func.FOption;
+import utils.func.Nullables;
 
 import marmot.MarmotRuntime;
 import marmot.Plan;
@@ -217,9 +217,9 @@ public class BuildPlanCommand extends PicocliSubCommand<MarmotRuntime> {
 				opts = opts.force(true);
 			}
 
-			opts = FOption.mapOrElse(m_gcInfo, opts::geometryColumnInfo, opts);
-			opts = FOption.mapOrElse(m_blockSize, opts::blockSize, opts);
-			opts = FOption.mapOrElse(m_codecName, opts::compressionCodecName, opts);
+			opts = Nullables.mapOrElse(m_gcInfo, opts::geometryColumnInfo, opts);
+			opts = Nullables.mapOrElse(m_blockSize, opts::blockSize, opts);
+			opts = Nullables.mapOrElse(m_codecName, opts::compressionCodecName, opts);
 			
 			return builder.store(m_dsId, opts);
 		}

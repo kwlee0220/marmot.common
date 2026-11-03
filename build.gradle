@@ -103,6 +103,9 @@ dependencies {
 	api "org.geotools:gt-shapefile:${geotools_version}"
 	api	"org.geotools:gt-geojson:${geotools_version}"
 
+	// @Nullable 등 (utils는 okhttp를 통해 간접적으로만 받으므로 직접 선언한다)
+	compileOnly "org.jetbrains:annotations:13.0"
+
 	// Misc
 	implementation "commons-io:commons-io:${commons_io_version}"
 	implementation "org.apache.commons:commons-csv:${commons_csv_version}"

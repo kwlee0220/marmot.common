@@ -10,7 +10,7 @@ import org.apache.commons.csv.CSVRecord;
 
 import utils.Preconditions;
 import utils.Tuple;
-import utils.func.Optionals;
+import utils.func.Nullables;
 
 import marmot.MarmotInternalException;
 import marmot.optor.CsvOptions;
@@ -212,20 +212,20 @@ public class CsvParameters {
 	
 	public StoreAsCsvOptions toStoreOptions() {
 		StoreAsCsvOptions opts = StoreAsCsvOptions.DEFAULT(m_delim);
-		opts = Optionals.transform(m_quote, opts, (o,q) ->  o.quote(q));
-		opts = Optionals.transform(m_escape, opts, (o,q) ->  o.escape(q));
-		opts = Optionals.transform(m_charset, opts, (o,q) ->  o.charset(q));
-		opts = Optionals.transform(m_headerFirst, opts, (o,q) ->  o.headerFirst(q));
+		opts = Nullables.transform(m_quote, opts, (o,q) ->  o.quote(q));
+		opts = Nullables.transform(m_escape, opts, (o,q) ->  o.escape(q));
+		opts = Nullables.transform(m_charset, opts, (o,q) ->  o.charset(q));
+		opts = Nullables.transform(m_headerFirst, opts, (o,q) ->  o.headerFirst(q));
 		
 		return opts;
 	}
 	
 	public CsvOptions toCsvOptions() {
 		CsvOptions opts = CsvOptions.DEFAULT(m_delim);
-		opts = Optionals.transform(m_quote, opts, (o,q) ->  o.quote(q));
-		opts = Optionals.transform(m_escape, opts, (o,q) ->  o.escape(q));
-		opts = Optionals.transform(m_charset, opts, (o,q) ->  o.charset(q));
-		opts = Optionals.transform(m_headerFirst, opts, (o,q) ->  o.headerFirst(q));
+		opts = Nullables.transform(m_quote, opts, (o,q) ->  o.quote(q));
+		opts = Nullables.transform(m_escape, opts, (o,q) ->  o.escape(q));
+		opts = Nullables.transform(m_charset, opts, (o,q) ->  o.charset(q));
+		opts = Nullables.transform(m_headerFirst, opts, (o,q) ->  o.headerFirst(q));
 		
 		return opts;
 	}

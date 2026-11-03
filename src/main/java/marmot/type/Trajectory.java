@@ -3,6 +3,7 @@ package marmot.type;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.time.ZoneOffset;
 
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.LineString;
@@ -157,7 +158,7 @@ public class Trajectory implements PBSerializable<TrajectoryProto> {
 		}
 		
 		public LocalDateTime getTimestamp() {
-			return LocalDateTimes.fromUtcMillis(m_ts);
+			return LocalDateTimes.fromEpochMilli(m_ts, ZoneOffset.UTC);
 		}
 		
 		public static Sample parse(String str) {

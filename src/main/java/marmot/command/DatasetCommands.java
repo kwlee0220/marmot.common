@@ -18,8 +18,8 @@ import utils.PicocliSubCommand;
 import utils.Preconditions;
 import utils.StopWatch;
 import utils.UnitUtils;
-import utils.func.Optionals;
 import utils.rx.ProgressiveExecution;
+import utils.func.Nullables;
 
 import marmot.BindDataSetOptions;
 import marmot.Column;
@@ -642,7 +642,7 @@ public class DatasetCommands {
 
 		@Override
 		public void run(MarmotRuntime initialContext) throws Exception {
-			Optionals.ifAbsent(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
+			Nullables.ifNull(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
 			
 			File outFile = new File(m_output);
 			if ( m_force && m_output != null && outFile.exists() ) {

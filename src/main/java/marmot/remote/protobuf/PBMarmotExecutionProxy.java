@@ -3,6 +3,7 @@ package marmot.remote.protobuf;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
+import java.time.ZoneOffset;
 
 import javax.annotation.concurrent.GuardedBy;
 
@@ -193,7 +194,7 @@ public class PBMarmotExecutionProxy implements MarmotExecution {
 					: m_info.getFinishedTime() - m_info.getStartedTime();
 		String elapsedStr = UnitUtils.toSecondString(elapsed);
 
-		LocalDateTime startedStr = LocalDateTimes.fromUtcMillis(m_info.getStartedTime());
+		LocalDateTime startedStr = LocalDateTimes.fromEpochMilli(m_info.getStartedTime(), ZoneOffset.UTC);
 		return String.format("%10s: %9s%s%s, started=%s, elapsed=%s", getId(), state,
 							failedCause, analyStr, startedStr, elapsedStr);
 	}

@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.time.ZoneOffset;
 
 import com.google.common.collect.Lists;
 
@@ -22,7 +23,7 @@ public class Interval implements Serializable {
 	private transient final org.joda.time.Interval m_jodaInterval;
 	
 	public static Interval between(LocalDateTime start, LocalDateTime end) {
-		return between(LocalDateTimes.toUtcMillis(start), LocalDateTimes.toUtcMillis(end));
+		return between(LocalDateTimes.toEpochMilli(start, ZoneOffset.UTC), LocalDateTimes.toEpochMilli(end, ZoneOffset.UTC));
 	}
 	
 	public static Interval between(long start, long end) {

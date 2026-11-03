@@ -198,7 +198,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 					return null;
 				}
 				
-				if ( !m_guard.awaitSignal(due) ) {
+				if ( !m_guard.awaitSignalUntil(due) ) {
 					throw new RecordSetTimeoutException("PipedRecordSet supplier is too slow");
 				}
 			}
@@ -226,7 +226,7 @@ public class PipedRecordSet extends AbstractRecordSet {
 							m_guard.signalAll();
 							return true;
 						}
-						if ( !m_guard.awaitSignal(due) ) {
+						if ( !m_guard.awaitSignalUntil(due) ) {
 							throw new RecordSetTimeoutException("PipedRecordSet consumer is too slow");
 						}
 						break;

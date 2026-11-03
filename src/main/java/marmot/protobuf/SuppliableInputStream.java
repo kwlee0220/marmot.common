@@ -68,7 +68,7 @@ public class SuppliableInputStream extends InputStream {
 				Date due = new Date(System.currentTimeMillis() + TIMEOUT);
 				try {
 					while ( !m_eos ) {
-						if ( !m_guard.awaitSignal(due) ) {
+						if ( !m_guard.awaitSignalUntil(due) ) {
 							break;
 						}
 					}
