@@ -40,11 +40,11 @@ public class UploadFilesCommand implements CheckedConsumer<MarmotRuntime> {
 	@Override
 	public void accept(MarmotRuntime marmot) throws Exception {
 		UploadFiles upload = new UploadFiles(marmot, new File(m_srcPath), m_destPath);
-		Nullables.ifNotNullRun(m_glob, () -> upload.glob(m_glob));
+		Nullables.run(m_glob, () -> upload.glob(m_glob));
 		if ( m_blockSize > 0 ) {
 			upload.blockSize(m_blockSize);
 		}
-		Nullables.ifNotNull(m_codecName, upload::compressionCodecName);
+		Nullables.accept(m_codecName, upload::compressionCodecName);
 		upload.run();
 	}
 

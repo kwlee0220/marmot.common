@@ -76,7 +76,10 @@ public class ExternAnalysis extends MarmotAnalysis {
 		List<String> argList = Lists.newArrayList(dsId, csvFile.getAbsolutePath(), "export", "csv");
 		argList.addAll(Arrays.asList(args));
 		
-		String execPath = FileUtils.findExecutable("mc_dataset");
+		String execPath = FileUtils.findExecutable("mc_dataset")
+									.map(File::getAbsolutePath)
+									.getOrThrow(() -> new IllegalArgumentException(
+																"cannot find the executable file: mc_dataset"));
 		return new ExternAnalysis(id, execPath, argList);
 	}
 }

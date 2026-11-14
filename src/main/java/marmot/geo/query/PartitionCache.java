@@ -214,7 +214,7 @@ public class PartitionCache {
 			Preconditions.checkNotNullArgument(is, "InputStream");
 			Preconditions.checkNotNullArgument(file, "FileStore file");
 			
-			IOUtils.toFile(is, file);
+			IOUtils.write(file, is);
 		}
 
 		@Override

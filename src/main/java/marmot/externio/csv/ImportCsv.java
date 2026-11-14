@@ -56,7 +56,7 @@ public abstract class ImportCsv extends ImportIntoDataSet {
 		super(params);
 		
 		m_csvParams = csvParams.duplicate();
-		Nullables.ifNull(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
+		Nullables.runIfNull(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
 	}
 
 	@Override

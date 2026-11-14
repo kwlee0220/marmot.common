@@ -67,7 +67,7 @@ public class CRSUtils {
 				String name = FilenameUtils.getBaseName(prjFile.getName());
 				name = name.replaceAll("_", ":");
 				
-				String wkt = IOUtils.toString(prjFile);
+				String wkt = IOUtils.readString(prjFile);
 				CoordinateReferenceSystem crs = CRS.parseWKT(wkt);
 				
 				CRSMap.put(name, crs);

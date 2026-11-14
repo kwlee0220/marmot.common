@@ -30,13 +30,13 @@ public class STScriptPlanLoader {
 	
 	public static Plan load(URL url, Charset charset) throws IOException {
 		try ( InputStream is = url.openStream() ) {
-			String script = IOUtils.toString(is, charset);
+			String script = IOUtils.readString(is, charset);
 			return load(script);
 		}
 	}
 	
 	public static Plan load(File file) throws IOException {
-		return load(IOUtils.toString(file));
+		return load(IOUtils.readString(file));
 	}
 	
 	public static Plan loadFromResource(String name) throws IOException {
@@ -50,17 +50,17 @@ public class STScriptPlanLoader {
 			if ( is == null ) {
 				throw new IllegalArgumentException("invalid STScript: resource name=" + name);
 			}
-			String script = IOUtils.toString(is, charset);
+			String script = IOUtils.readString(is, charset);
 			return load(script);
 		}
 	}
 	
 	public static Plan load(Reader reader) throws IOException {
-		return loadFromResource(IOUtils.toString(reader));	
+		return loadFromResource(IOUtils.readString(reader));	
 	}
 	
 	public static Plan load(InputStream is, Charset charset) throws IOException {
-		String script = IOUtils.toString(is, charset);
+		String script = IOUtils.readString(is, charset);
 		return load(script);
 	}
 	

@@ -642,7 +642,7 @@ public class DatasetCommands {
 
 		@Override
 		public void run(MarmotRuntime initialContext) throws Exception {
-			Nullables.ifNull(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
+			Nullables.runIfNull(m_csvParams.charset(), () -> m_csvParams.charset(DEFAULT_CHARSET));
 			
 			File outFile = new File(m_output);
 			if ( m_force && m_output != null && outFile.exists() ) {

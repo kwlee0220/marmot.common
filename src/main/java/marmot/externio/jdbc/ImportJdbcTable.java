@@ -133,7 +133,7 @@ public class ImportJdbcTable extends ImportIntoDataSet {
 					.getOrElseThrow(() -> JdbcRecordAdaptor.buildRecordSchema(jdbc, m_tableName));
 		
 		// 공간정보 관련 인자가 있는 경우, 공간 정보를 추가한다.
-		return Nullables.transform(m_jdbcParams.geomColumns(), schema, this::replaceWkbWithGeometryType);
+		return m_jdbcParams.geomColumns().map(v -> replaceWkbWithGeometryType(schema, v)).orElse(schema);
 	}
 	
 	private RecordSchema replaceWkbWithGeometryType(RecordSchema schema,

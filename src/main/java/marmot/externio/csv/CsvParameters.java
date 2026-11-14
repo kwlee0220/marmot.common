@@ -10,7 +10,6 @@ import org.apache.commons.csv.CSVRecord;
 
 import utils.Preconditions;
 import utils.Tuple;
-import utils.func.Nullables;
 
 import marmot.MarmotInternalException;
 import marmot.optor.CsvOptions;
@@ -212,20 +211,20 @@ public class CsvParameters {
 	
 	public StoreAsCsvOptions toStoreOptions() {
 		StoreAsCsvOptions opts = StoreAsCsvOptions.DEFAULT(m_delim);
-		opts = Nullables.transform(m_quote, opts, (o,q) ->  o.quote(q));
-		opts = Nullables.transform(m_escape, opts, (o,q) ->  o.escape(q));
-		opts = Nullables.transform(m_charset, opts, (o,q) ->  o.charset(q));
-		opts = Nullables.transform(m_headerFirst, opts, (o,q) ->  o.headerFirst(q));
+		opts = m_quote.map(opts::quote).orElse(opts);
+		opts = m_escape.map(opts::escape).orElse(opts);
+		opts = m_charset.map(opts::charset).orElse(opts);
+		opts = m_headerFirst.map(opts::headerFirst).orElse(opts);
 		
 		return opts;
 	}
 	
 	public CsvOptions toCsvOptions() {
 		CsvOptions opts = CsvOptions.DEFAULT(m_delim);
-		opts = Nullables.transform(m_quote, opts, (o,q) ->  o.quote(q));
-		opts = Nullables.transform(m_escape, opts, (o,q) ->  o.escape(q));
-		opts = Nullables.transform(m_charset, opts, (o,q) ->  o.charset(q));
-		opts = Nullables.transform(m_headerFirst, opts, (o,q) ->  o.headerFirst(q));
+		opts = m_quote.map(opts::quote).orElse(opts);
+		opts = m_escape.map(opts::escape).orElse(opts);
+		opts = m_charset.map(opts::charset).orElse(opts);
+		opts = m_headerFirst.map(opts::headerFirst).orElse(opts);
 		
 		return opts;
 	}
