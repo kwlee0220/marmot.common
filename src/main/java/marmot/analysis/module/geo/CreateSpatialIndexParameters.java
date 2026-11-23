@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 
 /**
@@ -89,7 +89,7 @@ public class CreateSpatialIndexParameters {
 		m_params.put(BLOCK_SIZE, ""+nbytes);
 	}
 	public void blockSize(String nbytesStr) {
-		long nbytes = UnitUtils.parseByteSize(nbytesStr);
+		long nbytes = ByteSizes.parse(nbytesStr);
 		m_params.put(BLOCK_SIZE, ""+nbytes);
 	}
 	public void blockSize(FOption<Long> nbytes) {
@@ -105,7 +105,7 @@ public class CreateSpatialIndexParameters {
 		m_params.put(WORKER_COUNT, ""+count);
 	}
 	public void workerCount(String nbytesStr) {
-		int count = (int)UnitUtils.parseByteSize(nbytesStr);
+		int count = (int)ByteSizes.parse(nbytesStr);
 		m_params.put(WORKER_COUNT, ""+count);
 	}
 	public void workerCount(FOption<Integer> count) {

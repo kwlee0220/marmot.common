@@ -14,7 +14,7 @@ import io.grpc.stub.StreamObserver;
 
 import utils.Preconditions;
 import utils.Throwables;
-import utils.UnitUtils;
+import utils.Durations;
 import utils.async.CancellableWork;
 import utils.async.EventDrivenExecution;
 import utils.thread.Guard;
@@ -91,7 +91,7 @@ class StreamDownloadReceiver extends EventDrivenExecution<Void>
 		return super.notifyFailed(cause);
 	}
 
-	private static final long CANCELLING_TIMEOUT = UnitUtils.parseDuration("50s").toMillis();
+	private static final long CANCELLING_TIMEOUT = Durations.parse("50s").toMillis();
 	@Override
 	public boolean cancelWork() {
 		m_guard.lock();

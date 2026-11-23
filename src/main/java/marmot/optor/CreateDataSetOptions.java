@@ -6,7 +6,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Lists;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.stream.FStream;
 
 import marmot.dataset.DataSetType;
@@ -157,7 +157,7 @@ public class CreateDataSetOptions implements PBSerializable<CreateDataSetOptions
 		}
 		compressionCodecName().map(codec -> String.format("compress=%s", codec))
 							.ifPresent(optStrList::add);
-		blockSize().map(UnitUtils::toByteSizeString)
+		blockSize().map(ByteSizes::format)
 					.map(str -> String.format("blksz=%s", str))
 					.ifPresent(optStrList::add);
 		

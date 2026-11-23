@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Lists;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.stream.FStream;
 
 import marmot.proto.MarmotFileWriteOptionsProto;
@@ -84,7 +84,7 @@ public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOpt
 		return blockSize(Optional.of(blkSize));
 	}
 	public MarmotFileWriteOptions blockSize(String blkSizeStr) {
-		return blockSize(UnitUtils.parseByteSize(blkSizeStr));
+		return blockSize(ByteSizes.parse(blkSizeStr));
 	}
 	
 	public Optional<String> compressionCodecName() {
@@ -117,7 +117,7 @@ public class MarmotFileWriteOptions implements PBSerializable<MarmotFileWriteOpt
 		if ( m_appendIfExists ) { optStrList.add("append"); }
 		compressionCodecName().map(codec -> String.format("compress=%s", codec))
 								.ifPresent(optStrList::add);
-		blockSize().map(UnitUtils::toByteSizeString)
+		blockSize().map(ByteSizes::format)
 					.map(str -> String.format("blksz=%s", str))
 					.ifPresent(optStrList::add);
 		

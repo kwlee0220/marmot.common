@@ -1,7 +1,7 @@
 package marmot.geo.command;
 
 import utils.Preconditions;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 
 import marmot.proto.service.CreateSpatialIndexOptionsProto;
@@ -73,9 +73,9 @@ public class CreateSpatialIndexOptions implements PBSerializable<CreateSpatialIn
 		StringBuilder builder = new StringBuilder();
 		
 		m_sampleSize.ifPresent(size -> builder.append(String.format("sample_size=%s,",
-													UnitUtils.toByteSizeString(size))));
+													ByteSizes.format(size))));
 		m_blockSize.ifPresent(size -> builder.append(String.format("block=%s,",
-													UnitUtils.toByteSizeString(size))));
+													ByteSizes.format(size))));
 		m_workerCount.ifPresent(count -> builder.append(String.format("workers=%d,", count)));
 		
 		if ( builder.length() > 0 ) {

@@ -2,7 +2,7 @@ package marmot.command;
 
 import java.io.File;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.UsageHelp;
 import utils.func.CheckedConsumer;
 import utils.func.Nullables;
@@ -50,6 +50,6 @@ public class UploadFilesCommand implements CheckedConsumer<MarmotRuntime> {
 
 	@Option(names={"-b", "-block_size"}, paramLabel="nbyte", description="block size (eg: '64mb')")
 	private void setBlockSize(String blockSizeStr) {
-		m_blockSize = UnitUtils.parseByteSize(blockSizeStr);
+		m_blockSize = ByteSizes.parse(blockSizeStr);
 	}
 }

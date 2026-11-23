@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import utils.Preconditions;
 import utils.StopWatch;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 import utils.io.FileUtils;
 import utils.stream.FStream;
@@ -30,7 +30,7 @@ import marmot.MarmotRuntime;
  */
 public class UploadFiles {
 	private static final Logger s_logger = LoggerFactory.getLogger(UploadFiles.class);
-	private static final int BLOCK_SIZE = (int)UnitUtils.parseByteSize("256kb");
+	private static final int BLOCK_SIZE = (int)ByteSizes.parse("256kb");
 	
 	private final MarmotRuntime m_marmot;
 	private final File m_start;
@@ -91,9 +91,9 @@ public class UploadFiles {
 			long nbytes = m_marmot.copyToHdfsFile(dest, is, m_blockSize, m_codecName);
 			
 			watch.stop();
-			String velo = UnitUtils.toByteSizeString(Math.round(nbytes / watch.getElapsedInFloatingSeconds()));
+			String velo = ByteSizes.format(Math.round(nbytes / watch.getElapsedInFloatingSeconds()));
 			s_logger.info("uploaded: src={}, tar={}, nbytes={}, elapsed={}, velo={}/s",
-					file, dest, UnitUtils.toByteSizeString(nbytes), watch.getElapsedSecondString(), velo);
+					file, dest, ByteSizes.format(nbytes), watch.getElapsedSecondString(), velo);
 		}
 	}
 	
@@ -119,9 +119,9 @@ public class UploadFiles {
 				long nbytes = m_marmot.copyToHdfsFile(destPath, is, m_blockSize, m_codecName);
 				
 				watch.stop();
-				String velo = UnitUtils.toByteSizeString(Math.round(nbytes / watch.getElapsedInFloatingSeconds()));
+				String velo = ByteSizes.format(Math.round(nbytes / watch.getElapsedInFloatingSeconds()));
 				s_logger.info("uploaded: src={}, tar={}, nbytes={}, elapsed={}, velo={}/s",
-						path, destPath, UnitUtils.toByteSizeString(nbytes), watch.getElapsedSecondString(), velo);
+						path, destPath, ByteSizes.format(nbytes), watch.getElapsedSecondString(), velo);
 			}
 		}
 	}

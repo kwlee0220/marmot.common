@@ -1,7 +1,7 @@
 package marmot.geo.command;
 
 import utils.Split;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.UsageHelp;
 import utils.func.CheckedConsumer;
 import utils.func.FOption;
@@ -38,7 +38,7 @@ abstract class ArcSplitCommand implements CheckedConsumer<MarmotRuntime> {
 		private FOption<Long> m_blkSize = FOption.empty();
 		@Option(names={"-b", "-block_size"}, paramLabel="nbyte", description="block size (eg: '64mb')")
 		public void setBlockSize(String blockSizeStr) {
-			m_blkSize = FOption.ofNullable(UnitUtils.parseByteSize(blockSizeStr));
+			m_blkSize = FOption.ofNullable(ByteSizes.parse(blockSizeStr));
 		}
 
 		@Option(names={"-f", "-force"}, description="force to create a new dataset")

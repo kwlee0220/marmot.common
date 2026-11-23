@@ -8,7 +8,7 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 
 /**
  * 
@@ -19,7 +19,7 @@ public class ExternIoUtils {
 		throw new AssertionError("should not be called: class=" + ExternIoUtils.class);
 	}
 	
-	private static final int DEFAULT_BUFFER_SIZE = (int)UnitUtils.parseByteSize("32kb");
+	private static final int DEFAULT_BUFFER_SIZE = (int)ByteSizes.parse("32kb");
 	public static BufferedWriter toWriter(Optional<String> path, Charset charset)
 		throws IOException {
 		OutputStream os = path.isPresent() ? new FileOutputStream(path.get()) : System.out;

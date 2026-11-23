@@ -3,7 +3,7 @@ package marmot.optor;
 import java.nio.charset.Charset;
 import java.util.Optional;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 
 import marmot.proto.optor.StoreAsCsvProto.StoreAsCsvOptionsProto;
@@ -97,7 +97,7 @@ public class StoreAsCsvOptions implements PBSerializable<StoreAsCsvOptionsProto>
 	}
 
 	public StoreAsCsvOptions blockSize(String blkSize) {
-		return blockSize(UnitUtils.parseByteSize(blkSize));
+		return blockSize(ByteSizes.parse(blkSize));
 	}
 	
 	public FOption<String> compressionCodecName() {

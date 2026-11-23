@@ -10,7 +10,7 @@ import org.locationtech.jts.geom.Envelope;
 import com.google.common.collect.Lists;
 
 import utils.Preconditions;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -103,7 +103,7 @@ public class EstimateQuadKeysOptions implements PBSerializable<EstimateQuadKeysO
 		List<String> parts = Lists.newArrayList();
 
 		m_mapperCount.ifPresent(c -> parts.add("mapper_count=" + c));
-		m_clusterSize.map(UnitUtils::toByteSizeString).ifPresent(sz -> parts.add("cluster_size=" + sz));
+		m_clusterSize.map(ByteSizes::format).ifPresent(sz -> parts.add("cluster_size=" + sz));
 		m_validRange.ifPresent(r -> parts.add("valid_range=" + r));
 		
 		return FStream.from(parts).join(", ");

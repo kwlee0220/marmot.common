@@ -8,7 +8,7 @@ import utils.CSV;
 import utils.KeyValue;
 import utils.Preconditions;
 import utils.Size2d;
-import utils.UnitUtils;
+import utils.Lengths;
 import utils.func.Either;
 
 import marmot.MarmotRuntime;
@@ -99,8 +99,8 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 	}
 	
 	private String toString(Size2d size) {
-		return String.format("%sx%s", UnitUtils.toMeterString(size.getWidth()),
-										UnitUtils.toMeterString(size.getHeight()));
+		return String.format("%sx%s", Lengths.formatMeters(size.getWidth()),
+										Lengths.formatMeters(size.getHeight()));
 	}
 	
 	public static SquareGrid parseString(String expr) {
@@ -119,7 +119,7 @@ public class SquareGrid implements PBSerializable<SquareGridProto> {
 		double margin = 0;
 		String marginExpr = kvMap.get("margin");
 		if ( marginExpr != null ) {
-			margin = UnitUtils.parseLengthInMeter(marginExpr);
+			margin = Lengths.parseMeters(marginExpr);
 		}
 		
 		String boundsExpr = kvMap.get("bounds");

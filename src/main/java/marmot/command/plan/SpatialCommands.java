@@ -11,7 +11,7 @@ import marmot.plan.PredicateOptions;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import utils.UnitUtils;
+import utils.Lengths;
 
 /**
  * 
@@ -35,7 +35,7 @@ class SpatialCommands {
 
 		@Override
 		public PlanBuilder add(MarmotRuntime marmot, PlanBuilder builder) throws Exception {
-			return builder.buffer(m_geomCol, UnitUtils.parseLengthInMeter(m_distance), m_opts);
+			return builder.buffer(m_geomCol, Lengths.parseMeters(m_distance), m_opts);
 		}
 	}
 	

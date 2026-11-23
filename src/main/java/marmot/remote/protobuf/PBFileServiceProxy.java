@@ -24,7 +24,7 @@ import marmot.protobuf.PBRecordProtos;
 import marmot.protobuf.PBUtils;
 import utils.StopWatch;
 import utils.Throwables;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 import utils.io.Lz4Compressions;
 
@@ -34,7 +34,7 @@ import utils.io.Lz4Compressions;
  */
 public class PBFileServiceProxy {
 	private static final Logger s_logger = LoggerFactory.getLogger(PBFileServiceProxy.class);
-	private static final long REPORT_INTERVAL = UnitUtils.parseByteSize("512mb");
+	private static final long REPORT_INTERVAL = ByteSizes.parse("512mb");
 	
 	private final PBMarmotClient m_marmot;
 	private final FileServiceStub m_stub;
@@ -101,10 +101,10 @@ public class PBFileServiceProxy {
 	}
 	private void logUploadProgress(String path, long totalUploaded, StopWatch watch) {
 		if ( s_logger.isInfoEnabled() ) {
-			String size = UnitUtils.toByteSizeString(totalUploaded);
+			String size = ByteSizes.format(totalUploaded);
 			long velo = (watch.getElapsedInSeconds() > 0)
 						? totalUploaded / watch.getElapsedInSeconds() : -1;
-			String veloStr = UnitUtils.toByteSizeString(velo);
+			String veloStr = ByteSizes.format(velo);
 			String msg = String.format("path=%s, total=%s, velo=%s/s, elapsed=%s",
 										path, size, veloStr, watch.getElapsedSecondString());
 			s_logger.info(msg);

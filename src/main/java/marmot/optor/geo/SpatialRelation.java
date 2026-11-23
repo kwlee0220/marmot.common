@@ -8,7 +8,7 @@ import org.locationtech.jts.geom.Geometry;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
-import utils.UnitUtils;
+import utils.Lengths;
 
 /**
  * 
@@ -29,7 +29,7 @@ public abstract class SpatialRelation {
 	}
 	
 	public static SpatialRelation WITHIN_DISTANCE(String distStr) {
-		double dist = UnitUtils.parseLengthInMeter(distStr);
+		double dist = Lengths.parseMeters(distStr);
 		return new WithinDistanceRelation(dist);
 	}
 	

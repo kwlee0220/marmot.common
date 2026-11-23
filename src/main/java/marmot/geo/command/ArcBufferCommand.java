@@ -5,7 +5,8 @@ import marmot.analysis.module.geo.arc.ArcBufferParameters;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
-import utils.UnitUtils;
+import utils.ByteSizes;
+import utils.Lengths;
 import utils.UsageHelp;
 import utils.func.CheckedConsumer;
 import utils.func.FOption;
@@ -28,7 +29,7 @@ abstract class ArcBufferCommand implements CheckedConsumer<MarmotRuntime> {
 		double m_dist = -1;
 		@Parameters(paramLabel="distance", index="2", arity="1..1", description={"buffer distance"})
 		void setDistance(String distExpr) {
-			m_dist = UnitUtils.parseLengthInMeter(distExpr);
+			m_dist = Lengths.parseMeters(distExpr);
 		}
 		
 		@Option(names={"-c", "-compress"}, description="compression codec name")
@@ -37,7 +38,7 @@ abstract class ArcBufferCommand implements CheckedConsumer<MarmotRuntime> {
 		private FOption<Long> m_blkSize = FOption.empty();
 		@Option(names={"-b", "-block_size"}, paramLabel="nbyte", description="block size (eg: '64mb')")
 		public void setBlockSize(String blockSizeStr) {
-			m_blkSize = FOption.ofNullable(UnitUtils.parseByteSize(blockSizeStr));
+			m_blkSize = FOption.ofNullable(ByteSizes.parse(blockSizeStr));
 		}
 
 		@Option(names={"-f", "-force"}, description="force to create a new dataset")

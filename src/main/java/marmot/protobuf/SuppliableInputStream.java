@@ -14,7 +14,7 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 
 import utils.Throwables;
-import utils.UnitUtils;
+import utils.Durations;
 import utils.thread.Guard;
 
 import marmot.remote.protobuf.PBStreamClosedException;
@@ -26,7 +26,7 @@ import marmot.remote.protobuf.PBStreamClosedException;
  */
 public class SuppliableInputStream extends InputStream {
 	private static final Logger s_logger = LoggerFactory.getLogger(SuppliableInputStream.class);
-	private static final long TIMEOUT = UnitUtils.parseDuration("10s").toMillis();
+	private static final long TIMEOUT = Durations.parse("10s").toMillis();
 	
 	private final int m_chunkQLength;
 	

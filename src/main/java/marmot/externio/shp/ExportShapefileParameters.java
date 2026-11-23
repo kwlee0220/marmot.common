@@ -3,7 +3,7 @@ package marmot.externio.shp;
 import java.nio.charset.Charset;
 
 import utils.Preconditions;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 
 import picocli.CommandLine.Option;
@@ -63,7 +63,7 @@ public class ExportShapefileParameters {
 	@Option(names= {"-split_size"}, paramLabel="bytes",
 			description="Shapefile split size string (eg. '128mb')")
 	public ExportShapefileParameters splitSize(String splitSize) {
-		return splitSize(UnitUtils.parseByteSize(splitSize));
+		return splitSize(ByteSizes.parse(splitSize));
 	}
 	
 	public ExportShapefileParameters splitSize(long splitSize) {

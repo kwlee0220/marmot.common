@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import com.google.common.collect.Maps;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 
 import marmot.optor.StoreDataSetOptions;
 
@@ -73,7 +73,7 @@ public class StoreDataSetParameters {
 		m_params.put(BLOCK_SIZE, ""+nbytes);
 	}
 	public void blockSize(String nbytesStr) {
-		long nbytes = UnitUtils.parseByteSize(nbytesStr);
+		long nbytes = ByteSizes.parse(nbytesStr);
 		m_params.put(BLOCK_SIZE, ""+nbytes);
 	}
 	public void blockSize(Optional<Long> nbytes) {

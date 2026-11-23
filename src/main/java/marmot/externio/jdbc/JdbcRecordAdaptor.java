@@ -303,10 +303,10 @@ public abstract class JdbcRecordAdaptor {
 						pstmt.setLong(idx, LocalDateTimes.toEpochMilli((LocalDateTime)value, ZoneOffset.UTC));
 						break;
 					case DATE:
-						pstmt.setLong(idx, LocalDates.toEpochMilli((LocalDate)value, ZoneOffset.UTC));
+						pstmt.setLong(idx, LocalDates.startOfDayEpochMilli((LocalDate)value, ZoneOffset.UTC));
 						break;
 					case TIME:
-						pstmt.setString(idx, LocalTimes.toString((LocalTime)value));
+						pstmt.setString(idx, LocalTimes.format((LocalTime)value));
 						break;
 					case BOOLEAN:
 						pstmt.setBoolean(idx, (Boolean)value);

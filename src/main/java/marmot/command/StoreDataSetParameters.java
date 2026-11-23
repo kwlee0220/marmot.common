@@ -2,7 +2,7 @@ package marmot.command;
 
 import java.util.Optional;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 
 import marmot.dataset.GeometryColumnInfo;
 import marmot.optor.CreateDataSetOptions;
@@ -77,7 +77,7 @@ public class StoreDataSetParameters {
 
 	@Option(names={"-b", "-block_size"}, paramLabel="nbyte", description="block size (eg: '64mb')")
 	public void setBlockSize(String blockSizeStr) {
-		setBlockSize(UnitUtils.parseByteSize(blockSizeStr));
+		setBlockSize(ByteSizes.parse(blockSizeStr));
 	}
 	
 	public void setBlockSize(long blockSize) {

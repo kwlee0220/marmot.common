@@ -24,7 +24,7 @@ import org.locationtech.jts.geom.Polygon;
 import com.google.gson.stream.JsonWriter;
 
 import utils.Preconditions;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 
 import marmot.Column;
@@ -40,7 +40,7 @@ import marmot.support.DefaultRecord;
  * @author Kang-Woo Lee (ETRI)
  */
 public class GeoJsonRecordSetWriter implements RecordSetWriter {
-	private static final int DEFAULT_BUFFER_SIZE = (int)UnitUtils.parseByteSize("64kb");
+	private static final int DEFAULT_BUFFER_SIZE = (int)ByteSizes.parse("64kb");
 	
 	private final BufferedWriter m_writer;
 	private String m_geomCol;

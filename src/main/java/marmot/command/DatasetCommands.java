@@ -17,7 +17,7 @@ import org.apache.commons.io.FileUtils;
 import utils.PicocliSubCommand;
 import utils.Preconditions;
 import utils.StopWatch;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.rx.ProgressiveExecution;
 import utils.func.Nullables;
 
@@ -210,7 +210,7 @@ public class DatasetCommands {
 			else {
 				System.out.println("COUNT        : unknown");
 			}
-			System.out.println("SIZE         : " + UnitUtils.toByteSizeString(ds.length()));
+			System.out.println("SIZE         : " + ByteSizes.format(ds.length()));
 			if ( ds.hasGeometryColumn() ) {
 				System.out.println("GEOMETRY     : " + ds.getGeometryColumnInfo().name());
 				System.out.println("SRID         : " + ds.getGeometryColumnInfo().srid());
@@ -221,7 +221,7 @@ public class DatasetCommands {
 			if ( ds.isSpatiallyClustered() ) {
 				System.out.println("SPATIAL CLUSTERS: " + ds.getClusterQuadKeyAll().size());
 			}
-			System.out.println("BLOCK_SIZE   : " + UnitUtils.toByteSizeString(ds.getBlockSize()));
+			System.out.println("BLOCK_SIZE   : " + ByteSizes.format(ds.getBlockSize()));
 			
 			SpatialIndexInfo idxInfo = ds.getSpatialIndexInfo().getOrNull();
 			System.out.printf ("SPATIAL INDEX: %s%n", (idxInfo != null)

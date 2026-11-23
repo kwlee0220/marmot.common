@@ -1,5 +1,6 @@
 package marmot.command;
 
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -11,7 +12,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import utils.PicocliSubCommand;
-import utils.UnitUtils;
+import utils.Durations;
 import utils.stream.FStream;
 
 import marmot.MarmotRuntime;
@@ -59,7 +60,7 @@ public class MarmotExecutionCommands {
 		@Override
 		public void run(MarmotRuntime initialContext) throws Exception {
 			if ( m_recurPeriod != null ) {
-				long period = UnitUtils.parseDuration(m_recurPeriod,"ms").toMillis();
+				long period = Durations.parse(m_recurPeriod, ChronoUnit.MILLIS).toMillis();
 				ScheduledExecutorService exector = Executors.newSingleThreadScheduledExecutor();
 				exector.scheduleAtFixedRate(()-> {
 					show(initialContext);
@@ -74,7 +75,7 @@ public class MarmotExecutionCommands {
 		private void show(MarmotRuntime marmot) {
 			List<MarmotExecution> execList = marmot.getMarmotExecutionAll();
 			if ( m_timeSpanStr != null ) {
-				long dur = UnitUtils.parseDuration(m_timeSpanStr,"ms").toMillis();
+				long dur = Durations.parse(m_timeSpanStr, ChronoUnit.MILLIS).toMillis();
 				long now = System.currentTimeMillis();
 				execList = FStream.from(execList)
 									.filter(exec -> exec.isRunning() || (now - exec.getFinishedTime()) < dur)

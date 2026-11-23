@@ -17,7 +17,7 @@ import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.subjects.BehaviorSubject;
 
 import utils.Preconditions;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.rx.ProgressReporter;
 
 import marmot.Column;
@@ -35,7 +35,7 @@ import marmot.type.DataType;
  */
 public class CsvRecordWriter implements RecordWriter, ProgressReporter<Long> {
 	private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
-	private static final int DEFAULT_BUFFER_SIZE = (int)UnitUtils.parseByteSize("64kb");
+	private static final int DEFAULT_BUFFER_SIZE = (int)ByteSizes.parse("64kb");
 
 	private final CSVPrinter m_printer;
 	private final RecordSchema m_schema;

@@ -14,7 +14,7 @@ import com.google.common.collect.Lists;
 
 import utils.CSV;
 import utils.Preconditions;
-import utils.UnitUtils;
+import utils.ByteSizes;
 import utils.func.FOption;
 import utils.stream.FStream;
 
@@ -193,12 +193,12 @@ public class ClusterSpatiallyOptions implements PBSerializable<ClusterSpatiallyO
 			builder.append("quadkey_ds=" + m_quadKeyDsId + ",");
 		}
 		else if ( m_sampleSize > 0 ) {
-			builder.append("sample_size=" + UnitUtils.toByteSizeString(m_sampleSize) + ",");
+			builder.append("sample_size=" + ByteSizes.format(m_sampleSize) + ",");
 		}
 		m_clusterSize.ifPresent(size -> builder.append(String.format("cluster_size=%s,",
-								UnitUtils.toByteSizeString(size))));
+								ByteSizes.format(size))));
 		m_blockSize.ifPresent(size -> builder.append(String.format("block=%s,",
-													UnitUtils.toByteSizeString(size))));
+													ByteSizes.format(size))));
 		m_partitionCount.ifPresent(count -> builder.append(String.format("partitions=%d,", count)));
 		
 		if ( builder.length() > 0 ) {

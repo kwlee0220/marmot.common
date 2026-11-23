@@ -8,7 +8,7 @@ import java.time.ZoneOffset;
 import javax.annotation.concurrent.GuardedBy;
 
 import utils.LocalDateTimes;
-import utils.UnitUtils;
+import utils.Durations;
 import utils.thread.Guard;
 import utils.func.FOption;
 
@@ -192,7 +192,7 @@ public class PBMarmotExecutionProxy implements MarmotExecution {
 		long elapsed = ( state == State.RUNNING )
 					? System.currentTimeMillis() - m_info.getStartedTime()
 					: m_info.getFinishedTime() - m_info.getStartedTime();
-		String elapsedStr = UnitUtils.toSecondString(elapsed);
+		String elapsedStr = Durations.formatShort(elapsed);
 
 		LocalDateTime startedStr = LocalDateTimes.fromEpochMilli(m_info.getStartedTime(), ZoneOffset.UTC);
 		return String.format("%10s: %9s%s%s, started=%s, elapsed=%s", getId(), state,

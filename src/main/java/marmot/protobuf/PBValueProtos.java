@@ -92,7 +92,7 @@ public class PBValueProtos {
 				builder.setDateValue(((Date)obj).getTime());
 				break;
 			case TIME:
-				builder.setTimeValue(LocalTimes.toString((LocalTime)obj));
+				builder.setTimeValue(LocalTimes.format((LocalTime)obj));
 				break;
 			case INTERVAL:
 				builder.setIntervalValue(PBUtils.toProto((Interval)obj));

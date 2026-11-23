@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.Optional;
 
-import utils.UnitUtils;
+import utils.ByteSizes;
 
 import marmot.dataset.GeometryColumnInfo;
 import marmot.io.MarmotFileWriteOptions;
@@ -103,7 +103,7 @@ public class StoreDataSetOptions implements PBSerializable<StoreDataSetOptionsPr
 		return new StoreDataSetOptions(m_createOpts.blockSize(blkSize), m_append, m_partitionId);
 	}
 	public StoreDataSetOptions blockSize(String blkSizeStr) {
-		return blockSize(UnitUtils.parseByteSize(blkSizeStr));
+		return blockSize(ByteSizes.parse(blkSizeStr));
 	}
 	
 	public Optional<String> compressionCodecName() {
